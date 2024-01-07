@@ -78,7 +78,7 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 * **SkullCrusher** *(This Mod is directly based from SkullCrusher's LethalLib' Fork and could have been made without it's pre-existing foundations.)*
 * **HolographicWings** *(This Mod was inspired by LethalExpansion and could not have been made without HolographicWing's support and research.)*
 * **KayNetsua** *(This Mod was internally tested using KayNetsua's "E Gypt" Custom Level and KayNetsua assisted in testing LethalLevelLoader's usage)*
-* **Badhamknibbs** *(This Mod was internally tested using Badhamknibb's "SCP Foundation" Custom Dungeon and Badhamknibbs assisted in testing LethalLevelLoader's usage)*
+* **Badhamknibb** *(This Mod was internally tested using Badhamknibb's "SCP Foundation" Custom Dungeon and Badhamknibb's assisted in testing LethalLevelLoader's usage)*
 * **Scoopy** *(This Mod was internally tested using Scoopy's "LethalExtension Castle" Custom Dungeon and Scoopy assisted in testing LethalLevelLoader's usage)*
 * **Xilo** *(Xilo provided multiple instances of Bepinex & Unity.Netcode related support during the development of this Mod.)*
 * **Lordfirespeed** *(Lordfirespeed provided multiple instances of Bepinex & Unity.Netcode related support during the development of this Mod.)*
