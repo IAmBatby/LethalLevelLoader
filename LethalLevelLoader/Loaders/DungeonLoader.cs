@@ -1,5 +1,6 @@
 ﻿using DunGen;
 using HarmonyLib;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -23,6 +24,7 @@ namespace LethalLevelLoader
     {
         [HarmonyPatch(typeof(DungeonGenerator), "Generate")]
         [HarmonyPrefix]
+        [HarmonyPriority(0)]
         public static void Generate_Prefix(DungeonGenerator __instance)
         {
             DebugHelper.Log("Started To Prefix Patch DungeonGenerator Generate!");

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    [CreateAssetMenu(menuName = "LethalLib/DungeonPreferences")]
+    [CreateAssetMenu(menuName = "LethalLevelLoader/DungeonPreferences")]
     public class ExtendedDungeonPreferences : ScriptableObject
     {
         [Header("Dynamic Level List Settings")]

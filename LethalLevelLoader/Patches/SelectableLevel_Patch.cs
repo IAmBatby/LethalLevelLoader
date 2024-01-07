@@ -14,20 +14,27 @@ namespace LethalLevelLoader
 
         [HarmonyPatch(typeof(RoundManager), "Start")]
         [HarmonyPrefix]
+        [HarmonyPriority(0)]
         public static void RoundManager_Start(RoundManager __instance)
         {
-            PatchVanillaLevelLists();
+            if (Plugin.hasVanillaBeenPatched == false)
+            {
+                PatchVanillaLevelLists();
 
-            foreach (ExtendedLevel customLevel in customLevelsList)
-                AssetBundleLoader.RestoreVanillaLevelAssetReferences(customLevel);
+                Terminal_Patch.TryPatchMoonsCatalogue();
 
-            foreach (ExtendedDungeonFlow customDungeonFlow in DungeonFlow_Patch.customDungeonFlowsList)
-                AssetBundleLoader.RestoreVanillaDungeonAssetReferences(customDungeonFlow);
+                foreach (ExtendedLevel customLevel in customLevelsList)
+                    AssetBundleLoader.RestoreVanillaLevelAssetReferences(customLevel);
+
+                foreach (ExtendedDungeonFlow customDungeonFlow in DungeonFlow_Patch.customDungeonFlowsList)
+                    AssetBundleLoader.RestoreVanillaDungeonAssetReferences(customDungeonFlow);
+
+                Plugin.hasVanillaBeenPatched = true;
+            }
         }
 
         public static void AddSelectableLevel(ExtendedLevel extendedLevel)
         {
-            DebugHelper.Log("Adding Selectable Level: " + extendedLevel.NumberlessPlanetName);
             if (extendedLevel.levelType == ContentType.Custom)
                 customLevelsList.Add(extendedLevel);
             else

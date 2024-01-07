@@ -13,7 +13,7 @@ namespace LethalLevelLoader
 
         public static void Log(string log)
         {
-            string logString = "LethalLib (" + logAuthor + "): ";
+            string logString = "LethalLevelLoader: ";
             logString += log;
             Debug.Log(logString);
         }

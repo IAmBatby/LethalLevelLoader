@@ -45,7 +45,22 @@ namespace LethalLevelLoader
                     return (null);
             }
         }
-        
+
+        public static List<ExtendedLevel> patchedList;
+
+        public static void TryPatchMoonsCatalogue()
+        {
+            patchedList = new List<ExtendedLevel>(SelectableLevel_Patch.vanillaLevelsList);
+
+            patchedList.RemoveAt(3);
+            patchedList.Insert(3, patchedList[6]);
+            patchedList.RemoveAt(7);
+            patchedList.Insert(5, null);
+
+            foreach (ExtendedLevel customLevel in SelectableLevel_Patch.customLevelsList)
+                patchedList.Add(customLevel);
+        }
+
         //This is some abslolute super arbitary wizardry to replicate basegame >moons command
         //This is also where we add our custom moons into the list
         [HarmonyPatch(typeof(Terminal), "TextPostProcess")]
@@ -56,15 +71,7 @@ namespace LethalLevelLoader
             {
                 modifiedDisplayText = "Welcome to the exomoons catalogue.\r\nTo route the autopilot to a moon, use the word ROUTE.\r\nTo learn about any moon, use the word INFO.\r\n____________________________\r\n\r\n* The Company building   //   Buying at [companyBuyingPercent].\r\n\r\n";
 
-                List<ExtendedLevel> tweakedVanillaLevelsList = new List<ExtendedLevel>(SelectableLevel_Patch.vanillaLevelsList);
-
-                tweakedVanillaLevelsList.RemoveAt(3);
-                tweakedVanillaLevelsList.Insert(3, tweakedVanillaLevelsList[6]);
-                tweakedVanillaLevelsList.RemoveAt(7);
-                tweakedVanillaLevelsList.Insert(5, null);
-
-                modifiedDisplayText += GetMoonCatalogDisplayListings(tweakedVanillaLevelsList);
-                modifiedDisplayText += GetMoonCatalogDisplayListings(SelectableLevel_Patch.customLevelsList);
+                modifiedDisplayText += GetMoonCatalogDisplayListings(patchedList);
                 modifiedDisplayText += "\r\n";
             }
         }
@@ -119,8 +126,6 @@ namespace LethalLevelLoader
         {
             TerminalKeyword tempRouteKeyword = GetTerminalKeywordFromIndex(26);
             TerminalKeyword tempInfoKeyword = GetTerminalKeywordFromIndex(6);
-            DebugHelper.Log("Temp Route Keyword Is: " + (tempRouteKeyword != null).ToString());
-            DebugHelper.Log("Temp Route Keyword Is: " + (tempInfoKeyword != null).ToString());
 
 
             TerminalKeyword terminalKeyword = ScriptableObject.CreateInstance<TerminalKeyword>();

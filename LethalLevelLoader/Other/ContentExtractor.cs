@@ -19,48 +19,52 @@ namespace LethalLevelLoader
 
         [HarmonyPatch(typeof(StartOfRound), "Awake")]
         [HarmonyPrefix]
+        [HarmonyPriority(0)]
         public static void TryScrapeVanillaContent(StartOfRound __instance)
         {
-            StartOfRound startOfRound = __instance;
-            if (startOfRound != null)
+            if (Plugin.hasVanillaBeenPatched == false)
             {
-                foreach (Item item in startOfRound.allItemsList.itemsList)
+                StartOfRound startOfRound = __instance;
+                if (startOfRound != null)
                 {
-                    if (!vanillaItemsList.Contains(item))
-                        vanillaItemsList.Add(item);
+                    foreach (Item item in startOfRound.allItemsList.itemsList)
+                    {
+                        if (!vanillaItemsList.Contains(item))
+                            vanillaItemsList.Add(item);
 
-                    if (item.spawnPrefab != null)
-                        TryExtractAudioMixerGroups(item.spawnPrefab.GetComponentsInChildren<AudioSource>());
+                        if (item.spawnPrefab != null)
+                            TryExtractAudioMixerGroups(item.spawnPrefab.GetComponentsInChildren<AudioSource>());
+                    }
+
+                    foreach (SelectableLevel selectableLevel in startOfRound.levels)
+                    {
+                        foreach (SpawnableEnemyWithRarity enemyWithRarity in selectableLevel.Enemies)
+                            if (!vanillaEnemiesList.Contains(enemyWithRarity.enemyType))
+                                vanillaEnemiesList.Add(enemyWithRarity.enemyType);
+
+                        foreach (SpawnableEnemyWithRarity enemyWithRarity in selectableLevel.OutsideEnemies)
+                            if (!vanillaEnemiesList.Contains(enemyWithRarity.enemyType))
+                                vanillaEnemiesList.Add(enemyWithRarity.enemyType);
+
+                        foreach (SpawnableEnemyWithRarity enemyWithRarity in selectableLevel.DaytimeEnemies)
+                            if (!vanillaEnemiesList.Contains(enemyWithRarity.enemyType))
+                                vanillaEnemiesList.Add(enemyWithRarity.enemyType);
+
+                        foreach (SpawnableMapObject spawnableInsideObject in selectableLevel.spawnableMapObjects)
+                            if (!vanillaSpawnableInsideMapObjectsList.Contains(spawnableInsideObject.prefabToSpawn))
+                                vanillaSpawnableInsideMapObjectsList.Add(spawnableInsideObject.prefabToSpawn);
+
+
+                        foreach (SpawnableOutsideObjectWithRarity spawnableOutsideObject in selectableLevel.spawnableOutsideObjects)
+                            if (!vanillaSpawnableOutsideMapObjectsList.Contains(spawnableOutsideObject.spawnableObject))
+                                vanillaSpawnableOutsideMapObjectsList.Add(spawnableOutsideObject.spawnableObject);
+
+                        if (!vanillaAmbienceLibrariesList.Contains(selectableLevel.levelAmbienceClips))
+                            vanillaAmbienceLibrariesList.Add(selectableLevel.levelAmbienceClips);
+                    }
                 }
 
-                foreach (SelectableLevel selectableLevel in startOfRound.levels)
-                {
-                    foreach (SpawnableEnemyWithRarity enemyWithRarity in selectableLevel.Enemies)
-                        if (!vanillaEnemiesList.Contains(enemyWithRarity.enemyType))
-                            vanillaEnemiesList.Add(enemyWithRarity.enemyType);
-
-                    foreach (SpawnableEnemyWithRarity enemyWithRarity in selectableLevel.OutsideEnemies)
-                        if (!vanillaEnemiesList.Contains(enemyWithRarity.enemyType))
-                            vanillaEnemiesList.Add(enemyWithRarity.enemyType);
-
-                    foreach (SpawnableEnemyWithRarity enemyWithRarity in selectableLevel.DaytimeEnemies)
-                        if (!vanillaEnemiesList.Contains(enemyWithRarity.enemyType))
-                            vanillaEnemiesList.Add(enemyWithRarity.enemyType);
-
-                    foreach (SpawnableMapObject spawnableInsideObject in selectableLevel.spawnableMapObjects)
-                        if (!vanillaSpawnableInsideMapObjectsList.Contains(spawnableInsideObject.prefabToSpawn))
-                            vanillaSpawnableInsideMapObjectsList.Add(spawnableInsideObject.prefabToSpawn);
-                    
-
-                    foreach (SpawnableOutsideObjectWithRarity spawnableOutsideObject in selectableLevel.spawnableOutsideObjects)
-                        if (!vanillaSpawnableOutsideMapObjectsList.Contains(spawnableOutsideObject.spawnableObject))
-                            vanillaSpawnableOutsideMapObjectsList.Add(spawnableOutsideObject.spawnableObject);
-
-                    if (!vanillaAmbienceLibrariesList.Contains(selectableLevel.levelAmbienceClips))
-                        vanillaAmbienceLibrariesList.Add(selectableLevel.levelAmbienceClips);
-                }
             }
-
             DebugHelper.DebugScrapedVanillaContent();
         }
 

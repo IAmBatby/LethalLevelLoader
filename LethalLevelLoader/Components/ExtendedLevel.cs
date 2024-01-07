@@ -6,14 +6,14 @@ public enum ContentType { Vanilla, Custom, Any } //Any & All included for built 
 
 namespace LethalLevelLoader
 {
-    [CreateAssetMenu(menuName = "LethalLib/ExtendedLevel")]
+    [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedLevel")]
     public class ExtendedLevel : ScriptableObject
     {
         public SelectableLevel selectableLevel;
         public GameObject levelPrefab;
 
-        public ContentType levelType;
-        public string sourceName = "Lethal Company"; //Levels from AssetBundles will have this as their Assembly Name.
+        [HideInInspector] public ContentType levelType;
+        [HideInInspector] public string sourceName = "Lethal Company"; //Levels from AssetBundles will have this as their Assembly Name.
         public string NumberlessPlanetName => GetNumberlessPlanetName(selectableLevel);
         public int routePrice = 0;
         public ContentType allowedDungeonTypes = ContentType.Any;

@@ -3,7 +3,7 @@ using HarmonyLib;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Unity.Netcode;
-
+using System.Collections;
 
 namespace LethalLevelLoader
 {
@@ -11,6 +11,7 @@ namespace LethalLevelLoader
     {
         [HarmonyPatch(typeof(StartOfRound), "SceneManager_OnLoadComplete1")]
         [HarmonyPostfix]
+        [HarmonyPriority(0)]
         public static void OnLoadComplete1_Postfix()
         {
             if (SceneManager.GetSceneByName(SelectableLevel_Patch.injectionSceneName) != null)
@@ -21,6 +22,7 @@ namespace LethalLevelLoader
 
         [HarmonyPatch(typeof(RoundManager), "Update")]
         [HarmonyPrefix]
+        [HarmonyPriority(0)]
         public static void Update_Prefix(RoundManager __instance)
         {
             if (__instance.timeScript == null) //I don't know why but RoundManager loses it's TimeOfDay reference.

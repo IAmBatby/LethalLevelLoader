@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    [CreateAssetMenu(menuName = "LethalLib/ExtendedDungeonFlow")]
+    [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedDungeonFlow")]
     public class ExtendedDungeonFlow : ScriptableObject
     {
         public DungeonFlow dungeonFlow;

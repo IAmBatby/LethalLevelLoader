@@ -21,15 +21,20 @@ namespace LethalLevelLoader
         public static List<ExtendedLevel> obtainedExtendedLevelsList = new List<ExtendedLevel>();
         public static List<ExtendedDungeonFlow> obtainedExtendedDungeonFlowList = new List<ExtendedDungeonFlow>();
 
+        [HarmonyPriority(0)]
         [HarmonyPatch(typeof(StartOfRound), "Awake")]
         [HarmonyPrefix]
         public static void StartOfRoundAwake_Postfix(StartOfRound __instance)
         {
-            CreateVanillaExtendedDungeonFlows();
-            CreateVanillaExtendedLevels(__instance);
+            if (Plugin.hasVanillaBeenPatched == false)
+            {
+                CreateVanillaExtendedDungeonFlows();
+                CreateVanillaExtendedLevels(__instance);
+            }
             InitializeBundles();
         }
 
+        [HarmonyPriority(0)]
         [HarmonyPatch(typeof(GameNetworkManager), "Awake")]
         [HarmonyPrefix]
         public static void GameNetworkManagerAwake_Prefix()
