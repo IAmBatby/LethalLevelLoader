@@ -44,7 +44,7 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 * Automatic Custom SelectableLevel (Moon) Integration & Injection Via AssetBundles
 * Manual Custom DungeonFlow (Dungeon) Integration & Injection
 * Automatic TerminalKeyword & TerminalNode creation for Custom SelectableLevels’s
-* Automatic Injection Of DungeonFlows Into Current SelectableLevel Based On Level Tags, Author, Level Name & Route Price
+* Automatic Injection Of DungeonFlows Into SelectableLevel's Based On Level Tags, Author, Level Name & Route Price
 * Controllable Overriding Of Dungeon Size Multiplier
 * Automatic Custom SelectableLevel Content NetworkObject Registration
 * Manual Custom DungeonFlow Content NetworkObject Registration
