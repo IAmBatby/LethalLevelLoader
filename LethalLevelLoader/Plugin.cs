@@ -9,10 +9,11 @@ using UnityEngine;
 namespace LethalLevelLoader
 {
     [BepInPlugin(ModGUID, ModName, ModVersion)]
+    [BepInDependency(LethalLib.Plugin.ModGUID)]
     public class Plugin : BaseUnityPlugin {
         public const string ModGUID = "imabatby.lethallevelloader";
         public const string ModName = "LethalLevelLoader";
-        public const string ModVersion = "0.0.1";
+        public const string ModVersion = "1.0.0";
 
         public static AssetBundle MainAssets;
         private static readonly Harmony Harmony = new Harmony(ModGUID);
