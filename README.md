@@ -29,7 +29,7 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
   Simply install LethalLevelLoader and LethalLib.
 
 
-  If a mod using LethalLevelLoader supplies a .lethalbundle file, LethalLevelLoader will automatically find and load it’s content as long as it’s in the /plugins/ folder (Subfolders will be detected)
+  If a mod using **LethalLevelLoader** supplies a **.lethalbundle** file, **LethalLevelLoader** will automatically find and load it’s content as long as it’s in the /plugins/ folder (Subfolders will be detected)
 
 **How To Use (Modders / Developers)**
 --
