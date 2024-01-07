@@ -2,6 +2,9 @@
 #
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
 #
+
+*.sln
+
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
@@ -10,7 +13,6 @@
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 /Properties/
-
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
@@ -72,7 +74,6 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 /Unity
-
 /LethalLevelLoader/bin
 /LethalLevelLoader/obj
 Unity/LethalCompanyProject/.vsconfig
