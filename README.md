@@ -35,7 +35,8 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 --
 
 
-  **_TODO_**
+  Please refer to the LethalLevelLoader Wiki for documentation on utalising this API for your custom content
+  https://github.com/IAmBatby/LethalLevelLoader/wiki
 
 **Features Currently Supported**
 --
