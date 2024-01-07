@@ -1,7 +1,7 @@
 **LethalLevelLoader**
 --
 
-**A Custom library to support the manual and dynamic integration of custom levels and dungeons in Lethal Company.**
+**A Custom API to support the manual and dynamic integration of custom levels and dungeons in Lethal Company.**
 
 **Thunderstore Link:**
 
@@ -12,10 +12,10 @@
 
 **PLEASE NOTE:** This Mod is currently very early in development. Use with the understanding that there will be issues that cannot be resolved until more practical testing and bug reporting occurs.
 
-**LethalLevelLoader** is a custom library to support the manual and dynamic integration of custom levels and dungeons in Lethal Company. 
+**LethalLevelLoader** is a custom API to support the manual and dynamic integration of custom levels and dungeons in Lethal Company. 
 Mod Developers can provide LethalLevelLoader with their custom content via code or via automatic assetbundle detection, From there LethalLevelLoader will seamlessly load it into the game.
 
-This Library is dependant on **LethalLib**, As it was originaly intended to be a direct update to Evaisa & SkullCrusher's mod. 
+This API is dependant on **LethalLib**, As it was originaly intended to be a direct update to Evaisa & SkullCrusher's mod. 
 It has temporaily been split into this secondary release to allow for more unstable releases, in order to stress test it's systems and collect bug reports from active developers and players.
 
 Currently all Item & Scrap related systems have not been implemented in this mod and should use LethalLib's systems instead.
