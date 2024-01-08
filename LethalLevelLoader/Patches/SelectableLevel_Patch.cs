@@ -14,10 +14,10 @@ namespace LethalLevelLoader
 
         [HarmonyPatch(typeof(RoundManager), "Start")]
         [HarmonyPrefix]
-        [HarmonyPriority(0)]
+        [HarmonyPriority(350)]
         public static void RoundManager_Start(RoundManager __instance)
         {
-            if (Plugin.hasVanillaBeenPatched == false)
+            if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
             {
                 PatchVanillaLevelLists();
 
@@ -29,7 +29,7 @@ namespace LethalLevelLoader
                 foreach (ExtendedDungeonFlow customDungeonFlow in DungeonFlow_Patch.customDungeonFlowsList)
                     AssetBundleLoader.RestoreVanillaDungeonAssetReferences(customDungeonFlow);
 
-                Plugin.hasVanillaBeenPatched = true;
+                LethalLevelLoaderPlugin.hasVanillaBeenPatched = true;
             }
         }
 

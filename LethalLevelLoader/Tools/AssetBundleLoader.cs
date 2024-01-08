@@ -12,21 +12,21 @@ namespace LethalLevelLoader
 {
     public static class AssetBundleLoader
     {
-        public static string specifiedFileExtension = string.Empty;
+        public const string specifiedFileExtension = "*.lethalbundle";
 
         public static DirectoryInfo lethalLibFile = new DirectoryInfo(Assembly.GetExecutingAssembly().Location);
         public static DirectoryInfo lethalLibFolder;
         public static DirectoryInfo pluginsFolder;
 
         public static List<ExtendedLevel> obtainedExtendedLevelsList = new List<ExtendedLevel>();
-        public static List<ExtendedDungeonFlow> obtainedExtendedDungeonFlowList = new List<ExtendedDungeonFlow>();
+        public static List<ExtendedDungeonFlow> obtainedExtendedDungeonFlowsList = new List<ExtendedDungeonFlow>();
 
-        [HarmonyPriority(0)]
+        [HarmonyPriority(350)]
         [HarmonyPatch(typeof(StartOfRound), "Awake")]
         [HarmonyPrefix]
         public static void StartOfRoundAwake_Postfix(StartOfRound __instance)
         {
-            if (Plugin.hasVanillaBeenPatched == false)
+            if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
             {
                 CreateVanillaExtendedDungeonFlows();
                 CreateVanillaExtendedLevels(__instance);
@@ -34,15 +34,15 @@ namespace LethalLevelLoader
             InitializeBundles();
         }
 
-        [HarmonyPriority(0)]
-        [HarmonyPatch(typeof(GameNetworkManager), "Awake")]
+        [HarmonyPriority(350)]
+        [HarmonyPatch(typeof(GameNetworkManager), "Start")]
         [HarmonyPrefix]
-        public static void GameNetworkManagerAwake_Prefix()
+        public static void GameNetworkManagerStart_Prefix()
         {
             DebugHelper.Log("Registering Bundle Content!");
 
-            //foreach (ExtendedDungeonFlow extendedDungeonFlow in obtainedExtendedDungeonFlowList)
-            //RegisterDungeonContent(extendedDungeonFlow.dungeonFlow);
+            foreach (ExtendedDungeonFlow extendedDungeonFlow in obtainedExtendedDungeonFlowsList)
+                RegisterDungeonContent(extendedDungeonFlow.dungeonFlow);
 
             foreach (ExtendedLevel extendedLevel in obtainedExtendedLevelsList)
                 RegisterCustomLevelNetworkObjects(extendedLevel);
@@ -52,7 +52,6 @@ namespace LethalLevelLoader
         {
             lethalLibFolder = lethalLibFile.Parent;
             pluginsFolder = lethalLibFile.Parent.Parent;
-            specifiedFileExtension = "*.lethalbundle";
 
             foreach (string file in Directory.GetFiles(pluginsFolder.FullName, specifiedFileExtension, SearchOption.AllDirectories))
                 LoadBundle(file);
@@ -73,6 +72,11 @@ namespace LethalLevelLoader
 
         public static void InitializeBundles()
         {
+            foreach (ExtendedDungeonFlow extendedDungeonFlow in obtainedExtendedDungeonFlowsList)
+            {
+                extendedDungeonFlow.Initialize(ContentType.Custom);
+                DungeonFlow_Patch.AddExtendedDungeonFlow(extendedDungeonFlow);
+            }
             foreach (ExtendedLevel extendedLevel in obtainedExtendedLevelsList)
             {
                 extendedLevel.Initialize(ContentType.Custom, generateTerminalAssets: true);
@@ -80,6 +84,16 @@ namespace LethalLevelLoader
                 WarmUpBundleShaders(extendedLevel);
             }
             //DebugHelper.DebugAllLevels();
+        }
+
+        public static void RegisterExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
+        {
+            obtainedExtendedDungeonFlowsList.Add(extendedDungeonFlow);
+        }
+
+        public static void RegisterExtendedLevel(ExtendedLevel extendedLevel)
+        {
+            obtainedExtendedLevelsList.Add(extendedLevel);
         }
 
         public static void CreateVanillaExtendedLevels(StartOfRound startOfRound)
@@ -113,7 +127,12 @@ namespace LethalLevelLoader
             foreach (DungeonFlow dungeonFlow in RoundManager.Instance.dungeonFlowTypes)
             {
                 ExtendedDungeonFlow extendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
-                extendedDungeonFlow.Initialize(dungeonFlow, null, ContentType.Vanilla, "Lethal Company");
+
+                extendedDungeonFlow.dungeonFlow = dungeonFlow;
+                extendedDungeonFlow.contentSourceName = "Lethal Company";
+                extendedDungeonFlow.dungeonFirstTimeAudio = null;
+                extendedDungeonFlow.Initialize(ContentType.Vanilla);
+
                 DungeonFlow_Patch.AddExtendedDungeonFlow(extendedDungeonFlow);
                 //Gotta assign the right audio later.
             }
@@ -241,7 +260,7 @@ namespace LethalLevelLoader
 
             foreach (IntWithRarity intWithRarity in vanillaLevel.selectableLevel.dungeonFlowTypes)
                 if (DungeonFlow_Patch.TryGetExtendedDungeonFlow(RoundManager.Instance.dungeonFlowTypes[intWithRarity.id], out ExtendedDungeonFlow extendedDungeonFlow))
-                    extendedDungeonFlow.extendedDungeonPreferences.manualLevelNameReferenceList.Add(new StringWithRarity(vanillaLevel.NumberlessPlanetName, intWithRarity.rarity));
+                    extendedDungeonFlow.manualPlanetNameReferenceList.Add(new StringWithRarity(vanillaLevel.NumberlessPlanetName, intWithRarity.rarity));
 
             if (vanillaLevel.NumberlessPlanetName == "Experimentation")
                 vanillaLevel.levelTags.Add("Wasteland");

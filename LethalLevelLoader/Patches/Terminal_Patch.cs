@@ -29,6 +29,18 @@ namespace LethalLevelLoader
             }
         }
 
+        //We cache this because we directly get from it via Index so we don't want other mods changing the list.
+        private static List<TerminalKeyword> _cachedAllTerminalKeywordsList;
+        public static List<TerminalKeyword> AllTerminalKeywordsList
+        {
+            get
+            {
+                if (Terminal != null && _cachedAllTerminalKeywordsList == null)
+                    _cachedAllTerminalKeywordsList = Terminal.terminalNodes.allKeywords.ToList();
+                return (_cachedAllTerminalKeywordsList);
+            }
+        }
+
         //Hardcoded References To Important Base-Game TerminalKeywords;
         public static TerminalKeyword RouteKeyword => GetTerminalKeywordFromIndex(26);
         public static TerminalKeyword InfoKeyword => GetTerminalKeywordFromIndex(6);
@@ -89,14 +101,14 @@ namespace LethalLevelLoader
             {
                 if (extendedLevel != null)
                 {
-                    if (previousLevelSource != string.Empty && previousLevelSource != extendedLevel.sourceName)
+                    if (previousLevelSource != string.Empty && previousLevelSource != extendedLevel.contentSourceName)
                     {
                         returnString += "\n";
                         seperationCount = 0;
                     }
 
                     returnString += "* " + extendedLevel.NumberlessPlanetName + " " + GetMoonConditions(extendedLevel.selectableLevel) + "\n";
-                    previousLevelSource = extendedLevel.sourceName;
+                    previousLevelSource = extendedLevel.contentSourceName;
                 }
 
                 seperationCount++;
@@ -230,7 +242,7 @@ namespace LethalLevelLoader
         public static TerminalKeyword GetTerminalKeywordFromIndex(int index)
         {
             if (Terminal != null)
-                return (Terminal.terminalNodes.allKeywords[index]);
+                return (AllTerminalKeywordsList[index]);
             else
                 return (null);
         }

@@ -20,7 +20,7 @@ namespace LethalLevelLoader
 
         [HarmonyPatch(typeof(GameNetworkManager), "Start")]
         [HarmonyPrefix]
-        [HarmonyPriority(0)]
+        [HarmonyPriority(350)]
         private static void GameNetworkManager_Start(GameNetworkManager __instance)
         {
             DebugHelper.Log("Game NetworkManager Start");

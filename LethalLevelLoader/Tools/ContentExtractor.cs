@@ -19,10 +19,10 @@ namespace LethalLevelLoader
 
         [HarmonyPatch(typeof(StartOfRound), "Awake")]
         [HarmonyPrefix]
-        [HarmonyPriority(0)]
+        [HarmonyPriority(350)]
         public static void TryScrapeVanillaContent(StartOfRound __instance)
         {
-            if (Plugin.hasVanillaBeenPatched == false)
+            if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
             {
                 StartOfRound startOfRound = __instance;
                 if (startOfRound != null)

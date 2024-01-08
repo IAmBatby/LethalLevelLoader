@@ -5,15 +5,16 @@ using System.Security.Permissions;
 using Unity.Netcode;
 using UnityEngine;
 
-[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 namespace LethalLevelLoader
 {
     [BepInPlugin(ModGUID, ModName, ModVersion)]
     [BepInDependency(LethalLib.Plugin.ModGUID)]
-    public class Plugin : BaseUnityPlugin {
+    public class LethalLevelLoaderPlugin : BaseUnityPlugin {
         public const string ModGUID = "imabatby.lethallevelloader";
         public const string ModName = "LethalLevelLoader";
         public const string ModVersion = "1.0.0";
+
+        public static LethalLevelLoaderPlugin Instance;
 
         public static AssetBundle MainAssets;
         private static readonly Harmony Harmony = new Harmony(ModGUID);
@@ -25,7 +26,11 @@ namespace LethalLevelLoader
         public ConfigEntry<bool> enableAllCustomDungeonsOnAllLevels;
         public ConfigEntry<int> overrideAllCustomMoonRarities;
 
-        private void Awake() {
+        private void Awake()
+        {
+            if (Instance == null)
+                Instance = this;
+
             logger = Logger;
 
             Logger.LogInfo($"LethalLevelLoader loaded!!");
@@ -44,9 +49,6 @@ namespace LethalLevelLoader
             Harmony.PatchAll(typeof(DebugOrderOfExecution));
 
             AssetBundleLoader.FindBundles();
-
-            //enableAllCustomDungeonsOnAllLevels = Config.Bind("General", "EnableCustomDungeonsOnAllMoons", false, new ConfigDescription("If enabled, All loaded custom dungeons will be added to the randomisation pools of every level. the rarity setting below controls their chances."));
-           //overrideAllCustomMoonRarities = Config.Bind("General", "EnableCustomDungeonsOnAllMoonsRarityOverride", 100, new ConfigDescription("The rarity setting applied to all custom dungeons if the previous bool is enabled.", new AcceptableValueRange<int>(0, 300)));
         }
     }
 }

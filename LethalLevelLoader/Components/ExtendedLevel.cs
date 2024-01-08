@@ -9,15 +9,22 @@ namespace LethalLevelLoader
     [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedLevel")]
     public class ExtendedLevel : ScriptableObject
     {
+        [Header("Extended Level Settings")]
+        [Space(5)]
+        public string contentSourceName = "Lethal Company"; //Levels from AssetBundles will have this as their Assembly Name.
+        [Space(5)]
         public SelectableLevel selectableLevel;
         public GameObject levelPrefab;
+        [Space(5)]
+        public int routePrice = 0;
+
+        [Space(10)]
+        [Header("Dynamic DungeonFlow Injections Settings")]
+        [Space(5)] public ContentType allowedDungeonContentTypes = ContentType.Any;
+        [Space(5)] public List<string> levelTags = new List<string>();
 
         [HideInInspector] public ContentType levelType;
-        [HideInInspector] public string sourceName = "Lethal Company"; //Levels from AssetBundles will have this as their Assembly Name.
-        public string NumberlessPlanetName => GetNumberlessPlanetName(selectableLevel);
-        public int routePrice = 0;
-        public ContentType allowedDungeonTypes = ContentType.Any;
-        public List<string> levelTags = new List<string>();
+        [HideInInspector] public string NumberlessPlanetName => GetNumberlessPlanetName(selectableLevel);
 
         public void Initialize(ContentType newLevelType, SelectableLevel newSelectableLevel = null, int newRoutePrice = 0, bool generateTerminalAssets = false, GameObject newLevelPrefab = null, string newSourceName = "Lethal Company")
         {
@@ -26,8 +33,8 @@ namespace LethalLevelLoader
             if (selectableLevel == null)
                 selectableLevel = newSelectableLevel;
 
-            if (sourceName != newSourceName)
-                sourceName = newSourceName;
+            if (contentSourceName != newSourceName)
+                contentSourceName = newSourceName;
 
 
             levelType = newLevelType;

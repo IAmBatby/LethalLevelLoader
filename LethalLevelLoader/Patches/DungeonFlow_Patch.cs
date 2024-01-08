@@ -10,17 +10,14 @@ namespace LethalLevelLoader
         public static List<ExtendedDungeonFlow> vanillaDungeonFlowsList = new List<ExtendedDungeonFlow>();
         public static List<ExtendedDungeonFlow> customDungeonFlowsList = new List<ExtendedDungeonFlow>();
 
-        public static void CreateExtendedDungeonFlow(DungeonFlow dungeon, int defaultRarity, string sourceName, ExtendedDungeonPreferences dungeonPreferences = null, AudioClip firstTimeDungeonAudio = null)
+        public static void CreateExtendedDungeonFlow(DungeonFlow dungeon, int defaultRarity, string sourceName, AudioClip firstTimeDungeonAudio = null)
         {
-            ExtendedDungeonFlow extendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
+            ExtendedDungeonFlow newExtendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
+            newExtendedDungeonFlow.dungeonFlow = dungeon;
+            newExtendedDungeonFlow.dungeonFirstTimeAudio = firstTimeDungeonAudio;
+            newExtendedDungeonFlow.dungeonRarity = defaultRarity;
 
-            if (dungeonPreferences == null)
-                extendedDungeonFlow.extendedDungeonPreferences = ScriptableObject.CreateInstance<ExtendedDungeonPreferences>();
-            else
-                extendedDungeonFlow.extendedDungeonPreferences = dungeonPreferences;
-
-            extendedDungeonFlow.Initialize(dungeon, firstTimeDungeonAudio, ContentType.Custom, "sourceName", newDungeonRarity: defaultRarity);
-            AddExtendedDungeonFlow(extendedDungeonFlow);
+            AssetBundleLoader.obtainedExtendedDungeonFlowsList.Add(newExtendedDungeonFlow);
         }
 
         public static void AddExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
@@ -42,7 +39,7 @@ namespace LethalLevelLoader
 
             debugString = "\n" + "Trying To Find All Matching DungeonFlows" + "\n";
 
-            if (extendedLevel.allowedDungeonTypes == ContentType.Vanilla || extendedLevel.allowedDungeonTypes == ContentType.Any)
+            if (extendedLevel.allowedDungeonContentTypes == ContentType.Vanilla || extendedLevel.allowedDungeonContentTypes == ContentType.Any)
                 foreach (IntWithRarity intWithRarity in extendedLevel.selectableLevel.dungeonFlowTypes)
                     if (RoundManager.Instance.dungeonFlowTypes[intWithRarity.id] != null)
                         if (TryGetExtendedDungeonFlow(RoundManager.Instance.dungeonFlowTypes[intWithRarity.id], out ExtendedDungeonFlow outExtendedDungeonFlow, ContentType.Vanilla))
@@ -50,7 +47,7 @@ namespace LethalLevelLoader
 
 
 
-            if (extendedLevel.allowedDungeonTypes == ContentType.Custom || extendedLevel.allowedDungeonTypes == ContentType.Any)
+            if (extendedLevel.allowedDungeonContentTypes == ContentType.Custom || extendedLevel.allowedDungeonContentTypes == ContentType.Any)
                 foreach (ExtendedDungeonFlow customDungeonFlow in customDungeonFlowsList)
                     potentialExtendedDungeonFlowsList.Add(new ExtendedDungeonFlowWithRarity(customDungeonFlow, customDungeonFlow.dungeonRarity));
 
@@ -123,10 +120,10 @@ namespace LethalLevelLoader
         {
             rarity = extendedDungeonFlow.dungeonRarity;
 
-            foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.extendedDungeonPreferences.manualLevelSourceReferenceList)
-                if (stringWithRarity.name.Contains(extendedLevel.sourceName))
+            foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.manualContentSourceNameReferenceList)
+                if (stringWithRarity.Name.Contains(extendedLevel.contentSourceName))
                 {
-                    rarity = (int)stringWithRarity.rarity;
+                    rarity = stringWithRarity.Rarity;
                     return (true);
                 }
 
@@ -140,10 +137,10 @@ namespace LethalLevelLoader
         {
             rarity = extendedDungeonFlow.dungeonRarity;
 
-            foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.extendedDungeonPreferences.manualLevelNameReferenceList)
-                if (stringWithRarity.name.Contains(extendedLevel.NumberlessPlanetName))
+            foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.manualPlanetNameReferenceList)
+                if (stringWithRarity.Name.Contains(extendedLevel.NumberlessPlanetName))
                 {
-                    rarity = (int)stringWithRarity.rarity;
+                    rarity = stringWithRarity.Rarity;
                     return (true);
                 }
 
@@ -154,11 +151,11 @@ namespace LethalLevelLoader
         {
             rarity = extendedDungeonFlow.dungeonRarity;
 
-            foreach (Vector2WithRarity vectorWithRarity in extendedDungeonFlow.extendedDungeonPreferences.dynamicRoutePricesList)
+            foreach (Vector2WithRarity vectorWithRarity in extendedDungeonFlow.dynamicRoutePricesList)
             {
-                if ((extendedLevel.routePrice >= vectorWithRarity.min) && (extendedLevel.routePrice <= vectorWithRarity.max))
+                if ((extendedLevel.routePrice >= vectorWithRarity.Min) && (extendedLevel.routePrice <= vectorWithRarity.Max))
                 {
-                    rarity = vectorWithRarity.rarity;
+                    rarity = vectorWithRarity.Rarity;
                     return (true);
                 }
             }
@@ -172,10 +169,10 @@ namespace LethalLevelLoader
             rarity = extendedDungeonFlow.dungeonRarity;
 
             foreach (string levelTag in extendedLevel.levelTags)
-                foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.extendedDungeonPreferences.levelTagsList)
-                    if (stringWithRarity.name.Contains(levelTag))
+                foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.dynamicLevelTagsList)
+                    if (stringWithRarity.Name.Contains(levelTag))
                     {
-                        rarity = (int)stringWithRarity.rarity;
+                        rarity = (int)stringWithRarity.Rarity;
                         return (true);
                     }
 

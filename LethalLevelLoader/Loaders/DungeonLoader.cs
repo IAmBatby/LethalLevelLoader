@@ -24,7 +24,7 @@ namespace LethalLevelLoader
     {
         [HarmonyPatch(typeof(DungeonGenerator), "Generate")]
         [HarmonyPrefix]
-        [HarmonyPriority(0)]
+        [HarmonyPriority(350)]
         public static void Generate_Prefix(DungeonGenerator __instance)
         {
             DebugHelper.Log("Started To Prefix Patch DungeonGenerator Generate!");
@@ -74,12 +74,20 @@ namespace LethalLevelLoader
         public static void PatchDungeonSize(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel)
         {
             if (DungeonFlow_Patch.TryGetExtendedDungeonFlow(dungeonGenerator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
-                if (dungeonGenerator.LengthMultiplier > extendedDungeonFlow.extendedDungeonPreferences.sizeMultiplierMax)
+            {
+                if (dungeonGenerator.LengthMultiplier > extendedDungeonFlow.dungeonSizeMax)
                 {
-                    float newDungeonSize = Mathf.Lerp(extendedDungeonFlow.extendedDungeonPreferences.sizeMultiplierMax, extendedLevel.selectableLevel.factorySizeMultiplier, extendedDungeonFlow.extendedDungeonPreferences.sizeMultiplierClampPercentage);
+                    float newDungeonSize = Mathf.Lerp(extendedDungeonFlow.dungeonSizeMax, extendedLevel.selectableLevel.factorySizeMultiplier, extendedDungeonFlow.dungeonSizeLerpPercentage);
                     DebugHelper.Log(extendedLevel.NumberlessPlanetName + " Requested A Dungeon Size Of " + extendedLevel.selectableLevel.factorySizeMultiplier + ". This Value Exceeds The Dungeon's Supplied Maximum Size, Scaling It Down To " + newDungeonSize);
                     dungeonGenerator.LengthMultiplier = newDungeonSize * RoundManager.Instance.mapSizeMultiplier; //This is how vanilla does it.
                 }
+                else if (dungeonGenerator.LengthMultiplier < extendedDungeonFlow.dungeonSizeMin)
+                {
+                    float newDungeonSize = Mathf.Lerp(extendedLevel.selectableLevel.factorySizeMultiplier, extendedDungeonFlow.dungeonSizeMin, extendedDungeonFlow.dungeonSizeLerpPercentage);
+                    DebugHelper.Log(extendedLevel.NumberlessPlanetName + " Requested A Dungeon Size Of " + extendedLevel.selectableLevel.factorySizeMultiplier + ". This Value Exceeds The Dungeon's Supplied Minimum Size, Scaling It Down To " + newDungeonSize);
+                    dungeonGenerator.LengthMultiplier = newDungeonSize * RoundManager.Instance.mapSizeMultiplier; //This is how vanilla does it.
+                }
+            }
         }
 
         public static void PatchFireEscapes(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel, Scene scene)
