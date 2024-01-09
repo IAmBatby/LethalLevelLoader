@@ -86,6 +86,20 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 **Changelog**
 --
 
+**Version 1.0.3**
+
+* *Fixed issues caused by the v47 and v48 updates, specific changes will be listed below*
+* *Fixed an oversight were ExtendedDungeonFlow dungeonID's were not being assigned correctly*
+* *Changed ExtendedDungeonFlow.dungeonRarity variable name to ExtendedDungeonFlow.dungeonDefaultRarity for improved clarity*
+* *Moved Prefix Patch Targets From RoundManager to StartOfRound to account for the order of execution changes made in v47*
+* *Improved the EntranceTeleport patch to re-organise entranceID settings to avoid user error*
+* *Fixed an oversight were PatchDungeonSize() incorrectly checked if the compared values were identical*
+* *Moved a majority of public access modifiers to internal to prevent unintential use of internal classes*
+* *Fixed an issue were DungeonFlow SpawnSyncObject's were failing to restore their Vanilla reference*
+* *Changed ExtendedDungeonFlow.dungeonSizeMin and ExtendedDungeonFlow.dungeonSizeMaz to floats to improve usability*
+* *Changed the way the basegame's internal variables are patched to resolve an issue where leaving the game would corrupt saves*
+* *Improved debug logs for clarity*
+
 **Version 1.0.2**
 
 * *All Registering of Custom Content has been moved from the GameNetworkManager.Awake() Prefix to the GameNetworkManager.Start() Prefix to give developers safe access to Awake() if needed.*
