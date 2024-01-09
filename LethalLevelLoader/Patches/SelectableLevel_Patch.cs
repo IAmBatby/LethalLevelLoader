@@ -16,12 +16,12 @@ namespace LethalLevelLoader
         private static List<SelectableLevel> prePatchedMoonsCatalogueList = new List<SelectableLevel>();
         private static List<SelectableLevel> patchedMoonsCatalogueList = new List<SelectableLevel>();
 
-        public static string injectionSceneName = "InitSceneLaunchOptions";
+        internal static string injectionSceneName = "InitSceneLaunchOptions";
 
         [HarmonyPatch(typeof(StartOfRound), "Start")]
         [HarmonyPrefix]
         [HarmonyPriority(350)]
-        public static void StartOfRound_Start()
+        internal static void StartOfRound_Start()
         {
             if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
             {
@@ -40,7 +40,7 @@ namespace LethalLevelLoader
             PatchVanillaLevelLists();
         }
 
-        public static void AddSelectableLevel(ExtendedLevel extendedLevel)
+        internal static void AddSelectableLevel(ExtendedLevel extendedLevel)
         {
             if (extendedLevel.levelType == ContentType.Custom)
                 customLevelsList.Add(extendedLevel);
@@ -50,7 +50,7 @@ namespace LethalLevelLoader
             allLevelsList.Add(extendedLevel);
         }
 
-        public static void CreatePatchedLevelsList()
+        internal static void CreatePatchedLevelsList()
         {
             prePatchedLevelsList = new List<SelectableLevel>(StartOfRound.Instance.levels.ToList());
             patchedLevelsList = new List<SelectableLevel>(prePatchedLevelsList);
@@ -59,7 +59,7 @@ namespace LethalLevelLoader
                 patchedLevelsList.Add(extendedLevel.selectableLevel);
         }
 
-        public static void CreatePatchedMoonsCatalogueList()
+        internal static void CreatePatchedMoonsCatalogueList()
         {
             prePatchedMoonsCatalogueList = new List<SelectableLevel>(Terminal_Patch.Terminal.moonsCatalogueList);
             patchedMoonsCatalogueList = new List<SelectableLevel>(prePatchedMoonsCatalogueList);
@@ -68,7 +68,7 @@ namespace LethalLevelLoader
                 patchedMoonsCatalogueList.Add(extendedLevel.selectableLevel);
         }
 
-        public static void PatchVanillaLevelLists()
+        internal static void PatchVanillaLevelLists()
         {
             Terminal terminal = GameObject.FindAnyObjectByType<Terminal>();
             StartOfRound startOfRound = StartOfRound.Instance;

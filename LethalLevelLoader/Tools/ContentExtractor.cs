@@ -20,7 +20,7 @@ namespace LethalLevelLoader
         [HarmonyPatch(typeof(RoundManager), "Awake")]
         [HarmonyPrefix]
         [HarmonyPriority(350)]
-        public static void TryScrapeVanillaContent()
+        internal static void TryScrapeVanillaContent()
         {
             if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
             {
@@ -68,7 +68,7 @@ namespace LethalLevelLoader
             DebugHelper.DebugScrapedVanillaContent();
         }
 
-        public static void TryExtractAudioMixerGroups(AudioSource[] audioSources)
+        internal static void TryExtractAudioMixerGroups(AudioSource[] audioSources)
         {
             foreach (AudioSource audioSource in audioSources)
                 if (audioSource.outputAudioMixerGroup != null && !vanillaAudioMixerGroupsList.Contains(audioSource.outputAudioMixerGroup))

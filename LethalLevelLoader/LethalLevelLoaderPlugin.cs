@@ -8,10 +8,12 @@ using UnityEngine;
 namespace LethalLevelLoader
 {
     [BepInPlugin(ModGUID, ModName, ModVersion)]
-    public class LethalLevelLoaderPlugin : BaseUnityPlugin {
+    [BepInDependency(LethalLib.Plugin.ModGUID)]
+    internal class LethalLevelLoaderPlugin : BaseUnityPlugin
+    {
         public const string ModGUID = "imabatby.lethallevelloader";
         public const string ModName = "LethalLevelLoader";
-        public const string ModVersion = "1.0.0";
+        public const string ModVersion = "1.0.3";
 
         public static LethalLevelLoaderPlugin Instance;
 

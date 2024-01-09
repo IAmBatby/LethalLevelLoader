@@ -8,7 +8,7 @@ namespace LethalLevelLoader
     public class Terminal_Patch
     {
         private static Terminal _terminal;
-        public static Terminal Terminal
+        internal static Terminal Terminal
         {
             get
             {
@@ -31,7 +31,7 @@ namespace LethalLevelLoader
 
         //We cache this because we directly get from it via Index so we don't want other mods changing the list.
         private static List<TerminalKeyword> _cachedAllTerminalKeywordsList;
-        public static List<TerminalKeyword> AllTerminalKeywordsList
+        internal static List<TerminalKeyword> AllTerminalKeywordsList
         {
             get
             {
@@ -42,12 +42,12 @@ namespace LethalLevelLoader
         }
 
         //Hardcoded References To Important Base-Game TerminalKeywords;
-        public static TerminalKeyword RouteKeyword => GetTerminalKeywordFromIndex(26);
-        public static TerminalKeyword InfoKeyword => GetTerminalKeywordFromIndex(6);
-        public static TerminalKeyword ConfirmKeyword => GetTerminalKeywordFromIndex(3);
-        public static TerminalKeyword DenyKeyword => GetTerminalKeywordFromIndex(4);
+        internal static TerminalKeyword RouteKeyword => GetTerminalKeywordFromIndex(26);
+        internal static TerminalKeyword InfoKeyword => GetTerminalKeywordFromIndex(6);
+        internal static TerminalKeyword ConfirmKeyword => GetTerminalKeywordFromIndex(3);
+        internal static TerminalKeyword DenyKeyword => GetTerminalKeywordFromIndex(4);
         //This isn't anywhere easy to grab so we grab it from Vow's Route.
-        public static TerminalNode CancelRouteNode
+        internal static TerminalNode CancelRouteNode
         {
             get
             {
@@ -62,25 +62,18 @@ namespace LethalLevelLoader
         //This is also where we add our custom moons into the list
         [HarmonyPatch(typeof(Terminal), "TextPostProcess")]
         [HarmonyPrefix]
-        public static void TextPostProcess_PreFix(ref string modifiedDisplayText)
+        internal static void TextPostProcess_PreFix(ref string modifiedDisplayText)
         {
-            DebugHelper.Log("levels: " + StartOfRound.Instance.levels.Length);
-            DebugHelper.Log("currentlevel: " + StartOfRound.Instance.currentLevel);
-
             if (modifiedDisplayText.Contains("Welcome to the exomoons catalogue"))
             {
                 modifiedDisplayText = "Welcome to the exomoons catalogue.\r\nTo route the autopilot to a moon, use the word ROUTE.\r\nTo learn about any moon, use the word INFO.\r\n____________________________\r\n\r\n* The Company building   //   Buying at [companyBuyingPercent].\r\n\r\n";
-
-                modifiedDisplayText += GetMoonCatalogDisplayListings();
-                modifiedDisplayText += "\r\n";
+                modifiedDisplayText += GetMoonCatalogDisplayListings() + "\r\n";
             }
         }
 
         //This is some abslolute super arbitary wizardry to replicate basegame >moons command
-        public static string GetMoonCatalogDisplayListings()
+        internal static string GetMoonCatalogDisplayListings()
         {
-            
-            
             string returnString = string.Empty;
             string previousLevelSource = string.Empty;
 
@@ -91,6 +84,11 @@ namespace LethalLevelLoader
             {
                 if (SelectableLevel_Patch.TryGetExtendedLevel(selectableLevel, out ExtendedLevel extendedLevel))
                 {
+                    if (Terminal.moonsCatalogueList[2] == selectableLevel) //Hardcoded hotfix to gap Assurance and Vow
+                    {
+                        returnString += "\n";
+                        seperationCount = 0;
+                    }
                     if (previousLevelSource != string.Empty && previousLevelSource != extendedLevel.contentSourceName)
                     {
                         returnString += "\n";
@@ -113,7 +111,7 @@ namespace LethalLevelLoader
         }
 
         //Just returns the level weather with a space and ().
-        public static string GetMoonConditions(SelectableLevel selectableLevel)
+        internal static string GetMoonConditions(SelectableLevel selectableLevel)
         {
             string returnString = string.Empty;
 
@@ -124,7 +122,7 @@ namespace LethalLevelLoader
             return (returnString);
         }
 
-        public static void CreateLevelTerminalData(ExtendedLevel extendedLevel)
+        internal static void CreateLevelTerminalData(ExtendedLevel extendedLevel)
         {
             TerminalKeyword tempRouteKeyword = GetTerminalKeywordFromIndex(26);
             TerminalKeyword tempInfoKeyword = GetTerminalKeywordFromIndex(6);
@@ -229,7 +227,7 @@ namespace LethalLevelLoader
             tempRouteKeyword.compatibleNouns = tempRouteKeyword.compatibleNouns.AddItem(routeLevel).ToArray();
         }
 
-        public static TerminalKeyword GetTerminalKeywordFromIndex(int index)
+        internal static TerminalKeyword GetTerminalKeywordFromIndex(int index)
         {
             if (Terminal != null)
                 return (AllTerminalKeywordsList[index]);

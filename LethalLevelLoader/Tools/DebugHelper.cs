@@ -7,7 +7,7 @@ using Random = System.Random;
 
 namespace LethalLevelLoader
 {
-    public static class DebugHelper
+    internal static class DebugHelper
     {
         public static string logAuthor = "Batby";
 
@@ -264,7 +264,7 @@ namespace LethalLevelLoader
             DebugHelper.Log(debugString);
         }
 
-        [HarmonyPatch(typeof(StartOfRound), "SetTimeAndPlanetToSavedSettings")]
+        /*[HarmonyPatch(typeof(StartOfRound), "SetTimeAndPlanetToSavedSettings")]
         [HarmonyPrefix]
         public static void SetTimeAndPlanetToSavedSettings_Prefix()
         {
@@ -282,7 +282,7 @@ namespace LethalLevelLoader
             DebugHelper.Log("Current Level ID: " + StartOfRound.Instance.currentLevelID);
             DebugHelper.Log("Current Level List Count: " + StartOfRound.Instance.levels.Length);
             DebugHelper.Log("Current Level From ID: " + StartOfRound.Instance.levels[StartOfRound.Instance.currentLevelID]);
-        }
+        }*/
 
     }
 

@@ -25,9 +25,9 @@ namespace LethalLevelLoader
         [HarmonyPatch(typeof(DungeonGenerator), "Generate")]
         [HarmonyPrefix]
         [HarmonyPriority(350)]
-        public static void Generate_Prefix(DungeonGenerator __instance)
+        internal static void Generate_Prefix(DungeonGenerator __instance)
         {
-            DebugHelper.Log("Started To Prefix Patch DungeonGenerator Generate!");
+            //DebugHelper.Log("Started To Prefix Patch DungeonGenerator Generate!");
             Scene scene = RoundManager.Instance.dungeonGenerator.gameObject.scene;
 
             if (SelectableLevel_Patch.TryGetExtendedLevel(RoundManager.Instance.currentLevel, out ExtendedLevel extendedLevel))
@@ -38,9 +38,10 @@ namespace LethalLevelLoader
             }
         }
 
-        public static void SetDungeonFlow(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel)
+        internal static void SetDungeonFlow(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel)
         {
             DebugHelper.Log("Setting DungeonFlow!");
+            
             RoundManager roundManager = RoundManager.Instance;
 
             Random levelRandom = RoundManager.Instance.LevelRandom;
@@ -50,7 +51,7 @@ namespace LethalLevelLoader
             List<int> randomWeightsList = new List<int>();
             string debugString = "Current Level + (" + extendedLevel.NumberlessPlanetName + ") Weights List: " + "\n" + "\n";
 
-            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = DungeonFlow_Patch.GetValidExtendedDungeonFlows(extendedLevel).ToList();
+            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = DungeonFlow_Patch.GetValidExtendedDungeonFlows(extendedLevel, debugString).ToList();
 
             foreach (ExtendedDungeonFlowWithRarity extendedDungeon in availableExtendedFlowsList)
                 randomWeightsList.Add(extendedDungeon.rarity);
@@ -71,17 +72,18 @@ namespace LethalLevelLoader
             dungeonGenerator.DungeonFlow = availableExtendedFlowsList[randomisedDungeonIndex].extendedDungeonFlow.dungeonFlow;
         }
 
-        public static void PatchDungeonSize(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel)
+        internal static void PatchDungeonSize(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel)
         {
             if (DungeonFlow_Patch.TryGetExtendedDungeonFlow(dungeonGenerator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
             {
-                if (dungeonGenerator.LengthMultiplier > extendedDungeonFlow.dungeonSizeMax)
+                if ((int)extendedLevel.selectableLevel.factorySizeMultiplier == (int)extendedDungeonFlow.dungeonSizeMax)
+                if (extendedLevel.selectableLevel.factorySizeMultiplier > extendedDungeonFlow.dungeonSizeMax && !Mathf.Approximately(extendedLevel.selectableLevel.factorySizeMultiplier, extendedDungeonFlow.dungeonSizeMax))
                 {
                     float newDungeonSize = Mathf.Lerp(extendedDungeonFlow.dungeonSizeMax, extendedLevel.selectableLevel.factorySizeMultiplier, extendedDungeonFlow.dungeonSizeLerpPercentage);
                     DebugHelper.Log(extendedLevel.NumberlessPlanetName + " Requested A Dungeon Size Of " + extendedLevel.selectableLevel.factorySizeMultiplier + ". This Value Exceeds The Dungeon's Supplied Maximum Size, Scaling It Down To " + newDungeonSize);
                     dungeonGenerator.LengthMultiplier = newDungeonSize * RoundManager.Instance.mapSizeMultiplier; //This is how vanilla does it.
                 }
-                else if (dungeonGenerator.LengthMultiplier < extendedDungeonFlow.dungeonSizeMin)
+                else if (extendedLevel.selectableLevel.factorySizeMultiplier < extendedDungeonFlow.dungeonSizeMin && !Mathf.Approximately(extendedLevel.selectableLevel.factorySizeMultiplier, extendedDungeonFlow.dungeonSizeMin))
                 {
                     float newDungeonSize = Mathf.Lerp(extendedLevel.selectableLevel.factorySizeMultiplier, extendedDungeonFlow.dungeonSizeMin, extendedDungeonFlow.dungeonSizeLerpPercentage);
                     DebugHelper.Log(extendedLevel.NumberlessPlanetName + " Requested A Dungeon Size Of " + extendedLevel.selectableLevel.factorySizeMultiplier + ". This Value Exceeds The Dungeon's Supplied Minimum Size, Scaling It Down To " + newDungeonSize);
@@ -90,7 +92,7 @@ namespace LethalLevelLoader
             }
         }
 
-        public static void PatchFireEscapes(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel, Scene scene)
+        internal static void PatchFireEscapes(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel, Scene scene)
         {
             string debugString = "Fire Exit Patch Report, Details Below;" + "\n" + "\n";
 
@@ -99,8 +101,6 @@ namespace LethalLevelLoader
 
             if (DungeonFlow_Patch.TryGetExtendedDungeonFlow(dungeonGenerator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
             {
-                int fireEscapesAmount = 0;
-
                 foreach (GameObject rootObject in scene.GetRootGameObjects())
                     foreach (EntranceTeleport entranceTeleport in rootObject.GetComponentsInChildren<EntranceTeleport>())
                     {
@@ -116,8 +116,6 @@ namespace LethalLevelLoader
                             else
                                 entranceTeleport.firstTimeAudio = RoundManager.Instance.firstTimeDungeonAudios[0];
                         }
-
-                        fireEscapesAmount++;
                         if (lowestIDEntranceTeleport == null)
                             lowestIDEntranceTeleport = entranceTeleport;
                         if (lowestIDEntranceTeleport != null && entranceTeleport.entranceId < lowestIDEntranceTeleport.entranceId)
@@ -126,34 +124,33 @@ namespace LethalLevelLoader
                         entranceTeleports.Add(entranceTeleport);
                     }
 
+                if (entranceTeleports.Count != 0)
+                    debugString += "EntranceTeleport's Found, " + extendedLevel.NumberlessPlanetName + " Contains " + (entranceTeleports.Count) + " Entrances! ( " + (entranceTeleports.Count - 1) + " Fire Escapes) " + "\n";
+
                 //To reduce the strict id requirements on entrance teleports
                 lowestIDEntranceTeleport.entranceId = 0;
+
                 int dungeonIDCounter = 1;
-                DebugHelper.Log("Main Entrance: " + lowestIDEntranceTeleport.gameObject.name + " (Entrance ID: " + lowestIDEntranceTeleport.entranceId + ")" + " (Dungeon ID: " + lowestIDEntranceTeleport.dungeonFlowId + ")");
+                debugString += "Main Entrance: " + lowestIDEntranceTeleport.gameObject.name + " (Entrance ID: " + lowestIDEntranceTeleport.entranceId + ")" + " (Dungeon ID: " + lowestIDEntranceTeleport.dungeonFlowId + ")" + "\n";
                 foreach (EntranceTeleport entranceTeleport in entranceTeleports)
                     if (entranceTeleport != lowestIDEntranceTeleport)
                     {
                         entranceTeleport.entranceId = dungeonIDCounter;
-                        DebugHelper.Log("Alternate Entrance: " + entranceTeleport.gameObject.name + " (Entrance ID: " + entranceTeleport.entranceId + ")" + " (Dungeon ID: " + entranceTeleport.dungeonFlowId + ")");
+                        debugString += "Alternate Entrance: " + entranceTeleport.gameObject.name + " (Entrance ID: " + entranceTeleport.entranceId + ")" + " (Dungeon ID: " + entranceTeleport.dungeonFlowId + ")" + "\n";
                         dungeonIDCounter++;
                     }
-
-                fireEscapesAmount -= 1; //To Remove Main Entrance From The Count.
-
-                if (fireEscapesAmount != 0)
-                    debugString += "EntranceTeleport's Found, " + extendedLevel.NumberlessPlanetName + " Contains " + (fireEscapesAmount + 1) + " Entrances! ( " + fireEscapesAmount + " Fire Escapes) " + "\n";
 
                 Vector2 oldCount = Vector2.zero;
                 foreach (GlobalPropSettings globalPropSettings in dungeonGenerator.DungeonFlow.GlobalProps)
                 {
                     if (globalPropSettings.ID == 1231)
                     {
-                        globalPropSettings.Count = new IntRange(fireEscapesAmount, fireEscapesAmount);
+                        globalPropSettings.Count = new IntRange(entranceTeleports.Count - 1, entranceTeleports.Count - 1);
                         oldCount = new Vector2(globalPropSettings.Count.Min, globalPropSettings.Count.Max);
                     }
                 }
                 if (oldCount != Vector2.zero)
-                    debugString += "Found Fire Escape GlobalProp: (ID: 1231), Modifying Spawnrate Count From (" + oldCount.x + "," + oldCount.y + ") To (" + fireEscapesAmount + "," + fireEscapesAmount + ")" + "\n";
+                    debugString += "Found Fire Escape GlobalProp: (ID: 1231), Modifying Spawnrate Count From (" + oldCount.x + "," + oldCount.y + ") To (" + (entranceTeleports.Count - 1) + "," + (entranceTeleports.Count - 1) + ")" + "\n";
                 else
                     debugString += "Fire Escape GlobalProp Could Not Be Found! Fire Escapes Will Not Be Patched!" + "\n";
 

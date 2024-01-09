@@ -18,7 +18,7 @@ namespace LethalLevelLoader
                 DebugHelper.Log("Attempted To Register NetworkPrefab: " + prefab + " After GameNetworkManager Has Started!");
         }
 
-        public static List<string> loggedObjectNames = new List<string>();
+        internal static List<string> loggedObjectNames = new List<string>();
         public static void TryRestoreVanillaSpawnSyncPrefab(SpawnSyncedObject spawnSyncedObject)
         {
             NetworkManager networkManager = UnityEngine.Object.FindObjectOfType<NetworkManager>();
@@ -26,7 +26,7 @@ namespace LethalLevelLoader
             if (loggedObjectNames == null)
                 loggedObjectNames = new List<string>();
 
-            if (spawnSyncedObject.spawnPrefab != null)
+            if (networkManager != null && spawnSyncedObject != null && spawnSyncedObject.spawnPrefab != null)
                 if (spawnSyncedObject.spawnPrefab.TryGetComponent(out NetworkObject networkObject))
                     foreach (NetworkPrefab networkPrefab in networkManager.NetworkConfig.Prefabs.m_Prefabs)
                         if (networkPrefab.Prefab.name == spawnSyncedObject.spawnPrefab.name)
@@ -44,9 +44,9 @@ namespace LethalLevelLoader
         [HarmonyPatch(typeof(GameNetworkManager), "Start")]
         [HarmonyPrefix]
         [HarmonyPriority(350)]
-        private static void GameNetworkManager_Start(GameNetworkManager __instance)
+        internal static void GameNetworkManager_Start(GameNetworkManager __instance)
         {
-            DebugHelper.Log("Game NetworkManager Start");
+            //DebugHelper.Log("Game NetworkManager Start");
 
             NetworkManager networkManager = __instance.GetComponent<NetworkManager>();
 

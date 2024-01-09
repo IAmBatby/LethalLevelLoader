@@ -17,7 +17,7 @@ namespace LethalLevelLoader
 
         [HideInInspector] public ContentType dungeonType;
         [HideInInspector] public int dungeonID;
-        [HideInInspector] public int dungeonRarity;
+        [HideInInspector] public int dungeonDefaultRarity;
 
         [Space(10)]
         [Header("Dynamic DungeonFlow Injections Settings")]
@@ -30,11 +30,11 @@ namespace LethalLevelLoader
         [Space(10)]
         [Header("Dynamic Dungeon Size Multiplier Lerp Settings")]
         [Space(5)]
-        public int dungeonSizeMin = 1;
-        public int dungeonSizeMax = 1;
+        public float dungeonSizeMin = 1;
+        public float dungeonSizeMax = 1;
         [Range(0, 1)] public float dungeonSizeLerpPercentage = 1;
 
-        public void Initialize(ContentType newDungeonType)
+        internal void Initialize(ContentType newDungeonType)
         {
             dungeonType = newDungeonType;
 

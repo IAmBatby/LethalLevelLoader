@@ -26,7 +26,7 @@ namespace LethalLevelLoader
         [HideInInspector] public ContentType levelType;
         [HideInInspector] public string NumberlessPlanetName => GetNumberlessPlanetName(selectableLevel);
 
-        public void Initialize(ContentType newLevelType, SelectableLevel newSelectableLevel = null, int newRoutePrice = 0, bool generateTerminalAssets = false, GameObject newLevelPrefab = null, string newSourceName = "Lethal Company")
+        internal void Initialize(ContentType newLevelType, SelectableLevel newSelectableLevel = null, int newRoutePrice = 0, bool generateTerminalAssets = false, GameObject newLevelPrefab = null, string newSourceName = "Lethal Company")
         {
             DebugHelper.Log("Creating New Extended Level For Moon: " + ExtendedLevel.GetNumberlessPlanetName(newSelectableLevel));
 
@@ -53,7 +53,7 @@ namespace LethalLevelLoader
                 Terminal_Patch.CreateLevelTerminalData(this);
         }
 
-        public static string GetNumberlessPlanetName(SelectableLevel selectableLevel)
+        internal static string GetNumberlessPlanetName(SelectableLevel selectableLevel)
         {
             if (selectableLevel != null)
                 return new string(selectableLevel.PlanetName.SkipWhile(c => !char.IsLetter(c)).ToArray());

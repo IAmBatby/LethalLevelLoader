@@ -12,7 +12,7 @@ namespace LethalLevelLoader
         [HarmonyPatch(typeof(StartOfRound), "SceneManager_OnLoadComplete1")]
         [HarmonyPostfix]
         [HarmonyPriority(350)]
-        public static void OnLoadComplete1_Postfix()
+        internal static void OnLoadComplete1_Postfix()
         {
             if (SceneManager.GetSceneByName(SelectableLevel_Patch.injectionSceneName) != null)
                 if (SelectableLevel_Patch.TryGetExtendedLevel(StartOfRound.Instance.currentLevel, out ExtendedLevel extendedLevel, (ContentType)ContentType.Custom))
@@ -23,13 +23,13 @@ namespace LethalLevelLoader
         [HarmonyPatch(typeof(RoundManager), "Update")]
         [HarmonyPrefix]
         [HarmonyPriority(350)]
-        public static void Update_Prefix(RoundManager __instance)
+        internal static void Update_Prefix(RoundManager __instance)
         {
             if (__instance.timeScript == null) //I don't know why but RoundManager loses it's TimeOfDay reference.
                 __instance.timeScript = TimeOfDay.Instance;
         }
 
-        public static void InitializeCustomLevel(Scene scene, ExtendedLevel extendedLevel, bool disableTerrainOnFirstFrame = false)
+        internal static void InitializeCustomLevel(Scene scene, ExtendedLevel extendedLevel, bool disableTerrainOnFirstFrame = false)
         {
             foreach (GameObject obj in scene.GetRootGameObjects()) //Disable everything in the Scene were injecting into
             {
@@ -49,10 +49,10 @@ namespace LethalLevelLoader
                         SpawnNetworkObjects(instantiatedLevel.scene);
                 }
             }
-            DebugHelper.DebugSelectableLevelReferences(extendedLevel);
+            //DebugHelper.DebugSelectableLevelReferences(extendedLevel);
         }
 
-        public static void SpawnNetworkObjects(Scene scene)
+        internal static void SpawnNetworkObjects(Scene scene)
         {
             int debugCounter = 0;
             foreach (GameObject rootObject in scene.GetRootGameObjects())
@@ -63,7 +63,7 @@ namespace LethalLevelLoader
                         debugCounter++;
                     }
 
-            DebugHelper.Log("Successfully Spawned " + debugCounter + "NetworkObjects Found In The Custom Level");
+            DebugHelper.Log("Successfully Spawned " + debugCounter + " Registered NetworkObjects Found In The Custom Level");
         }
     }
 }

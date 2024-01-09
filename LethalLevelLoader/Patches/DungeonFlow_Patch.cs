@@ -10,17 +10,17 @@ namespace LethalLevelLoader
         public static List<ExtendedDungeonFlow> vanillaDungeonFlowsList = new List<ExtendedDungeonFlow>();
         public static List<ExtendedDungeonFlow> customDungeonFlowsList = new List<ExtendedDungeonFlow>();
 
-        public static void CreateExtendedDungeonFlow(DungeonFlow dungeon, int defaultRarity, string sourceName, AudioClip firstTimeDungeonAudio = null)
+        internal static void CreateExtendedDungeonFlow(DungeonFlow dungeon, int defaultRarity, string sourceName, AudioClip firstTimeDungeonAudio = null)
         {
             ExtendedDungeonFlow newExtendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
             newExtendedDungeonFlow.dungeonFlow = dungeon;
             newExtendedDungeonFlow.dungeonFirstTimeAudio = firstTimeDungeonAudio;
-            newExtendedDungeonFlow.dungeonRarity = defaultRarity;
+            newExtendedDungeonFlow.dungeonDefaultRarity = defaultRarity;
 
             AssetBundleLoader.obtainedExtendedDungeonFlowsList.Add(newExtendedDungeonFlow);
         }
 
-        public static void AddExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
+        internal static void AddExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
         {
             DebugHelper.Log("Adding Dungeon Flow: " + extendedDungeonFlow.dungeonFlow.name);
             if (extendedDungeonFlow.dungeonType == ContentType.Custom)
@@ -31,13 +31,12 @@ namespace LethalLevelLoader
             allExtendedDungeonsList.Add(extendedDungeonFlow);
         }
 
-        static string debugString;
-        public static ExtendedDungeonFlowWithRarity[] GetValidExtendedDungeonFlows(ExtendedLevel extendedLevel)
+        internal static ExtendedDungeonFlowWithRarity[] GetValidExtendedDungeonFlows(ExtendedLevel extendedLevel, string debugString)
         {
             List<ExtendedDungeonFlowWithRarity> potentialExtendedDungeonFlowsList = new List<ExtendedDungeonFlowWithRarity>();
             List<ExtendedDungeonFlowWithRarity> returnExtendedDungeonFlowsList = new List<ExtendedDungeonFlowWithRarity>();
 
-            debugString = "\n" + "Trying To Find All Matching DungeonFlows" + "\n";
+            debugString = "Trying To Find All Matching DungeonFlows For Level: " + extendedLevel.NumberlessPlanetName + "\n";
 
             if (extendedLevel.allowedDungeonContentTypes == ContentType.Vanilla || extendedLevel.allowedDungeonContentTypes == ContentType.Any)
                 foreach (IntWithRarity intWithRarity in extendedLevel.selectableLevel.dungeonFlowTypes)
@@ -49,20 +48,28 @@ namespace LethalLevelLoader
 
             if (extendedLevel.allowedDungeonContentTypes == ContentType.Custom || extendedLevel.allowedDungeonContentTypes == ContentType.Any)
                 foreach (ExtendedDungeonFlow customDungeonFlow in customDungeonFlowsList)
-                    potentialExtendedDungeonFlowsList.Add(new ExtendedDungeonFlowWithRarity(customDungeonFlow, customDungeonFlow.dungeonRarity));
+                    potentialExtendedDungeonFlowsList.Add(new ExtendedDungeonFlowWithRarity(customDungeonFlow, customDungeonFlow.dungeonDefaultRarity));
 
             debugString += "Potential DungeonFlows Collected, List Below: " + "\n";
+
+            foreach (ExtendedDungeonFlowWithRarity debugDungeon in returnExtendedDungeonFlowsList)
+                debugString += debugDungeon.extendedDungeonFlow.name + " - " + debugDungeon.rarity + ", ";
 
             foreach (ExtendedDungeonFlowWithRarity debugDungeon in potentialExtendedDungeonFlowsList)
                 debugString += debugDungeon.extendedDungeonFlow.name + " - " + debugDungeon.rarity + ", ";
 
             debugString += "\n" + "\n";
 
-            debugString += extendedLevel.NumberlessPlanetName + " Level Tags: ";
+            debugString += "Level: " + extendedLevel.NumberlessPlanetName + " Level Tags: ";
             foreach (string tag in extendedLevel.levelTags)
                 debugString += tag + ", ";
 
             debugString += "\n";
+
+            int debugCounter = 1;
+
+            foreach (ExtendedDungeonFlowWithRarity debugDungeon in returnExtendedDungeonFlowsList)
+                debugString += "\n" + "DungeonFlow " + debugCounter + ". : " + debugDungeon.extendedDungeonFlow.dungeonFlow.name + " - Matched " + extendedLevel.NumberlessPlanetName + " With " + "Based On The Levels DungeonFlowTypes!" + "\n";
 
             foreach (ExtendedDungeonFlowWithRarity customDungeonFlow in new List<ExtendedDungeonFlowWithRarity>(potentialExtendedDungeonFlowsList))
             {
@@ -71,7 +78,8 @@ namespace LethalLevelLoader
                     customDungeonFlow.rarity = outRarity;
                     returnExtendedDungeonFlowsList.Add(customDungeonFlow);
                     potentialExtendedDungeonFlowsList.Remove(customDungeonFlow);
-                    debugString += "\n" + customDungeonFlow.extendedDungeonFlow.dungeonFlow.name + " - Matched " + extendedLevel.NumberlessPlanetName + " With " + customDungeonFlow.extendedDungeonFlow.name + " Based On Manual Mods List!" + "\n";
+                    debugString += "\n" + "DungeonFlow " + debugCounter + ". : " + customDungeonFlow.extendedDungeonFlow.dungeonFlow.name + " - Matched " + extendedLevel.NumberlessPlanetName + " With " + customDungeonFlow.extendedDungeonFlow.name + " Based On Manual Mods List!" + "\n";
+                    debugCounter++;
                 }
             }
 
@@ -82,7 +90,8 @@ namespace LethalLevelLoader
                     customDungeonFlow.rarity = outRarity;
                     returnExtendedDungeonFlowsList.Add(customDungeonFlow);
                     potentialExtendedDungeonFlowsList.Remove(customDungeonFlow);
-                    debugString += "\n" + customDungeonFlow.extendedDungeonFlow.dungeonFlow.name + " - Matched " + extendedLevel.NumberlessPlanetName + " With " + customDungeonFlow.extendedDungeonFlow.name + " Based On Manual Levels List!" + "\n";
+                    debugString += "\n" + "DungeonFlow " + debugCounter + ". : " + customDungeonFlow.extendedDungeonFlow.dungeonFlow.name + " - Matched " + extendedLevel.NumberlessPlanetName + " With " + customDungeonFlow.extendedDungeonFlow.name + " Based On Manual Levels List!" + "\n";
+                    debugCounter++;
                 }
             }
 
@@ -93,7 +102,8 @@ namespace LethalLevelLoader
                     customDungeonFlow.rarity = outRarity;
                     returnExtendedDungeonFlowsList.Add(customDungeonFlow);
                     potentialExtendedDungeonFlowsList.Remove(customDungeonFlow);
-                    debugString += "\n" + customDungeonFlow.extendedDungeonFlow.dungeonFlow.name + " - Matched " + extendedLevel.NumberlessPlanetName + " With " + customDungeonFlow.extendedDungeonFlow.name + " Based On Dynamic Route Price Settings!" + "\n";
+                    debugString += "\n" + "DungeonFlow " + debugCounter + ". : " + customDungeonFlow.extendedDungeonFlow.dungeonFlow.name + " - Matched " + extendedLevel.NumberlessPlanetName + " With " + customDungeonFlow.extendedDungeonFlow.name + " Based On Dynamic Route Price Settings!" + "\n";
+                    debugCounter++;
                 }
             }
 
@@ -104,8 +114,8 @@ namespace LethalLevelLoader
                     customDungeonFlow.rarity = outRarity;
                     returnExtendedDungeonFlowsList.Add(customDungeonFlow);
                     potentialExtendedDungeonFlowsList.Remove(customDungeonFlow);
-                    
-                    debugString += customDungeonFlow.extendedDungeonFlow.dungeonFlow.name + " - Matched " + extendedLevel.NumberlessPlanetName + " With " + customDungeonFlow.extendedDungeonFlow.name + " Based On Level Tags!" + "\n";
+                    debugString += "\n" + "DungeonFlow " + debugCounter + ". : " + customDungeonFlow.extendedDungeonFlow.dungeonFlow.name + " - Matched " + extendedLevel.NumberlessPlanetName + " With " + customDungeonFlow.extendedDungeonFlow.name + " Based On Level Tags!" + "\n";
+                    debugCounter++;
                 }
             }
 
@@ -116,9 +126,9 @@ namespace LethalLevelLoader
             return (returnExtendedDungeonFlowsList.ToArray());
         }
 
-        public static bool MatchViaManualModList(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow, out int rarity)
+        internal static bool MatchViaManualModList(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow, out int rarity)
         {
-            rarity = extendedDungeonFlow.dungeonRarity;
+            rarity = extendedDungeonFlow.dungeonDefaultRarity;
 
             foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.manualContentSourceNameReferenceList)
                 if (stringWithRarity.Name.Contains(extendedLevel.contentSourceName))
@@ -133,9 +143,9 @@ namespace LethalLevelLoader
             //return (true);
         }
 
-        public static bool MatchViaManualLevelList(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow, out int rarity)
+        internal static bool MatchViaManualLevelList(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow, out int rarity)
         {
-            rarity = extendedDungeonFlow.dungeonRarity;
+            rarity = extendedDungeonFlow.dungeonDefaultRarity;
 
             foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.manualPlanetNameReferenceList)
                 if (stringWithRarity.Name.Contains(extendedLevel.NumberlessPlanetName))
@@ -147,9 +157,9 @@ namespace LethalLevelLoader
             return (false);
         }
 
-        public static bool MatchViaRoutePrice(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow, out int rarity)
+        internal static bool MatchViaRoutePrice(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow, out int rarity)
         {
-            rarity = extendedDungeonFlow.dungeonRarity;
+            rarity = extendedDungeonFlow.dungeonDefaultRarity;
 
             foreach (Vector2WithRarity vectorWithRarity in extendedDungeonFlow.dynamicRoutePricesList)
             {
@@ -164,9 +174,9 @@ namespace LethalLevelLoader
             return (false);
         }
 
-        public static bool MatchViaLevelTags(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow, out int rarity)
+        internal static bool MatchViaLevelTags(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow, out int rarity)
         {
-            rarity = extendedDungeonFlow.dungeonRarity;
+            rarity = extendedDungeonFlow.dungeonDefaultRarity;
 
             foreach (string levelTag in extendedLevel.levelTags)
                 foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.dynamicLevelTagsList)
@@ -179,7 +189,7 @@ namespace LethalLevelLoader
             return (false);
         }
 
-        public static bool TryGetExtendedDungeonFlow(DungeonFlow dungeonFlow, out ExtendedDungeonFlow returnExtendedDungeonFlow, ContentType levelType = ContentType.Any)
+        internal static bool TryGetExtendedDungeonFlow(DungeonFlow dungeonFlow, out ExtendedDungeonFlow returnExtendedDungeonFlow, ContentType levelType = ContentType.Any)
         {
             returnExtendedDungeonFlow = null;
             List<ExtendedDungeonFlow> extendedDungeonFlowsList = new List<ExtendedDungeonFlow>();
@@ -204,7 +214,7 @@ namespace LethalLevelLoader
             return (returnExtendedDungeonFlow != null);
         }
 
-        private static string GetDebugLevelTags(ExtendedLevel extendedLevel)
+        internal static string GetDebugLevelTags(ExtendedLevel extendedLevel)
         {
             string returnString = extendedLevel.NumberlessPlanetName + " Level Tags: ";
 

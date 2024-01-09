@@ -14,17 +14,17 @@ namespace LethalLevelLoader
     {
         public const string specifiedFileExtension = "*.lethalbundle";
 
-        public static DirectoryInfo lethalLibFile = new DirectoryInfo(Assembly.GetExecutingAssembly().Location);
-        public static DirectoryInfo lethalLibFolder;
-        public static DirectoryInfo pluginsFolder;
+        internal static DirectoryInfo lethalLibFile = new DirectoryInfo(Assembly.GetExecutingAssembly().Location);
+        internal static DirectoryInfo lethalLibFolder;
+        internal static DirectoryInfo pluginsFolder;
 
-        public static List<ExtendedLevel> obtainedExtendedLevelsList = new List<ExtendedLevel>();
-        public static List<ExtendedDungeonFlow> obtainedExtendedDungeonFlowsList = new List<ExtendedDungeonFlow>();
+        internal static List<ExtendedLevel> obtainedExtendedLevelsList = new List<ExtendedLevel>();
+        internal static List<ExtendedDungeonFlow> obtainedExtendedDungeonFlowsList = new List<ExtendedDungeonFlow>();
 
         [HarmonyPriority(350)]
         [HarmonyPatch(typeof(PreInitSceneScript), "Awake")]
         [HarmonyPrefix]
-        public static void PreInitSceneScriptAwake()
+        internal static void PreInitSceneScriptAwake()
         {
             if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
                 FindBundles();
@@ -33,7 +33,7 @@ namespace LethalLevelLoader
         [HarmonyPriority(350)]
         [HarmonyPatch(typeof(RoundManager), "Awake")]
         [HarmonyPostfix]
-        public static void RoundManagerAwake_Postfix()
+        internal static void RoundManagerAwake_Postfix()
         {
             
             if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
@@ -47,7 +47,7 @@ namespace LethalLevelLoader
         [HarmonyPriority(350)]
         [HarmonyPatch(typeof(GameNetworkManager), "Start")]
         [HarmonyPrefix]
-        public static void GameNetworkManagerStart_Prefix()
+        internal static void GameNetworkManagerStart_Prefix()
         {
             DebugHelper.Log("Registering Bundle Content!");
 
@@ -58,7 +58,7 @@ namespace LethalLevelLoader
                 RegisterCustomLevelNetworkObjects(extendedLevel);
         }
 
-        public static void FindBundles()
+        internal static void FindBundles()
         {
             DebugHelper.Log("Finding LethalBundles!");
             lethalLibFolder = lethalLibFile.Parent;
@@ -68,7 +68,7 @@ namespace LethalLevelLoader
                 LoadBundle(file);
         }
 
-        public static void LoadBundle(string bundleFile)
+        internal static void LoadBundle(string bundleFile)
         {
             AssetBundle newBundle = AssetBundle.LoadFromFile(bundleFile);
 
@@ -81,7 +81,7 @@ namespace LethalLevelLoader
             }
         }
 
-        public static void InitializeBundles()
+        internal static void InitializeBundles()
         {
             foreach (ExtendedDungeonFlow extendedDungeonFlow in obtainedExtendedDungeonFlowsList)
             {
@@ -107,7 +107,7 @@ namespace LethalLevelLoader
             obtainedExtendedLevelsList.Add(extendedLevel);
         }
 
-        public static void CreateVanillaExtendedLevels(StartOfRound startOfRound)
+        internal static void CreateVanillaExtendedLevels(StartOfRound startOfRound)
         {
             DebugHelper.Log("Creating ExtendedLevels For Vanilla SelectableLevels");
             Terminal terminal = UnityEngine.Object.FindObjectOfType<Terminal>();
@@ -118,20 +118,17 @@ namespace LethalLevelLoader
                 ExtendedLevel extendedLevel = ScriptableObject.CreateInstance<ExtendedLevel>();
 
                 int vanillaRoutePrice = 0;
-                Debug.Log("#1");
                 foreach (CompatibleNoun compatibleRouteNoun in Terminal_Patch.RouteKeyword.compatibleNouns)
                     if (compatibleRouteNoun.noun.name.Contains(selectableLevel.PlanetName))
                         vanillaRoutePrice = compatibleRouteNoun.result.itemCost;
-                Debug.Log("#2");
                 extendedLevel.Initialize(ContentType.Vanilla, newSelectableLevel: selectableLevel, newRoutePrice: vanillaRoutePrice, generateTerminalAssets: false);
 
                 SetVanillaLevelTags(extendedLevel);
-                Debug.Log("#3");
                 SelectableLevel_Patch.AddSelectableLevel(extendedLevel);
             }
         }
 
-        public static void CreateVanillaExtendedDungeonFlows()
+        internal static void CreateVanillaExtendedDungeonFlows()
         {
             DebugHelper.Log("Creating ExtendedDungeonFlows For Vanilla DungeonFlows");
 
@@ -139,21 +136,18 @@ namespace LethalLevelLoader
                 foreach (DungeonFlow dungeonFlow in RoundManager.Instance.dungeonFlowTypes)
                 {
                     ExtendedDungeonFlow extendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
-                    Debug.Log("#1");
                     extendedDungeonFlow.dungeonFlow = dungeonFlow;
                     extendedDungeonFlow.contentSourceName = "Lethal Company";
                     extendedDungeonFlow.dungeonFirstTimeAudio = null;
                     extendedDungeonFlow.Initialize(ContentType.Vanilla);
-                    Debug.Log("#2");
                     DungeonFlow_Patch.AddExtendedDungeonFlow(extendedDungeonFlow);
                     //Gotta assign the right audio later.
-                    Debug.Log("#3");
                 }
             else
                 DebugHelper.Log("Error! RoundManager dungeonFlowTypes Array Was Null!");
         }
 
-        public static void RestoreVanillaDungeonAssetReferences(ExtendedDungeonFlow extendedDungeonFlow)
+        internal static void RestoreVanillaDungeonAssetReferences(ExtendedDungeonFlow extendedDungeonFlow)
         {
             Tile[] allTiles = GetAllTilesInDungeonFlow(extendedDungeonFlow.dungeonFlow);
 
@@ -169,7 +163,7 @@ namespace LethalLevelLoader
             }
         }
 
-        public static void RestoreVanillaLevelAssetReferences(ExtendedLevel extendedLevel)
+        internal static void RestoreVanillaLevelAssetReferences(ExtendedLevel extendedLevel)
         {
 
             AudioSource[] moonAudioSources = extendedLevel.levelPrefab.GetComponentsInChildren<AudioSource>();
@@ -221,7 +215,7 @@ namespace LethalLevelLoader
 
         }
 
-        public static void RegisterCustomLevelNetworkObjects(ExtendedLevel extendedLevel)
+        internal static void RegisterCustomLevelNetworkObjects(ExtendedLevel extendedLevel)
         {
             int debugCounter = 0;
             foreach (NetworkObject networkObject in extendedLevel.levelPrefab.GetComponentsInChildren<NetworkObject>())
@@ -230,23 +224,26 @@ namespace LethalLevelLoader
                 debugCounter++;
             }
 
-            DebugHelper.Log("Registered " + debugCounter + " NetworkObject's Found In Injected Moon Prefab");
+            DebugHelper.Log("Registered " + debugCounter + " NetworkObject's Found In Custom Level: " + extendedLevel.NumberlessPlanetName);
         }
 
-        public static void RegisterDungeonContent(DungeonFlow dungeonFlow)
+        internal static void RegisterDungeonContent(DungeonFlow dungeonFlow)
         {
             Tile[] allTiles = GetAllTilesInDungeonFlow(dungeonFlow);
-
+            int debugCounter = 0;
             foreach (SpawnSyncedObject spawnSyncedObject in GetAllSpawnSyncedObjectsInTiles(allTiles))
             {
                 NetworkManager_Patch.TryRestoreVanillaSpawnSyncPrefab(spawnSyncedObject);
                 if (spawnSyncedObject.spawnPrefab.GetComponent<NetworkObject>() == null)
                     spawnSyncedObject.spawnPrefab.AddComponent<NetworkObject>();
                 NetworkManager_Patch.RegisterNetworkPrefab(spawnSyncedObject.spawnPrefab);
+                debugCounter++;
             }
+
+            DebugHelper.Log("Registered " + debugCounter + " NetworkObject's Found In Custom DungeonFlow: " + dungeonFlow.name);
         }
 
-        public static void WarmUpBundleShaders(ExtendedLevel extendedLevel)
+        internal static void WarmUpBundleShaders(ExtendedLevel extendedLevel)
         {
             List<(Shader, ShaderWarmupSetup)> shaderWithWarmupSetupList = new List<(Shader, ShaderWarmupSetup)>();
 
@@ -270,7 +267,7 @@ namespace LethalLevelLoader
             }
         }
 
-        public static void SetVanillaLevelTags(ExtendedLevel vanillaLevel)
+        internal static void SetVanillaLevelTags(ExtendedLevel vanillaLevel)
         {
             vanillaLevel.levelTags.Add("Vanilla");
 
