@@ -18,6 +18,29 @@ namespace LethalLevelLoader
                 DebugHelper.Log("Attempted To Register NetworkPrefab: " + prefab + " After GameNetworkManager Has Started!");
         }
 
+        public static List<string> loggedObjectNames = new List<string>();
+        public static void TryRestoreVanillaSpawnSyncPrefab(SpawnSyncedObject spawnSyncedObject)
+        {
+            NetworkManager networkManager = UnityEngine.Object.FindObjectOfType<NetworkManager>();
+
+            if (loggedObjectNames == null)
+                loggedObjectNames = new List<string>();
+
+            if (spawnSyncedObject.spawnPrefab != null)
+                if (spawnSyncedObject.spawnPrefab.TryGetComponent(out NetworkObject networkObject))
+                    foreach (NetworkPrefab networkPrefab in networkManager.NetworkConfig.Prefabs.m_Prefabs)
+                        if (networkPrefab.Prefab.name == spawnSyncedObject.spawnPrefab.name)
+                        {
+                            if (!loggedObjectNames.Contains(networkPrefab.Prefab.name))
+                            {
+                                DebugHelper.Log("Succesfully Restored " + spawnSyncedObject.name + " NetworkPrefab From " + spawnSyncedObject.spawnPrefab.name + " To " + networkPrefab.Prefab.name);
+                                loggedObjectNames.Add(networkPrefab.Prefab.name);
+                            }
+                            spawnSyncedObject.spawnPrefab = networkPrefab.Prefab;
+                            break;
+                        }
+        }
+
         [HarmonyPatch(typeof(GameNetworkManager), "Start")]
         [HarmonyPrefix]
         [HarmonyPriority(350)]
@@ -25,7 +48,7 @@ namespace LethalLevelLoader
         {
             DebugHelper.Log("Game NetworkManager Start");
 
-            Unity.Netcode.NetworkManager networkManager = __instance.GetComponent<Unity.Netcode.NetworkManager>();
+            NetworkManager networkManager = __instance.GetComponent<NetworkManager>();
 
             List<GameObject> addedNetworkPrefabs = new List<GameObject>();
 

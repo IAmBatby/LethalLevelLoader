@@ -17,14 +17,14 @@ namespace LethalLevelLoader
         public static List<AudioMixerGroup> vanillaAudioMixerGroupsList = new List<AudioMixerGroup>();
 
 
-        [HarmonyPatch(typeof(StartOfRound), "Awake")]
+        [HarmonyPatch(typeof(RoundManager), "Awake")]
         [HarmonyPrefix]
         [HarmonyPriority(350)]
-        public static void TryScrapeVanillaContent(StartOfRound __instance)
+        public static void TryScrapeVanillaContent()
         {
             if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
             {
-                StartOfRound startOfRound = __instance;
+                StartOfRound startOfRound = StartOfRound.Instance;
                 if (startOfRound != null)
                 {
                     foreach (Item item in startOfRound.allItemsList.itemsList)

@@ -22,16 +22,26 @@ namespace LethalLevelLoader
         public static List<ExtendedDungeonFlow> obtainedExtendedDungeonFlowsList = new List<ExtendedDungeonFlow>();
 
         [HarmonyPriority(350)]
-        [HarmonyPatch(typeof(StartOfRound), "Awake")]
+        [HarmonyPatch(typeof(PreInitSceneScript), "Awake")]
         [HarmonyPrefix]
-        public static void StartOfRoundAwake_Postfix(StartOfRound __instance)
+        public static void PreInitSceneScriptAwake()
         {
+            if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
+                FindBundles();
+        }
+
+        [HarmonyPriority(350)]
+        [HarmonyPatch(typeof(RoundManager), "Awake")]
+        [HarmonyPostfix]
+        public static void RoundManagerAwake_Postfix()
+        {
+            
             if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
             {
                 CreateVanillaExtendedDungeonFlows();
-                CreateVanillaExtendedLevels(__instance);
+                CreateVanillaExtendedLevels(StartOfRound.Instance);
+                InitializeBundles();
             }
-            InitializeBundles();
         }
 
         [HarmonyPriority(350)]
@@ -50,6 +60,7 @@ namespace LethalLevelLoader
 
         public static void FindBundles()
         {
+            DebugHelper.Log("Finding LethalBundles!");
             lethalLibFolder = lethalLibFile.Parent;
             pluginsFolder = lethalLibFile.Parent.Parent;
 
@@ -107,15 +118,15 @@ namespace LethalLevelLoader
                 ExtendedLevel extendedLevel = ScriptableObject.CreateInstance<ExtendedLevel>();
 
                 int vanillaRoutePrice = 0;
-
+                Debug.Log("#1");
                 foreach (CompatibleNoun compatibleRouteNoun in Terminal_Patch.RouteKeyword.compatibleNouns)
                     if (compatibleRouteNoun.noun.name.Contains(selectableLevel.PlanetName))
                         vanillaRoutePrice = compatibleRouteNoun.result.itemCost;
-
+                Debug.Log("#2");
                 extendedLevel.Initialize(ContentType.Vanilla, newSelectableLevel: selectableLevel, newRoutePrice: vanillaRoutePrice, generateTerminalAssets: false);
 
                 SetVanillaLevelTags(extendedLevel);
-                
+                Debug.Log("#3");
                 SelectableLevel_Patch.AddSelectableLevel(extendedLevel);
             }
         }
@@ -124,18 +135,22 @@ namespace LethalLevelLoader
         {
             DebugHelper.Log("Creating ExtendedDungeonFlows For Vanilla DungeonFlows");
 
-            foreach (DungeonFlow dungeonFlow in RoundManager.Instance.dungeonFlowTypes)
-            {
-                ExtendedDungeonFlow extendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
-
-                extendedDungeonFlow.dungeonFlow = dungeonFlow;
-                extendedDungeonFlow.contentSourceName = "Lethal Company";
-                extendedDungeonFlow.dungeonFirstTimeAudio = null;
-                extendedDungeonFlow.Initialize(ContentType.Vanilla);
-
-                DungeonFlow_Patch.AddExtendedDungeonFlow(extendedDungeonFlow);
-                //Gotta assign the right audio later.
-            }
+            if (RoundManager.Instance.dungeonFlowTypes != null)
+                foreach (DungeonFlow dungeonFlow in RoundManager.Instance.dungeonFlowTypes)
+                {
+                    ExtendedDungeonFlow extendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
+                    Debug.Log("#1");
+                    extendedDungeonFlow.dungeonFlow = dungeonFlow;
+                    extendedDungeonFlow.contentSourceName = "Lethal Company";
+                    extendedDungeonFlow.dungeonFirstTimeAudio = null;
+                    extendedDungeonFlow.Initialize(ContentType.Vanilla);
+                    Debug.Log("#2");
+                    DungeonFlow_Patch.AddExtendedDungeonFlow(extendedDungeonFlow);
+                    //Gotta assign the right audio later.
+                    Debug.Log("#3");
+                }
+            else
+                DebugHelper.Log("Error! RoundManager dungeonFlowTypes Array Was Null!");
         }
 
         public static void RestoreVanillaDungeonAssetReferences(ExtendedDungeonFlow extendedDungeonFlow)
@@ -224,6 +239,7 @@ namespace LethalLevelLoader
 
             foreach (SpawnSyncedObject spawnSyncedObject in GetAllSpawnSyncedObjectsInTiles(allTiles))
             {
+                NetworkManager_Patch.TryRestoreVanillaSpawnSyncPrefab(spawnSyncedObject);
                 if (spawnSyncedObject.spawnPrefab.GetComponent<NetworkObject>() == null)
                     spawnSyncedObject.spawnPrefab.AddComponent<NetworkObject>();
                 NetworkManager_Patch.RegisterNetworkPrefab(spawnSyncedObject.spawnPrefab);

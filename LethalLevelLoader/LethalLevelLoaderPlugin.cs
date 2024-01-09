@@ -8,7 +8,6 @@ using UnityEngine;
 namespace LethalLevelLoader
 {
     [BepInPlugin(ModGUID, ModName, ModVersion)]
-    [BepInDependency(LethalLib.Plugin.ModGUID)]
     public class LethalLevelLoaderPlugin : BaseUnityPlugin {
         public const string ModGUID = "imabatby.lethallevelloader";
         public const string ModName = "LethalLevelLoader";
@@ -48,7 +47,7 @@ namespace LethalLevelLoader
             Harmony.PatchAll(typeof(DebugHelper));
             Harmony.PatchAll(typeof(DebugOrderOfExecution));
 
-            AssetBundleLoader.FindBundles();
+            //AssetBundleLoader.FindBundles();
         }
     }
 }

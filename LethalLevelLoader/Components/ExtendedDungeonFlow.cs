@@ -38,6 +38,8 @@ namespace LethalLevelLoader
         {
             dungeonType = newDungeonType;
 
+            dungeonID = DungeonFlow_Patch.allExtendedDungeonsList.Count;
+
             if (name == string.Empty)
                 name = dungeonFlow.name;
         }

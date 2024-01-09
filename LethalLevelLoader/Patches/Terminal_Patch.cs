@@ -58,48 +58,38 @@ namespace LethalLevelLoader
             }
         }
 
-        public static List<ExtendedLevel> patchedList;
-
-        public static void TryPatchMoonsCatalogue()
-        {
-            patchedList = new List<ExtendedLevel>(SelectableLevel_Patch.vanillaLevelsList);
-
-            patchedList.RemoveAt(3);
-            patchedList.Insert(3, patchedList[6]);
-            patchedList.RemoveAt(7);
-            patchedList.Insert(5, null);
-
-            foreach (ExtendedLevel customLevel in SelectableLevel_Patch.customLevelsList)
-                patchedList.Add(customLevel);
-        }
-
         //This is some abslolute super arbitary wizardry to replicate basegame >moons command
         //This is also where we add our custom moons into the list
         [HarmonyPatch(typeof(Terminal), "TextPostProcess")]
         [HarmonyPrefix]
         public static void TextPostProcess_PreFix(ref string modifiedDisplayText)
         {
+            DebugHelper.Log("levels: " + StartOfRound.Instance.levels.Length);
+            DebugHelper.Log("currentlevel: " + StartOfRound.Instance.currentLevel);
+
             if (modifiedDisplayText.Contains("Welcome to the exomoons catalogue"))
             {
                 modifiedDisplayText = "Welcome to the exomoons catalogue.\r\nTo route the autopilot to a moon, use the word ROUTE.\r\nTo learn about any moon, use the word INFO.\r\n____________________________\r\n\r\n* The Company building   //   Buying at [companyBuyingPercent].\r\n\r\n";
 
-                modifiedDisplayText += GetMoonCatalogDisplayListings(patchedList);
+                modifiedDisplayText += GetMoonCatalogDisplayListings();
                 modifiedDisplayText += "\r\n";
             }
         }
 
         //This is some abslolute super arbitary wizardry to replicate basegame >moons command
-        public static string GetMoonCatalogDisplayListings(List<ExtendedLevel> extendedLevels)
+        public static string GetMoonCatalogDisplayListings()
         {
+            
+            
             string returnString = string.Empty;
             string previousLevelSource = string.Empty;
 
             int seperationCountMax = 3;
             int seperationCount = 0;
 
-            foreach (ExtendedLevel extendedLevel in extendedLevels)
+            foreach (SelectableLevel selectableLevel in Terminal.moonsCatalogueList)
             {
-                if (extendedLevel != null)
+                if (SelectableLevel_Patch.TryGetExtendedLevel(selectableLevel, out ExtendedLevel extendedLevel))
                 {
                     if (previousLevelSource != string.Empty && previousLevelSource != extendedLevel.contentSourceName)
                     {

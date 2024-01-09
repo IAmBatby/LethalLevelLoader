@@ -74,11 +74,40 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 **Credits**
 --
 
-* **Evaisa** *(This Mod is directly based from LethalLib's codebase and couldn't have been made without it's pre-existing foundations.)*
-* **SkullCrusher** *(This Mod is directly based from SkullCrusher's LethalLib' Fork and couldn't have been made without it's pre-existing foundations.)*
-* **HolographicWings** *(This Mod was inspired by LethalExpansion and couldn't have been made without HolographicWing's support and research.)*
+* **Evaisa** *(This Mod is directly based from LethalLib's codebase and could have been made without it's pre-existing foundations.)*
+* **SkullCrusher** *(This Mod is directly based from SkullCrusher's LethalLib' Fork and could have been made without it's pre-existing foundations.)*
+* **HolographicWings** *(This Mod was inspired by LethalExpansion and could not have been made without HolographicWing's support and research.)*
 * **KayNetsua** *(This Mod was internally tested using KayNetsua's "E Gypt" Custom Level and KayNetsua assisted in testing LethalLevelLoader's usage)*
 * **Badhamknibb** *(This Mod was internally tested using Badhamknibb's "SCP Foundation" Custom Dungeon and Badhamknibb's assisted in testing LethalLevelLoader's usage)*
 * **Scoopy** *(This Mod was internally tested using Scoopy's "LethalExtension Castle" Custom Dungeon and Scoopy assisted in testing LethalLevelLoader's usage)*
 * **Xilo** *(Xilo provided multiple instances of Bepinex & Unity.Netcode related support during the development of this Mod.)*
 * **Lordfirespeed** *(Lordfirespeed provided multiple instances of Bepinex & Unity.Netcode related support during the development of this Mod.)*
+
+**Changelog**
+--
+
+**Version 1.0.2**
+
+* *All Registering of Custom Content has been moved from the GameNetworkManager.Awake() Prefix to the GameNetworkManager.Start() Prefix to give developers safe access to Awake() if needed.*
+* *AssetBundleLoader.specifiedFileExtension has now been changed to a public const to allow for improved referencing.*
+* *ExtendedDungeonFlow's are now automatically registered with the Network when added using AssetBundleLoader.RegisterExtendedDungeonFlow()*
+* *sourceName in ExtendedLevel and ExtendedDungeonFlow have been changed to contentSourceName, to improve clarity.*
+* *Fixed an oversight where dungeonSizeMin was not being considered.*
+* *Removed deprecated variables from ExtendedDungeonPreferences.*
+* *Vector2WithRarity now correctly uses a Vector2, Allowing for improved usability in the Unity inspector.*
+* *Variables in ExtendedDungeonPreferences have now been protected with properties, to allow for future validation options.*
+* *Removed ExtendedDungeonPreferences, This has now been combined into ExtendedDungeonFlow for better usability and more streamlined referencing.*
+* *Refactored ExtendedDungeonFlow to improve on visual organisation when viewed in the Unity inspector.*
+* *Refactored ExtendedLevel to improve on visual organisation when viewed in the Unity inspector.*
+* *Introduced ConfigHelper.ConvertToStringWithRarity() To assist with developers configeration creation.*
+* *Cached Terminal.allTerminalKeywords for improved reference safetey.*
+* *Adjusted Harmony Patch Priority Orders from 0 to 350.*
+
+**Version 1.0.1**
+
+* *Updated README*
+
+**Version 1.0.0**
+
+* *Initial Release*
+

@@ -43,8 +43,8 @@ namespace LethalLevelLoader
                 foreach (IntWithRarity intWithRarity in extendedLevel.selectableLevel.dungeonFlowTypes)
                     if (RoundManager.Instance.dungeonFlowTypes[intWithRarity.id] != null)
                         if (TryGetExtendedDungeonFlow(RoundManager.Instance.dungeonFlowTypes[intWithRarity.id], out ExtendedDungeonFlow outExtendedDungeonFlow, ContentType.Vanilla))
-                            potentialExtendedDungeonFlowsList.Add(new ExtendedDungeonFlowWithRarity(outExtendedDungeonFlow, intWithRarity.rarity));
-
+                            returnExtendedDungeonFlowsList.Add(new ExtendedDungeonFlowWithRarity(outExtendedDungeonFlow, intWithRarity.rarity));
+            
 
 
             if (extendedLevel.allowedDungeonContentTypes == ContentType.Custom || extendedLevel.allowedDungeonContentTypes == ContentType.Any)

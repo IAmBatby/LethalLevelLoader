@@ -263,6 +263,27 @@ namespace LethalLevelLoader
 
             DebugHelper.Log(debugString);
         }
+
+        [HarmonyPatch(typeof(StartOfRound), "SetTimeAndPlanetToSavedSettings")]
+        [HarmonyPrefix]
+        public static void SetTimeAndPlanetToSavedSettings_Prefix()
+        {
+            DebugHelper.Log("SaveGameValues Prefix.");
+            DebugHelper.Log("Current Level ID: " + StartOfRound.Instance.currentLevelID);
+            DebugHelper.Log("Current Level List Count: " + StartOfRound.Instance.levels.Length);
+            DebugHelper.Log("Current Level From ID: " + StartOfRound.Instance.levels[StartOfRound.Instance.currentLevelID]);
+        }
+
+        [HarmonyPatch(typeof(GameNetworkManager), "SaveGameValues")]
+        [HarmonyPrefix]
+        public static void SaveGameValues_Prefix()
+        {
+            DebugHelper.Log("SaveGameValues Prefix.");
+            DebugHelper.Log("Current Level ID: " + StartOfRound.Instance.currentLevelID);
+            DebugHelper.Log("Current Level List Count: " + StartOfRound.Instance.levels.Length);
+            DebugHelper.Log("Current Level From ID: " + StartOfRound.Instance.levels[StartOfRound.Instance.currentLevelID]);
+        }
+
     }
 
 }
