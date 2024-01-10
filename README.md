@@ -86,6 +86,14 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 **Changelog**
 --
 
+**Version 1.0.4**
+
+* *Updated LethalLib dependancy from 0.10.1 to 0.11.0*
+* *Fixed issues related to SelectableLevel: March not being correctly loaded with it's intended DungeonFlow*
+* *Fixed oversight were Custom DungeonFlow's were not having all SpawnSyncedObject's correctly restored*
+* *Modified DungeonFlow_Patch levelTags check to increase odds of correctly matching user input*
+* *Removed deprecated debug logs*
+
 **Version 1.0.3**
 
 * *Fixed issues caused by the v47 and v48 updates, specific changes will be listed below*
