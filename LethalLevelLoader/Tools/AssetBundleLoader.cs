@@ -86,6 +86,7 @@ namespace LethalLevelLoader
             foreach (ExtendedDungeonFlow extendedDungeonFlow in obtainedExtendedDungeonFlowsList)
             {
                 extendedDungeonFlow.Initialize(ContentType.Custom);
+                extendedDungeonFlow.manualPlanetNameReferenceList.Add(new StringWithRarity("Tenebrous", 300));
                 DungeonFlow_Patch.AddExtendedDungeonFlow(extendedDungeonFlow);
             }
             foreach (ExtendedLevel extendedLevel in obtainedExtendedLevelsList)
@@ -134,17 +135,20 @@ namespace LethalLevelLoader
 
             if (RoundManager.Instance.dungeonFlowTypes != null)
                 foreach (DungeonFlow dungeonFlow in RoundManager.Instance.dungeonFlowTypes)
-                {
-                    ExtendedDungeonFlow extendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
-                    extendedDungeonFlow.dungeonFlow = dungeonFlow;
-                    extendedDungeonFlow.contentSourceName = "Lethal Company";
-                    extendedDungeonFlow.dungeonFirstTimeAudio = null;
-                    extendedDungeonFlow.Initialize(ContentType.Vanilla);
-                    DungeonFlow_Patch.AddExtendedDungeonFlow(extendedDungeonFlow);
-                    //Gotta assign the right audio later.
-                }
+                    CreateVanillaExtendedDungeonFlow(dungeonFlow);
             else
                 DebugHelper.Log("Error! RoundManager dungeonFlowTypes Array Was Null!");
+        }
+
+        internal static void CreateVanillaExtendedDungeonFlow(DungeonFlow dungeonFlow)
+        {
+            ExtendedDungeonFlow extendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
+            extendedDungeonFlow.dungeonFlow = dungeonFlow;
+            extendedDungeonFlow.contentSourceName = "Lethal Company";
+            extendedDungeonFlow.dungeonFirstTimeAudio = null;
+            extendedDungeonFlow.Initialize(ContentType.Vanilla);
+            DungeonFlow_Patch.AddExtendedDungeonFlow(extendedDungeonFlow);
+            //Gotta assign the right audio later.
         }
 
         internal static void RestoreVanillaDungeonAssetReferences(ExtendedDungeonFlow extendedDungeonFlow)
@@ -382,8 +386,6 @@ namespace LethalLevelLoader
                 foreach (SpawnSyncedObject spawnSyncedObject in dungeonTile.gameObject.GetComponentsInChildren<SpawnSyncedObject>())
                     returnList.Add(spawnSyncedObject);
             }
-
-
             return (returnList.ToArray());
         }
     }

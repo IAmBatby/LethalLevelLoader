@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.Security.Permissions;
 using Unity.Netcode;
 using UnityEngine;
@@ -24,8 +25,7 @@ namespace LethalLevelLoader
 
         public static bool hasVanillaBeenPatched;
 
-        public ConfigEntry<bool> enableAllCustomDungeonsOnAllLevels;
-        public ConfigEntry<int> overrideAllCustomMoonRarities;
+        internal ConfigEntry<float> scaleDownVanillaDungeonFlowRarityIfCustomDungeonFlowHasChance;
 
         private void Awake()
         {
@@ -50,6 +50,8 @@ namespace LethalLevelLoader
             Harmony.PatchAll(typeof(DebugOrderOfExecution));
 
             //AssetBundleLoader.FindBundles();
+
+            //scaleDownVanillaDungeonFlowRarityIfCustomDungeonFlowHasChance = Config.Bind("General", "Lower Vanilla Dungeon Spawn Rate If Custom Dungeon Can Spawn", 1.0f, new ConfigDescription("If a Custom Dungeon can spawn on a level, Any Vanilla Dungeons that also can spawn on the level will have their rarity scaled down based on this float (0f = No Rarity, 1f = Unchanged Rarity", new AcceptableValueRange<float>(0.0f, 1.0f)));
         }
     }
 }

@@ -107,7 +107,12 @@ namespace LethalLevelLoader
                         entranceTeleport.dungeonFlowId = extendedDungeonFlow.dungeonID;
 
                         if (extendedDungeonFlow.dungeonType == ContentType.Vanilla)
-                            entranceTeleport.firstTimeAudio = RoundManager.Instance.firstTimeDungeonAudios[entranceTeleport.dungeonFlowId];
+                        {
+                            if (extendedDungeonFlow.dungeonID < RoundManager.Instance.firstTimeDungeonAudios.Length)
+                                entranceTeleport.firstTimeAudio = RoundManager.Instance.firstTimeDungeonAudios[entranceTeleport.dungeonFlowId];
+                            else
+                                entranceTeleport.firstTimeAudio = RoundManager.Instance.firstTimeDungeonAudios[0];
+                        }
 
                         if (extendedDungeonFlow.dungeonType == ContentType.Custom)
                         {

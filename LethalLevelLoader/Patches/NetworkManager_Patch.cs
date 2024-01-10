@@ -27,7 +27,6 @@ namespace LethalLevelLoader
                 loggedObjectNames = new List<string>();
 
             if (networkManager != null && spawnSyncedObject != null && spawnSyncedObject.spawnPrefab != null)
-                if (spawnSyncedObject.spawnPrefab.TryGetComponent(out NetworkObject networkObject))
                     foreach (NetworkPrefab networkPrefab in networkManager.NetworkConfig.Prefabs.m_Prefabs)
                         if (networkPrefab.Prefab.name == spawnSyncedObject.spawnPrefab.name)
                         {
