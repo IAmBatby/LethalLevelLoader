@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace LethalLevelLoader
@@ -62,17 +63,17 @@ namespace LethalLevelLoader
         //This is also where we add our custom moons into the list
         [HarmonyPatch(typeof(Terminal), "TextPostProcess")]
         [HarmonyPrefix]
-        internal static void TextPostProcess_PreFix(ref string modifiedDisplayText)
+        internal static void TextPostProcess_Prefix(ref string modifiedDisplayText)
         {
             if (modifiedDisplayText.Contains("Welcome to the exomoons catalogue"))
             {
                 modifiedDisplayText = "Welcome to the exomoons catalogue.\r\nTo route the autopilot to a moon, use the word ROUTE.\r\nTo learn about any moon, use the word INFO.\r\n____________________________\r\n\r\n* The Company building   //   Buying at [companyBuyingPercent].\r\n\r\n";
-                modifiedDisplayText += GetMoonCatalogDisplayListings() + "\r\n";
+                modifiedDisplayText += GetMoonCatalogDisplayListings(Terminal_Patch.Terminal.moonsCatalogueList.ToList()) + "\r\n";
             }
         }
 
         //This is some abslolute super arbitary wizardry to replicate basegame >moons command
-        internal static string GetMoonCatalogDisplayListings()
+        public static string GetMoonCatalogDisplayListings(List<SelectableLevel> selectableLevels)
         {
             string returnString = string.Empty;
             string previousLevelSource = string.Empty;
@@ -80,7 +81,7 @@ namespace LethalLevelLoader
             int seperationCountMax = 3;
             int seperationCount = 0;
 
-            foreach (SelectableLevel selectableLevel in Terminal.moonsCatalogueList)
+            foreach (SelectableLevel selectableLevel in selectableLevels)
             {
                 if (SelectableLevel_Patch.TryGetExtendedLevel(selectableLevel, out ExtendedLevel extendedLevel))
                 {

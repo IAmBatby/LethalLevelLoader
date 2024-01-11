@@ -86,7 +86,7 @@ namespace LethalLevelLoader
             foreach (ExtendedDungeonFlow extendedDungeonFlow in obtainedExtendedDungeonFlowsList)
             {
                 extendedDungeonFlow.Initialize(ContentType.Custom);
-                extendedDungeonFlow.manualPlanetNameReferenceList.Add(new StringWithRarity("Tenebrous", 300));
+                extendedDungeonFlow.manualPlanetNameReferenceList.Add(new StringWithRarity("Tenebrous", 1000));
                 DungeonFlow_Patch.AddExtendedDungeonFlow(extendedDungeonFlow);
             }
             foreach (ExtendedLevel extendedLevel in obtainedExtendedLevelsList)

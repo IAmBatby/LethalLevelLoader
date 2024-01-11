@@ -1,4 +1,5 @@
 ﻿using DunGen.Graph;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -49,20 +50,22 @@ namespace LethalLevelLoader
                 //Hardcoded mess that creates and adds a dungeonflow thats directy in the dungeongenerator but not anywhere else
                 //Currently the only usecase for this is March. Will refactor later.
                 if (hardcodedLevelFlow != null)
+                {
                     if (!TryGetExtendedDungeonFlow(hardcodedLevelFlow, out _))
                     {
                         debugString += "Level: " + extendedLevel.NumberlessPlanetName + " Contains DungeonFlow: " + hardcodedLevelFlow.name + " In DungeonGenerator That Was Not Found In RoundManager, Adding!" + "\n";
                         AssetBundleLoader.CreateVanillaExtendedDungeonFlow(hardcodedLevelFlow);
-
-                        bool foundInSelectableLevel = false;
-                        if (roundManager.dungeonFlowTypes.Length >= extendedLevel.selectableLevel.dungeonFlowTypes.Length)
-                            foreach (IntWithRarity intWithRarity in extendedLevel.selectableLevel.dungeonFlowTypes)
-                                if (roundManager.dungeonFlowTypes[intWithRarity.id] == hardcodedLevelFlow)
-                                    foundInSelectableLevel = true;
-
-                        if (foundInSelectableLevel == false && TryGetExtendedDungeonFlow(hardcodedLevelFlow, out ExtendedDungeonFlow extendedHardcodedFlow))
-                            vanillaExtendedDungeonFlowsList.Add(new ExtendedDungeonFlowWithRarity(extendedHardcodedFlow, 300));
                     }
+
+                    bool foundInSelectableLevel = false;
+                    if (roundManager.dungeonFlowTypes.Length >= extendedLevel.selectableLevel.dungeonFlowTypes.Length)
+                        foreach (IntWithRarity intWithRarity in extendedLevel.selectableLevel.dungeonFlowTypes)
+                            if (roundManager.dungeonFlowTypes[intWithRarity.id] == hardcodedLevelFlow)
+                                foundInSelectableLevel = true;
+
+                    if (foundInSelectableLevel == false && TryGetExtendedDungeonFlow(hardcodedLevelFlow, out ExtendedDungeonFlow extendedHardcodedFlow))
+                        vanillaExtendedDungeonFlowsList.Add(new ExtendedDungeonFlowWithRarity(extendedHardcodedFlow, 300));
+                }
 
 
                 //Gets every Vanilla dungeon flow that's in the selectablelevel dungeonflowtypes list
@@ -186,7 +189,7 @@ namespace LethalLevelLoader
             rarity = extendedDungeonFlow.dungeonDefaultRarity;
 
             foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.manualPlanetNameReferenceList)
-                if (stringWithRarity.Name.Contains(extendedLevel.NumberlessPlanetName) || stringWithRarity.Name.Contains(extendedLevel.selectableLevel.PlanetName))
+                if (extendedLevel.selectableLevel.PlanetName.SanitizeString().Contains(stringWithRarity.Name.SanitizeString()))
                 {
                     rarity = stringWithRarity.Rarity;
                     return (true);
@@ -261,5 +264,23 @@ namespace LethalLevelLoader
 
             return (returnString + "\n");
         }
+    }
+}
+
+public static class StringHelpers
+{
+    public static string SanitizeString(this string input)
+    {
+        return new string(input.SkipToLetters().RemoveWhitespace().ToLower());
+    }
+
+    public static string RemoveWhitespace(this string input)
+    {
+        return new string(input.ToCharArray().Where(c => !Char.IsWhiteSpace(c)).ToArray());
+    }
+
+    public static string SkipToLetters(this string input)
+    {
+        return new string(input.SkipWhile(c => !char.IsLetter(c)).ToArray());
     }
 }

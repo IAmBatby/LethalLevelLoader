@@ -88,6 +88,11 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 
 **Version 1.0.4**
 
+* *Fixed issue related to SelectableLevel: March not being correctly loaded with it's intended DungeonFlow on additional visits*
+* *Revamped manualPlanetNameReferenceList comparison to increase the likelyhood of user inputs working as intended*
+
+**Version 1.0.4**
+
 * *Updated LethalLib dependancy from 0.10.1 to 0.11.0*
 * *Fixed issues related to SelectableLevel: March not being correctly loaded with it's intended DungeonFlow*
 * *Fixed oversight were Custom DungeonFlow's were not having all SpawnSyncedObject's correctly restored*

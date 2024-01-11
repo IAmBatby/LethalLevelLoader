@@ -1,6 +1,7 @@
 ﻿using DunGen.Graph;
 using HarmonyLib;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Audio;
 using Random = System.Random;
@@ -192,6 +193,13 @@ namespace LethalLevelLoader
 
             Log(debugString);
         }
+
+        /*[HarmonyPatch(typeof(StartOfRound), "SetPlanetsWeather")]
+        [HarmonyPrefix]
+        public static void SetPlanetsWeather_Prefix(StartOfRound __instance, int connectedPlayersOnServer)
+        {
+            DebugPlanetWeatherRandomisation(connectedPlayersOnServer, __instance.levels.ToList());
+        }*/
 
         public static void DebugPlanetWeatherRandomisation(int players, List<SelectableLevel> selectableLevelsList)
         {

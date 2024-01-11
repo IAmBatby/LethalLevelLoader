@@ -11,10 +11,10 @@ namespace LethalLevelLoader
         public static List<ExtendedLevel> vanillaLevelsList = new List<ExtendedLevel>();
         public static List<ExtendedLevel> customLevelsList = new List<ExtendedLevel>();
 
-        private static List<SelectableLevel> prePatchedLevelsList = new List<SelectableLevel>();
-        private static List<SelectableLevel> patchedLevelsList = new List<SelectableLevel>();
-        private static List<SelectableLevel> prePatchedMoonsCatalogueList = new List<SelectableLevel>();
-        private static List<SelectableLevel> patchedMoonsCatalogueList = new List<SelectableLevel>();
+        internal static List<SelectableLevel> prePatchedLevelsList = new List<SelectableLevel>();
+        internal static List<SelectableLevel> patchedLevelsList = new List<SelectableLevel>();
+        internal static List<SelectableLevel> prePatchedMoonsCatalogueList = new List<SelectableLevel>();
+        internal static List<SelectableLevel> patchedMoonsCatalogueList = new List<SelectableLevel>();
 
         internal static string injectionSceneName = "InitSceneLaunchOptions";
 
