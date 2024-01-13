@@ -101,33 +101,31 @@ namespace LethalLevelLoader
 
             if (DungeonFlow_Patch.TryGetExtendedDungeonFlow(dungeonGenerator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
             {
-                foreach (GameObject rootObject in scene.GetRootGameObjects())
-                    foreach (EntranceTeleport entranceTeleport in rootObject.GetComponentsInChildren<EntranceTeleport>())
-                    {
+                foreach (GameObject rootObject in scene.GetRootGameObjects()) {
+                    foreach (EntranceTeleport entranceTeleport in rootObject.GetComponentsInChildren<EntranceTeleport>()) {
+                        if (entranceTeleports.Any(teleport => teleport.entranceId == entranceTeleport.entranceId)) {
+                            continue;
+                        }
+
                         entranceTeleport.dungeonFlowId = extendedDungeonFlow.dungeonID;
+                        entranceTeleport.firstTimeAudio = extendedDungeonFlow.dungeonType switch {
+                            ContentType.Vanilla => extendedDungeonFlow.dungeonID < RoundManager.Instance.firstTimeDungeonAudios.Length
+                                ? RoundManager.Instance.firstTimeDungeonAudios[entranceTeleport.dungeonFlowId]
+                                : RoundManager.Instance.firstTimeDungeonAudios[0],
+                            ContentType.Custom => extendedDungeonFlow.dungeonFirstTimeAudio != null ? extendedDungeonFlow.dungeonFirstTimeAudio : RoundManager.Instance.firstTimeDungeonAudios[0],
+                            _ => entranceTeleport.firstTimeAudio
+                        };
 
-                        if (extendedDungeonFlow.dungeonType == ContentType.Vanilla)
-                        {
-                            if (extendedDungeonFlow.dungeonID < RoundManager.Instance.firstTimeDungeonAudios.Length)
-                                entranceTeleport.firstTimeAudio = RoundManager.Instance.firstTimeDungeonAudios[entranceTeleport.dungeonFlowId];
-                            else
-                                entranceTeleport.firstTimeAudio = RoundManager.Instance.firstTimeDungeonAudios[0];
-                        }
-
-                        if (extendedDungeonFlow.dungeonType == ContentType.Custom)
-                        {
-                            if (extendedDungeonFlow.dungeonFirstTimeAudio != null)
-                                entranceTeleport.firstTimeAudio = extendedDungeonFlow.dungeonFirstTimeAudio;
-                            else
-                                entranceTeleport.firstTimeAudio = RoundManager.Instance.firstTimeDungeonAudios[0];
-                        }
-                        if (lowestIDEntranceTeleport == null)
+                        if (lowestIDEntranceTeleport == null) {
                             lowestIDEntranceTeleport = entranceTeleport;
-                        if (lowestIDEntranceTeleport != null && entranceTeleport.entranceId < lowestIDEntranceTeleport.entranceId)
+                        }
+                        else if (entranceTeleport.entranceId < lowestIDEntranceTeleport.entranceId) {
                             lowestIDEntranceTeleport = entranceTeleport;
+                        }
 
                         entranceTeleports.Add(entranceTeleport);
                     }
+                }
 
                 if (entranceTeleports.Count != 0)
                     debugString += "EntranceTeleport's Found, " + extendedLevel.NumberlessPlanetName + " Contains " + (entranceTeleports.Count) + " Entrances! ( " + (entranceTeleports.Count - 1) + " Fire Escapes) " + "\n";
