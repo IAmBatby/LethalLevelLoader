@@ -67,7 +67,7 @@ namespace LethalLevelLoader
         {
             if (modifiedDisplayText.Contains("Welcome to the exomoons catalogue"))
             {
-                modifiedDisplayText = "Welcome to the exomoons catalogue.\r\nTo route the autopilot to a moon, use the word ROUTE.\r\nTo learn about any moon, use the word INFO.\r\n____________________________\r\n\r\n* The Company building   //   Buying at [companyBuyingPercent].\r\n\r\n";
+                modifiedDisplayText = "\n" + "\n" + "\n" + "Welcome to the exomoons catalogue.\r\nTo route the autopilot to a moon, use the word ROUTE.\r\nTo learn about any moon, use the word INFO.\r\n____________________________\r\n\r\n* The Company building   //   Buying at [companyBuyingPercent].\r\n\r\n";
                 modifiedDisplayText += GetMoonCatalogDisplayListings(Terminal_Patch.Terminal.moonsCatalogueList.ToList()) + "\r\n";
             }
         }
@@ -85,7 +85,7 @@ namespace LethalLevelLoader
             {
                 if (SelectableLevel_Patch.TryGetExtendedLevel(selectableLevel, out ExtendedLevel extendedLevel))
                 {
-                    if (Terminal.moonsCatalogueList[2] == selectableLevel) //Hardcoded hotfix to gap Assurance and Vow
+                    if (Terminal.moonsCatalogueList[5] == selectableLevel) //Hardcoded hotfix to gap Assurance and Vow
                     {
                         returnString += "\n";
                         seperationCount = 0;

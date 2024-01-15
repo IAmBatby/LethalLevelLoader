@@ -189,7 +189,7 @@ namespace LethalLevelLoader
             rarity = extendedDungeonFlow.dungeonDefaultRarity;
 
             foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.manualPlanetNameReferenceList)
-                if (extendedLevel.selectableLevel.PlanetName.SanitizeString().Contains(stringWithRarity.Name.SanitizeString()))
+                if (extendedLevel.selectableLevel.PlanetName.SanitizeString().Contains(stringWithRarity.Name.SanitizeString()) || stringWithRarity.Name.SanitizeString().Contains(extendedLevel.selectableLevel.PlanetName.SanitizeString()))
                 {
                     rarity = stringWithRarity.Rarity;
                     return (true);

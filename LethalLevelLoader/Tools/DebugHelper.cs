@@ -14,6 +14,7 @@ namespace LethalLevelLoader
 
         public static void Log(string log)
         {
+            //LethalLevelLoaderPlugin.Instance.Log(log);
             string logString = "LethalLevelLoader: ";
             logString += log;
             Debug.Log(logString);
@@ -291,6 +292,21 @@ namespace LethalLevelLoader
             DebugHelper.Log("Current Level List Count: " + StartOfRound.Instance.levels.Length);
             DebugHelper.Log("Current Level From ID: " + StartOfRound.Instance.levels[StartOfRound.Instance.currentLevelID]);
         }*/
+
+
+        [HarmonyPatch(typeof(EnemyAI), "Start")]
+        [HarmonyPostfix]
+        [HarmonyPriority(350)]
+        public static void DebugEnemySpawn(EnemyAI __instance)
+        {
+            EnemyAI enemy = __instance;
+            string enemyName = __instance.enemyType.enemyName;
+
+            Log(enemyName + " Spawned At: " + enemy.transform.position);
+            Log(enemyName + " IsOnNavMesh = : " + enemy.agent.isOnNavMesh);
+            if (enemy.agent.isOnNavMesh == true)
+                Log(enemyName + "NavMeshSurface Is: " + enemy.agent.navMeshOwner.name);
+        }
 
     }
 

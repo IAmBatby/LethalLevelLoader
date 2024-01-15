@@ -21,7 +21,7 @@ namespace LethalLevelLoader
         public static AssetBundle MainAssets;
         private static readonly Harmony Harmony = new Harmony(ModGUID);
 
-        public static BepInEx.Logging.ManualLogSource logger;
+        internal static BepInEx.Logging.ManualLogSource logger;
 
         public static bool hasVanillaBeenPatched;
 
@@ -52,6 +52,11 @@ namespace LethalLevelLoader
             //AssetBundleLoader.FindBundles();
 
             //scaleDownVanillaDungeonFlowRarityIfCustomDungeonFlowHasChance = Config.Bind("General", "Lower Vanilla Dungeon Spawn Rate If Custom Dungeon Can Spawn", 1.0f, new ConfigDescription("If a Custom Dungeon can spawn on a level, Any Vanilla Dungeons that also can spawn on the level will have their rarity scaled down based on this float (0f = No Rarity, 1f = Unchanged Rarity", new AcceptableValueRange<float>(0.0f, 1.0f)));
+        }
+
+        internal void Log(string log)
+        {
+            Logger.LogInfo(log);
         }
     }
 }

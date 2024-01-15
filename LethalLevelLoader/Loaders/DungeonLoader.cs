@@ -19,16 +19,24 @@ namespace LethalLevelLoader
         public ExtendedDungeonFlowWithRarity(ExtendedDungeonFlow newExtendedDungeonFlow, int newRarity)
         { extendedDungeonFlow = newExtendedDungeonFlow; rarity = newRarity; }
     }
-    
+
     public class DungeonLoader
     {
+
+        [HarmonyPatch(typeof(EntranceTeleport), "Awake")]
+        [HarmonyPrefix]
+        [HarmonyPriority(350)]
+        public static void EntranceTeleportAwake_Prefix(EntranceTeleport __instance)
+        {
+            DebugHelper.Log("EntranceTeleport Spawn!" + __instance.gameObject.name);
+        }
         [HarmonyPatch(typeof(DungeonGenerator), "Generate")]
         [HarmonyPrefix]
         [HarmonyPriority(350)]
         internal static void Generate_Prefix(DungeonGenerator __instance)
         {
             //DebugHelper.Log("Started To Prefix Patch DungeonGenerator Generate!");
-            Scene scene = RoundManager.Instance.dungeonGenerator.gameObject.scene;
+            Scene scene = SceneManager.GetSceneByName(SelectableLevel_Patch.injectionSceneName);
 
             if (SelectableLevel_Patch.TryGetExtendedLevel(RoundManager.Instance.currentLevel, out ExtendedLevel extendedLevel))
             {
@@ -92,17 +100,32 @@ namespace LethalLevelLoader
             }
         }
 
+        internal static List<EntranceTeleport> GetEntranceTeleports(Scene scene)
+        {
+            List<EntranceTeleport> entranceTeleports = new List<EntranceTeleport>();
+
+            foreach (GameObject rootObject in scene.GetRootGameObjects())
+                foreach (EntranceTeleport entranceTeleport in rootObject.GetComponentsInChildren<EntranceTeleport>())
+                    entranceTeleports.Add(entranceTeleport);
+
+            return (entranceTeleports);
+        }
+
         internal static void PatchFireEscapes(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel, Scene scene)
         {
             string debugString = "Fire Exit Patch Report, Details Below;" + "\n" + "\n";
+
+            DebugHelper.Log("DungeonGenerator Is: " + dungeonGenerator);
+            DebugHelper.Log("ExtendedLevel Is: " + extendedLevel);
+            DebugHelper.Log("Scene Is: " + scene);
+            DebugHelper.Log("RoundManager Is: " + RoundManager.Instance);
 
             List<EntranceTeleport> entranceTeleports = new List<EntranceTeleport>();
             EntranceTeleport lowestIDEntranceTeleport = null;
 
             if (DungeonFlow_Patch.TryGetExtendedDungeonFlow(dungeonGenerator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
             {
-                foreach (GameObject rootObject in scene.GetRootGameObjects())
-                    foreach (EntranceTeleport entranceTeleport in rootObject.GetComponentsInChildren<EntranceTeleport>())
+                    foreach (EntranceTeleport entranceTeleport in GetEntranceTeleports(scene))
                     {
                         entranceTeleport.dungeonFlowId = extendedDungeonFlow.dungeonID;
 
