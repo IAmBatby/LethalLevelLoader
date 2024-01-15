@@ -144,6 +144,8 @@ namespace LethalLevelLoader
         internal static void FinishGeneratingNewLevelClientRpc()
         {
             EnableMeshColliders();
+
+            DebugHelper.DebugNetworkComponents(RoundManager.Instance.dungeonGenerator.gameObject.scene);
         }
 
         internal static async void EnableMeshColliders()
@@ -177,6 +179,11 @@ namespace LethalLevelLoader
 
         internal static void SpawnNetworkObjects(Scene scene, ulong clientID)
         {
+            foreach (GameObject rootObject in scene.GetRootGameObjects())
+                foreach (NetworkObject networkObject in rootObject.GetComponentsInChildren<NetworkObject>())
+                    if (networkObject.IsSpawned == false)
+                        networkObject.DestroyWithScene = true;
+
             if (clientIDs.Count == StartOfRound.Instance.ClientPlayerList.Keys.Count && StartOfRound.Instance.IsServer && serverHasPatched == false)
             {
                 DebugHelper.Log("Client IDs Count Is: " + clientIDs.Count + ". Instance IsServer?: " + StartOfRound.Instance.IsServer.ToString() + ". ServerHasPatched: " + serverHasPatched);
@@ -190,7 +197,7 @@ namespace LethalLevelLoader
                         if (networkObject.IsSpawned == false)
                         {
                             networkObject.SceneMigrationSynchronization = true;
-                            networkObject.Spawn();
+                            networkObject.Spawn(destroyWithScene: true);
                             //networkObject.TrySetParent(parent: rootObjects[0].transform);
                             //networkObject.TryRemoveParent();
                             debugCounter++;
@@ -249,6 +256,8 @@ namespace LethalLevelLoader
                                 {
                                     DebugHelper.Log("Trying To Move: " + __result.gameObject.name + " To " + parentScene.name);
                                     SceneManager.MoveGameObjectToScene(__result.gameObject, parentScene);
+                                    __result.SceneMigrationSynchronization = false;
+                                    __result.DestroyWithScene = true;
                                     __result.gameObject.SetActive(true);
                                     __result.enabled = true;
                                     //__result.TrySetParent(rootObjects[0]);

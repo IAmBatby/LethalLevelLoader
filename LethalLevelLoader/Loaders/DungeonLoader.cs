@@ -36,10 +36,14 @@ namespace LethalLevelLoader
         internal static void Generate_Prefix(DungeonGenerator __instance)
         {
             //DebugHelper.Log("Started To Prefix Patch DungeonGenerator Generate!");
-            Scene scene = SceneManager.GetSceneByName(SelectableLevel_Patch.injectionSceneName);
+            Scene scene;
 
             if (SelectableLevel_Patch.TryGetExtendedLevel(RoundManager.Instance.currentLevel, out ExtendedLevel extendedLevel))
             {
+                if (extendedLevel.levelType == ContentType.Custom)
+                    scene = SceneManager.GetSceneByName(SelectableLevel_Patch.injectionSceneName);
+                else
+                    scene = RoundManager.Instance.dungeonGenerator.gameObject.scene;
                 SetDungeonFlow(__instance, extendedLevel);
                 PatchDungeonSize(__instance, extendedLevel);
                 PatchFireEscapes(__instance, extendedLevel, scene);

@@ -2,8 +2,10 @@
 using HarmonyLib;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.SceneManagement;
 using Random = System.Random;
 
 namespace LethalLevelLoader
@@ -306,6 +308,47 @@ namespace LethalLevelLoader
             Log(enemyName + " IsOnNavMesh = : " + enemy.agent.isOnNavMesh);
             if (enemy.agent.isOnNavMesh == true)
                 Log(enemyName + "NavMeshSurface Is: " + enemy.agent.navMeshOwner.name);
+        }
+
+        public static void DebugNetworkComponents(Scene scene)
+        {
+            List<NetworkObject> networkObjects = new List<NetworkObject>();
+            List<NetworkBehaviour> networkBehaviours = new List<NetworkBehaviour>();
+            Log("Starting Debug Network Components, Scene Is: " + scene.name);
+            string debugString = "Network Components Report." + "\n";
+            debugString += "Current Level Being Reported On Is: " + RoundManager.Instance.currentLevel.PlanetName;
+            foreach (GameObject rootObject in scene.GetRootGameObjects())
+            {
+                foreach (NetworkObject networkObject in rootObject.GetComponentsInChildren<NetworkObject>())
+                    networkObjects.Add(networkObject);
+
+                foreach (NetworkBehaviour networkBehaviour in rootObject.GetComponentsInChildren<NetworkBehaviour>())
+                    networkBehaviours.Add(networkBehaviour);
+            }
+
+            debugString = "NetworkObjects Report" + "\n" + "\n";
+            foreach (NetworkObject networkObject in networkObjects)
+            {
+                debugString += "NetworkObject Name: " + networkObject.gameObject.name + ", IsSpawned: " + networkObject.IsSpawned + "\n";
+                debugString += "NetworkBehaviours: " + "\n";
+                foreach (NetworkBehaviour networkBehaviour in networkObject.ChildNetworkBehaviours)
+                    debugString += networkBehaviour.gameObject.name + ",";
+                debugString += "\n" + "\n";
+            }
+            Log(debugString);
+
+            debugString = "NetworkBehaviourss Report" + "\n" + "\n";
+            foreach (NetworkBehaviour networkBehaviour in networkBehaviours)
+            {
+                debugString += "NetworkBehaviour Name: " + networkBehaviour.gameObject.name + ", IsSpawned: " + networkBehaviour.IsSpawned + "\n";
+                if (networkBehaviour.NetworkObject != null)
+                    debugString += "NetworkObject: " + networkBehaviour.NetworkObject.gameObject.name + "\n";
+                else
+                    debugString += "NetworkObject: (Null)" + "\n";
+                debugString += "\n" + "\n";
+            }
+
+            Log(debugString);
         }
 
     }
