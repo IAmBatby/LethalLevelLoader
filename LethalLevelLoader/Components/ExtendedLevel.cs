@@ -14,7 +14,6 @@ namespace LethalLevelLoader
         public string contentSourceName = "Lethal Company"; //Levels from AssetBundles will have this as their Assembly Name.
         [Space(5)]
         public SelectableLevel selectableLevel;
-        public GameObject levelPrefab;
         [Space(5)]
         public int routePrice = 0;
 
@@ -46,7 +45,6 @@ namespace LethalLevelLoader
             {
                 levelTags.Add("Custom");
                 selectableLevel.levelID = SelectableLevel_Patch.allLevelsList.Count;
-                selectableLevel.sceneName = SelectableLevel_Patch.injectionSceneName;
             }
 
             if (generateTerminalAssets == true) //Needs to be after levelID setting above.

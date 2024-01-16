@@ -296,7 +296,7 @@ namespace LethalLevelLoader
         }*/
 
 
-        [HarmonyPatch(typeof(EnemyAI), "Start")]
+        /*[HarmonyPatch(typeof(EnemyAI), "Start")]
         [HarmonyPostfix]
         [HarmonyPriority(350)]
         public static void DebugEnemySpawn(EnemyAI __instance)
@@ -349,8 +349,24 @@ namespace LethalLevelLoader
             }
 
             Log(debugString);
+        }*/
+
+
+        /*[HarmonyPatch(typeof(ManualCameraRenderer), "SwitchRadarTargetAndSync")]
+        [HarmonyPrefix]
+        [HarmonyPriority(350)]
+        public static void SwitchRadarTargetAndSync(ManualCameraRenderer __instance, int switchToIndex)
+        {
+            DebugHelper.Log("Switching Radar Target! ID: " + switchToIndex + " Target: " + __instance.radarTargets[switchToIndex].name);
         }
 
+        [HarmonyPatch(typeof(ManualCameraRenderer), "RemoveTargetFromRadar")]
+        [HarmonyPrefix]
+        [HarmonyPriority(350)]
+        public static void SwitchRadarTargetAndSync(ManualCameraRenderer __instance, Transform removeTransform)
+        {
+            DebugHelper.Log("Removing Radar Target! Removed Target: " + removeTransform.gameObject.name);
+        }*/
     }
 
 }

@@ -267,7 +267,7 @@ namespace LethalLevelLoader
     }
 }
 
-public static class StringHelpers
+public static class StringMatchingHelpers
 {
     public static string SanitizeString(this string input)
     {

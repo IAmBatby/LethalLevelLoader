@@ -40,10 +40,8 @@ namespace LethalLevelLoader
 
             if (SelectableLevel_Patch.TryGetExtendedLevel(RoundManager.Instance.currentLevel, out ExtendedLevel extendedLevel))
             {
-                if (extendedLevel.levelType == ContentType.Custom)
-                    scene = SceneManager.GetSceneByName(SelectableLevel_Patch.injectionSceneName);
-                else
-                    scene = RoundManager.Instance.dungeonGenerator.gameObject.scene;
+                scene = SceneManager.GetSceneByName(extendedLevel.selectableLevel.sceneName);
+
                 SetDungeonFlow(__instance, extendedLevel);
                 PatchDungeonSize(__instance, extendedLevel);
                 PatchFireEscapes(__instance, extendedLevel, scene);

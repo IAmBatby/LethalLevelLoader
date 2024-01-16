@@ -7,6 +7,8 @@ using System.Reflection;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.SceneManagement;
+using UnityEngine.Windows;
 
 namespace LethalLevelLoader
 {
@@ -18,9 +20,13 @@ namespace LethalLevelLoader
         internal static DirectoryInfo lethalLibFolder;
         internal static DirectoryInfo pluginsFolder;
 
+        internal static List<AssetBundle> loadedAssetBundles = new List<AssetBundle>();
+        internal static List<AssetBundle> loadedStreamedAssetBundles = new List<AssetBundle>();
+
         internal static List<ExtendedLevel> obtainedExtendedLevelsList = new List<ExtendedLevel>();
         internal static List<ExtendedDungeonFlow> obtainedExtendedDungeonFlowsList = new List<ExtendedDungeonFlow>();
 
+        //internal static List<string> assetBundle
         [HarmonyPriority(350)]
         [HarmonyPatch(typeof(PreInitSceneScript), "Awake")]
         [HarmonyPrefix]
@@ -66,18 +72,50 @@ namespace LethalLevelLoader
 
             foreach (string file in Directory.GetFiles(pluginsFolder.FullName, specifiedFileExtension, SearchOption.AllDirectories))
                 LoadBundle(file);
+
+            LoadBundleContent();
         }
 
         internal static void LoadBundle(string bundleFile)
         {
-            AssetBundle newBundle = AssetBundle.LoadFromFile(bundleFile);
+            FileStream fileStream = new FileStream(Path.Combine(Application.streamingAssetsPath, bundleFile), FileMode.Open, FileAccess.Read);
+            AssetBundle newBundle = AssetBundle.LoadFromStream(fileStream);
 
             if (newBundle != null)
             {
+                if (newBundle.isStreamedSceneAssetBundle == true)
+                    loadedStreamedAssetBundles.Add(newBundle);
+                else
+                    loadedAssetBundles.Add(newBundle);
+
                 DebugHelper.Log("Loading Custom Content From Bundle: " + newBundle.name);
 
-                foreach (ExtendedLevel extendedLevel in newBundle.LoadAllAssets<ExtendedLevel>())
-                    obtainedExtendedLevelsList.Add(extendedLevel);
+                if (newBundle.isStreamedSceneAssetBundle == false)
+                    foreach (ExtendedLevel extendedLevel in newBundle.LoadAllAssets<ExtendedLevel>())
+                        obtainedExtendedLevelsList.Add(extendedLevel);
+            }
+        }
+
+        internal static void LoadBundleContent()
+        {
+            bool foundExtendedLevelScene;
+            foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(obtainedExtendedLevelsList))
+            {
+                foundExtendedLevelScene = false;
+                foreach (AssetBundle streamedAssetBundle in loadedStreamedAssetBundles)
+                    foreach (string scenePath in streamedAssetBundle.GetAllScenePaths())
+                        if (GetSceneName(scenePath) == extendedLevel.selectableLevel.sceneName)
+                        {
+                            DebugHelper.Log("Found Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ". Scene Path Is: " + scenePath);
+                            foundExtendedLevelScene = true;
+                            NetworkScenePatcher.AddScenePath(GetSceneName(scenePath));
+                        }
+
+                if (foundExtendedLevelScene == false)
+                {
+                    DebugHelper.Log("Could Not Find Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name);
+                    obtainedExtendedLevelsList.Remove(extendedLevel);
+                }
             }
         }
 
@@ -93,7 +131,7 @@ namespace LethalLevelLoader
             {
                 extendedLevel.Initialize(ContentType.Custom, generateTerminalAssets: true);
                 SelectableLevel_Patch.AddSelectableLevel(extendedLevel);
-                WarmUpBundleShaders(extendedLevel);
+                //WarmUpBundleShaders(extendedLevel);
             }
             //DebugHelper.DebugAllLevels();
         }
@@ -170,18 +208,18 @@ namespace LethalLevelLoader
         internal static void RestoreVanillaLevelAssetReferences(ExtendedLevel extendedLevel)
         {
 
-            AudioSource[] moonAudioSources = extendedLevel.levelPrefab.GetComponentsInChildren<AudioSource>();
+            //AudioSource[] moonAudioSources = extendedLevel.levelPrefab.GetComponentsInChildren<AudioSource>();
 
             //DebugHelper.Log("Found " + moonAudioSources.Length + " AudioSources In Custom Moon: " + extendedLevel.NumberlessPlanetName);
 
-            foreach (AudioSource audioSource in moonAudioSources)
+            /*foreach (AudioSource audioSource in moonAudioSources)
             {
                 if (audioSource.outputAudioMixerGroup == null)
                 {
                     audioSource.outputAudioMixerGroup = ContentExtractor.vanillaAudioMixerGroupsList[0];
                     DebugHelper.Log("AudioGroupMixer Reference Inside " + audioSource.name + " Was Null, Assigning Master SFX Mixer For Safety!");
                 }
-            }
+            }*/
 
             foreach (SpawnableItemWithRarity spawnableItem in extendedLevel.selectableLevel.spawnableScrap)
                 foreach (Item vanillaItem in ContentExtractor.vanillaItemsList)
@@ -222,13 +260,13 @@ namespace LethalLevelLoader
         internal static void RegisterCustomLevelNetworkObjects(ExtendedLevel extendedLevel)
         {
             int debugCounter = 0;
-            foreach (NetworkObject networkObject in extendedLevel.levelPrefab.GetComponentsInChildren<NetworkObject>())
+            /*foreach (NetworkObject networkObject in extendedLevel.levelPrefab.GetComponentsInChildren<NetworkObject>())
             {
                 NetworkManager_Patch.RegisterNetworkPrefab(networkObject.gameObject); 
                 debugCounter++;
-            }
+            }*/
 
-            DebugHelper.Log("Registered " + debugCounter + " NetworkObject's Found In Custom Level: " + extendedLevel.NumberlessPlanetName);
+            //DebugHelper.Log("Registered " + debugCounter + " NetworkObject's Found In Custom Level: " + extendedLevel.NumberlessPlanetName);
         }
 
         internal static void RegisterDungeonContent(DungeonFlow dungeonFlow)
@@ -251,7 +289,7 @@ namespace LethalLevelLoader
         {
             List<(Shader, ShaderWarmupSetup)> shaderWithWarmupSetupList = new List<(Shader, ShaderWarmupSetup)>();
 
-            ShaderWarmupSetup warmupSetup;
+            /*ShaderWarmupSetup warmupSetup;
             foreach (MeshRenderer meshRenderer in extendedLevel.levelPrefab.GetComponentsInChildren<MeshRenderer>())
             {
                 MeshFilter meshFilter = meshRenderer.gameObject.GetComponent<MeshFilter>();
@@ -268,7 +306,7 @@ namespace LethalLevelLoader
             foreach ((Shader, ShaderWarmupSetup) shaderWithWarmupSetup in shaderWithWarmupSetupList)
             {
                 ShaderWarmup.WarmupShader(shaderWithWarmupSetup.Item1, shaderWithWarmupSetup.Item2);
-            }
+            }*/
         }
 
         internal static void SetVanillaLevelTags(ExtendedLevel vanillaLevel)
@@ -387,6 +425,11 @@ namespace LethalLevelLoader
                     returnList.Add(spawnSyncedObject);
             }
             return (returnList.ToArray());
+        }
+
+        internal static string GetSceneName(string scenePath)
+        {
+            return (scenePath.Substring(scenePath.LastIndexOf('/') + 1).Replace(".unity", ""));
         }
     }
 }
