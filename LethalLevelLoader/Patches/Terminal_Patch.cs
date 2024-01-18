@@ -47,6 +47,7 @@ namespace LethalLevelLoader
         internal static TerminalKeyword InfoKeyword => GetTerminalKeywordFromIndex(6);
         internal static TerminalKeyword ConfirmKeyword => GetTerminalKeywordFromIndex(3);
         internal static TerminalKeyword DenyKeyword => GetTerminalKeywordFromIndex(4);
+        internal static TerminalKeyword MoonsKeyword => GetTerminalKeywordFromIndex(21);
         //This isn't anywhere easy to grab so we grab it from Vow's Route.
         internal static TerminalNode CancelRouteNode
         {
@@ -64,6 +65,11 @@ namespace LethalLevelLoader
         [HarmonyPatch(typeof(Terminal), "TextPostProcess")]
         [HarmonyPrefix]
         internal static void TextPostProcess_Prefix(ref string modifiedDisplayText)
+        {
+            SetMoonsTerminalText(ref modifiedDisplayText);
+        }
+
+        internal static void SetMoonsTerminalText(ref string modifiedDisplayText)
         {
             if (modifiedDisplayText.Contains("Welcome to the exomoons catalogue"))
             {
@@ -96,7 +102,7 @@ namespace LethalLevelLoader
                         seperationCount = 0;
                     }
 
-                    returnString += "* " + extendedLevel.NumberlessPlanetName + " " + GetMoonConditions(extendedLevel.selectableLevel) + "\n";
+                    returnString += "* " + extendedLevel.NumberlessPlanetName + " " + GetExtendedLevelPreviewInfo(extendedLevel) + "\n";
                     previousLevelSource = extendedLevel.contentSourceName;
                 }
 
@@ -111,8 +117,38 @@ namespace LethalLevelLoader
             return (returnString);
         }
 
+        internal static string GetExtendedLevelPreviewInfo(ExtendedLevel extendedLevel)
+        {
+            string levelPreviewInfo = string.Empty;
+
+            switch (LethalLevelLoaderSettings.levelPreviewInfoType)
+            {
+                case LevelPreviewInfoType.Weather:
+                    levelPreviewInfo = GetWeatherConditions(extendedLevel.selectableLevel);
+                    break;
+                case LevelPreviewInfoType.Price:
+                    levelPreviewInfo = "(" + extendedLevel.routePrice + ")";
+                    break;
+                case LevelPreviewInfoType.Difficulty:
+                    levelPreviewInfo = "(" + extendedLevel.selectableLevel.riskLevel + ")";
+                    break;
+                case LevelPreviewInfoType.Empty:
+                    break;
+                case LevelPreviewInfoType.Vanilla:
+                    levelPreviewInfo = "[planetTime]";
+                    break;
+                case LevelPreviewInfoType.Override:
+                    levelPreviewInfo = LethalLevelLoaderSettings.GetOverridePreviewInfo(extendedLevel);
+                    break;
+                default:
+                    break;
+            }
+
+            return (levelPreviewInfo);
+        }
+
         //Just returns the level weather with a space and ().
-        internal static string GetMoonConditions(SelectableLevel selectableLevel)
+        internal static string GetWeatherConditions(SelectableLevel selectableLevel)
         {
             string returnString = string.Empty;
 
@@ -226,6 +262,84 @@ namespace LethalLevelLoader
 
             Terminal.terminalNodes.allKeywords = Terminal.terminalNodes.allKeywords.AddItem(terminalKeyword).ToArray();
             tempRouteKeyword.compatibleNouns = tempRouteKeyword.compatibleNouns.AddItem(routeLevel).ToArray();
+        }
+
+        internal static void CreateMoonsFilterTerminalAssets()
+        {
+            string[] filterOptions = new string[] { "Weather", "Price", "Difficulty", "None" };
+            TerminalKeyword toggleKeyword = ScriptableObject.CreateInstance<TerminalKeyword>();
+
+            toggleKeyword.word = "toggle";
+            toggleKeyword.isVerb = true;
+
+            foreach (string filterOption in filterOptions)
+            {
+                TerminalKeyword filterKeyword = ScriptableObject.CreateInstance<TerminalKeyword>();
+                TerminalNode filterNode = ScriptableObject.CreateInstance<TerminalNode>();
+
+                filterKeyword.word = filterOption.ToLower();
+                filterKeyword.defaultVerb = toggleKeyword;
+
+                filterNode.displayText = string.Empty;
+                filterNode.terminalEvent = filterOption;
+                filterNode.clearPreviousText = false;
+                filterNode.maxCharactersToType = 25;
+                filterNode.buyItemIndex = -1;
+                filterNode.buyRerouteToMoon = -1;
+                filterNode.displayPlanetInfo = -1;
+                filterNode.lockedInDemo = false;
+                filterNode.shipUnlockableID = -1;
+                filterNode.itemCost = 0;
+                filterNode.creatureFileID = -1;
+                filterNode.storyLogFileID = -1;
+                filterNode.playSyncedClip = -1;
+
+                CompatibleNoun newCompatibleNoun = new CompatibleNoun();
+                newCompatibleNoun.noun = filterKeyword;
+                newCompatibleNoun.result = filterNode;
+
+                toggleKeyword.compatibleNouns = toggleKeyword.compatibleNouns.AddItem(newCompatibleNoun).ToArray();
+                Terminal.terminalNodes.allKeywords = Terminal.terminalNodes.allKeywords.AddItem(filterKeyword).ToArray();
+            }
+
+            Terminal.terminalNodes.allKeywords = Terminal.terminalNodes.allKeywords.AddItem(toggleKeyword).ToArray();
+
+        }
+
+
+        [HarmonyPatch(typeof(Terminal), "RunTerminalEvents")]
+        [HarmonyPostfix]
+        [HarmonyPriority(350)]
+        internal static void RunTerminalEvents(TerminalNode node)
+        {
+            bool loadMoonsNode = false;
+            if (node.terminalEvent == "Weather")
+            {
+                LethalLevelLoaderSettings.levelPreviewInfoType = LevelPreviewInfoType.Weather;
+                loadMoonsNode = true;
+            }
+            else if (node.terminalEvent == "Price")
+            {
+                LethalLevelLoaderSettings.levelPreviewInfoType = LevelPreviewInfoType.Price;
+                loadMoonsNode = true;
+            }
+            else if (node.terminalEvent == "Difficulty")
+            {
+                LethalLevelLoaderSettings.levelPreviewInfoType = LevelPreviewInfoType.Difficulty;
+                loadMoonsNode = true;
+            }
+            else if (node.terminalEvent == "None")
+            {
+                LethalLevelLoaderSettings.levelPreviewInfoType = LevelPreviewInfoType.Empty;
+                loadMoonsNode = true;
+            }
+
+            if (loadMoonsNode == true)
+            {
+                float cachedScrollbarValue = Terminal.scrollBarVertical.value;
+                Terminal.LoadNewNode(MoonsKeyword.specialKeywordResult);
+                Terminal.scrollBarVertical.value = cachedScrollbarValue;
+            }
         }
 
         internal static TerminalKeyword GetTerminalKeywordFromIndex(int index)

@@ -19,7 +19,7 @@ namespace LethalLevelLoader
             //LethalLevelLoaderPlugin.Instance.Log(log);
             string logString = "LethalLevelLoader: ";
             logString += log;
-            Debug.Log(logString);
+            LethalLevelLoaderPlugin.logger.LogInfo(logString);
         }
 
         public static void DebugTerminalKeyword(TerminalKeyword terminalKeyword)

@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace LethalLevelLoader
@@ -25,8 +26,13 @@ namespace LethalLevelLoader
         {
             if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
             {
+                GameObject networkBehaviour = GameObject.Instantiate(LethalLevelLoaderPlugin.networkManagerPrefab);
+                networkBehaviour.GetComponent<NetworkObject>().Spawn();
+                
+                
                 CreatePatchedLevelsList();
                 CreatePatchedMoonsCatalogueList();
+                Terminal_Patch.CreateMoonsFilterTerminalAssets();
 
                 foreach (ExtendedLevel customLevel in customLevelsList)
                     AssetBundleLoader.RestoreVanillaLevelAssetReferences(customLevel);

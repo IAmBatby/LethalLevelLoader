@@ -85,6 +85,9 @@
     <Reference Include="Unity.Netcode.Runtime">
       <HintPath>bin\Unity.Netcode.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\..\..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
@@ -115,10 +118,13 @@
     <Reference Include="HarmonyXInterop">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\core\HarmonyXInterop.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\..\..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
-    <Exec Command="netcode-patch &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies->'&quot;%(Identity)&quot;', ' ')"/>
+    <Exec Command="netcode-patch &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies->'&quot;%(Identity)&quot;', ' ')" />
   </Target>
 
   <Target Name="CopyToDebugProfile" AfterTargets="NetcodePatch" Condition="'$(Configuration)' == 'Debug'">

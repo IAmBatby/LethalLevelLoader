@@ -3,9 +3,9 @@
 
 **A Custom API to support the manual and dynamic integration of custom levels and dungeons in Lethal Company.**
 
-**Thunderstore Link:**
+**Thunderstore Link:** *https://thunderstore.io/c/lethal-company/p/IAmBatby/LethalLevelLoader/*
 
-**Discord Thread:**
+**Discord Thread:** *https://discord.com/channels/1168655651455639582/1193461151636398080*
 
 **Description**
 --
@@ -82,9 +82,14 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 * **Scoopy** *(This Mod was internally tested using Scoopy's "LethalExtension Castle" Custom Dungeon and Scoopy assisted in testing LethalLevelLoader's usage)*
 * **Xilo** *(Xilo provided multiple instances of Bepinex & Unity.Netcode related support during the development of this Mod.)*
 * **Lordfirespeed** *(Lordfirespeed provided multiple instances of Bepinex & Unity.Netcode related support during the development of this Mod.)*
+* **onionymous** *(Onionymous provided a preview build of their Networked Scene Patcher API, allowing for dynamic, networked scene injection)*
 
 **Changelog**
 --
+
+**Version 1.0.7**
+
+* *Overhauled Custom Level system to use dynamically injected scenes rather than dynamically injected prefabs (Thanks onionymous!)*
 
 **Version 1.0.6**
 

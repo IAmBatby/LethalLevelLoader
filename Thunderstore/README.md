@@ -82,7 +82,7 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 * **Scoopy** *(This Mod was internally tested using Scoopy's "LethalExtension Castle" Custom Dungeon and Scoopy assisted in testing LethalLevelLoader's usage)*
 * **Xilo** *(Xilo provided multiple instances of Bepinex & Unity.Netcode related support during the development of this Mod.)*
 * **Lordfirespeed** *(Lordfirespeed provided multiple instances of Bepinex & Unity.Netcode related support during the development of this Mod.)*
-* **onionymous** *(Onionymous provided the code for the SceneManager and NetworkSceneManager patches, allowing for dynamic, networked scene injection)*
+* **onionymous** *(Onionymous provided a preview build of their Networked Scene Patcher API, allowing for dynamic, networked scene injection)*
 
 **Changelog**
 --

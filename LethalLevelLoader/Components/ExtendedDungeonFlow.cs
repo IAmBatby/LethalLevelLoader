@@ -1,7 +1,10 @@
 ﻿using DunGen.Graph;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace LethalLevelLoader
 {
@@ -33,6 +36,18 @@ namespace LethalLevelLoader
         public float dungeonSizeMin = 1;
         public float dungeonSizeMax = 1;
         [Range(0, 1)] public float dungeonSizeLerpPercentage = 1;
+
+
+        [Space(10)]
+        [Header("Dynamic DungeonFlow Modification Settings")]
+
+        [Space(5)] public List<GlobalPropCountOverride> globalPropCountOverridesList = new List<GlobalPropCountOverride>();
+
+        [HideInInspector]
+        public UnityEventDungeonGenerator onBeforeExtendedDungeonGenerate;
+
+        [HideInInspector]
+        public UnityEventSpawnMapHazards onSpawnMapHazardsSpawn;
 
         internal void Initialize(ContentType newDungeonType)
         {
@@ -84,4 +99,12 @@ namespace LethalLevelLoader
             _rarity = newRarity;
         }
     }
+
+    [Serializable]
+    public class GlobalPropCountOverride
+    {
+        public int globalPropID;
+        [Range(0,1)] public float globalPropCountScaleRate = 0;
+    }
+
 }

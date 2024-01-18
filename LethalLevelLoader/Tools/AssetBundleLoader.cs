@@ -71,7 +71,9 @@ namespace LethalLevelLoader
             pluginsFolder = lethalLibFile.Parent.Parent;
 
             foreach (string file in Directory.GetFiles(pluginsFolder.FullName, specifiedFileExtension, SearchOption.AllDirectories))
+            {
                 LoadBundle(file);
+            }
 
             LoadBundleContent();
         }
@@ -84,7 +86,9 @@ namespace LethalLevelLoader
             if (newBundle != null)
             {
                 if (newBundle.isStreamedSceneAssetBundle == true)
+                {
                     loadedStreamedAssetBundles.Add(newBundle);
+                }
                 else
                     loadedAssetBundles.Add(newBundle);
 
@@ -158,7 +162,7 @@ namespace LethalLevelLoader
 
                 int vanillaRoutePrice = 0;
                 foreach (CompatibleNoun compatibleRouteNoun in Terminal_Patch.RouteKeyword.compatibleNouns)
-                    if (compatibleRouteNoun.noun.name.Contains(selectableLevel.PlanetName))
+                    if (compatibleRouteNoun.noun.name.Contains(ExtendedLevel.GetNumberlessPlanetName(selectableLevel)))
                         vanillaRoutePrice = compatibleRouteNoun.result.itemCost;
                 extendedLevel.Initialize(ContentType.Vanilla, newSelectableLevel: selectableLevel, newRoutePrice: vanillaRoutePrice, generateTerminalAssets: false);
 

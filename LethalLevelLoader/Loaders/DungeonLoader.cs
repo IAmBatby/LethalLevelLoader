@@ -1,15 +1,24 @@
 ﻿using DunGen;
+using DunGen.Graph;
 using HarmonyLib;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using static DunGen.Graph.DungeonFlow;
 using Random = System.Random;
 
 namespace LethalLevelLoader
 {
+    [System.Serializable]
+    public class UnityEventDungeonGenerator : UnityEvent<DungeonGenerator> { }
+
+    [System.Serializable]
+    public class UnityEventSpawnMapHazards : UnityEvent<GameObject[]> { }
+
     [System.Serializable]
     public class ExtendedDungeonFlowWithRarity
     {
@@ -22,6 +31,8 @@ namespace LethalLevelLoader
 
     public class DungeonLoader
     {
+        public static UnityEventDungeonGenerator onBeforeDungeonGenerate;
+        private static bool hasSetDungeonFlow;
 
         [HarmonyPatch(typeof(EntranceTeleport), "Awake")]
         [HarmonyPrefix]
@@ -33,7 +44,7 @@ namespace LethalLevelLoader
         [HarmonyPatch(typeof(DungeonGenerator), "Generate")]
         [HarmonyPrefix]
         [HarmonyPriority(350)]
-        internal static void Generate_Prefix(DungeonGenerator __instance)
+        internal static bool Generate_Prefix(DungeonGenerator __instance)
         {
             //DebugHelper.Log("Started To Prefix Patch DungeonGenerator Generate!");
             Scene scene;
@@ -41,45 +52,36 @@ namespace LethalLevelLoader
             if (SelectableLevel_Patch.TryGetExtendedLevel(RoundManager.Instance.currentLevel, out ExtendedLevel extendedLevel))
             {
                 scene = SceneManager.GetSceneByName(extendedLevel.selectableLevel.sceneName);
+                DebugHelper.Log("DungeonGenerator Prefix");
+                if (hasSetDungeonFlow == false)
+                {
+                    if (NetworkManager.Singleton.IsServer == true)
+                    {
+                        int extendedLevelID = SelectableLevel_Patch.allLevelsList.IndexOf(extendedLevel);
+                        DebugHelper.Log("ExtendedLevel ID: " + extendedLevelID);
+                        LethalLevelLoaderNetworkBehaviour.Instance.SetDungeonFlowServerRpc(extendedLevelID);
+                        return (false);
+                    }
+                    else
+                        return (false);
+                }
 
-                SetDungeonFlow(__instance, extendedLevel);
                 PatchDungeonSize(__instance, extendedLevel);
                 PatchFireEscapes(__instance, extendedLevel, scene);
+                PatchDynamicGlobalProps(__instance);
+
+                DungeonFlow_Patch.TryGetExtendedDungeonFlow(__instance.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow);
+                onBeforeDungeonGenerate?.Invoke(__instance);
+                extendedDungeonFlow.onBeforeExtendedDungeonGenerate?.Invoke(__instance);
+                hasSetDungeonFlow = false;
             }
+
+            return (true);
         }
 
-        internal static void SetDungeonFlow(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel)
+        internal static void HasSetDungeonFlow(bool hasSetDungeonFlowParam)
         {
-            DebugHelper.Log("Setting DungeonFlow!");
-            
-            RoundManager roundManager = RoundManager.Instance;
-
-            Random levelRandom = RoundManager.Instance.LevelRandom;
-
-            int randomisedDungeonIndex = -1;
-
-            List<int> randomWeightsList = new List<int>();
-            string debugString = "Current Level + (" + extendedLevel.NumberlessPlanetName + ") Weights List: " + "\n" + "\n";
-
-            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = DungeonFlow_Patch.GetValidExtendedDungeonFlows(extendedLevel, debugString).ToList();
-
-            foreach (ExtendedDungeonFlowWithRarity extendedDungeon in availableExtendedFlowsList)
-                randomWeightsList.Add(extendedDungeon.rarity);
-
-            randomisedDungeonIndex = roundManager.GetRandomWeightedIndex(randomWeightsList.ToArray(), levelRandom);
-
-            foreach (ExtendedDungeonFlowWithRarity extendedDungeon in availableExtendedFlowsList)
-            {
-                debugString += extendedDungeon.extendedDungeonFlow.dungeonFlow.name + " | " + extendedDungeon.rarity;
-                if (extendedDungeon.extendedDungeonFlow == availableExtendedFlowsList[randomisedDungeonIndex].extendedDungeonFlow)
-                    debugString += " - Selected DungeonFlow" + "\n";
-                else
-                    debugString += "\n";
-            }
-
-            DebugHelper.Log(debugString + "\n");
-
-            dungeonGenerator.DungeonFlow = availableExtendedFlowsList[randomisedDungeonIndex].extendedDungeonFlow.dungeonFlow;
+            hasSetDungeonFlow = hasSetDungeonFlowParam;
         }
 
         internal static void PatchDungeonSize(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel)
@@ -187,6 +189,48 @@ namespace LethalLevelLoader
 
                 DebugHelper.Log(debugString + "\n");
             }
+        }
+
+        public static void PatchDynamicGlobalProps(DungeonGenerator dungeonGenerator)
+        {
+            if (DungeonFlow_Patch.TryGetExtendedDungeonFlow(dungeonGenerator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
+                foreach (GlobalPropCountOverride globalPropOverride in extendedDungeonFlow.globalPropCountOverridesList)
+                    foreach (GlobalPropSettings globalProp in dungeonGenerator.DungeonFlow.GlobalProps)
+                    {
+                        if (globalPropOverride.globalPropID == globalProp.ID)
+                        {
+                            globalProp.Count.Min = globalProp.Count.Min * Mathf.RoundToInt(Mathf.Lerp(1, (dungeonGenerator.LengthMultiplier / RoundManager.Instance.mapSizeMultiplier), globalPropOverride.globalPropCountScaleRate));
+                            globalProp.Count.Max = globalProp.Count.Max * Mathf.RoundToInt(Mathf.Lerp(1, (dungeonGenerator.LengthMultiplier / RoundManager.Instance.mapSizeMultiplier), globalPropOverride.globalPropCountScaleRate));
+                        }
+                    }
+        }
+
+        private static List<GameObject> spawnMapObjectsPrespawnList = new List<GameObject>();
+
+        [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects")]
+        [HarmonyPrefix]
+        [HarmonyPriority(350)]
+        public static void SpawnMapObjects_Prefix(RoundManager __instance)
+        {
+            spawnMapObjectsPrespawnList.Clear();
+
+            foreach (Transform child in __instance.mapPropsContainer.transform)
+                spawnMapObjectsPrespawnList.Add(child.gameObject);
+        }
+
+        [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects")]
+        [HarmonyPostfix]
+        [HarmonyPriority(350)]
+        public static void SpawnMapObjects_Postfix(RoundManager __instance)
+        {
+            List<GameObject> spawnedMapObjects = new List<GameObject>();
+
+            foreach (Transform spawnedMapObject in __instance.mapPropsContainer.transform)
+                if (!spawnMapObjectsPrespawnList.Contains(spawnedMapObject.gameObject))
+                    spawnedMapObjects.Add(spawnedMapObject.gameObject);
+
+            if (DungeonFlow_Patch.TryGetExtendedDungeonFlow(__instance.dungeonGenerator.Generator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
+                extendedDungeonFlow.onSpawnMapHazardsSpawn?.Invoke(spawnedMapObjects.ToArray());
         }
     }
 }
