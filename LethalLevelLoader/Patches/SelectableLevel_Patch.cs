@@ -26,13 +26,11 @@ namespace LethalLevelLoader
         {
             if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
             {
-                GameObject networkBehaviour = GameObject.Instantiate(LethalLevelLoaderPlugin.networkManagerPrefab);
-                networkBehaviour.GetComponent<NetworkObject>().Spawn();
-                
-                
                 CreatePatchedLevelsList();
                 CreatePatchedMoonsCatalogueList();
                 Terminal_Patch.CreateMoonsFilterTerminalAssets();
+                Terminal_Patch.CreateVanillaExtendedLevelGroups();
+                Terminal_Patch.CreateCustomExtendedLevelGroups();
 
                 foreach (ExtendedLevel customLevel in customLevelsList)
                     AssetBundleLoader.RestoreVanillaLevelAssetReferences(customLevel);
@@ -106,6 +104,17 @@ namespace LethalLevelLoader
                     returnExtendedLevel = extendedLevel;
 
             return (returnExtendedLevel != null);
+        }
+
+        public static ExtendedLevel GetExtendedLevel(SelectableLevel selectableLevel)
+        {
+            ExtendedLevel returnExtendedLevel = null;
+
+            foreach (ExtendedLevel extendedLevel in allLevelsList)
+                if (extendedLevel.selectableLevel == selectableLevel)
+                    returnExtendedLevel = extendedLevel;
+
+            return (returnExtendedLevel);
         }
     }
 }

@@ -17,26 +17,38 @@ namespace LethalLevelLoader
         public static void Log(string log)
         {
             //LethalLevelLoaderPlugin.Instance.Log(log);
-            string logString = "LethalLevelLoader: ";
-            logString += log;
+            string logString = log;
             LethalLevelLoaderPlugin.logger.LogInfo(logString);
         }
 
         public static void DebugTerminalKeyword(TerminalKeyword terminalKeyword)
         {
-            string logString = "Info For " + terminalKeyword.word + ") TerminalKeyword!" + "\n" + "\n";
-            logString += "Word: " + terminalKeyword.word + "\n";
-            logString += "isVerb?: " + terminalKeyword.isVerb + "\n";
-            logString += "CompatibleNouns :" + "\n";
-
-            foreach (CompatibleNoun compatibleNoun in terminalKeyword.compatibleNouns)
-                logString += compatibleNoun.noun + " | " + compatibleNoun.result + "\n";
-
-            logString += "SpecialKeywordResult: " + terminalKeyword.specialKeywordResult + "\n";
-            logString += "AccessTerminalObjects?: " + terminalKeyword.accessTerminalObjects + "\n";
-            logString += "DefaultVerb: " + terminalKeyword.defaultVerb.name + "\n";
-
-            Log(logString + "\n" + "\n");
+            if (terminalKeyword != null)
+            {
+                string logString = "Info For (" + terminalKeyword.word + ") TerminalKeyword!" + "\n" + "\n";
+                logString += "Word: " + terminalKeyword.word + "\n";
+                logString += "isVerb?: " + terminalKeyword.isVerb + "\n";
+                logString += "CompatibleNouns :" + "\n";
+                if (terminalKeyword.compatibleNouns != null)
+                {
+                    foreach (CompatibleNoun compatibleNoun in terminalKeyword.compatibleNouns)
+                    {
+                        if (compatibleNoun != null && compatibleNoun.noun != null && compatibleNoun.result != null)
+                            logString += compatibleNoun.noun.word + " | " + compatibleNoun.result + "\n";
+                        else
+                            logString += "Could not debug CompatibleNoun as it was null!" + "\n";
+                    }
+                }
+                logString += "SpecialKeywordResult: " + terminalKeyword.specialKeywordResult + "\n";
+                logString += "AccessTerminalObjects?: " + terminalKeyword.accessTerminalObjects + "\n";
+                if (terminalKeyword.defaultVerb != null && terminalKeyword.defaultVerb.word != null)
+                    logString += "DefaultVerb: " + terminalKeyword.defaultVerb.word + "\n";
+                else
+                    logString += "Could not debug DefaultVerb as it was null!" + "\n";
+                Log(logString + "\n" + "\n");
+            }
+            else
+                Log("Could not debug TerminalKeyword as it was null!");
         }
 
         public static void DebugTerminalNode(TerminalNode terminalNode)
@@ -367,6 +379,55 @@ namespace LethalLevelLoader
         {
             DebugHelper.Log("Removing Radar Target! Removed Target: " + removeTransform.gameObject.name);
         }*/
-    }
 
+        internal static TerminalKeyword verbKeyword;
+
+        [HarmonyPatch(typeof(Terminal), "ParseWord")]
+        [HarmonyPostfix]
+        [HarmonyPriority(350)]
+        internal static void ParseWord(Terminal __instance, ref TerminalKeyword __result, string playerWord)
+        {
+            if (__instance.hasGottenVerb == false && __result.isVerb == true)
+                verbKeyword = __result;
+
+            if (__result != null && __result.isVerb == false && __instance.hasGottenVerb == true && verbKeyword != null)
+            {
+                TerminalKeyword nounKeyword = __result;
+                if (ValidateNounKeyword(verbKeyword, nounKeyword) == false)
+                {
+                    Log("Selected NounKeyword Is Not A Valid Pairing For The Found VerbKeyword, Looking Again!");
+                    Log("Invalid NounKeyword Info - Word: " + nounKeyword.word + " , DefaultVerb Word: " + nounKeyword.defaultVerb?.word + " , VerbKeyword: " + verbKeyword.word + " , TerminalKeywords Index: " + __instance.terminalNodes.allKeywords.ToList().IndexOf(nounKeyword));
+                    foreach (TerminalKeyword newNounKeyword in __instance.terminalNodes.allKeywords)
+                        if (newNounKeyword.isVerb == false && newNounKeyword != nounKeyword && newNounKeyword.word == playerWord)
+                        {
+                            if (ValidateNounKeyword(verbKeyword, newNounKeyword) == true)
+                            {
+                                Log("Found New NounKeyword That Is A Valid Pairing For The Found VerbKeyword, Returning This Instead!");
+                                Log("New NounKeyword Info - Word: " + newNounKeyword.word + " , DefaultVerb Word: " + newNounKeyword.defaultVerb?.word + " , VerbKeyword: " + verbKeyword.word + " , TerminalKeywords Index: " + __instance.terminalNodes.allKeywords.ToList().IndexOf(newNounKeyword));
+                                __result = newNounKeyword;
+                            }
+                            else
+                                Log("Still could not find NounKeyword That Is A Matching Pair For The Found VerbKeyword, Sending Invalid Result To Basegame");
+                        }
+                }
+            }
+
+            DebugHelper.Log("ParseWord Postfix: PlayerWord Is: " + playerWord + " | TerminalKeyword Is: " + __result.word);
+            DebugTerminalKeyword(__result);
+        }
+
+        internal static bool ValidateNounKeyword(TerminalKeyword verbKeyword, TerminalKeyword nounKeyword)
+        {
+            for (int k = 0; k < verbKeyword.compatibleNouns.Length; k++)
+            {
+                if (verbKeyword.compatibleNouns[k].noun == nounKeyword)
+                {
+                    Debug.Log(string.Format("noun keyword: {0} ; verb keyword: {1} ; result null? : {2}", nounKeyword.word, verbKeyword.word, verbKeyword.compatibleNouns[k].result == null));
+                    Debug.Log("result: " + verbKeyword.compatibleNouns[k].result.name);
+                    return (true);
+                }
+            }
+            return (false);
+        }
+    }
 }

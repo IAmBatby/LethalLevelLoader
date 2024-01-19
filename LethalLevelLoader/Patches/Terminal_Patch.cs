@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
+using static UnityEngine.UI.GridLayoutGroup;
 
 namespace LethalLevelLoader
 {
@@ -42,6 +43,8 @@ namespace LethalLevelLoader
             }
         }
 
+        internal static List<ExtendedLevelGroup> currentExtendedLevelGroupsList = new List<ExtendedLevelGroup>();
+        internal static List<ExtendedLevelGroup> defaultExtendedLevelsGroupList = new List<ExtendedLevelGroup>();
         //Hardcoded References To Important Base-Game TerminalKeywords;
         internal static TerminalKeyword RouteKeyword => GetTerminalKeywordFromIndex(26);
         internal static TerminalKeyword InfoKeyword => GetTerminalKeywordFromIndex(6);
@@ -66,52 +69,85 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void TextPostProcess_Prefix(ref string modifiedDisplayText)
         {
-            SetMoonsTerminalText(ref modifiedDisplayText);
+            if (modifiedDisplayText.Contains("Welcome to the exomoons catalogue"))
+                modifiedDisplayText = GetMoonsTerminalText();
         }
 
-        internal static void SetMoonsTerminalText(ref string modifiedDisplayText)
+        internal static string GetMoonsTerminalText()
         {
-            if (modifiedDisplayText.Contains("Welcome to the exomoons catalogue"))
+            string returnString = string.Empty;
+
+            returnString += "\n" + "\n" + "\n" + "Welcome to the exomoons catalogue.\r\nTo route the autopilot to a moon, use the word ROUTE.\r\nTo learn about any moon, use the word INFO.\r\n____________________________\r\n\r\n* The Company building   //   Buying at [companyBuyingPercent].\r\n\r\n";
+            returnString += GetMoonCatalogDisplayListings(Terminal_Patch.Terminal.moonsCatalogueList.ToList()) + "\r\n";
+
+            return (returnString);
+        }
+
+        internal static void RefreshMoonsListing(List<ExtendedLevelGroup> extendedLevelGroups)
+        {
+            currentExtendedLevelGroupsList = extendedLevelGroups;
+            RefreshMoonsNode();
+        }
+
+        internal static void RefreshMoonsNode()
+        {
+            //float cachedScrollbarValue = Terminal.scrollBarVertical.value;
+            //float cachedScrollbarSize = Terminal.scrollBarVertical.size;
+            //Terminal.LoadNewNode(MoonsKeyword.specialKeywordResult);
+            //Terminal.scrollBarVertical.value = cachedScrollbarValue;
+            //Terminal.scrollBarVertical.size = cachedScrollbarSize;
+
+            if (Terminal.screenText.text.Contains("Welcome to the exomoons catalogue"))
             {
-                modifiedDisplayText = "\n" + "\n" + "\n" + "Welcome to the exomoons catalogue.\r\nTo route the autopilot to a moon, use the word ROUTE.\r\nTo learn about any moon, use the word INFO.\r\n____________________________\r\n\r\n* The Company building   //   Buying at [companyBuyingPercent].\r\n\r\n";
-                modifiedDisplayText += GetMoonCatalogDisplayListings(Terminal_Patch.Terminal.moonsCatalogueList.ToList()) + "\r\n";
+                Terminal.screenText.text = Terminal.TextPostProcess(GetMoonsTerminalText(), Terminal.currentNode);
+                Terminal.currentText = Terminal.screenText.text;
             }
+        }
+
+        internal static void CreateVanillaExtendedLevelGroups()
+        {
+            ExtendedLevelGroup vanillaGroupA = new ExtendedLevelGroup();
+            vanillaGroupA.extendedLevelsList.Add(SelectableLevel_Patch.GetExtendedLevel(SelectableLevel_Patch.prePatchedMoonsCatalogueList[0]));
+            vanillaGroupA.extendedLevelsList.Add(SelectableLevel_Patch.GetExtendedLevel(SelectableLevel_Patch.prePatchedMoonsCatalogueList[1]));
+            vanillaGroupA.extendedLevelsList.Add(SelectableLevel_Patch.GetExtendedLevel(SelectableLevel_Patch.prePatchedMoonsCatalogueList[2]));
+            defaultExtendedLevelsGroupList.Add(vanillaGroupA);
+
+            ExtendedLevelGroup vanillaGroupB = new ExtendedLevelGroup();
+            vanillaGroupB.extendedLevelsList.Add(SelectableLevel_Patch.GetExtendedLevel(SelectableLevel_Patch.prePatchedMoonsCatalogueList[3]));
+            vanillaGroupB.extendedLevelsList.Add(SelectableLevel_Patch.GetExtendedLevel(SelectableLevel_Patch.prePatchedMoonsCatalogueList[4]));
+            defaultExtendedLevelsGroupList.Add(vanillaGroupB);
+
+            ExtendedLevelGroup vanillaGroupC = new ExtendedLevelGroup();
+            vanillaGroupC.extendedLevelsList.Add(SelectableLevel_Patch.GetExtendedLevel(SelectableLevel_Patch.prePatchedMoonsCatalogueList[5]));
+            vanillaGroupC.extendedLevelsList.Add(SelectableLevel_Patch.GetExtendedLevel(SelectableLevel_Patch.prePatchedMoonsCatalogueList[6]));
+            vanillaGroupC.extendedLevelsList.Add(SelectableLevel_Patch.GetExtendedLevel(SelectableLevel_Patch.prePatchedMoonsCatalogueList[7]));
+            defaultExtendedLevelsGroupList.Add(vanillaGroupC);
+
+            RefreshMoonsListing(defaultExtendedLevelsGroupList);
+        }
+
+        internal static void CreateCustomExtendedLevelGroups()
+        {
+            ExtendedLevelGroup customGroup = new ExtendedLevelGroup();
+
+            foreach (ExtendedLevel customLevel in SelectableLevel_Patch.customLevelsList)
+                customGroup.extendedLevelsList.Add(customLevel);
+
+            defaultExtendedLevelsGroupList.Add(customGroup);
+
+            RefreshMoonsListing(defaultExtendedLevelsGroupList);
         }
 
         //This is some abslolute super arbitary wizardry to replicate basegame >moons command
         public static string GetMoonCatalogDisplayListings(List<SelectableLevel> selectableLevels)
         {
             string returnString = string.Empty;
-            string previousLevelSource = string.Empty;
 
-            int seperationCountMax = 3;
-            int seperationCount = 0;
-
-            foreach (SelectableLevel selectableLevel in selectableLevels)
+            foreach (ExtendedLevelGroup extendedLevelGroup in currentExtendedLevelGroupsList)
             {
-                if (SelectableLevel_Patch.TryGetExtendedLevel(selectableLevel, out ExtendedLevel extendedLevel))
-                {
-                    if (Terminal.moonsCatalogueList[5] == selectableLevel) //Hardcoded hotfix to gap Assurance and Vow
-                    {
-                        returnString += "\n";
-                        seperationCount = 0;
-                    }
-                    if (previousLevelSource != string.Empty && previousLevelSource != extendedLevel.contentSourceName)
-                    {
-                        returnString += "\n";
-                        seperationCount = 0;
-                    }
-
+                foreach (ExtendedLevel extendedLevel in extendedLevelGroup.extendedLevelsList)
                     returnString += "* " + extendedLevel.NumberlessPlanetName + " " + GetExtendedLevelPreviewInfo(extendedLevel) + "\n";
-                    previousLevelSource = extendedLevel.contentSourceName;
-                }
-
-                seperationCount++;
-                if (seperationCount == seperationCountMax)
-                {
-                    returnString += "\n";
-                    seperationCount = 0;
-                }
+                returnString += "\n";
             }
 
             return (returnString);
@@ -150,13 +186,10 @@ namespace LethalLevelLoader
         //Just returns the level weather with a space and ().
         internal static string GetWeatherConditions(SelectableLevel selectableLevel)
         {
-            string returnString = string.Empty;
-
-            if (selectableLevel != null)
-                if (selectableLevel.currentWeather != LevelWeatherType.None)
-                    returnString = "(" + selectableLevel.currentWeather.ToString() + ")";
-
-            return (returnString);
+            if (selectableLevel != null && selectableLevel.currentWeather != LevelWeatherType.None)
+                return ("(" + selectableLevel.currentWeather.ToString() + ")");
+            else
+                return (string.Empty);
         }
 
         internal static void CreateLevelTerminalData(ExtendedLevel extendedLevel)
@@ -266,44 +299,29 @@ namespace LethalLevelLoader
 
         internal static void CreateMoonsFilterTerminalAssets()
         {
-            string[] filterOptions = new string[] { "Weather", "Price", "Difficulty", "None" };
+            string[] toggleOptions = new string[] { "Weather", "Price", "Difficulty", "None" };
             TerminalKeyword toggleKeyword = ScriptableObject.CreateInstance<TerminalKeyword>();
 
             toggleKeyword.word = "toggle";
             toggleKeyword.isVerb = true;
 
-            foreach (string filterOption in filterOptions)
-            {
-                TerminalKeyword filterKeyword = ScriptableObject.CreateInstance<TerminalKeyword>();
-                TerminalNode filterNode = ScriptableObject.CreateInstance<TerminalNode>();
-
-                filterKeyword.word = filterOption.ToLower();
-                filterKeyword.defaultVerb = toggleKeyword;
-
-                filterNode.displayText = string.Empty;
-                filterNode.terminalEvent = filterOption;
-                filterNode.clearPreviousText = false;
-                filterNode.maxCharactersToType = 25;
-                filterNode.buyItemIndex = -1;
-                filterNode.buyRerouteToMoon = -1;
-                filterNode.displayPlanetInfo = -1;
-                filterNode.lockedInDemo = false;
-                filterNode.shipUnlockableID = -1;
-                filterNode.itemCost = 0;
-                filterNode.creatureFileID = -1;
-                filterNode.storyLogFileID = -1;
-                filterNode.playSyncedClip = -1;
-
-                CompatibleNoun newCompatibleNoun = new CompatibleNoun();
-                newCompatibleNoun.noun = filterKeyword;
-                newCompatibleNoun.result = filterNode;
-
-                toggleKeyword.compatibleNouns = toggleKeyword.compatibleNouns.AddItem(newCompatibleNoun).ToArray();
-                Terminal.terminalNodes.allKeywords = Terminal.terminalNodes.allKeywords.AddItem(filterKeyword).ToArray();
-            }
+            foreach (string filterOption in toggleOptions)
+                CreateTerminalEventNode(toggleKeyword, filterOption);
 
             Terminal.terminalNodes.allKeywords = Terminal.terminalNodes.allKeywords.AddItem(toggleKeyword).ToArray();
 
+            //////////
+            
+            string[] sortOptions = new string[] { "Price", "Difficulty", "Test3", "Test4", "Clear" };
+            TerminalKeyword sortKeyword = ScriptableObject.CreateInstance<TerminalKeyword>();
+
+            sortKeyword.word = "sort";
+            sortKeyword.isVerb = true;
+
+            foreach (string sortOption in sortOptions)
+                CreateTerminalEventNode(sortKeyword, sortOption);
+
+            Terminal.terminalNodes.allKeywords = Terminal.terminalNodes.allKeywords.AddItem(sortKeyword).ToArray();
         }
 
 
@@ -312,34 +330,115 @@ namespace LethalLevelLoader
         [HarmonyPriority(350)]
         internal static void RunTerminalEvents(TerminalNode node)
         {
-            bool loadMoonsNode = false;
-            if (node.terminalEvent == "Weather")
+            DebugHelper.Log("Running TerminalEvent With TerminalEventString: " + node.terminalEvent);
+            List<string> toggleOptions = new List<string> { "Weather", "Price", "Difficulty", "None" };
+            List<string> sortOptions = new List<string> { "Price", "Difficulty", "Test3", "Test4", "Clear" };
+            List<string> filterOptions = new List<string> {  "Price"}
+
+            if (node.terminalEvent.Contains("toggle"))
+                foreach (string toggleString in toggleOptions)
+                    if (node.terminalEvent.Contains(toggleString))
+                        TogglePreviewInfo(toggleOptions.IndexOf(toggleString));
+
+            if (node.terminalEvent.Contains("sort"))
+                foreach (string sortString in sortOptions)
+                    if (node.terminalEvent.Contains(sortString))
+                        ToggleSortedExtendedLevelGroups(sortString);
+        }
+
+        internal static void TogglePreviewInfo(int typeIndex)
+        {
+            LethalLevelLoaderSettings.levelPreviewInfoType = (LevelPreviewInfoType)typeIndex;
+            RefreshMoonsNode();
+        }
+
+        internal static void ToggleSortedExtendedLevelGroups(string input)
+        {
+            if (input == "Clear")
             {
-                LethalLevelLoaderSettings.levelPreviewInfoType = LevelPreviewInfoType.Weather;
-                loadMoonsNode = true;
+                RefreshMoonsListing(defaultExtendedLevelsGroupList);
             }
-            else if (node.terminalEvent == "Price")
+            else if (input == "Price")
             {
-                LethalLevelLoaderSettings.levelPreviewInfoType = LevelPreviewInfoType.Price;
-                loadMoonsNode = true;
+                List<ExtendedLevel> currentExtendedLevelsList = new List<ExtendedLevel>(GetExtendedLevels(defaultExtendedLevelsGroupList)).OrderBy(o => o.routePrice).ToList();
+
+                RefreshMoonsListing(CreateExtendedLevelGroups(currentExtendedLevelsList, splitCount: 3));
             }
-            else if (node.terminalEvent == "Difficulty")
+            else if (input == "Difficulty")
             {
-                LethalLevelLoaderSettings.levelPreviewInfoType = LevelPreviewInfoType.Difficulty;
-                loadMoonsNode = true;
+                List<ExtendedLevel> currentExtendedLevelsList = new List<ExtendedLevel>(GetExtendedLevels(defaultExtendedLevelsGroupList)).OrderBy(o => o.selectableLevel.maxScrap * o.selectableLevel.maxEnemyPowerCount).ToList();
+
+                RefreshMoonsListing(CreateExtendedLevelGroups(currentExtendedLevelsList, splitCount: 3));
             }
-            else if (node.terminalEvent == "None")
+        }
+
+        internal static List<ExtendedLevelGroup> CreateExtendedLevelGroups(List<ExtendedLevel> extendedLevelsList, int splitCount)
+        {
+            List<ExtendedLevelGroup> returnList = new List<ExtendedLevelGroup>();
+
+            int counter = 0;
+            int levelsAdded = 0;
+            ExtendedLevelGroup currentGroup = new ExtendedLevelGroup();
+            foreach (ExtendedLevel extendedLevel in extendedLevelsList)
             {
-                LethalLevelLoaderSettings.levelPreviewInfoType = LevelPreviewInfoType.Empty;
-                loadMoonsNode = true;
+                currentGroup.extendedLevelsList.Add(extendedLevel);
+                levelsAdded++;
+                counter++;
+
+                if (counter == splitCount || levelsAdded == extendedLevelsList.Count)
+                {
+                    Debug.Log("Spltting!");
+                    ExtendedLevelGroup returnLevelGroup = new ExtendedLevelGroup();
+                    returnLevelGroup.extendedLevelsList = new List<ExtendedLevel>(currentGroup.extendedLevelsList);
+                    returnList.Add(returnLevelGroup);
+                    currentGroup.extendedLevelsList.Clear();
+                    counter = 0;
+                }
             }
 
-            if (loadMoonsNode == true)
-            {
-                float cachedScrollbarValue = Terminal.scrollBarVertical.value;
-                Terminal.LoadNewNode(MoonsKeyword.specialKeywordResult);
-                Terminal.scrollBarVertical.value = cachedScrollbarValue;
-            }
+            Debug.Log(returnList.Count);
+
+            return (returnList);
+        }
+
+        public static List<ExtendedLevel> GetExtendedLevels(List<ExtendedLevelGroup> extendedLevelGroups)
+        {
+            List<ExtendedLevel> returnList = new List<ExtendedLevel>();
+
+            foreach (ExtendedLevelGroup extendedLevelGroup in extendedLevelGroups)
+                foreach (ExtendedLevel extendedLevel in extendedLevelGroup.extendedLevelsList)
+                    returnList.Add(extendedLevel);
+
+            return returnList;
+        }
+
+        internal static void CreateTerminalEventNode(TerminalKeyword verbKeyword, string eventString)
+        {
+            TerminalKeyword newKeyword = ScriptableObject.CreateInstance<TerminalKeyword>();
+            TerminalNode newNode = ScriptableObject.CreateInstance<TerminalNode>();
+
+            newKeyword.word = eventString.ToLower();
+            newKeyword.defaultVerb = verbKeyword;
+            newNode.displayText = string.Empty;
+            newNode.terminalEvent = verbKeyword.word + eventString;
+            newNode.clearPreviousText = false;
+            newNode.maxCharactersToType = 25;
+            newNode.buyItemIndex = -1;
+            newNode.buyRerouteToMoon = -1;
+            newNode.displayPlanetInfo = -1;
+            newNode.lockedInDemo = false;
+            newNode.shipUnlockableID = -1;
+            newNode.itemCost = 0;
+            newNode.creatureFileID = -1;
+            newNode.storyLogFileID = -1;
+            newNode.playSyncedClip = -1;
+
+            CompatibleNoun newCompatibleNoun = new CompatibleNoun();
+            newCompatibleNoun.noun = newKeyword;
+            newCompatibleNoun.result = newNode;
+
+            verbKeyword.compatibleNouns = verbKeyword.compatibleNouns.AddItem(newCompatibleNoun).ToArray();
+            Terminal.terminalNodes.allKeywords = Terminal.terminalNodes.allKeywords.AddItem(newKeyword).ToArray();
         }
 
         internal static TerminalKeyword GetTerminalKeywordFromIndex(int index)

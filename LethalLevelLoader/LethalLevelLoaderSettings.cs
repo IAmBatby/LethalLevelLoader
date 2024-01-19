@@ -5,6 +5,7 @@ using System.Text;
 namespace LethalLevelLoader
 {
     public enum LevelPreviewInfoType { Weather, Price, Difficulty, Empty, Vanilla, Override };
+    public enum LevelSortType { Price, Difficulty, Theme, History, None }
 
     public static class LethalLevelLoaderSettings
     {

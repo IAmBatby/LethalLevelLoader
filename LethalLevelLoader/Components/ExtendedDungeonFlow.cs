@@ -47,7 +47,7 @@ namespace LethalLevelLoader
         public UnityEventDungeonGenerator onBeforeExtendedDungeonGenerate;
 
         [HideInInspector]
-        public UnityEventSpawnMapHazards onSpawnMapHazardsSpawn;
+        public UnityEventSpawnMapObjects onSpawnMapHazardsSpawn;
 
         internal void Initialize(ContentType newDungeonType)
         {
