@@ -206,7 +206,7 @@ namespace LethalLevelLoader
 
             foreach (Vector2WithRarity vectorWithRarity in extendedDungeonFlow.dynamicRoutePricesList)
             {
-                if ((extendedLevel.routePrice >= vectorWithRarity.Min) && (extendedLevel.routePrice <= vectorWithRarity.Max))
+                if ((extendedLevel.RoutePrice >= vectorWithRarity.Min) && (extendedLevel.RoutePrice <= vectorWithRarity.Max))
                 {
                     rarity = vectorWithRarity.Rarity;
                     return (true);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace LethalLevelLoader
 {
@@ -28,9 +29,6 @@ namespace LethalLevelLoader
             {
                 CreatePatchedLevelsList();
                 CreatePatchedMoonsCatalogueList();
-                Terminal_Patch.CreateMoonsFilterTerminalAssets();
-                Terminal_Patch.CreateVanillaExtendedLevelGroups();
-                Terminal_Patch.CreateCustomExtendedLevelGroups();
 
                 foreach (ExtendedLevel customLevel in customLevelsList)
                     AssetBundleLoader.RestoreVanillaLevelAssetReferences(customLevel);
@@ -38,10 +36,24 @@ namespace LethalLevelLoader
                 foreach (ExtendedDungeonFlow customDungeonFlow in DungeonFlow_Patch.customDungeonFlowsList)
                     AssetBundleLoader.RestoreVanillaDungeonAssetReferences(customDungeonFlow);
 
+                //Terminal_Patch.CreateMoonsFilterTerminalAssets();
+
                 LethalLevelLoaderPlugin.hasVanillaBeenPatched = true;
             }
 
             PatchVanillaLevelLists();
+            //Terminal_Patch.CreateVanillaExtendedLevelGroups();
+            //Terminal_Patch.CreateCustomExtendedLevelGroups();
+        }
+
+        [HarmonyPriority(350)]
+        [HarmonyPatch(typeof(RoundManager), "Start")]
+        [HarmonyPrefix]
+        internal static void RoundManagerStart_Prefix()
+        {
+            Terminal_Patch.CreateMoonsFilterTerminalAssets();
+            Terminal_Patch.CreateVanillaExtendedLevelGroups();
+            Terminal_Patch.CreateCustomExtendedLevelGroups();
         }
 
         internal static void AddSelectableLevel(ExtendedLevel extendedLevel)
@@ -116,5 +128,43 @@ namespace LethalLevelLoader
 
             return (returnExtendedLevel);
         }
+    }
+
+    public class LevelHistory
+    {
+        public int quota;
+        public int day;
+        public ExtendedLevel extendedLevel;
+    }
+
+    public class MyClassIdea1
+    {
+        public int mainNumber;
+        public bool mainSetting;
+        public string mainName;
+
+        public UnityEvent myEvent1;
+        public UnityEvent myEvent2;
+        public UnityEvent myEvent3;
+        public UnityEvent myEvent4;
+        public UnityEvent myEvent5;
+    }
+
+    public class MyClassIdea2
+    {
+        public int mainNumber;
+        public bool mainSetting;
+        public string mainName;
+
+        public MyClassEvents classEvents = new MyClassEvents();
+    }
+
+    public class MyClassEvents
+    {
+        public UnityEvent myEvent1;
+        public UnityEvent myEvent2;
+        public UnityEvent myEvent3;
+        public UnityEvent myEvent4;
+        public UnityEvent myEvent5;
     }
 }

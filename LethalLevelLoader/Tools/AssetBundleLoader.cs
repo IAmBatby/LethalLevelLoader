@@ -51,6 +51,14 @@ namespace LethalLevelLoader
         }
 
         [HarmonyPriority(350)]
+        [HarmonyPatch(typeof(RoundManager), "Start")]
+        [HarmonyPostfix]
+        internal static void RoundManagerStart_Postfix()
+        {
+
+        }
+
+        [HarmonyPriority(350)]
         [HarmonyPatch(typeof(GameNetworkManager), "Start")]
         [HarmonyPrefix]
         internal static void GameNetworkManagerStart_Prefix()
@@ -133,8 +141,12 @@ namespace LethalLevelLoader
             }
             foreach (ExtendedLevel extendedLevel in obtainedExtendedLevelsList)
             {
-                extendedLevel.Initialize(ContentType.Custom, generateTerminalAssets: true);
-                SelectableLevel_Patch.AddSelectableLevel(extendedLevel);
+                Debug.Log(extendedLevel.contentSourceName);
+                if (extendedLevel.selectableLevel != null)
+                {
+                    extendedLevel.Initialize(ContentType.Custom, generateTerminalAssets: true);
+                    SelectableLevel_Patch.AddSelectableLevel(extendedLevel);
+                }
                 //WarmUpBundleShaders(extendedLevel);
             }
             //DebugHelper.DebugAllLevels();
@@ -153,17 +165,18 @@ namespace LethalLevelLoader
         internal static void CreateVanillaExtendedLevels(StartOfRound startOfRound)
         {
             DebugHelper.Log("Creating ExtendedLevels For Vanilla SelectableLevels");
-            Terminal terminal = UnityEngine.Object.FindObjectOfType<Terminal>();
 
             foreach (SelectableLevel selectableLevel in startOfRound.levels)
             {
-                //DebugHelper.Log("Moons SelectableLevel Is: " + (selectableLevel != null));
                 ExtendedLevel extendedLevel = ScriptableObject.CreateInstance<ExtendedLevel>();
 
                 int vanillaRoutePrice = 0;
                 foreach (CompatibleNoun compatibleRouteNoun in Terminal_Patch.RouteKeyword.compatibleNouns)
                     if (compatibleRouteNoun.noun.name.Contains(ExtendedLevel.GetNumberlessPlanetName(selectableLevel)))
+                    {
                         vanillaRoutePrice = compatibleRouteNoun.result.itemCost;
+                        extendedLevel.routeNode = compatibleRouteNoun.result;
+                    }
                 extendedLevel.Initialize(ContentType.Vanilla, newSelectableLevel: selectableLevel, newRoutePrice: vanillaRoutePrice, generateTerminalAssets: false);
 
                 SetVanillaLevelTags(extendedLevel);

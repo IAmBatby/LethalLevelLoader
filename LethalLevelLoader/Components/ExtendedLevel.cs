@@ -15,7 +15,30 @@ namespace LethalLevelLoader
         [Space(5)]
         public SelectableLevel selectableLevel;
         [Space(5)]
-        public int routePrice = 0;
+        [SerializeField] private int routePrice = 0;
+
+        public int RoutePrice
+        {
+            get
+            {
+                if (routeNode != null)
+                {
+                    routePrice = routeNode.itemCost;
+                    return (routeNode.itemCost);
+                }
+                else
+                {
+                    DebugHelper.Log("routeNode Is Missing! Using internal value!");
+                    return (routePrice);
+                }
+            }
+            set
+            {
+                if (routeNode != null)
+                    routeNode.itemCost = value;
+                routePrice = value;
+            }
+        }
 
         [Space(10)]
         [Header("Dynamic DungeonFlow Injections Settings")]
@@ -25,16 +48,16 @@ namespace LethalLevelLoader
         [HideInInspector] public ContentType levelType;
         [HideInInspector] public string NumberlessPlanetName => GetNumberlessPlanetName(selectableLevel);
 
+        [HideInInspector] internal TerminalNode routeNode;
+
         internal void Initialize(ContentType newLevelType, SelectableLevel newSelectableLevel = null, int newRoutePrice = 0, bool generateTerminalAssets = false, GameObject newLevelPrefab = null, string newSourceName = "Lethal Company")
         {
             DebugHelper.Log("Creating New Extended Level For Moon: " + ExtendedLevel.GetNumberlessPlanetName(newSelectableLevel));
 
             if (selectableLevel == null)
                 selectableLevel = newSelectableLevel;
-
             if (contentSourceName != newSourceName)
                 contentSourceName = newSourceName;
-
 
             levelType = newLevelType;
 
@@ -48,7 +71,13 @@ namespace LethalLevelLoader
             }
 
             if (generateTerminalAssets == true) //Needs to be after levelID setting above.
-                Terminal_Patch.CreateLevelTerminalData(this);
+            {
+                Terminal_Patch.CreateLevelTerminalData(this, routePrice, out TerminalNode newRouteNode);
+                routeNode = newRouteNode;
+            }
+
+            if (routeNode != null)
+                routePrice = routeNode.itemCost;
         }
 
         internal static string GetNumberlessPlanetName(SelectableLevel selectableLevel)

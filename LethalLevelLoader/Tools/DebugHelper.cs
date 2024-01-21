@@ -1,4 +1,5 @@
-﻿using DunGen.Graph;
+﻿using DunGen;
+using DunGen.Graph;
 using HarmonyLib;
 using System.Collections.Generic;
 using System.Linq;
@@ -379,6 +380,24 @@ namespace LethalLevelLoader
         {
             DebugHelper.Log("Removing Radar Target! Removed Target: " + removeTransform.gameObject.name);
         }*/
+
+        internal static void DebugExtendedLevelGroups(List<ExtendedLevelGroup> extendedLevelGroups)
+        {
+            DebugHelper.Log("Debugging ExtendedLevelGroups");
+
+            int counter = 1;
+            foreach (ExtendedLevelGroup group in extendedLevelGroups)
+            {
+                DebugHelper.Log("Group " + counter + " / " + extendedLevelGroups.Count);
+                int counter2 = 1;
+                foreach (ExtendedLevel level in group.extendedLevelsList)
+                {
+                    DebugHelper.Log("Group Level " + counter2 + " / " + group.extendedLevelsList.Count + " : " + level.NumberlessPlanetName);
+                    counter2++;
+                }
+                counter++;
+            }
+        }
 
         internal static TerminalKeyword verbKeyword;
 

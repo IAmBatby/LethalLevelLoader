@@ -56,17 +56,17 @@ namespace LethalLevelLoader
             terminalMoonsPreviewInfoSetting = Config.Bind("General", "Terminal >Moons PreviewInfo Setting", "Weather", new ConfigDescription("What LethalLevelLoader displays next to each moon in the >moons Terminal listing. " + "\n" + "Valid LethalLevelLoader Overhaul Options: Weather, Price, Difficulty, None " + "\n" + "Valid LethalLevelLoader Compatability Options: Vanilla, Override "));
 
             if (terminalMoonsPreviewInfoSetting.Value == "Weather")
-                LethalLevelLoaderSettings.levelPreviewInfoType = LevelPreviewInfoType.Weather;
+                ModSettings.levelPreviewInfoType = LevelPreviewInfoToggleType.Weather;
             else if (terminalMoonsPreviewInfoSetting.Value == "Price")
-                LethalLevelLoaderSettings.levelPreviewInfoType = LevelPreviewInfoType.Price;
+                ModSettings.levelPreviewInfoType = LevelPreviewInfoToggleType.Price;
             else if (terminalMoonsPreviewInfoSetting.Value == "Difficulty")
-                LethalLevelLoaderSettings.levelPreviewInfoType = LevelPreviewInfoType.Difficulty;
+                ModSettings.levelPreviewInfoType = LevelPreviewInfoToggleType.Difficulty;
             else if (terminalMoonsPreviewInfoSetting.Value == "None")
-                LethalLevelLoaderSettings.levelPreviewInfoType = LevelPreviewInfoType.Empty;
+                ModSettings.levelPreviewInfoType = LevelPreviewInfoToggleType.None;
             else if (terminalMoonsPreviewInfoSetting.Value == "Vanilla")
-                LethalLevelLoaderSettings.levelPreviewInfoType = LevelPreviewInfoType.Vanilla;
+                ModSettings.levelPreviewInfoType = LevelPreviewInfoToggleType.Vanilla;
             else if (terminalMoonsPreviewInfoSetting.Value == "Override")
-                LethalLevelLoaderSettings.levelPreviewInfoType = LevelPreviewInfoType.Override;
+                ModSettings.levelPreviewInfoType = LevelPreviewInfoToggleType.Override;
             else
                 Debug.LogError("LethalLevelLoader: TerminalMoonsPreviewInfoSetting Set To Invalid Value");
 
