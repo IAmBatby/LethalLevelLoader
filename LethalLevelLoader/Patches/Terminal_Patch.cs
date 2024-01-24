@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
@@ -8,50 +9,111 @@ using static UnityEngine.UI.GridLayoutGroup;
 
 namespace LethalLevelLoader
 {
+    public class StringWithEnum
+    {
+        public string stringValue;
+        public Enum enumValue;
+
+        public StringWithEnum(Enum newEnumValue)
+        {
+            enumValue = newEnumValue;
+            stringValue = string.Empty;
+        }
+
+        public StringWithEnum(Enum newEnumValue, string newStringValue)
+        {
+            enumValue = newEnumValue;
+            stringValue = newStringValue;
+        }
+        //public StringWithEnum(Enum newEnumValue, int newEnumIndex) { enumValue = newEnumValue; stringValue = newEnumValue.ToString(); enumIndex = newEnumIndex; }
+        //public StringWithEnum(Enum newEnumValue, string newStringValue) { enumValue = newEnumValue; stringValue = newStringValue; enumIndex = Convert.ToInt32(newEnumValue); }
+    }
     public class DynamicKeywordGroup
     {
-        private string verbKeywordWord;
-        private List<string> nounKeywordWords = new List<string>();
-
         public TerminalKeyword verbKeyword;
-        public List<(TerminalNode eventNode, int enumIndex)> eventNodesList = new List<(TerminalNode eventNode, int enumIndex)>();
-        public List<(TerminalKeyword, TerminalNode)> nounKeywordNodePairs = new List<(TerminalKeyword, TerminalNode)>();
+        public List<StringWithEnum> eventNodeEnumPairsList = new List<StringWithEnum>();
 
-        public DynamicKeywordGroup(string newVerbKeywordWord, List<string> newNounKeywordWords)
+        public DynamicKeywordGroup(string newVerbKeywordWord, List<Enum> stringWithEnumValuesList)
         {
-            verbKeywordWord = newVerbKeywordWord;
-            nounKeywordWords = newNounKeywordWords;
+            DebugHelper.Log("newVerbKeywordWord 1 Is: " + newVerbKeywordWord);
+            verbKeyword = ScriptableObject.CreateInstance<TerminalKeyword>();
 
-            TerminalKeyword newVerbKeyword = ScriptableObject.CreateInstance<TerminalKeyword>();
+            verbKeyword.word = newVerbKeywordWord;
+            verbKeyword.isVerb = true;
 
-            newVerbKeyword.word = verbKeywordWord;
-            newVerbKeyword.isVerb = true;
+            DebugHelper.Log("newVerbKeywordWord 2 Is: " + verbKeyword.word);
 
-            foreach (string nounKeywordWord in nounKeywordWords)
-                nounKeywordNodePairs.Add(Terminal_Patch.CreateTerminalEventNode(newVerbKeyword, nounKeywordWord));
+            foreach (Enum stringEnum in stringWithEnumValuesList)
+                eventNodeEnumPairsList.Add(new StringWithEnum(stringEnum));
 
-            Terminal_Patch.Terminal.terminalNodes.allKeywords = Terminal_Patch.Terminal.terminalNodes.allKeywords.AddItem(newVerbKeyword).ToArray();
-            verbKeyword = newVerbKeyword;
+            foreach (StringWithEnum nounKeywordWord in eventNodeEnumPairsList)
+            {
+                if (nounKeywordWord.stringValue == string.Empty)
+                    Terminal_Patch.CreateTerminalEventNode(verbKeyword, nounKeywordWord.enumValue.ToString(), eventString: nounKeywordWord.enumValue.GetType().ToString() + "." + nounKeywordWord.enumValue.ToString());
+                else
+                    Terminal_Patch.CreateTerminalEventNode(verbKeyword, nounKeywordWord.stringValue, eventString: nounKeywordWord.enumValue.GetType().ToString() + "." + nounKeywordWord.enumValue.ToString() + "-" + nounKeywordWord.stringValue);
+            }
+
+            Terminal_Patch.Terminal.terminalNodes.allKeywords = Terminal_Patch.Terminal.terminalNodes.allKeywords.AddItem(verbKeyword).ToArray();
+
+            //GenerateTerminalData();
         }
 
-        public bool IsDynamicKeywordsEvent(string terminalNodeEvent)
+        public DynamicKeywordGroup(string newVerbKeywordWord, List<StringWithEnum> stringWithEnumValuesList)
         {
-            foreach ((TerminalKeyword, TerminalNode) nounKeywordNodePairs in nounKeywordNodePairs)
-                if (nounKeywordNodePairs.Item2.terminalEvent.Contains(terminalNodeEvent))
-                    return (true);
+            DebugHelper.Log("newVerbKeywordWord 1 Is: " + newVerbKeywordWord);
+            verbKeyword = ScriptableObject.CreateInstance<TerminalKeyword>();
+
+            verbKeyword.word = newVerbKeywordWord;
+            verbKeyword.isVerb = true;
+
+            DebugHelper.Log("newVerbKeywordWord 2 Is: " + verbKeyword.word);
+
+            eventNodeEnumPairsList = stringWithEnumValuesList;
+
+            foreach (StringWithEnum nounKeywordWord in eventNodeEnumPairsList)
+            {
+                if (nounKeywordWord.stringValue == string.Empty)
+                    Terminal_Patch.CreateTerminalEventNode(verbKeyword, nounKeywordWord.enumValue.ToString(), eventString: nounKeywordWord.enumValue.GetType().ToString() + "." + nounKeywordWord.enumValue.ToString());
+                else
+                    Terminal_Patch.CreateTerminalEventNode(verbKeyword, nounKeywordWord.stringValue, eventString: nounKeywordWord.enumValue.GetType().ToString() + "." + nounKeywordWord.enumValue.ToString() + "-" + nounKeywordWord.stringValue);
+            }
+
+            Terminal_Patch.Terminal.terminalNodes.allKeywords = Terminal_Patch.Terminal.terminalNodes.allKeywords.AddItem(verbKeyword).ToArray();
+
+            //GenerateTerminalData();
+        }
+
+        public bool TryGetEnumValue(string terminalNodeEvent, System.Type enumType, out StringWithEnum returnStringWithEnum)
+        {
+            DebugHelper.Log("Trying To Get Enum Value! TerminalNode TerminalEvent String Is: " + terminalNodeEvent + " , Provided EnumType Is: " + enumType.ToString());
+
+            returnStringWithEnum = null;
+
+            foreach (StringWithEnum stringWithEnum in eventNodeEnumPairsList)
+            {
+                DebugHelper.Log("Loop Enum Output: " + stringWithEnum.enumValue.GetType().ToString() + "." + stringWithEnum.enumValue.ToString());
+                if (stringWithEnum.stringValue == string.Empty)
+                {
+                    if (terminalNodeEvent.Contains(stringWithEnum.enumValue.GetType().ToString() + "." + stringWithEnum.enumValue.ToString()))
+                    {
+                        DebugHelper.Log("Matched!");
+                        returnStringWithEnum = stringWithEnum;
+                        return (true);
+                    }
+                }
+                else
+                {
+                    if (terminalNodeEvent.Contains(stringWithEnum.enumValue.GetType().ToString() + "." + stringWithEnum.enumValue.ToString() + "-" + stringWithEnum.stringValue))
+                    {
+                        DebugHelper.Log("Matched!");
+                        returnStringWithEnum = stringWithEnum;
+                        return (true);
+                    }
+                }
+            }
 
             return (false);
-        }
-
-        public bool IsDynamicKeywordsEvent(string terminalNodeEvent, out (TerminalKeyword, TerminalNode) terminalEventNode)
-        {
-            terminalEventNode = (null, null);
-
-            foreach ((TerminalKeyword, TerminalNode) nounKeywordNodePair in nounKeywordNodePairs)
-                if (nounKeywordNodePair.Item2.terminalEvent.Contains(terminalNodeEvent))
-                    terminalEventNode = nounKeywordNodePair;
-
-            return (terminalEventNode.Item1 != null && terminalEventNode.Item2 != null);
         }
     }
 
@@ -103,9 +165,10 @@ namespace LethalLevelLoader
             }
         }
 
-        internal static DynamicKeywordGroup toggleKeywordGroup;
+        internal static DynamicKeywordGroup previewKeywordsGroup;
         internal static DynamicKeywordGroup sortKeywordGroup;
         internal static DynamicKeywordGroup filterKeywordGroup;
+        internal static string currentTagFilter;
 
         //This is some abslolute super arbitary wizardry to replicate basegame >moons command
         //This is also where we add our custom moons into the list
@@ -127,10 +190,15 @@ namespace LethalLevelLoader
             return (returnString);
         }
 
-        internal static void RefreshMoonsNode(List<ExtendedLevelGroup> extendedLevelGroups)
+        internal static void RefreshMoonsNode()
         {
             DebugHelper.Log("Refreshing Moons Node!");
-            currentExtendedLevelGroupsList = extendedLevelGroups;
+            List<ExtendedLevelGroup> newExtendedLevelGroupsList = new List<ExtendedLevelGroup>(defaultExtendedLevelGroupsList);
+
+            newExtendedLevelGroupsList = SortExtendedLevelGroups(newExtendedLevelGroupsList);
+            newExtendedLevelGroupsList = FilterExtendedLevelGroups(newExtendedLevelGroupsList);
+
+            currentExtendedLevelGroupsList = newExtendedLevelGroupsList;
             if (Terminal.screenText.text.Contains("Welcome to the exomoons catalogue"))
             {
                 Terminal.screenText.text = Terminal.TextPostProcess(GetMoonsTerminalText(), Terminal.currentNode);
@@ -149,18 +217,15 @@ namespace LethalLevelLoader
             ExtendedLevelGroup vanillaGroupB = new ExtendedLevelGroup(new List<ExtendedLevel>() { moonsCatalogue[3], moonsCatalogue[4] });
             ExtendedLevelGroup vanillaGroupC = new ExtendedLevelGroup(new List<ExtendedLevel>() { moonsCatalogue[5], moonsCatalogue[6], moonsCatalogue[7] });
 
-            defaultExtendedLevelGroupsList.Clear();
-            defaultExtendedLevelGroupsList.Add(vanillaGroupA);
-            defaultExtendedLevelGroupsList.Add(vanillaGroupB);
-            defaultExtendedLevelGroupsList.Add(vanillaGroupC);
+            defaultExtendedLevelGroupsList = new List<ExtendedLevelGroup>() { vanillaGroupA, vanillaGroupB, vanillaGroupC };
 
-            RefreshMoonsNode(defaultExtendedLevelGroupsList);
+            RefreshMoonsNode();
         }
 
         internal static void CreateCustomExtendedLevelGroups()
         {
             defaultExtendedLevelGroupsList.Add(new ExtendedLevelGroup(SelectableLevel_Patch.customLevelsList));
-            RefreshMoonsNode(defaultExtendedLevelGroupsList);
+            RefreshMoonsNode();
         }
 
         //This is some abslolute super arbitary wizardry to replicate basegame >moons command
@@ -180,7 +245,9 @@ namespace LethalLevelLoader
                     returnString += "\n";
             }
 
-            if (ModSettings.levelPreviewInfoType != LevelPreviewInfoToggleType.None)
+            if (currentTagFilter != string.Empty && ModSettings.levelPreviewFilterType == FilterInfoType.Tag)
+                returnString += "\n" + "____________________________" + "\n" + "PREVIEW: " + ModSettings.levelPreviewInfoType.ToString().ToUpper() + " | " + "SORT: " + ModSettings.levelPreviewSortType.ToString().ToUpper() + " | " + "FILTER: " + currentTagFilter.ToUpper() + "\n";
+            else
                 returnString += "\n" + "____________________________" + "\n" + "PREVIEW: " + ModSettings.levelPreviewInfoType.ToString().ToUpper() + " | " + "SORT: " + ModSettings.levelPreviewSortType.ToString().ToUpper() + " | " + "FILTER: " + ModSettings.levelPreviewFilterType.ToString().ToUpper() + "\n";
 
             return (returnString);
@@ -193,21 +260,27 @@ namespace LethalLevelLoader
 
             switch (ModSettings.levelPreviewInfoType)
             {
-                case LevelPreviewInfoToggleType.Weather:
+                case PreviewInfoType.Weather:
                     levelPreviewInfo = GetWeatherConditions(extendedLevel.selectableLevel);
                     break;
-                case LevelPreviewInfoToggleType.Price:
+                case PreviewInfoType.Price:
                     levelPreviewInfo = "(" + extendedLevel.RoutePrice + ")";
                     break;
-                case LevelPreviewInfoToggleType.Difficulty:
+                case PreviewInfoType.Difficulty:
                     levelPreviewInfo = "(" + extendedLevel.selectableLevel.riskLevel + ")";
                     break;
-                case LevelPreviewInfoToggleType.None:
+                case PreviewInfoType.History:
+                    levelPreviewInfo = GetHistoryConditions(extendedLevel);
                     break;
-                case LevelPreviewInfoToggleType.Vanilla:
+                case PreviewInfoType.All:
+                    levelPreviewInfo = "(" + extendedLevel.selectableLevel.riskLevel + ") " + "(" + extendedLevel.RoutePrice + ") " + GetWeatherConditions(extendedLevel.selectableLevel);
+                    break;
+                case PreviewInfoType.None:
+                    break;
+                case PreviewInfoType.Vanilla:
                     levelPreviewInfo = "[planetTime]";
                     break;
-                case LevelPreviewInfoToggleType.Override:
+                case PreviewInfoType.Override:
                     levelPreviewInfo = ModSettings.GetOverridePreviewInfo(extendedLevel);
                     break;
                 default:
@@ -224,6 +297,33 @@ namespace LethalLevelLoader
                 return ("(" + selectableLevel.currentWeather.ToString() + ")");
             else
                 return (string.Empty);
+        }
+
+        internal static string GetHistoryConditions(ExtendedLevel extendedLevel)
+        {
+            bool foundDayHistory = false;
+
+            foreach (DayHistory dayHistory in SelectableLevel_Patch.dayHistoryList)
+                if (dayHistory.extendedLevel == extendedLevel)
+                {
+                    foundDayHistory = true;
+                    if (TimeOfDay.Instance.timesFulfilledQuota == dayHistory.quota)
+                    {
+                        if (SelectableLevel_Patch.daysTotal == dayHistory.day)
+                            return ("(Explored Yesterday)");
+                        else
+                            return ("(Explored " + (SelectableLevel_Patch.daysTotal - dayHistory.day) + " Ago)");
+                    }
+                    else if ((TimeOfDay.Instance.timesFulfilledQuota - 1) == dayHistory.quota)
+                        return ("(Explored Last Quota)");
+                    else
+                        return ("Explored " + (TimeOfDay.Instance.timesFulfilledQuota - dayHistory.quota) + " Quota's Ago)");
+                }
+
+            if (foundDayHistory == false)
+                return ("(Unexplored)");
+            else
+                return string.Empty;
         }
 
         internal static void CreateLevelTerminalData(ExtendedLevel extendedLevel, int routePrice, out TerminalNode newRouteNode)
@@ -293,7 +393,7 @@ namespace LethalLevelLoader
             terminalNodeInfo.name = extendedLevel.NumberlessPlanetName.ToLower() + "Info";
             terminalNodeInfo.displayText = infoString;
             terminalNodeInfo.clearPreviousText = true;
-            terminalNodeInfo.maxCharactersToType = 35;
+            terminalNodeInfo.maxCharactersToType = 25;
             terminalNodeInfo.buyItemIndex = -1;
             terminalNodeInfo.buyRerouteToMoon = -1;
             terminalNodeInfo.displayPlanetInfo = -1;
@@ -333,55 +433,122 @@ namespace LethalLevelLoader
             newRouteNode = terminalNodeRoute;
         }
 
+        internal static void CreateSimulateTravelTerminalAssets()
+        {
+
+        }
+
         internal static void CreateMoonsFilterTerminalAssets()
         {
-            string[] toggleOptions = new string[] { "Price", "Difficulty", "Weather", "None" };
-            toggleKeywordGroup = new DynamicKeywordGroup("preview", toggleOptions.ToList());
+            previewKeywordsGroup = new DynamicKeywordGroup("preview", new List<Enum>() { PreviewInfoType.Price, PreviewInfoType.Difficulty, PreviewInfoType.Weather, PreviewInfoType.History, PreviewInfoType.All, PreviewInfoType.None });
+            sortKeywordGroup = new DynamicKeywordGroup("sort", new List<Enum>() { SortInfoType.Price, SortInfoType.Difficulty, SortInfoType.None });
 
-            string[] sortOptions = new string[] { "Price", "Difficulty", "Test3", "Test4", "Clear" };
-            sortKeywordGroup = new DynamicKeywordGroup("sort", sortOptions.ToList());
+            List<StringWithEnum> tagStringWithEnumsList = new List<StringWithEnum>();
+            List<string> allUniqueLevelTags = new List<string>();
+            foreach (ExtendedLevel extendedLevel in SelectableLevel_Patch.allLevelsList)
+                foreach (string levelTag in extendedLevel.levelTags)
+                    if (!allUniqueLevelTags.Contains(levelTag))
+                        allUniqueLevelTags.Add(levelTag);
 
-            string[] filterOptions = new string[] { "Price", "Snow", "Custom", "Clear" };
-            filterKeywordGroup = new DynamicKeywordGroup("filter", filterOptions.ToList());
+            foreach (string levelTag in allUniqueLevelTags)
+                tagStringWithEnumsList.Add(new StringWithEnum(FilterInfoType.Tag, levelTag));
+
+            tagStringWithEnumsList.Add(new StringWithEnum(FilterInfoType.Price));
+            tagStringWithEnumsList.Add(new StringWithEnum(FilterInfoType.Weather));
+            tagStringWithEnumsList.Add(new StringWithEnum(FilterInfoType.None));
+
+
+            filterKeywordGroup = new DynamicKeywordGroup("filter", tagStringWithEnumsList);
+
+            List<StringWithEnum> simulateMoonsKeywords = new List<StringWithEnum>();
+
+            foreach (ExtendedLevel extendedLevel in SelectableLevel_Patch.allLevelsList)
+                simulateMoonsKeywords.Add(new StringWithEnum(extendedLevel.levelType, extendedLevel.NumberlessPlanetName));
+
+            new DynamicKeywordGroup("simulate", simulateMoonsKeywords);
         }
-
 
         [HarmonyPatch(typeof(Terminal), "RunTerminalEvents")]
-        [HarmonyPostfix]
+        [HarmonyPrefix]
         [HarmonyPriority(350)]
-        internal static void RunTerminalEvents(TerminalNode node)
+        internal static bool RunTerminalEvents(TerminalNode node)
         {
+            bool requiresRefresh = false;
+
             if (node != null && string.IsNullOrEmpty(node.terminalEvent) == false)
             {
-                if (toggleKeywordGroup.IsDynamicKeywordsEvent(node.terminalEvent, out (TerminalKeyword, TerminalNode) toggleTerminalEventNodePair))
-                    TogglePreviewInfo(toggleTerminalEventNodePair);
+                DebugHelper.Log("Running LLL Terminal Event: " + node.terminalEvent);
 
-                if (sortKeywordGroup.IsDynamicKeywordsEvent(node.terminalEvent, out (TerminalKeyword, TerminalNode) sortTerminalEventNodePair))
-                    SortPreviewInfo(sortTerminalEventNodePair);
+                currentTagFilter = string.Empty;
 
-                if (filterKeywordGroup.IsDynamicKeywordsEvent(node.terminalEvent, out (TerminalKeyword, TerminalNode) filterTerminalEventNodePair))
-                    FilterPreviewInfo(filterTerminalEventNodePair);
+                
+                if (previewKeywordsGroup.TryGetEnumValue(node.terminalEvent, typeof(PreviewInfoType), out StringWithEnum previewStringWithEnum))
+                {
+                    ModSettings.levelPreviewInfoType = (PreviewInfoType)previewStringWithEnum.enumValue;
+                    requiresRefresh = true;
+                }
+
+                else if (sortKeywordGroup.TryGetEnumValue(node.terminalEvent, typeof(SortInfoType), out StringWithEnum sortStringWithEnum))
+                {
+                    ModSettings.levelPreviewSortType = (SortInfoType)sortStringWithEnum.enumValue;
+                    requiresRefresh = true;
+                }
+
+                else if (filterKeywordGroup.TryGetEnumValue(node.terminalEvent, typeof(FilterInfoType), out StringWithEnum filterStringWithEnum))
+                {
+                    ModSettings.levelPreviewFilterType = (FilterInfoType)filterStringWithEnum.enumValue;
+                    currentTagFilter = filterStringWithEnum.stringValue;
+                    requiresRefresh = true;
+                }
+                else
+                {
+                    foreach (ExtendedLevel extendedLevel in SelectableLevel_Patch.allLevelsList)
+                        if (node.terminalEvent.ToLower().Contains(extendedLevel.NumberlessPlanetName.ToLower()))
+                        {
+                            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = new List<ExtendedDungeonFlowWithRarity>(DungeonFlow_Patch.GetValidExtendedDungeonFlows(extendedLevel, false).OrderBy(o => -(o.rarity)).ToList());
+                            string overrideString = "Simulating arrival to " + extendedLevel.selectableLevel.PlanetName + "\n";
+                            overrideString += "Analyzing potential remnants found on surface. " + "\n";
+                            overrideString += "Listing generated probabilities below." + "\n" + "____________________________" + "\n" + "\n";
+                            overrideString += "POSSIBLE STRUCTURES:" + "\n";
+                            int totalRarityPool = 0;
+                            foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowResult in availableExtendedFlowsList)
+                                totalRarityPool += extendedDungeonFlowResult.rarity;
+                            foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowResult in availableExtendedFlowsList)
+                                overrideString += "* " + extendedDungeonFlowResult.extendedDungeonFlow.dungeonDisplayName + "  //  Chance: " + ((float)extendedDungeonFlowResult.rarity / (float)totalRarityPool * 100).ToString("F2") + "%" + "\n";
+                            node.displayText = overrideString + "\n" + "\n";
+                            node.clearPreviousText = true;
+                            node.isConfirmationNode = true;
+                            return (true);
+                        }
+                }
+                if (requiresRefresh == true)
+                {
+                    RefreshMoonsNode();
+                    return (false);
+                }
             }
+
+            return (true);
         }
 
-        internal static void TogglePreviewInfo((TerminalKeyword,TerminalNode) terminalEventNodePair)
+        /*internal static void TogglePreviewInfo(PreviewInfoType previewInfoTypeToggle)
         {
-            ModSettings.levelPreviewInfoType = (LevelPreviewInfoToggleType)toggleKeywordGroup.nounKeywordNodePairs.IndexOf(terminalEventNodePair);
+            ModSettings.levelPreviewInfoType = previewInfoTypeToggle;
             RefreshMoonsNode(currentExtendedLevelGroupsList);
-        }
+        }*/
 
-        internal static void SortPreviewInfo((TerminalKeyword, TerminalNode) terminalEventNodePair)
+        /*internal static void ToggleSortInfo(SortInfoType sortInfoTypeToggle)
         {
             List<ExtendedLevelGroup> newExtendedLevelGroupsList = null;
-            ModSettings.levelPreviewSortType = (LevelPreviewInfoSortType)sortKeywordGroup.nounKeywordNodePairs.IndexOf(terminalEventNodePair);
+            ModSettings.levelPreviewSortType = sortInfoTypeToggle;
 
             DebugHelper.Log("Sorting Levels As: " + ModSettings.levelPreviewSortType.ToString());   
 
-            if (ModSettings.levelPreviewSortType == LevelPreviewInfoSortType.None)
+            if (ModSettings.levelPreviewSortType == SortInfoType.None)
             {
                 newExtendedLevelGroupsList = new List<ExtendedLevelGroup>(defaultExtendedLevelGroupsList);
             }
-            else if (ModSettings.levelPreviewSortType == LevelPreviewInfoSortType.Price)
+            else if (ModSettings.levelPreviewSortType == SortInfoType.Price)
             {
                 DebugHelper.DebugExtendedLevelGroups(currentExtendedLevelGroupsList);
                 Debug.Log("1 " + currentExtendedLevelGroupsList.Count);
@@ -389,7 +556,7 @@ namespace LethalLevelLoader
                 Debug.Log("2 " + newExtendedLevelsList.Count);
                 newExtendedLevelGroupsList = CreateExtendedLevelGroups(newExtendedLevelsList, splitCount: 3);
             }
-            else if (ModSettings.levelPreviewSortType == LevelPreviewInfoSortType.Difficulty)
+            else if (ModSettings.levelPreviewSortType == SortInfoType.Difficulty)
             {
                 List<ExtendedLevel> newExtendedLevelsList = new List<ExtendedLevel>(GetExtendedLevels(currentExtendedLevelGroupsList)).OrderBy(o => o.selectableLevel.maxScrap * o.selectableLevel.maxEnemyPowerCount).ToList();
                 newExtendedLevelGroupsList = CreateExtendedLevelGroups(newExtendedLevelsList, splitCount: 3);
@@ -397,15 +564,17 @@ namespace LethalLevelLoader
             Debug.Log("3");
             DebugHelper.DebugExtendedLevelGroups(newExtendedLevelGroupsList);
             RefreshMoonsNode(new List<ExtendedLevelGroup>(newExtendedLevelGroupsList));
-        }
+        }*/
 
-        internal static void FilterPreviewInfo((TerminalKeyword, TerminalNode) terminalEventNodePair)
+        /*internal static void ToggleFilterInfo(StringWithEnum stringWithEnum)
         {
-            ModSettings.levelPreviewFilterType = (LevelPreviewInfoFilterType)filterKeywordGroup.nounKeywordNodePairs.IndexOf(terminalEventNodePair);
+            string tag = stringWithEnum.stringValue;
+            DebugHelper.Log("Filtering Moons Via Tag: " + tag);
+            ModSettings.levelPreviewFilterType = (FilterInfoType)stringWithEnum.enumValue;
 
-            if (ModSettings.levelPreviewFilterType == LevelPreviewInfoFilterType.Price)
+            if (ModSettings.levelPreviewFilterType == FilterInfoType.Price)
             {
-                List<ExtendedLevel> newExtendedLevelsList = new List<ExtendedLevel>(GetExtendedLevels(currentExtendedLevelGroupsList));
+                List<ExtendedLevel> newExtendedLevelsList = new List<ExtendedLevel>(GetExtendedLevels(defaultExtendedLevelGroupsList));
 
                 foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(newExtendedLevelsList))
                     if (extendedLevel.RoutePrice > Terminal.groupCredits)
@@ -413,21 +582,96 @@ namespace LethalLevelLoader
 
                 RefreshMoonsNode(CreateExtendedLevelGroups(newExtendedLevelsList, splitCount: 3));
             }
+            else if (ModSettings.levelPreviewFilterType == FilterInfoType.Tag)
+            {
+                List<ExtendedLevel> newExtendedLevelsList = new List<ExtendedLevel>(GetExtendedLevels(defaultExtendedLevelGroupsList));
+
+                foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(newExtendedLevelsList))
+                    if (!extendedLevel.levelTags.Contains(tag))
+                        newExtendedLevelsList.Remove(extendedLevel);
+
+                RefreshMoonsNode(CreateExtendedLevelGroups(newExtendedLevelsList, splitCount: 3));
+            }
+            else if (ModSettings.levelPreviewFilterType == FilterInfoType.None)
+            {
+                currentExtendedLevelGroupsList = new List<ExtendedLevelGroup>(defaultExtendedLevelGroupsList);
+                ToggleSortInfo(ModSettings.levelPreviewSortType);
+            }
+        }*/
+
+        internal static List<ExtendedLevelGroup> FilterExtendedLevelGroups(List<ExtendedLevelGroup> extendedLevelGroups)
+        {
+            List<ExtendedLevel> newExtendedLevelsList = new List<ExtendedLevel>(GetExtendedLevels(extendedLevelGroups));
+            List<ExtendedLevelGroup> filteredLevelGroupsList = new List<ExtendedLevelGroup>();
+
+            switch (ModSettings.levelPreviewFilterType)
+            {
+                case FilterInfoType.Price:
+                    foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(newExtendedLevelsList))
+                        if (extendedLevel.RoutePrice > Terminal.groupCredits)
+                            newExtendedLevelsList.Remove(extendedLevel);
+
+                    filteredLevelGroupsList = CreateExtendedLevelGroups(newExtendedLevelsList, splitCount: 3);
+                    break;
+
+                case FilterInfoType.Weather:
+                    foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(newExtendedLevelsList))
+                        if (GetWeatherConditions(extendedLevel.selectableLevel) != string.Empty)
+                            newExtendedLevelsList.Remove(extendedLevel);
+
+                    filteredLevelGroupsList = CreateExtendedLevelGroups(newExtendedLevelsList, splitCount: 3);
+                    break;
+
+                case FilterInfoType.Tag:
+                    foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(newExtendedLevelsList))
+                        if (!extendedLevel.levelTags.Contains(currentTagFilter))
+                            newExtendedLevelsList.Remove(extendedLevel);
+
+                    filteredLevelGroupsList = CreateExtendedLevelGroups(newExtendedLevelsList, splitCount: 3);
+                    break;
+
+                case FilterInfoType.TraveledThisQuota:
+                    break;
+                case FilterInfoType.TraveledThisRun:
+                    break;
+                case FilterInfoType.None:
+                    filteredLevelGroupsList = extendedLevelGroups;
+                    break;
+            }
+
+            return (filteredLevelGroupsList);
+        }
+
+        internal static List<ExtendedLevelGroup> SortExtendedLevelGroups(List<ExtendedLevelGroup> extendedLevelGroups)
+        {
+            List<ExtendedLevel> newExtendedLevelsList = new List<ExtendedLevel>(GetExtendedLevels(extendedLevelGroups));
+            List<ExtendedLevelGroup> filteredLevelGroupsList = new List<ExtendedLevelGroup>();
+
+            switch (ModSettings.levelPreviewSortType)
+            {
+                case SortInfoType.Price:
+                    newExtendedLevelsList = new List<ExtendedLevel>(GetExtendedLevels(extendedLevelGroups)).OrderBy(o => o.RoutePrice).ToList();
+                    filteredLevelGroupsList = CreateExtendedLevelGroups(newExtendedLevelsList, splitCount: 3);
+                    break;
+                case SortInfoType.Difficulty:
+                    newExtendedLevelsList = new List<ExtendedLevel>(GetExtendedLevels(extendedLevelGroups)).OrderBy(o => o.selectableLevel.maxScrap * o.selectableLevel.maxEnemyPowerCount).ToList();
+                    filteredLevelGroupsList = CreateExtendedLevelGroups(newExtendedLevelsList, splitCount: 3);
+                    break;
+                case SortInfoType.Tag:
+                    break;
+                case SortInfoType.LastTraveled:
+                    break;
+                case SortInfoType.None:
+                    filteredLevelGroupsList = extendedLevelGroups;
+                    break;
+            }
+
+            return (filteredLevelGroupsList);
         }
 
         internal static List<ExtendedLevelGroup> CreateExtendedLevelGroups(List<ExtendedLevel> extendedLevelsList, int splitCount)
         {
-            DebugHelper.Log("During Call");
             List<ExtendedLevelGroup> returnList = new List<ExtendedLevelGroup>();
-
-            DebugHelper.Log("Creating New ExtendedLevelGroups");
-
-            int counter1 = 1;
-            foreach (ExtendedLevel extendedLevel in extendedLevelsList)
-            {
-                DebugHelper.Log("Level " + counter1 + " /" + extendedLevelsList.Count + " : " + extendedLevel.NumberlessPlanetName);
-                counter1++;
-            }
 
             int counter = 0;
             int levelsAdded = 0;
@@ -447,8 +691,6 @@ namespace LethalLevelLoader
                 }
             }
 
-            Debug.Log(returnList.Count);
-
             return (returnList);
         }
 
@@ -463,15 +705,20 @@ namespace LethalLevelLoader
             return returnList;
         }
 
-        internal static (TerminalKeyword, TerminalNode) CreateTerminalEventNode(TerminalKeyword verbKeyword, string eventString)
+        internal static (TerminalKeyword, TerminalNode) CreateTerminalEventNode(TerminalKeyword verbKeyword, string nounWord, string eventString = null)
         {
+            DebugHelper.Log("Creating New TerminalEvent Node! VerbKeyword Word Is: " + verbKeyword.word + " | nounWord Is: " + nounWord + " | EventString Is: " + eventString);
             TerminalKeyword newKeyword = ScriptableObject.CreateInstance<TerminalKeyword>();
             TerminalNode newNode = ScriptableObject.CreateInstance<TerminalNode>();
 
-            newKeyword.word = eventString.ToLower();
+            if (eventString == null)
+                eventString = nounWord;
+
+
+            newKeyword.word = nounWord.ToLower();
             newKeyword.defaultVerb = verbKeyword;
             newNode.displayText = string.Empty;
-            newNode.terminalEvent = verbKeyword.word + eventString;
+            newNode.terminalEvent = eventString;
             newNode.clearPreviousText = false;
             newNode.maxCharactersToType = 25;
             newNode.buyItemIndex = -1;

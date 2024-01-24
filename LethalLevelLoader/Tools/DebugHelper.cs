@@ -133,10 +133,15 @@ namespace LethalLevelLoader
 
             Log("Obtained (" + ContentExtractor.vanillaAmbienceLibrariesList.Count + " / 3) Vanilla Ambience Library References");
 
-            Log("Obtained (" + ContentExtractor.vanillaAudioMixerGroupsList.Count + " / 00) Vanilla Audio Mixing Group References");
+            Log("Obtained (" + ContentExtractor.vanillaAudioMixerGroupsList.Count + " / 15) Vanilla Audio Mixing Group References");
 
-            foreach (AudioMixerGroup audioMix in ContentExtractor.vanillaAudioMixerGroupsList)
-                Log("AudioMixerGroup Name: " + audioMix.name);
+            Log("Obtained (" + ContentExtractor.vanillaAudioMixersList.Count + " / 2) Vanilla Audio Mixer Controller References");
+
+            Log("Obtained (" + ContentExtractor.vanillaAudioMixersList.Count + " / 2) Vanilla Audio Mixer Controller References");
+
+            Log("Obtained (" + ContentExtractor.vanillaReverbPresetsList.Count + " / ??) Vanilla Reverb Preset References");
+
+            Log("Obtained (" + ContentExtractor.vanillaItemGroupsList.Count + " / 3) Vanilla Item Group References");
         }
 
         public static void DebugAudioMixerGroups()

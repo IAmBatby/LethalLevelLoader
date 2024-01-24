@@ -27,9 +27,9 @@ namespace LethalLevelLoader
         internal static List<ExtendedDungeonFlow> obtainedExtendedDungeonFlowsList = new List<ExtendedDungeonFlow>();
 
         //internal static List<string> assetBundle
-        [HarmonyPriority(350)]
-        [HarmonyPatch(typeof(PreInitSceneScript), "Awake")]
-        [HarmonyPrefix]
+        //[HarmonyPriority(350)]
+        //[HarmonyPatch(typeof(PreInitSceneScript), "Awake")]
+        //[HarmonyPrefix]
         internal static void PreInitSceneScriptAwake()
         {
             if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
@@ -201,6 +201,12 @@ namespace LethalLevelLoader
             extendedDungeonFlow.dungeonFlow = dungeonFlow;
             extendedDungeonFlow.contentSourceName = "Lethal Company";
             extendedDungeonFlow.dungeonFirstTimeAudio = null;
+
+            if (dungeonFlow.name.Contains("Level1"))
+                extendedDungeonFlow.dungeonDisplayName = "Facility";
+            else if (dungeonFlow.name.Contains("Level2"))
+                extendedDungeonFlow.dungeonDisplayName = "Haunted Mansion";
+
             extendedDungeonFlow.Initialize(ContentType.Vanilla);
             DungeonFlow_Patch.AddExtendedDungeonFlow(extendedDungeonFlow);
             //Gotta assign the right audio later.
@@ -210,16 +216,24 @@ namespace LethalLevelLoader
         {
             Tile[] allTiles = GetAllTilesInDungeonFlow(extendedDungeonFlow.dungeonFlow);
 
+            foreach (Tile tile in allTiles)
+                foreach (ItemGroup itemGroup in tile.gameObject.GetComponentsInChildren<ItemGroup>())
+                    foreach (ItemGroup vanillaItemGroup in ContentExtractor.vanillaItemGroupsList)
+                        if (itemGroup.name == vanillaItemGroup.name)
+                            RestoreAsset(itemGroup, vanillaItemGroup, debugAction: true);
+
             foreach (RandomMapObject randomMapObject in GetAllMapObjectsInTiles(allTiles))
             {
                 foreach (GameObject spawnablePrefab in new List<GameObject>(randomMapObject.spawnablePrefabs))
                     foreach (GameObject vanillaPrefab in ContentExtractor.vanillaSpawnableInsideMapObjectsList)
                         if (spawnablePrefab.name == vanillaPrefab.name)
-                        {
-                            int index = randomMapObject.spawnablePrefabs.IndexOf(spawnablePrefab);
-                            randomMapObject.spawnablePrefabs[index] = vanillaPrefab;
-                        }
+                            RestoreAsset(randomMapObject.spawnablePrefabs[randomMapObject.spawnablePrefabs.IndexOf(spawnablePrefab)], vanillaPrefab, debugAction: true);
             }
+        }
+
+        internal static void RestoreVanillaAssetReferencesInBundle(AssetBundle bundle)
+        {
+
         }
 
         internal static void RestoreVanillaLevelAssetReferences(ExtendedLevel extendedLevel)
@@ -241,37 +255,54 @@ namespace LethalLevelLoader
             foreach (SpawnableItemWithRarity spawnableItem in extendedLevel.selectableLevel.spawnableScrap)
                 foreach (Item vanillaItem in ContentExtractor.vanillaItemsList)
                     if (spawnableItem.spawnableItem.itemName == vanillaItem.itemName)
-                        spawnableItem.spawnableItem = vanillaItem;
+                        RestoreAsset(spawnableItem.spawnableItem, vanillaItem, debugAction: true);
 
             foreach (SpawnableEnemyWithRarity spawnableEnemy in extendedLevel.selectableLevel.Enemies)
                 foreach (EnemyType vanillaEnemy in ContentExtractor.vanillaEnemiesList)
                     if (spawnableEnemy.enemyType != null && spawnableEnemy.enemyType.enemyName == vanillaEnemy.enemyName)
-                        spawnableEnemy.enemyType = vanillaEnemy;
+                        RestoreAsset(spawnableEnemy.enemyType, spawnableEnemy.enemyType, debugAction: true);
 
             foreach (SpawnableEnemyWithRarity enemyType in extendedLevel.selectableLevel.OutsideEnemies)
                 foreach (EnemyType vanillaEnemyType in ContentExtractor.vanillaEnemiesList)
                     if (enemyType.enemyType != null && enemyType.enemyType.enemyName == vanillaEnemyType.enemyName)
-                        enemyType.enemyType = vanillaEnemyType;
+                        RestoreAsset(enemyType.enemyType, vanillaEnemyType, debugAction: true);
 
             foreach (SpawnableEnemyWithRarity enemyType in extendedLevel.selectableLevel.DaytimeEnemies)
                 foreach (EnemyType vanillaEnemyType in ContentExtractor.vanillaEnemiesList)
                     if (enemyType.enemyType != null && enemyType.enemyType.enemyName == vanillaEnemyType.enemyName)
-                        enemyType.enemyType = vanillaEnemyType;
+                        RestoreAsset(enemyType.enemyType, vanillaEnemyType, debugAction: true);
 
             foreach (SpawnableMapObject spawnableMapObject in extendedLevel.selectableLevel.spawnableMapObjects)
                 foreach (GameObject vanillaSpawnableMapObject in ContentExtractor.vanillaSpawnableInsideMapObjectsList)
                     if (spawnableMapObject.prefabToSpawn != null && spawnableMapObject.prefabToSpawn.name == vanillaSpawnableMapObject.name)
-                        spawnableMapObject.prefabToSpawn = vanillaSpawnableMapObject;
+                        RestoreAsset(spawnableMapObject.prefabToSpawn, vanillaSpawnableMapObject, debugAction: true);
 
             foreach (SpawnableOutsideObjectWithRarity spawnableOutsideObject in extendedLevel.selectableLevel.spawnableOutsideObjects)
                 foreach (SpawnableOutsideObject vanillaSpawnableOutsideObject in ContentExtractor.vanillaSpawnableOutsideMapObjectsList)
                     if (spawnableOutsideObject.spawnableObject != null && spawnableOutsideObject.spawnableObject.name == vanillaSpawnableOutsideObject.name)
-                        spawnableOutsideObject.spawnableObject = vanillaSpawnableOutsideObject;
+                        RestoreAsset(spawnableOutsideObject.spawnableObject, vanillaSpawnableOutsideObject, debugAction: true);
 
             foreach (LevelAmbienceLibrary vanillaAmbienceLibrary in ContentExtractor.vanillaAmbienceLibrariesList)
                 if (extendedLevel.selectableLevel.levelAmbienceClips != null && extendedLevel.selectableLevel.levelAmbienceClips.name == vanillaAmbienceLibrary.name)
-                    extendedLevel.selectableLevel.levelAmbienceClips = vanillaAmbienceLibrary;
+                    RestoreAsset(extendedLevel.selectableLevel.levelAmbienceClips, vanillaAmbienceLibrary, debugAction: true);
+        }
 
+        internal static void TestRestoration()
+        {
+            ExtendedLevel extendedLevel = null;
+            LevelAmbienceLibrary testLibrary = null;
+
+            RestoreAsset(extendedLevel.selectableLevel.levelAmbienceClips, testLibrary);
+        }
+
+        internal static void RestoreAsset(Object currentAsset, Object newAsset, bool debugAction = false)
+        {
+            if (debugAction == true)
+                DebugHelper.Log("Restoring " + currentAsset.GetType().ToString() + ": Old Asset Name: " + currentAsset.name + " , New Asset Name: " + newAsset.name);
+
+            Object oldAsset = currentAsset;
+            currentAsset = newAsset;
+            Object.DestroyImmediate(oldAsset);
         }
 
         internal static void RegisterCustomLevelNetworkObjects(ExtendedLevel extendedLevel)

@@ -51,6 +51,8 @@ namespace LethalLevelLoader
                 DungeonFlow_Patch.TryGetExtendedDungeonFlow(__instance.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow);
                 onBeforeDungeonGenerate?.Invoke(__instance);
                 extendedDungeonFlow.onBeforeExtendedDungeonGenerate?.Invoke(__instance);
+
+                SelectableLevel_Patch.LogDayHistory();
             }
 
             return (true);
@@ -69,7 +71,7 @@ namespace LethalLevelLoader
             List<int> randomWeightsList = new List<int>();
             string debugString = "Current Level + (" + extendedLevel.NumberlessPlanetName + ") Weights List: " + "\n" + "\n";
 
-            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = DungeonFlow_Patch.GetValidExtendedDungeonFlows(extendedLevel, debugString).ToList();
+            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = DungeonFlow_Patch.GetValidExtendedDungeonFlows(extendedLevel, true).ToList();
 
             foreach (ExtendedDungeonFlowWithRarity extendedDungeon in availableExtendedFlowsList)
                 randomWeightsList.Add(extendedDungeon.rarity);

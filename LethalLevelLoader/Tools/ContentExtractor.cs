@@ -1,6 +1,9 @@
-﻿using HarmonyLib;
+﻿using DunGen;
+using DunGen.Graph;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -15,12 +18,15 @@ namespace LethalLevelLoader
         public static List<GameObject> vanillaSpawnableInsideMapObjectsList = new List<GameObject>();
         public static List<LevelAmbienceLibrary> vanillaAmbienceLibrariesList = new List<LevelAmbienceLibrary>();
         public static List<AudioMixerGroup> vanillaAudioMixerGroupsList = new List<AudioMixerGroup>();
+        public static List<AudioMixer> vanillaAudioMixersList = new List<AudioMixer>();
+        public static List<ItemGroup> vanillaItemGroupsList = new List<ItemGroup>();
+        public static List<ReverbPreset> vanillaReverbPresetsList = new List<ReverbPreset>();
 
 
         [HarmonyPatch(typeof(RoundManager), "Awake")]
         [HarmonyPrefix]
         [HarmonyPriority(350)]
-        internal static void TryScrapeVanillaContent()
+        internal static void TryScrapeVanillaContent(RoundManager __instance)
         {
             if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
             {
@@ -62,8 +68,27 @@ namespace LethalLevelLoader
                         if (!vanillaAmbienceLibrariesList.Contains(selectableLevel.levelAmbienceClips))
                             vanillaAmbienceLibrariesList.Add(selectableLevel.levelAmbienceClips);
                     }
+
+                    foreach (DungeonFlow dungeonFlow in __instance.dungeonFlowTypes)
+                        foreach (Tile tile in AssetBundleLoader.GetAllTilesInDungeonFlow(dungeonFlow))
+                            foreach (RandomScrapSpawn randomScrapSpawn in tile.gameObject.GetComponentsInChildren<RandomScrapSpawn>())
+                                if (!vanillaItemGroupsList.Contains(randomScrapSpawn.spawnableItems))
+                                    vanillaItemGroupsList.Add(randomScrapSpawn.spawnableItems);
+
                 }
 
+                foreach (AudioMixerGroup audioMixerGroup in Resources.FindObjectsOfTypeAll(typeof(AudioMixerGroup)))
+                {
+                    if (!vanillaAudioMixersList.Contains(audioMixerGroup.audioMixer))
+                        vanillaAudioMixersList.Add(audioMixerGroup.audioMixer);
+
+                    if (!vanillaAudioMixerGroupsList.Contains(audioMixerGroup))
+                        vanillaAudioMixerGroupsList.Add(audioMixerGroup);
+                }
+
+                foreach (ReverbPreset reverbPreset in Resources.FindObjectsOfTypeAll<ReverbPreset>())
+                    if (!vanillaReverbPresetsList.Contains(reverbPreset))
+                        vanillaReverbPresetsList.Add(reverbPreset);
             }
             DebugHelper.DebugScrapedVanillaContent();
         }

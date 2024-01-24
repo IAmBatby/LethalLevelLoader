@@ -14,6 +14,7 @@ namespace LethalLevelLoader
         [Header("Extended DungeonFlow Settings")]
         [Space(5)]
         public string contentSourceName = "Lethal Company";
+        public string dungeonDisplayName;
         [Space(5)]
         public DungeonFlow dungeonFlow;
         public AudioClip dungeonFirstTimeAudio;
@@ -55,8 +56,8 @@ namespace LethalLevelLoader
 
             dungeonID = DungeonFlow_Patch.allExtendedDungeonsList.Count;
 
-            if (name == string.Empty)
-                name = dungeonFlow.name;
+            if (dungeonDisplayName == string.Empty)
+                dungeonDisplayName = dungeonFlow.name;
         }
     }
 

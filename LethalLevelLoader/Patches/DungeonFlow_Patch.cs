@@ -35,24 +35,25 @@ namespace LethalLevelLoader
             allExtendedDungeonsList.Add(extendedDungeonFlow);
         }
 
-        internal static ExtendedDungeonFlowWithRarity[] GetValidExtendedDungeonFlows(ExtendedLevel extendedLevel, string debugString)
+        internal static ExtendedDungeonFlowWithRarity[] GetValidExtendedDungeonFlows(ExtendedLevel extendedLevel, bool debugResults)
         {
             RoundManager roundManager = RoundManager.Instance;
-            debugString = "Trying To Find All Matching DungeonFlows For Level: " + extendedLevel.NumberlessPlanetName + "\n";
-
+            string debugString = "Trying To Find All Matching DungeonFlows For Level: " + extendedLevel.NumberlessPlanetName + "\n";
+            Debug.Log("31");
             List<ExtendedDungeonFlowWithRarity> potentialExtendedDungeonFlowsList = new List<ExtendedDungeonFlowWithRarity>();
             List<ExtendedDungeonFlowWithRarity> returnExtendedDungeonFlowsList = new List<ExtendedDungeonFlowWithRarity>();
             List<ExtendedDungeonFlowWithRarity> vanillaExtendedDungeonFlowsList = new List<ExtendedDungeonFlowWithRarity>();
-
-            DungeonFlow hardcodedLevelFlow = roundManager.dungeonGenerator.Generator.DungeonFlow;
+            Debug.Log("32");
+            DungeonFlow hardcodedLevelFlow;
 
             if (extendedLevel.allowedDungeonContentTypes == ContentType.Vanilla || extendedLevel.allowedDungeonContentTypes == ContentType.Any)
             {
 
                 //Hardcoded mess that creates and adds a dungeonflow thats directy in the dungeongenerator but not anywhere else
                 //Currently the only usecase for this is March. Will refactor later.
-                if (hardcodedLevelFlow != null)
+                if (roundManager.dungeonGenerator != null)
                 {
+                    hardcodedLevelFlow = roundManager.dungeonGenerator.Generator.DungeonFlow;
                     if (!TryGetExtendedDungeonFlow(hardcodedLevelFlow, out _))
                     {
                         debugString += "Level: " + extendedLevel.NumberlessPlanetName + " Contains DungeonFlow: " + hardcodedLevelFlow.name + " In DungeonGenerator That Was Not Found In RoundManager, Adding!" + "\n";
@@ -164,7 +165,8 @@ namespace LethalLevelLoader
 
             debugString += "\n" + "Matching DungeonFlows Collected, Count Is: " + returnExtendedDungeonFlowsList.Count + "\n";
 
-            DebugHelper.Log(debugString + "\n");
+            if (debugResults == true)
+                DebugHelper.Log(debugString + "\n");
 
             return (returnExtendedDungeonFlowsList.ToArray());
         }
