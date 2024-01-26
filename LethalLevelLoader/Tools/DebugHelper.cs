@@ -94,7 +94,7 @@ namespace LethalLevelLoader
         {
             string logString = "All Levels List: " + "\n" + "\n";
 
-            foreach (ExtendedLevel extendedLevel in SelectableLevel_Patch.allLevelsList)
+            foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                 logString += extendedLevel.selectableLevel.PlanetName + " (" + extendedLevel.selectableLevel.levelID + ") " + "\n";
 
             Log(logString + "\n");
@@ -104,7 +104,7 @@ namespace LethalLevelLoader
         {
             string logString = "Vanilla Levels List: " + "\n" + "\n";
 
-            foreach (ExtendedLevel extendedLevel in SelectableLevel_Patch.vanillaLevelsList)
+            foreach (ExtendedLevel extendedLevel in PatchedContent.VanillaExtendedLevels)
                 logString += extendedLevel.selectableLevel.PlanetName + " (" + extendedLevel.selectableLevel.levelID + ") " + "\n";
 
             Log(logString + "\n");
@@ -114,7 +114,7 @@ namespace LethalLevelLoader
         {
             string logString = "Custom Levels List: " + "\n" + "\n";
 
-            foreach (ExtendedLevel extendedLevel in SelectableLevel_Patch.customLevelsList)
+            foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
                 logString += extendedLevel.selectableLevel.PlanetName + " (" + extendedLevel.selectableLevel.levelID + ") " + "\n";
 
             Log(logString + "\n");
@@ -122,26 +122,31 @@ namespace LethalLevelLoader
 
         public static void DebugScrapedVanillaContent()
         {
-            Log("Obtained (" + ContentExtractor.vanillaItemsList.Count + " / 68) Vanilla Item References");
+            Log("Obtained (" + OriginalContent.SelectableLevels.Count + " / 9) Vanilla SelectableLevel References");
 
-            Log("Obtained (" + ContentExtractor.vanillaEnemiesList.Count + " / 20) Vanilla Enemy References");
+            Log("Obtained (" + OriginalContent.DungeonFlows.Count + " / 4) Vanilla DungeonFlow References");
 
-            Log("Obtained (" + ContentExtractor.vanillaSpawnableOutsideMapObjectsList.Count + " / 11) Vanilla Outside Object References");
+            Log("Obtained (" + OriginalContent.Items.Count + " / 68) Vanilla Item References");
 
-            Log("Obtained (" + ContentExtractor.vanillaSpawnableInsideMapObjectsList.Count + " / 2) Vanilla Inside Object References");
+            Log("Obtained (" + OriginalContent.ItemGroups.Count + " / 3) Vanilla Item Group References");
 
+            Log("Obtained (" + OriginalContent.Enemies.Count + " / 20) Vanilla Enemy References");
 
-            Log("Obtained (" + ContentExtractor.vanillaAmbienceLibrariesList.Count + " / 3) Vanilla Ambience Library References");
+            Log("Obtained (" + OriginalContent.SpawnableOutsideObjects.Count + " / 11) Vanilla Outside Object References");
 
-            Log("Obtained (" + ContentExtractor.vanillaAudioMixerGroupsList.Count + " / 15) Vanilla Audio Mixing Group References");
+            Log("Obtained (" + OriginalContent.SpawnableMapObjects.Count + " / 2) Vanilla Inside Object References");
 
-            Log("Obtained (" + ContentExtractor.vanillaAudioMixersList.Count + " / 2) Vanilla Audio Mixer Controller References");
+            Log("Obtained (" + OriginalContent.AudioMixerGroups.Count + " / 15) Vanilla Audio Mixing Group References");
 
-            Log("Obtained (" + ContentExtractor.vanillaAudioMixersList.Count + " / 2) Vanilla Audio Mixer Controller References");
+            Log("Obtained (" + OriginalContent.AudioMixers.Count + " / 2) Vanilla Audio Mixer Controller References");
 
-            Log("Obtained (" + ContentExtractor.vanillaReverbPresetsList.Count + " / ??) Vanilla Reverb Preset References");
+            Log("Obtained (" + OriginalContent.LevelAmbienceLibraries.Count + " / 3) Vanilla Ambience Library References");
 
-            Log("Obtained (" + ContentExtractor.vanillaItemGroupsList.Count + " / 3) Vanilla Item Group References");
+            Log("Obtained (" + OriginalContent.ReverbPresets.Count + " / 8) Vanilla Reverb References");
+
+            Log("Obtained (" + OriginalContent.TerminalKeywords.Count + " / 121) Vanilla Terminal Keyword References");
+
+            Log("Obtained (" + OriginalContent.TerminalNodes.Count + " / 186) Vanilla Terminal Node References");
         }
 
         public static void DebugAudioMixerGroups()
@@ -452,6 +457,20 @@ namespace LethalLevelLoader
                 }
             }
             return (false);
+        }
+
+        internal static void DebugMoonsCataloguePage(MoonsCataloguePage moonsCataloguePage)
+        {
+            string debugString = "Finished Refreshing Current Moons Catalogue, Results Are" + "\n";
+
+            foreach (ExtendedLevelGroup extendedLevelGroup in moonsCataloguePage.ExtendedLevelGroups)
+            {
+                debugString += "\n";
+                foreach (ExtendedLevel extendedLevel in extendedLevelGroup.extendedLevelsList)
+                    debugString += moonsCataloguePage.ExtendedLevelGroups.IndexOf(extendedLevelGroup) + " - " + extendedLevel.NumberlessPlanetName + "\n";
+            }
+
+            Log(debugString);
         }
     }
 }

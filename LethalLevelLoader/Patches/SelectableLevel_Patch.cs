@@ -13,170 +13,23 @@ namespace LethalLevelLoader
 {
     public class SelectableLevel_Patch
     {
-        public static List<ExtendedLevel> allLevelsList = new List<ExtendedLevel>();
-        public static List<ExtendedLevel> vanillaLevelsList = new List<ExtendedLevel>();
-        public static List<ExtendedLevel> customLevelsList = new List<ExtendedLevel>();
-
         public static List<DayHistory> dayHistoryList = new List<DayHistory>();
         public static int daysTotal;
         public static int quotasTotal;
 
-        internal static List<SelectableLevel> prePatchedLevelsList = new List<SelectableLevel>();
-        internal static List<SelectableLevel> patchedLevelsList = new List<SelectableLevel>();
-        internal static List<SelectableLevel> prePatchedMoonsCatalogueList = new List<SelectableLevel>();
-        internal static List<SelectableLevel> patchedMoonsCatalogueList = new List<SelectableLevel>();
-
-        internal static string injectionSceneName = "InitSceneLaunchOptions";
-
-        internal static Scene deadScene;
-
-        [HarmonyPatch(typeof(StartOfRound), "Start")]
-        [HarmonyPrefix]
-        [HarmonyPriority(350)]
-        internal static void StartOfRound_Start()
+        internal static void RestoreCustomContent()
         {
-            /*if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
-            {
-                CreatePatchedLevelsList();
-                CreatePatchedMoonsCatalogueList();
+            foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
+                AssetBundleLoader.RestoreVanillaLevelAssetReferences(customLevel);
 
-                foreach (ExtendedLevel customLevel in customLevelsList)
-                    AssetBundleLoader.RestoreVanillaLevelAssetReferences(customLevel);
-
-                foreach (ExtendedDungeonFlow customDungeonFlow in DungeonFlow_Patch.customDungeonFlowsList)
-                    AssetBundleLoader.RestoreVanillaDungeonAssetReferences(customDungeonFlow);
-            }
-
-            PatchVanillaLevelLists();*/
-        }
-
-        [HarmonyPriority(350)]
-        [HarmonyPatch(typeof(RoundManager), "Start")]
-        [HarmonyPrefix]
-        internal static void RoundManagerStart_Prefix()
-        {
-            if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
-            {
-                CreatePatchedLevelsList();
-                CreatePatchedMoonsCatalogueList();
-
-                foreach (ExtendedLevel customLevel in customLevelsList)
-                    AssetBundleLoader.RestoreVanillaLevelAssetReferences(customLevel);
-
-                foreach (ExtendedDungeonFlow customDungeonFlow in DungeonFlow_Patch.customDungeonFlowsList)
-                    AssetBundleLoader.RestoreVanillaDungeonAssetReferences(customDungeonFlow);
-
-                Terminal_Patch.CreateMoonsFilterTerminalAssets();
-                Terminal_Patch.CreateVanillaExtendedLevelGroups();
-                Terminal_Patch.CreateCustomExtendedLevelGroups();
-
-                LethalLevelLoaderPlugin.hasVanillaBeenPatched = true;
-            }
-
-            PatchVanillaLevelLists();
-
-            TestDeadSceneLoad();
-        }
-
-        [HarmonyPriority(350)]
-        [HarmonyPatch(typeof(animatedSun), "Start")]
-        [HarmonyPrefix]
-        internal static void AnimatedSun_Prefix()
-        {
-            Debug.Log("ANIMATED SUN OOO SPOOKY");
-        }
-
-
-        [HarmonyPriority(350)]
-        [HarmonyPatch(typeof(System.Object), "Object", MethodType.Constructor)]
-        [HarmonyPostfix]
-        internal static void Object_Prefix(System.Object __instance)
-        {
-            Debug.Log("OBJECT: " + __instance);
-            objects.Add(__instance);
-        }
-
-        public static List<System.Object> objects = new List<System.Object>();
-
-
-        [HarmonyPriority(350)]
-        [HarmonyPatch(typeof(NavMeshSurface), "OnEnable")]
-        [HarmonyPrefix]
-        internal static void NavMeshSurface_Prefix()
-        {
-            Debug.Log("NAVMESHSURFACE OOO SPOOKY");
-        }
-
-        internal static void TestDeadSceneLoad()
-        {
-            deadScene = SceneManager.GetSceneByName("Level4March");
-            NetworkManager networkManager = NetworkManager.Singleton;
-
-            DebugHelper.Log("Scene Count Is: " + SceneManager.sceneCount);
-
-            DebugHelper.Log("Attempting To Load Dead Scene: March");
-            AsyncOperation asyncSceneLoad = SceneManager.LoadSceneAsync("Level4March", LoadSceneMode.Additive);
-            SceneManager.sceneLoaded += InstantKillScene;
-            DebugHelper.Log("Loaded Dead Scene: Level4March");
-            //asyncSceneLoad.allowSceneActivation = false;
-            DebugHelper.Log("Force Stopped Scene Activation");
-
-            DebugHelper.Log("Scene Count Is: " + SceneManager.sceneCount);
-        }
-
-        public static void InstantKillScene(Scene scene, LoadSceneMode loadSceneMode)
-        {
-            foreach (System.Object objectValue in  objects)
-            {
-
-                if (objectValue is UnityEngine.Object)
-                {
-                    UnityEngine.Object unityObject = (UnityEngine.Object)objectValue;
-                    Debug.Log("UNITYOBJECT: " + unityObject.name);
-                }
-            }
-            foreach (GameObject rootObject in scene.GetRootGameObjects())
-                foreach (Transform childObject in rootObject.GetComponentsInChildren<Transform>())
-                    childObject.gameObject.SetActive(false);
-            Debug.Log("Trying To Kill March!");
-            SceneManager.UnloadSceneAsync("Level4March");
-        }
-
-        internal static void AddSelectableLevel(ExtendedLevel extendedLevel)
-        {
-            if (extendedLevel.levelType == ContentType.Custom)
-                customLevelsList.Add(extendedLevel);
-            else
-                vanillaLevelsList.Add(extendedLevel);
-
-            allLevelsList.Add(extendedLevel);
-        }
-
-        internal static void CreatePatchedLevelsList()
-        {
-            prePatchedLevelsList = new List<SelectableLevel>(StartOfRound.Instance.levels.ToList());
-            patchedLevelsList = new List<SelectableLevel>(prePatchedLevelsList);
-
-            foreach (ExtendedLevel extendedLevel in customLevelsList)
-                patchedLevelsList.Add(extendedLevel.selectableLevel);
-        }
-
-        internal static void CreatePatchedMoonsCatalogueList()
-        {
-            prePatchedMoonsCatalogueList = new List<SelectableLevel>(Terminal_Patch.Terminal.moonsCatalogueList);
-            patchedMoonsCatalogueList = new List<SelectableLevel>(prePatchedMoonsCatalogueList);
-
-            foreach (ExtendedLevel extendedLevel in customLevelsList)
-                patchedMoonsCatalogueList.Add(extendedLevel.selectableLevel);
+            foreach (ExtendedDungeonFlow customDungeonFlow in DungeonFlow_Patch.customDungeonFlowsList)
+                AssetBundleLoader.RestoreVanillaDungeonAssetReferences(customDungeonFlow);
         }
 
         internal static void PatchVanillaLevelLists()
         {
-            Terminal terminal = GameObject.FindAnyObjectByType<Terminal>();
-            StartOfRound startOfRound = StartOfRound.Instance;
-
-            startOfRound.levels = patchedLevelsList.ToArray();
-            terminal.moonsCatalogueList = patchedMoonsCatalogueList.ToArray();
+            StartOfRound.Instance.levels = PatchedContent.SeletectableLevels.ToArray();
+            Terminal_Patch.Terminal.moonsCatalogueList = PatchedContent.MoonsCatalogue.ToArray();
         }
 
         public static bool TryGetExtendedLevel(SelectableLevel selectableLevel, out ExtendedLevel returnExtendedLevel, ContentType levelType = ContentType.Any)
@@ -187,13 +40,13 @@ namespace LethalLevelLoader
             switch (levelType)
             {
                 case ContentType.Vanilla:
-                    extendedLevelsList = vanillaLevelsList;
+                    extendedLevelsList = PatchedContent.VanillaExtendedLevels;
                     break;
                 case ContentType.Custom:
-                    extendedLevelsList = customLevelsList;
+                    extendedLevelsList = PatchedContent.CustomExtendedLevels;
                     break;
                 case ContentType.Any:
-                    extendedLevelsList = allLevelsList;
+                    extendedLevelsList = PatchedContent.ExtendedLevels;
                     break;
             }
 
@@ -208,7 +61,7 @@ namespace LethalLevelLoader
         {
             ExtendedLevel returnExtendedLevel = null;
 
-            foreach (ExtendedLevel extendedLevel in allLevelsList)
+            foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                 if (extendedLevel.selectableLevel == selectableLevel)
                     returnExtendedLevel = extendedLevel;
 
@@ -240,36 +93,5 @@ namespace LethalLevelLoader
         public ExtendedLevel extendedLevel;
         public ExtendedDungeonFlow extendedDungeonFlow;
         public LevelWeatherType weatherEffect;
-    }
-
-    public class MyClassIdea1
-    {
-        public int mainNumber;
-        public bool mainSetting;
-        public string mainName;
-
-        public UnityEvent myEvent1;
-        public UnityEvent myEvent2;
-        public UnityEvent myEvent3;
-        public UnityEvent myEvent4;
-        public UnityEvent myEvent5;
-    }
-
-    public class MyClassIdea2
-    {
-        public int mainNumber;
-        public bool mainSetting;
-        public string mainName;
-
-        public MyClassEvents classEvents = new MyClassEvents();
-    }
-
-    public class MyClassEvents
-    {
-        public UnityEvent myEvent1;
-        public UnityEvent myEvent2;
-        public UnityEvent myEvent3;
-        public UnityEvent myEvent4;
-        public UnityEvent myEvent5;
     }
 }

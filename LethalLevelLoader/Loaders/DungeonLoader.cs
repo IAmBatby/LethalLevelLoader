@@ -127,11 +127,6 @@ namespace LethalLevelLoader
         {
             string debugString = "Fire Exit Patch Report, Details Below;" + "\n" + "\n";
 
-            DebugHelper.Log("DungeonGenerator Is: " + dungeonGenerator);
-            DebugHelper.Log("ExtendedLevel Is: " + extendedLevel);
-            DebugHelper.Log("Scene Is: " + scene);
-            DebugHelper.Log("RoundManager Is: " + RoundManager.Instance);
-
             List<EntranceTeleport> entranceTeleports = new List<EntranceTeleport>();
             EntranceTeleport lowestIDEntranceTeleport = null;
 

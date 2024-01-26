@@ -67,7 +67,7 @@ namespace LethalLevelLoader
             if (levelType == ContentType.Custom)
             {
                 levelTags.Add("Custom");
-                selectableLevel.levelID = SelectableLevel_Patch.allLevelsList.Count;
+                selectableLevel.levelID = PatchedContent.ExtendedLevels.Count;
             }
 
             if (generateTerminalAssets == true) //Needs to be after levelID setting above.

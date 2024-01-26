@@ -12,95 +12,95 @@ namespace LethalLevelLoader
 {
     public class ContentExtractor
     {
-        public static List<Item> vanillaItemsList = new List<Item>();
-        public static List<EnemyType> vanillaEnemiesList = new List<EnemyType>();
-        public static List<SpawnableOutsideObject> vanillaSpawnableOutsideMapObjectsList = new List<SpawnableOutsideObject>();
-        public static List<GameObject> vanillaSpawnableInsideMapObjectsList = new List<GameObject>();
-        public static List<LevelAmbienceLibrary> vanillaAmbienceLibrariesList = new List<LevelAmbienceLibrary>();
-        public static List<AudioMixerGroup> vanillaAudioMixerGroupsList = new List<AudioMixerGroup>();
-        public static List<AudioMixer> vanillaAudioMixersList = new List<AudioMixer>();
-        public static List<ItemGroup> vanillaItemGroupsList = new List<ItemGroup>();
-        public static List<ReverbPreset> vanillaReverbPresetsList = new List<ReverbPreset>();
-
-
-        [HarmonyPatch(typeof(RoundManager), "Awake")]
-        [HarmonyPrefix]
-        [HarmonyPriority(350)]
-        internal static void TryScrapeVanillaContent(RoundManager __instance)
+        //[HarmonyPatch(typeof(RoundManager), "Awake")]
+        //[HarmonyPrefix]
+        //[HarmonyPriority(350)]
+        internal static void TryScrapeVanillaContent(RoundManager roundManager)
         {
             if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
             {
                 StartOfRound startOfRound = StartOfRound.Instance;
                 if (startOfRound != null)
                 {
-                    foreach (Item item in startOfRound.allItemsList.itemsList)
-                    {
-                        if (!vanillaItemsList.Contains(item))
-                            vanillaItemsList.Add(item);
+                    foreach (DungeonFlow dungeonFlow in roundManager.dungeonFlowTypes)
+                        TryAddReference(OriginalContent.DungeonFlows, dungeonFlow);
 
-                        if (item.spawnPrefab != null)
-                            TryExtractAudioMixerGroups(item.spawnPrefab.GetComponentsInChildren<AudioSource>());
-                    }
+                    foreach (Item item in startOfRound.allItemsList.itemsList)
+                        TryAddReference(OriginalContent.Items, item);
 
                     foreach (SelectableLevel selectableLevel in startOfRound.levels)
-                    {
-                        foreach (SpawnableEnemyWithRarity enemyWithRarity in selectableLevel.Enemies)
-                            if (!vanillaEnemiesList.Contains(enemyWithRarity.enemyType))
-                                vanillaEnemiesList.Add(enemyWithRarity.enemyType);
+                        ExtractSelectableLevelReferences(selectableLevel);
 
-                        foreach (SpawnableEnemyWithRarity enemyWithRarity in selectableLevel.OutsideEnemies)
-                            if (!vanillaEnemiesList.Contains(enemyWithRarity.enemyType))
-                                vanillaEnemiesList.Add(enemyWithRarity.enemyType);
-
-                        foreach (SpawnableEnemyWithRarity enemyWithRarity in selectableLevel.DaytimeEnemies)
-                            if (!vanillaEnemiesList.Contains(enemyWithRarity.enemyType))
-                                vanillaEnemiesList.Add(enemyWithRarity.enemyType);
-
-                        foreach (SpawnableMapObject spawnableInsideObject in selectableLevel.spawnableMapObjects)
-                            if (!vanillaSpawnableInsideMapObjectsList.Contains(spawnableInsideObject.prefabToSpawn))
-                                vanillaSpawnableInsideMapObjectsList.Add(spawnableInsideObject.prefabToSpawn);
-
-
-                        foreach (SpawnableOutsideObjectWithRarity spawnableOutsideObject in selectableLevel.spawnableOutsideObjects)
-                            if (!vanillaSpawnableOutsideMapObjectsList.Contains(spawnableOutsideObject.spawnableObject))
-                                vanillaSpawnableOutsideMapObjectsList.Add(spawnableOutsideObject.spawnableObject);
-
-                        if (!vanillaAmbienceLibrariesList.Contains(selectableLevel.levelAmbienceClips))
-                            vanillaAmbienceLibrariesList.Add(selectableLevel.levelAmbienceClips);
-                    }
-
-                    foreach (DungeonFlow dungeonFlow in __instance.dungeonFlowTypes)
-                        foreach (Tile tile in AssetBundleLoader.GetAllTilesInDungeonFlow(dungeonFlow))
-                            foreach (RandomScrapSpawn randomScrapSpawn in tile.gameObject.GetComponentsInChildren<RandomScrapSpawn>())
-                                if (!vanillaItemGroupsList.Contains(randomScrapSpawn.spawnableItems))
-                                    vanillaItemGroupsList.Add(randomScrapSpawn.spawnableItems);
-
+                    foreach (DungeonFlow dungeonFlow in roundManager.dungeonFlowTypes)
+                        ExtractDungeonFlowReferences(dungeonFlow);
                 }
+
+                foreach (TerminalNode terminalNode in Terminal_Patch.Terminal.terminalNodes.terminalNodes)
+                    TryAddReference(OriginalContent.TerminalNodes, terminalNode);
+
+
+                foreach (TerminalNode terminalNode in Terminal_Patch.Terminal.terminalNodes.specialNodes)
+                    TryAddReference(OriginalContent.TerminalNodes, terminalNode);
+
+                foreach (TerminalKeyword terminalKeyword in Terminal_Patch.Terminal.terminalNodes.allKeywords)
+                {
+                    TryAddReference(OriginalContent.TerminalKeywords, terminalKeyword);
+                    foreach (CompatibleNoun compatibleNoun in terminalKeyword.compatibleNouns)
+                        if (compatibleNoun.result != null)
+                            TryAddReference(OriginalContent.TerminalNodes, compatibleNoun.result);
+                }
+
+                foreach (TerminalNode terminalNode in new List<TerminalNode>(OriginalContent.TerminalNodes))
+                    foreach (CompatibleNoun compatibleNoun in terminalNode.terminalOptions)
+                        if (compatibleNoun.result != null)
+                            TryAddReference(OriginalContent.TerminalNodes, compatibleNoun.result);
 
                 foreach (AudioMixerGroup audioMixerGroup in Resources.FindObjectsOfTypeAll(typeof(AudioMixerGroup)))
                 {
-                    if (!vanillaAudioMixersList.Contains(audioMixerGroup.audioMixer))
-                        vanillaAudioMixersList.Add(audioMixerGroup.audioMixer);
-
-                    if (!vanillaAudioMixerGroupsList.Contains(audioMixerGroup))
-                        vanillaAudioMixerGroupsList.Add(audioMixerGroup);
+                    TryAddReference(OriginalContent.AudioMixers, audioMixerGroup.audioMixer);
+                    TryAddReference(OriginalContent.AudioMixerGroups, audioMixerGroup);
                 }
 
                 foreach (ReverbPreset reverbPreset in Resources.FindObjectsOfTypeAll<ReverbPreset>())
-                    if (!vanillaReverbPresetsList.Contains(reverbPreset))
-                        vanillaReverbPresetsList.Add(reverbPreset);
+                    TryAddReference(OriginalContent.ReverbPresets, reverbPreset);
+
+                OriginalContent.SelectableLevels = new List<SelectableLevel>(StartOfRound.Instance.levels.ToList());
+                OriginalContent.MoonsCatalogue = new List<SelectableLevel>(Terminal_Patch.Terminal.moonsCatalogueList.ToList());
             }
             DebugHelper.DebugScrapedVanillaContent();
         }
 
-        internal static void TryExtractAudioMixerGroups(AudioSource[] audioSources)
+        internal static void ExtractSelectableLevelReferences(SelectableLevel selectableLevel)
         {
-            foreach (AudioSource audioSource in audioSources)
-                if (audioSource.outputAudioMixerGroup != null && !vanillaAudioMixerGroupsList.Contains(audioSource.outputAudioMixerGroup))
-                {
-                    vanillaAudioMixerGroupsList.Add(audioSource.outputAudioMixerGroup);
-                    DebugHelper.Log("Adding AudioMixerGroup: " + audioSource.outputAudioMixerGroup.name + " To Vanilla Reference List!");
-                }
+            foreach (SpawnableEnemyWithRarity enemyWithRarity in selectableLevel.Enemies)
+                TryAddReference(OriginalContent.Enemies, enemyWithRarity.enemyType);
+
+            foreach (SpawnableEnemyWithRarity enemyWithRarity in selectableLevel.OutsideEnemies)
+                TryAddReference(OriginalContent.Enemies, enemyWithRarity.enemyType);
+
+            foreach (SpawnableEnemyWithRarity enemyWithRarity in selectableLevel.DaytimeEnemies)
+                TryAddReference(OriginalContent.Enemies, enemyWithRarity.enemyType);
+
+            foreach (SpawnableMapObject spawnableMapObject in selectableLevel.spawnableMapObjects)
+                TryAddReference(OriginalContent.SpawnableMapObjects, spawnableMapObject.prefabToSpawn);
+
+            foreach (SpawnableOutsideObjectWithRarity spawnableOutsideObject in selectableLevel.spawnableOutsideObjects)
+                TryAddReference(OriginalContent.SpawnableOutsideObjects, spawnableOutsideObject.spawnableObject);
+
+            TryAddReference(OriginalContent.LevelAmbienceLibraries, selectableLevel.levelAmbienceClips);
+        }
+
+        internal static void ExtractDungeonFlowReferences(DungeonFlow dungeonFlow)
+        {
+            foreach (Tile tile in dungeonFlow.GetTiles())
+                foreach (RandomScrapSpawn randomScrapSpawn in tile.gameObject.GetComponentsInChildren<RandomScrapSpawn>())
+                    TryAddReference(OriginalContent.ItemGroups, randomScrapSpawn.spawnableItems);
+        }
+
+        internal static void TryAddReference<T>(List<T> referenceList, T reference) where T : UnityEngine.Object
+        {
+            if (!referenceList.Contains(reference))
+                referenceList.Add(reference);
         }
     }
 }
