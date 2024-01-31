@@ -6,24 +6,6 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    [System.Serializable]
-    public class ExtendedLevelGroup
-    {
-        public List<ExtendedLevel> extendedLevelsList;
-
-        public ExtendedLevelGroup(List<ExtendedLevel> newExtendedLevelsList)
-        {
-            extendedLevelsList = new List<ExtendedLevel>(newExtendedLevelsList);
-        }
-
-        public ExtendedLevelGroup(List<SelectableLevel> newSelectableLevelsList)
-        {
-            extendedLevelsList = new List<ExtendedLevel>();
-            foreach (SelectableLevel level in newSelectableLevelsList)
-                extendedLevelsList.Add(SelectableLevel_Patch.GetExtendedLevel(level));
-        }
-    }
-
     public class MoonsCataloguePage
     {
         private List<ExtendedLevelGroup> extendedLevelGroups;
@@ -39,10 +21,6 @@ namespace LethalLevelLoader
                         returnList.Add(level);
 
                 return (returnList);
-            }
-            set
-            {
-                //RebuildLevelGroups(value, 3);
             }
         }
 
@@ -88,7 +66,6 @@ namespace LethalLevelLoader
 
                 if (counter == splitCount || levelsAdded == newExtendedLevels.Length)
                 {
-                    Debug.Log("Spltting!");
                     returnList.Add(new ExtendedLevelGroup(currentExtendedLevelsBatch));
                     currentExtendedLevelsBatch.Clear();
                     counter = 0;
@@ -106,4 +83,23 @@ namespace LethalLevelLoader
                     extendedLevelGroups.Add(new ExtendedLevelGroup(group.extendedLevelsList));
         }
     }
+
+    [System.Serializable]
+    public class ExtendedLevelGroup
+    {
+        public List<ExtendedLevel> extendedLevelsList;
+
+        public ExtendedLevelGroup(List<ExtendedLevel> newExtendedLevelsList)
+        {
+            extendedLevelsList = new List<ExtendedLevel>(newExtendedLevelsList);
+        }
+
+        public ExtendedLevelGroup(List<SelectableLevel> newSelectableLevelsList)
+        {
+            extendedLevelsList = new List<ExtendedLevel>();
+            foreach (SelectableLevel level in newSelectableLevelsList)
+                extendedLevelsList.Add(SelectableLevel_Patch.GetExtendedLevel(level));
+        }
+    }
+
 }

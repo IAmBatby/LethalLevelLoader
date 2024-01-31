@@ -8,7 +8,7 @@ namespace LethalLevelLoader
     public enum SortInfoType { Price, Difficulty, Tag, LastTraveled, None }
     public enum FilterInfoType { Price, Weather, Tag, TraveledThisQuota, TraveledThisRun, None}
 
-    public static class ModSettings
+    public static class Settings
     {
         public static PreviewInfoType levelPreviewInfoType = PreviewInfoType.Weather;
         public static SortInfoType levelPreviewSortType = SortInfoType.None;

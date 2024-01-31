@@ -15,6 +15,9 @@ namespace LethalLevelLoader
     {
         public static string logAuthor = "Batby";
 
+        public static Dictionary<ExtendedLevel, ExtendedLevelLogReport> extendedLevelLogReports = new Dictionary<ExtendedLevel, ExtendedLevelLogReport>();
+        public static Dictionary<ExtendedDungeonFlow, ExtendedLevelLogReport> extendedDungeonFlowLogReports = new Dictionary<ExtendedDungeonFlow, ExtendedLevelLogReport>();
+
         public static void Log(string log)
         {
             //LethalLevelLoaderPlugin.Instance.Log(log);
@@ -54,8 +57,9 @@ namespace LethalLevelLoader
 
         public static void DebugTerminalNode(TerminalNode terminalNode)
         {
-            string logString = "Info For " + terminalNode.name + ") TerminalNode!" + "\n" + "\n";
+            string logString = "Info For (" + terminalNode.name + ") TerminalNode!" + "\n" + "\n";
             logString += "Display Text: " + terminalNode.displayText + "\n";
+            logString += "Terminal Event: " + terminalNode.terminalEvent + "\n";
             logString += "Accept Anything?: " + terminalNode.acceptAnything + "\n";
             logString += "Override Options?: " + terminalNode.overrideOptions + "\n";
             logString += "Display Planet Info (LevelID): " + terminalNode.displayPlanetInfo + "\n";
@@ -147,6 +151,10 @@ namespace LethalLevelLoader
             Log("Obtained (" + OriginalContent.TerminalKeywords.Count + " / 121) Vanilla Terminal Keyword References");
 
             Log("Obtained (" + OriginalContent.TerminalNodes.Count + " / 186) Vanilla Terminal Node References");
+
+            foreach (TerminalNode terminalNode in Resources.FindObjectsOfTypeAll(typeof(TerminalNode)))
+                if (!OriginalContent.TerminalNodes.Contains(terminalNode))
+                    Log("Missing Terminal Node: " + terminalNode.name);
         }
 
         public static void DebugAudioMixerGroups()
@@ -200,21 +208,21 @@ namespace LethalLevelLoader
         {
             string debugString = "All ExtendedDungeons: " + "\n" + "\n";
 
-            foreach (ExtendedDungeonFlow dungeonFlow in DungeonFlow_Patch.allExtendedDungeonsList)
+            foreach (ExtendedDungeonFlow dungeonFlow in PatchedContent.ExtendedDungeonFlows)
                 debugString += dungeonFlow.dungeonFlow.name;
 
             Log(debugString);
 
             debugString = "Vanilla ExtendedDungeons: " + "\n" + "\n";
 
-            foreach (ExtendedDungeonFlow dungeonFlow in DungeonFlow_Patch.vanillaDungeonFlowsList)
+            foreach (ExtendedDungeonFlow dungeonFlow in PatchedContent.VanillaExtendedDungeonFlows)
                 debugString += dungeonFlow.dungeonFlow.name;
 
             Log(debugString);
 
             debugString = "Custom ExtendedDungeons: " + "\n" + "\n";
 
-            foreach (ExtendedDungeonFlow dungeonFlow in DungeonFlow_Patch.customDungeonFlowsList)
+            foreach (ExtendedDungeonFlow dungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
                 debugString += dungeonFlow.dungeonFlow.name;
 
             Log(debugString);
@@ -391,12 +399,12 @@ namespace LethalLevelLoader
             DebugHelper.Log("Removing Radar Target! Removed Target: " + removeTransform.gameObject.name);
         }*/
 
-        internal static void DebugExtendedLevelGroups(List<ExtendedLevelGroup> extendedLevelGroups)
+        internal static void DebugExtendedLevelGroups(List<MoonsCataloguePage> extendedLevelGroups)
         {
-            DebugHelper.Log("Debugging ExtendedLevelGroups");
+            /*DebugHelper.Log("Debugging ExtendedLevelGroups");
 
             int counter = 1;
-            foreach (ExtendedLevelGroup group in extendedLevelGroups)
+            foreach (MoonsCataloguePage group in extendedLevelGroups)
             {
                 DebugHelper.Log("Group " + counter + " / " + extendedLevelGroups.Count);
                 int counter2 = 1;
@@ -406,57 +414,7 @@ namespace LethalLevelLoader
                     counter2++;
                 }
                 counter++;
-            }
-        }
-
-        internal static TerminalKeyword verbKeyword;
-
-        [HarmonyPatch(typeof(Terminal), "ParseWord")]
-        [HarmonyPostfix]
-        [HarmonyPriority(350)]
-        internal static void ParseWord(Terminal __instance, ref TerminalKeyword __result, string playerWord)
-        {
-            if (__instance.hasGottenVerb == false && __result.isVerb == true)
-                verbKeyword = __result;
-
-            if (__result != null && __result.isVerb == false && __instance.hasGottenVerb == true && verbKeyword != null)
-            {
-                TerminalKeyword nounKeyword = __result;
-                if (ValidateNounKeyword(verbKeyword, nounKeyword) == false)
-                {
-                    Log("Selected NounKeyword Is Not A Valid Pairing For The Found VerbKeyword, Looking Again!");
-                    Log("Invalid NounKeyword Info - Word: " + nounKeyword.word + " , DefaultVerb Word: " + nounKeyword.defaultVerb?.word + " , VerbKeyword: " + verbKeyword.word + " , TerminalKeywords Index: " + __instance.terminalNodes.allKeywords.ToList().IndexOf(nounKeyword));
-                    foreach (TerminalKeyword newNounKeyword in __instance.terminalNodes.allKeywords)
-                        if (newNounKeyword.isVerb == false && newNounKeyword != nounKeyword && newNounKeyword.word == playerWord)
-                        {
-                            if (ValidateNounKeyword(verbKeyword, newNounKeyword) == true)
-                            {
-                                Log("Found New NounKeyword That Is A Valid Pairing For The Found VerbKeyword, Returning This Instead!");
-                                Log("New NounKeyword Info - Word: " + newNounKeyword.word + " , DefaultVerb Word: " + newNounKeyword.defaultVerb?.word + " , VerbKeyword: " + verbKeyword.word + " , TerminalKeywords Index: " + __instance.terminalNodes.allKeywords.ToList().IndexOf(newNounKeyword));
-                                __result = newNounKeyword;
-                            }
-                            else
-                                Log("Still could not find NounKeyword That Is A Matching Pair For The Found VerbKeyword, Sending Invalid Result To Basegame");
-                        }
-                }
-            }
-
-            DebugHelper.Log("ParseWord Postfix: PlayerWord Is: " + playerWord + " | TerminalKeyword Is: " + __result.word);
-            DebugTerminalKeyword(__result);
-        }
-
-        internal static bool ValidateNounKeyword(TerminalKeyword verbKeyword, TerminalKeyword nounKeyword)
-        {
-            for (int k = 0; k < verbKeyword.compatibleNouns.Length; k++)
-            {
-                if (verbKeyword.compatibleNouns[k].noun == nounKeyword)
-                {
-                    Debug.Log(string.Format("noun keyword: {0} ; verb keyword: {1} ; result null? : {2}", nounKeyword.word, verbKeyword.word, verbKeyword.compatibleNouns[k].result == null));
-                    Debug.Log("result: " + verbKeyword.compatibleNouns[k].result.name);
-                    return (true);
-                }
-            }
-            return (false);
+            }*/
         }
 
         internal static void DebugMoonsCataloguePage(MoonsCataloguePage moonsCataloguePage)
@@ -472,5 +430,83 @@ namespace LethalLevelLoader
 
             Log(debugString);
         }
+
+        internal static void DebugStringToStringWithRarityListParser(string inputString)
+        {
+            string debugString = "Debugging String To StringWithRarity List Parser." + "\n";
+            debugString += "Input String Is: (" + inputString + ")" + "\n";
+
+            List<StringWithRarity> stringWithRarities = ConfigHelper.ConvertToStringWithRarityList(inputString, Vector2.zero);
+
+            debugString += "Parsed StringWithRarities; " + "\n";
+            bool foundMatchingLevel;
+            foreach (StringWithRarity pair in stringWithRarities)
+            {
+                debugString += "String: " + pair.Name + " , Rarity: " + pair.Rarity;
+                foundMatchingLevel = false;
+                foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
+                    if (extendedLevel.NumberlessPlanetName.ToLower().Contains(pair.Name.ToLower()) || pair.Name.ToLower().Contains(extendedLevel.NumberlessPlanetName.ToLower()))
+                    {
+                        debugString += " | Found Loaded ExtendedLevel: " + extendedLevel.selectableLevel.PlanetName + " From Parsed String: " + pair.Name + "\n";
+                        foundMatchingLevel = true;
+                    }
+                if (foundMatchingLevel == false)
+                    debugString += "\n";
+            }
+
+            DebugHelper.Log(debugString);
+        }
+
+        internal static void DebugStringToVector2WithRarityListParser(string inputString)
+        {
+            string debugString = "Debugging String To Vector2WithRarity List Parser." + "\n";
+            debugString += "Input String Is: (" + inputString + ")" + "\n";
+
+            List<Vector2WithRarity> stringWithRarities = ConfigHelper.ConvertToVector2WithRarityList(inputString, Vector2.zero);
+
+            debugString += "Parsed Vector2WithRarities; " + "\n";
+            foreach (Vector2WithRarity pair in stringWithRarities)
+            {
+                debugString += "Min: " + pair.Min + " , Max: " + pair.Max + " , Rarity: " + pair.Rarity + "\n";
+            }
+
+            DebugHelper.Log(debugString);
+        }
+
+        internal static void DebugStringToSpawnableEnemiesWithRarityListParser(string inputString)
+        {
+            string debugString = "Debugging String To SpawnableEnemyWithRarity List Parser." + "\n";
+            debugString += "Input String Is: (" + inputString + ")" + "\n";
+
+            List<SpawnableEnemyWithRarity> stringWithRarities = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(inputString, Vector2.zero);
+
+            debugString += "Parsed SpawnableEnemyWithRarities; " + "\n";
+            foreach (SpawnableEnemyWithRarity pair in stringWithRarities)
+            {
+                if (pair.enemyType != null)
+                    debugString += "Enemy Name: " + pair.enemyType.enemyName + " , Rarity: " + pair.rarity + "\n";
+                else
+                    debugString += "EnemyType Was Null, Skipping!" + "\n";
+            }
+
+            DebugHelper.Log(debugString);
+        }
+    }
+
+    [System.Serializable]
+    public class ExtendedLevelLogReport
+    {
+        public ExtendedLevel extendedLevel;
+
+        public ExtendedLevelLogReport(ExtendedLevel newExtendedLevel)
+        {
+            extendedLevel = newExtendedLevel;
+        }
+    }
+
+    [System.Serializable]
+    public class ExtendedDungeonFlowLogReport
+    {
+
     }
 }

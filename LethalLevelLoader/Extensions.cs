@@ -1,10 +1,12 @@
 ﻿using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
+using Mono.Cecil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace LethalLevelLoader
 {
@@ -16,24 +18,28 @@ namespace LethalLevelLoader
 
             foreach (GraphNode dungeonNode in dungeonFlow.Nodes)
                 foreach (TileSet dungeonTileSet in dungeonNode.TileSets)
-                    foreach (GameObjectChance dungeonTileWeight in dungeonTileSet.TileWeights.Weights)
-                        foreach (Tile dungeonTile in dungeonTileWeight.Value.GetComponentsInChildren<Tile>())
-                            tilesList.Add(dungeonTile);
+                    tilesList.AddRange(GetTilesInTileSet(dungeonTileSet));
 
             foreach (GraphLine dungeonLine in dungeonFlow.Lines)
                 foreach (DungeonArchetype dungeonArchetype in dungeonLine.DungeonArchetypes)
                 {
                     foreach (TileSet dungeonTileSet in dungeonArchetype.BranchCapTileSets)
-                        foreach (GameObjectChance dungeonTileWeight in dungeonTileSet.TileWeights.Weights)
-                            foreach (Tile dungeonTile in dungeonTileWeight.Value.GetComponentsInChildren<Tile>())
-                                tilesList.Add(dungeonTile);
+                        tilesList.AddRange(GetTilesInTileSet(dungeonTileSet));
 
                     foreach (TileSet dungeonTileSet in dungeonArchetype.TileSets)
-                        foreach (GameObjectChance dungeonTileWeight in dungeonTileSet.TileWeights.Weights)
-                            foreach (Tile dungeonTile in dungeonTileWeight.Value.GetComponentsInChildren<Tile>())
-                                tilesList.Add(dungeonTile);
+                        tilesList.AddRange(GetTilesInTileSet(dungeonTileSet));
                 }
 
+            return (tilesList);
+        }
+
+        public static List<Tile> GetTilesInTileSet(TileSet tileSet)
+        {
+            List<Tile> tilesList = new List<Tile>();
+            if (tileSet.TileWeights != null && tileSet.TileWeights.Weights != null)
+                foreach (GameObjectChance dungeonTileWeight in tileSet.TileWeights.Weights)
+                    foreach (Tile dungeonTile in dungeonTileWeight.Value.GetComponentsInChildren<Tile>())
+                        tilesList.Add(dungeonTile);
             return (tilesList);
         }
 

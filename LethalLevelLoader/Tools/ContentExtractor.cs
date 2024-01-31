@@ -12,9 +12,6 @@ namespace LethalLevelLoader
 {
     public class ContentExtractor
     {
-        //[HarmonyPatch(typeof(RoundManager), "Awake")]
-        //[HarmonyPrefix]
-        //[HarmonyPriority(350)]
         internal static void TryScrapeVanillaContent(RoundManager roundManager)
         {
             if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
@@ -35,11 +32,25 @@ namespace LethalLevelLoader
                         ExtractDungeonFlowReferences(dungeonFlow);
                 }
 
+                if (Terminal_Patch.Terminal.currentNode != null)
+                    TryAddReference(OriginalContent.TerminalNodes, Terminal_Patch.Terminal.currentNode);
+
                 foreach (TerminalNode terminalNode in Terminal_Patch.Terminal.terminalNodes.terminalNodes)
                     TryAddReference(OriginalContent.TerminalNodes, terminalNode);
 
 
                 foreach (TerminalNode terminalNode in Terminal_Patch.Terminal.terminalNodes.specialNodes)
+                    TryAddReference(OriginalContent.TerminalNodes, terminalNode);
+
+                foreach (TerminalNode terminalNode in Terminal_Patch.Terminal.enemyFiles)
+                    TryAddReference(OriginalContent.TerminalNodes, terminalNode);
+
+
+                foreach (TerminalNode terminalNode in Terminal_Patch.Terminal.logEntryFiles)
+                    TryAddReference(OriginalContent.TerminalNodes, terminalNode);
+
+
+                foreach (TerminalNode terminalNode in Terminal_Patch.Terminal.ShipDecorSelection)
                     TryAddReference(OriginalContent.TerminalNodes, terminalNode);
 
                 foreach (TerminalKeyword terminalKeyword in Terminal_Patch.Terminal.terminalNodes.allKeywords)
@@ -48,6 +59,8 @@ namespace LethalLevelLoader
                     foreach (CompatibleNoun compatibleNoun in terminalKeyword.compatibleNouns)
                         if (compatibleNoun.result != null)
                             TryAddReference(OriginalContent.TerminalNodes, compatibleNoun.result);
+                    if (terminalKeyword.specialKeywordResult != null)
+                        TryAddReference(OriginalContent.TerminalNodes, terminalKeyword.specialKeywordResult);
                 }
 
                 foreach (TerminalNode terminalNode in new List<TerminalNode>(OriginalContent.TerminalNodes))

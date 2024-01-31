@@ -10,12 +10,14 @@ namespace LethalLevelLoader
     public class ExtendedLevel : ScriptableObject
     {
         [Header("Extended Level Settings")]
-        [Space(5)]
-        public string contentSourceName = "Lethal Company"; //Levels from AssetBundles will have this as their Assembly Name.
-        [Space(5)]
-        public SelectableLevel selectableLevel;
-        [Space(5)]
-        [SerializeField] private int routePrice = 0;
+        [Space(5)] public string contentSourceName = string.Empty; //Levels from AssetBundles will have this as their Assembly Name.
+        [Space(5)] public SelectableLevel selectableLevel;
+        [Space(5)] [SerializeField] private int routePrice = 0;
+        [Space(5)] public bool isHidden = false;
+        [Space(5)] public bool isLocked = false;
+        [Space(5)] public string lockedNodeText = string.Empty;
+
+        [Space(10)] public List<StoryLogData> storyLogs = new List<StoryLogData>();
 
         public int RoutePrice
         {
@@ -48,21 +50,29 @@ namespace LethalLevelLoader
         [HideInInspector] public ContentType levelType;
         [HideInInspector] public string NumberlessPlanetName => GetNumberlessPlanetName(selectableLevel);
 
-        [HideInInspector] internal TerminalNode routeNode;
+        [SerializeField][TextArea] internal string infoNodeDescripton = string.Empty;
+        [HideInInspector] internal TerminalNode routeNode; 
 
-        internal void Initialize(ContentType newLevelType, SelectableLevel newSelectableLevel = null, int newRoutePrice = 0, bool generateTerminalAssets = false, GameObject newLevelPrefab = null, string newSourceName = "Lethal Company")
+        [Space(10)]
+        [Header("Misc. Settings")]
+        [Space(5)] public bool generateAutomaticConfigurationOptions = true;
+
+        internal static ExtendedLevel Create(SelectableLevel newSelectableLevel, ContentType newContentType)
         {
-            DebugHelper.Log("Creating New Extended Level For Moon: " + ExtendedLevel.GetNumberlessPlanetName(newSelectableLevel));
+            ExtendedLevel newExtendedLevel = ScriptableObject.CreateInstance<ExtendedLevel>();
 
-            if (selectableLevel == null)
-                selectableLevel = newSelectableLevel;
-            if (contentSourceName != newSourceName)
-                contentSourceName = newSourceName;
+            newExtendedLevel.levelType = newContentType;
+            newExtendedLevel.selectableLevel = newSelectableLevel;
 
-            levelType = newLevelType;
+            return (newExtendedLevel);
+        }
+        internal void Initialize(string newContentSourceName, bool generateTerminalAssets)
+        {
+            DebugHelper.Log("Initializing Extended Level For Moon: " + GetNumberlessPlanetName(selectableLevel));
+            DebugHelper.extendedLevelLogReports.Add(this, new ExtendedLevelLogReport(this));
 
-            if (routePrice == 0)
-                routePrice = newRoutePrice;
+            if (contentSourceName == string.Empty)
+                contentSourceName = newContentSourceName;
 
             if (levelType == ContentType.Custom)
             {
@@ -71,13 +81,7 @@ namespace LethalLevelLoader
             }
 
             if (generateTerminalAssets == true) //Needs to be after levelID setting above.
-            {
-                Terminal_Patch.CreateLevelTerminalData(this, routePrice, out TerminalNode newRouteNode);
-                routeNode = newRouteNode;
-            }
-
-            if (routeNode != null)
-                routePrice = routeNode.itemCost;
+                Terminal_Patch.CreateLevelTerminalData(this, routePrice);
         }
 
         internal static string GetNumberlessPlanetName(SelectableLevel selectableLevel)
@@ -88,4 +92,15 @@ namespace LethalLevelLoader
                 return string.Empty;
         }
     }
+}
+
+[System.Serializable]
+public class StoryLogData
+{
+    public int storyLogID;
+    public string terminalWord = string.Empty;
+    public string storyLogTitle = string.Empty;
+    [TextArea] public string storyLogDescription = string.Empty;
+
+    [HideInInspector] internal int newStoryLogID;
 }

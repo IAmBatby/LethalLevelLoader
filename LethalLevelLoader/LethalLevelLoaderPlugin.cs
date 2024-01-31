@@ -42,37 +42,26 @@ namespace LethalLevelLoader
 
             Logger.LogInfo($"LethalLevelLoader loaded!!");
 
-            //Harmony.PatchAll(typeof(AssetBundleLoader));
-            //Harmony.PatchAll(typeof(ContentExtractor));
-
-            //Harmony.PatchAll(typeof(SelectableLevel_Patch));
             Harmony.PatchAll(typeof(NetworkManager_Patch));
-            //Harmony.PatchAll(typeof(Terminal_Patch));
-
             Harmony.PatchAll(typeof(DungeonLoader));
-            //Harmony.PatchAll(typeof(LevelLoader));
-
-            Harmony.PatchAll(typeof(DebugHelper));
-            //Harmony.PatchAll(typeof(DebugOrderOfExecution));
 
             Harmony.PatchAll(typeof(Patches));
-
             NetworkScenePatcher.Patch();
 
             terminalMoonsPreviewInfoSetting = Config.Bind("General", "Terminal >Moons PreviewInfo Setting", "Weather", new ConfigDescription("What LethalLevelLoader displays next to each moon in the >moons Terminal listing. " + "\n" + "Valid LethalLevelLoader Overhaul Options: Weather, Price, Difficulty, None " + "\n" + "Valid LethalLevelLoader Compatability Options: Vanilla, Override "));
 
             if (terminalMoonsPreviewInfoSetting.Value == "Weather")
-                ModSettings.levelPreviewInfoType = PreviewInfoType.Weather;
+                Settings.levelPreviewInfoType = PreviewInfoType.Weather;
             else if (terminalMoonsPreviewInfoSetting.Value == "Price")
-                ModSettings.levelPreviewInfoType = PreviewInfoType.Price;
+                Settings.levelPreviewInfoType = PreviewInfoType.Price;
             else if (terminalMoonsPreviewInfoSetting.Value == "Difficulty")
-                ModSettings.levelPreviewInfoType = PreviewInfoType.Difficulty;
+                Settings.levelPreviewInfoType = PreviewInfoType.Difficulty;
             else if (terminalMoonsPreviewInfoSetting.Value == "None")
-                ModSettings.levelPreviewInfoType = PreviewInfoType.None;
+                Settings.levelPreviewInfoType = PreviewInfoType.None;
             else if (terminalMoonsPreviewInfoSetting.Value == "Vanilla")
-                ModSettings.levelPreviewInfoType = PreviewInfoType.Vanilla;
+                Settings.levelPreviewInfoType = PreviewInfoType.Vanilla;
             else if (terminalMoonsPreviewInfoSetting.Value == "Override")
-                ModSettings.levelPreviewInfoType = PreviewInfoType.Override;
+                Settings.levelPreviewInfoType = PreviewInfoType.Override;
             else
                 Debug.LogError("LethalLevelLoader: TerminalMoonsPreviewInfoSetting Set To Invalid Value");
 

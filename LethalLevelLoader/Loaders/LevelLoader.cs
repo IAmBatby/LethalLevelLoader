@@ -43,5 +43,14 @@ namespace LethalLevelLoader
             meshCollider.gameObject.name.Replace(" (LLL Tracked)", "");
             await Task.Yield();
         }
+
+        internal static void UpdateStoryLogs(ExtendedLevel extendedLevel, Scene scene)
+        {
+            foreach (GameObject rootObject in scene.GetRootGameObjects())
+                foreach (StoryLog sceneStoryLog in rootObject.GetComponentsInChildren<StoryLog>())
+                    foreach (StoryLogData storyLogData in extendedLevel.storyLogs)
+                        if (sceneStoryLog.storyLogID == storyLogData.storyLogID)
+                            sceneStoryLog.storyLogID = storyLogData.newStoryLogID;
+        }
     }
 }

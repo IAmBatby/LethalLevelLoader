@@ -10,10 +10,6 @@ namespace LethalLevelLoader
 {
     public class DungeonFlow_Patch
     {
-        public static List<ExtendedDungeonFlow> allExtendedDungeonsList = new List<ExtendedDungeonFlow>();
-        public static List<ExtendedDungeonFlow> vanillaDungeonFlowsList = new List<ExtendedDungeonFlow>();
-        public static List<ExtendedDungeonFlow> customDungeonFlowsList = new List<ExtendedDungeonFlow>();
-
         internal static void CreateExtendedDungeonFlow(DungeonFlow dungeon, int defaultRarity, string sourceName, AudioClip firstTimeDungeonAudio = null)
         {
             ExtendedDungeonFlow newExtendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
@@ -27,23 +23,16 @@ namespace LethalLevelLoader
         internal static void AddExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
         {
             DebugHelper.Log("Adding Dungeon Flow: " + extendedDungeonFlow.dungeonFlow.name);
-            if (extendedDungeonFlow.dungeonType == ContentType.Custom)
-                customDungeonFlowsList.Add(extendedDungeonFlow);
-            else
-                vanillaDungeonFlowsList.Add(extendedDungeonFlow);
-
-            allExtendedDungeonsList.Add(extendedDungeonFlow);
+            PatchedContent.ExtendedDungeonFlows.Add(extendedDungeonFlow);
         }
 
         internal static ExtendedDungeonFlowWithRarity[] GetValidExtendedDungeonFlows(ExtendedLevel extendedLevel, bool debugResults)
         {
             RoundManager roundManager = RoundManager.Instance;
             string debugString = "Trying To Find All Matching DungeonFlows For Level: " + extendedLevel.NumberlessPlanetName + "\n";
-            Debug.Log("31");
             List<ExtendedDungeonFlowWithRarity> potentialExtendedDungeonFlowsList = new List<ExtendedDungeonFlowWithRarity>();
             List<ExtendedDungeonFlowWithRarity> returnExtendedDungeonFlowsList = new List<ExtendedDungeonFlowWithRarity>();
             List<ExtendedDungeonFlowWithRarity> vanillaExtendedDungeonFlowsList = new List<ExtendedDungeonFlowWithRarity>();
-            Debug.Log("32");
             DungeonFlow hardcodedLevelFlow;
 
             if (extendedLevel.allowedDungeonContentTypes == ContentType.Vanilla || extendedLevel.allowedDungeonContentTypes == ContentType.Any)
@@ -79,7 +68,7 @@ namespace LethalLevelLoader
             }
 
             if (extendedLevel.allowedDungeonContentTypes == ContentType.Custom || extendedLevel.allowedDungeonContentTypes == ContentType.Any)
-            foreach (ExtendedDungeonFlow customDungeonFlow in customDungeonFlowsList)
+            foreach (ExtendedDungeonFlow customDungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
                 potentialExtendedDungeonFlowsList.Add(new ExtendedDungeonFlowWithRarity(customDungeonFlow, customDungeonFlow.dungeonDefaultRarity));
 
 
@@ -163,6 +152,18 @@ namespace LethalLevelLoader
                 }
             }
 
+            foreach (ExtendedDungeonFlowWithRarity customDungeonFlow in new List<ExtendedDungeonFlowWithRarity>(potentialExtendedDungeonFlowsList))
+            {
+                if (MatchViaCurrentWeather(extendedLevel, customDungeonFlow.extendedDungeonFlow, out int outRarity) == true)
+                {
+                    customDungeonFlow.rarity = outRarity;
+                    returnExtendedDungeonFlowsList.Add(customDungeonFlow);
+                    potentialExtendedDungeonFlowsList.Remove(customDungeonFlow);
+                    debugString += "\n" + "DungeonFlow " + debugCounter + ". : " + customDungeonFlow.extendedDungeonFlow.dungeonFlow.name + " - Matched " + extendedLevel.NumberlessPlanetName + " With " + customDungeonFlow.extendedDungeonFlow.name + " Based On Current Weather!" + "\n";
+                    debugCounter++;
+                }
+            }
+
             debugString += "\n" + "Matching DungeonFlows Collected, Count Is: " + returnExtendedDungeonFlowsList.Count + "\n";
 
             if (debugResults == true)
@@ -219,13 +220,27 @@ namespace LethalLevelLoader
             return (false);
         }
 
+        internal static bool MatchViaCurrentWeather(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow, out int rarity)
+        {
+            rarity = extendedDungeonFlow.dungeonDefaultRarity;
+
+            foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.dynamicCurrentWeatherList)
+                if (extendedLevel.selectableLevel.currentWeather.ToString().SanitizeString().Contains(stringWithRarity.Name.SanitizeString()) || stringWithRarity.Name.SanitizeString().Contains(extendedLevel.selectableLevel.currentWeather.ToString().SanitizeString()))
+                {
+                    rarity = stringWithRarity.Rarity;
+                    return (true);
+                }
+
+            return (false);
+        }
+
         internal static bool MatchViaLevelTags(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow, out int rarity)
         {
             rarity = extendedDungeonFlow.dungeonDefaultRarity;
 
             foreach (string levelTag in extendedLevel.levelTags)
                 foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.dynamicLevelTagsList)
-                    if (stringWithRarity.Name.Contains(levelTag))
+                    if (stringWithRarity.Name.ToLower().Contains(levelTag.ToLower()))
                     {
                         rarity = (int)stringWithRarity.Rarity;
                         return (true);
@@ -242,13 +257,13 @@ namespace LethalLevelLoader
             switch (levelType)
             {
                 case ContentType.Vanilla:
-                    extendedDungeonFlowsList = vanillaDungeonFlowsList;
+                    extendedDungeonFlowsList = PatchedContent.VanillaExtendedDungeonFlows;
                     break;
                 case ContentType.Custom:
-                    extendedDungeonFlowsList = customDungeonFlowsList;
+                    extendedDungeonFlowsList = PatchedContent.CustomExtendedDungeonFlows;
                     break;
                 case ContentType.Any:
-                    extendedDungeonFlowsList = allExtendedDungeonsList;
+                    extendedDungeonFlowsList = PatchedContent.ExtendedDungeonFlows;
                     break;
             }
 

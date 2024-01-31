@@ -22,7 +22,7 @@ namespace LethalLevelLoader
             foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
                 AssetBundleLoader.RestoreVanillaLevelAssetReferences(customLevel);
 
-            foreach (ExtendedDungeonFlow customDungeonFlow in DungeonFlow_Patch.customDungeonFlowsList)
+            foreach (ExtendedDungeonFlow customDungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
                 AssetBundleLoader.RestoreVanillaDungeonAssetReferences(customDungeonFlow);
         }
 

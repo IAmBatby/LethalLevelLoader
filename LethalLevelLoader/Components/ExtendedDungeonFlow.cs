@@ -28,6 +28,7 @@ namespace LethalLevelLoader
 
         [Space(5)] public List<StringWithRarity> dynamicLevelTagsList = new List<StringWithRarity>();
         [Space(5)] public List<Vector2WithRarity> dynamicRoutePricesList = new List<Vector2WithRarity>();
+        [Space(5)] public List<StringWithRarity> dynamicCurrentWeatherList = new List<StringWithRarity>();
         [Space(5)] public List<StringWithRarity> manualPlanetNameReferenceList = new List<StringWithRarity>();
         [Space(5)] public List<StringWithRarity> manualContentSourceNameReferenceList = new List<StringWithRarity>();
 
@@ -44,6 +45,17 @@ namespace LethalLevelLoader
 
         [Space(5)] public List<GlobalPropCountOverride> globalPropCountOverridesList = new List<GlobalPropCountOverride>();
 
+        [Space(10)]
+        [Header("Misc. Settings")]
+        [Space(5)] public bool generateAutomaticConfigurationOptions = true;
+
+        [Space(10)]
+        [Header("Experimental Settings (Currently Unused As Of LethalLevelLoader 1.1.0")]
+        [Space(5)] public GameObject mainEntrancePropPrefab;
+        [Space(5)] public GameObject fireExitPropPrefab;
+        [Space(5)] public Animator mainEntrancePropAnimator;
+        [Space(5)] public Animator fireExitPropAnimator;
+
         [HideInInspector]
         public UnityEventDungeonGenerator onBeforeExtendedDungeonGenerate;
 
@@ -54,10 +66,13 @@ namespace LethalLevelLoader
         {
             dungeonType = newDungeonType;
 
-            dungeonID = DungeonFlow_Patch.allExtendedDungeonsList.Count;
+            dungeonID = PatchedContent.ExtendedDungeonFlows.Count;
 
-            if (dungeonDisplayName == string.Empty)
+            if (dungeonDisplayName == null || dungeonDisplayName == string.Empty)
                 dungeonDisplayName = dungeonFlow.name;
+
+            if (newDungeonType == ContentType.Custom)
+                this.name = dungeonDisplayName + "ExtendedDungeonFlow";
         }
     }
 

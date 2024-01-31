@@ -63,6 +63,30 @@ namespace LethalLevelLoader
 
         public static List<ExtendedDungeonFlow> ExtendedDungeonFlows { get; internal set; } = new List<ExtendedDungeonFlow>();
 
+        public static List<ExtendedDungeonFlow> VanillaExtendedDungeonFlows
+        {
+            get
+            {
+                List<ExtendedDungeonFlow> list = new List<ExtendedDungeonFlow>();
+                foreach (ExtendedDungeonFlow dungeon in ExtendedDungeonFlows)
+                    if (dungeon.dungeonType == ContentType.Vanilla)
+                        list.Add(dungeon);
+                return (list);
+            }
+        }
+
+        public static List<ExtendedDungeonFlow> CustomExtendedDungeonFlows
+        {
+            get
+            {
+                List<ExtendedDungeonFlow> list = new List<ExtendedDungeonFlow>();
+                foreach (ExtendedDungeonFlow dungeon in ExtendedDungeonFlows)
+                    if (dungeon.dungeonType == ContentType.Custom)
+                        list.Add(dungeon);
+                return (list);
+            }
+        }
+
         public static List<string> AllExtendedLevelTags
         {
             get
