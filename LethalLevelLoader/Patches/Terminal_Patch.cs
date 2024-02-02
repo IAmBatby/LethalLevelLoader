@@ -97,14 +97,16 @@ namespace LethalLevelLoader
                     foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                         if (node.terminalEvent.ToLower().Contains(extendedLevel.NumberlessPlanetName.ToLower()))
                         {
-                            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = new List<ExtendedDungeonFlowWithRarity>(DungeonFlow_Patch.GetValidExtendedDungeonFlows(extendedLevel, false).OrderBy(o => -(o.rarity)).ToList());
-                            string overrideString = "Simulating arrival to " + extendedLevel.selectableLevel.PlanetName + "\n";
-                            overrideString += "Analyzing potential remnants found on surface. " + "\n";
-                            overrideString += "Listing generated probabilities below." + "\n" + "____________________________" + "\n" + "\n";
-                            overrideString += "POSSIBLE STRUCTURES:" + "\n";
+                            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = new List<ExtendedDungeonFlowWithRarity>(DungeonFlow_Patch.GetValidExtendedDungeonFlows(extendedLevel, true).OrderBy(o => -(o.rarity)).ToList());
+                            string overrideString = "Simulating arrival to " + extendedLevel.selectableLevel.PlanetName + "\nAnalyzing potential remnants found on surface. \nListing generated probabilities below.\n____________________________ \n\nPOSSIBLE STRUCTURES: \n";
                             int totalRarityPool = 0;
                             foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowResult in availableExtendedFlowsList)
                                 totalRarityPool += extendedDungeonFlowResult.rarity;
+                            if (extendedLevel.NumberlessPlanetName.Sanitized().Contains("march")) //Obligitory Fuck March.
+                            {
+                                totalRarityPool += 300;
+                                overrideString += "* " + "Facility" + "  //  Chance: " + (300f / (float)totalRarityPool * 100).ToString("F2") + "%" + "\n";
+                            }
                             foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowResult in availableExtendedFlowsList)
                                 overrideString += "* " + extendedDungeonFlowResult.extendedDungeonFlow.dungeonDisplayName + "  //  Chance: " + ((float)extendedDungeonFlowResult.rarity / (float)totalRarityPool * 100).ToString("F2") + "%" + "\n";
                             node.displayText = overrideString + "\n" + "\n";
@@ -126,25 +128,20 @@ namespace LethalLevelLoader
 
         internal static void FilterMoonsCataloguePage(MoonsCataloguePage moonsCataloguePage)
         {
-            //List<ExtendedLevelGroup> moonsCatalogueGroups = new List<ExtendedLevelGroup>(moonsCataloguePage.ExtendedLevelGroups);
             List<ExtendedLevel> removeLevelList = new List<ExtendedLevel>();
 
             foreach (ExtendedLevelGroup extendedLevelGroup in moonsCataloguePage.ExtendedLevelGroups)
                 foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(extendedLevelGroup.extendedLevelsList))
                 {
-                    bool removeExtendedLevel = false;
+                    bool removeExtendedLevel = extendedLevel.isHidden;
 
-                    if (extendedLevel.isHidden == true)
-                        removeExtendedLevel = true;
-                    else
-                    {
-                        if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Price))
-                            removeExtendedLevel = (extendedLevel.RoutePrice > Terminal.groupCredits);
-                        else if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Weather))
-                            removeExtendedLevel = (GetWeatherConditions(extendedLevel.selectableLevel) != string.Empty);
-                        else if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Tag))
-                            removeExtendedLevel = (!extendedLevel.levelTags.Contains(currentTagFilter));
-                    }
+                    if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Price))
+                        removeExtendedLevel = (extendedLevel.RoutePrice > Terminal.groupCredits);
+                    else if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Weather))
+                        removeExtendedLevel = (GetWeatherConditions(extendedLevel.selectableLevel) != string.Empty);
+                    else if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Tag))
+                        removeExtendedLevel = (!extendedLevel.levelTags.Contains(currentTagFilter));
+
                     if (removeExtendedLevel == true)
                         removeLevelList.Add(extendedLevel);
                 }
@@ -390,7 +387,10 @@ namespace LethalLevelLoader
             infoKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeInfo);
 
             if (extendedLevel.levelType == ContentType.Custom)
+            {
                 extendedLevel.routeNode = terminalNodeRoute;
+                extendedLevel.routeConfirmNode = terminalNodeRouteConfirm;
+            }
         }
 
         internal static void RegisterStoryLog(TerminalKeyword terminalKeyword, TerminalNode terminalNode)
@@ -437,11 +437,9 @@ namespace LethalLevelLoader
             if (createNewVerbKeyword == true)
                 verbKeyword = CreateNewTerminalKeyword();
             else
-            {
                 foreach (TerminalKeyword terminalKeyword in Terminal.terminalNodes.allKeywords)
                     if (terminalKeyword.isVerb == true && terminalKeyword.word == newVerbKeywordWord.ToLower())
-                        verbKeyword = terminalKeyword;
-            }    
+                        verbKeyword = terminalKeyword;  
             verbKeyword.word = newVerbKeywordWord.ToLower();
             verbKeyword.name = newVerbKeywordWord.ToLower() + "Keyword";
             verbKeyword.isVerb = true;

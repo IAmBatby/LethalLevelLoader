@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.AI.Navigation;
 using UnityEngine.AI;
+using LethalLevelLoader.Tools;
 
 namespace LethalLevelLoader
 {
@@ -44,13 +45,12 @@ namespace LethalLevelLoader
             await Task.Yield();
         }
 
-        internal static void UpdateStoryLogs(ExtendedLevel extendedLevel, Scene scene)
+        internal static void UpdateStoryLogs(ExtendedLevel extendedLevel, GameObject sceneRootObject)
         {
-            foreach (GameObject rootObject in scene.GetRootGameObjects())
-                foreach (StoryLog sceneStoryLog in rootObject.GetComponentsInChildren<StoryLog>())
-                    foreach (StoryLogData storyLogData in extendedLevel.storyLogs)
-                        if (sceneStoryLog.storyLogID == storyLogData.storyLogID)
-                            sceneStoryLog.storyLogID = storyLogData.newStoryLogID;
+            foreach (StoryLog sceneStoryLog in sceneRootObject.GetComponentsInChildren<StoryLog>())
+                foreach (StoryLogData storyLogData in extendedLevel.storyLogs)
+                    if (sceneStoryLog.storyLogID == storyLogData.storyLogID)
+                        sceneStoryLog.storyLogID = storyLogData.newStoryLogID;
         }
     }
 }

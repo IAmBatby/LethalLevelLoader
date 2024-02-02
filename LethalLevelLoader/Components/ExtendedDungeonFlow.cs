@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,67 +13,70 @@ namespace LethalLevelLoader
     public class ExtendedDungeonFlow : ScriptableObject
     {
         [Header("Extended DungeonFlow Settings")]
-        [Space(5)]
-        public string contentSourceName = "Lethal Company";
-        public string dungeonDisplayName;
-        [Space(5)]
-        public DungeonFlow dungeonFlow;
-        public AudioClip dungeonFirstTimeAudio;
+        public string contentSourceName = string.Empty;
+        [Space(5)] public string dungeonDisplayName = string.Empty;
+        [Space(5)] public DungeonFlow dungeonFlow;
+        [Space(5)] public AudioClip dungeonFirstTimeAudio;
 
-        [HideInInspector] public ContentType dungeonType;
-        [HideInInspector] public int dungeonID;
-        [HideInInspector] public int dungeonDefaultRarity;
-
-        [Space(10)]
-        [Header("Dynamic DungeonFlow Injections Settings")]
-
-        [Space(5)] public List<StringWithRarity> dynamicLevelTagsList = new List<StringWithRarity>();
+        [Space(10)] [Header("Dynamic DungeonFlow Injections Settings")]
+        public List<StringWithRarity> dynamicLevelTagsList = new List<StringWithRarity>();
         [Space(5)] public List<Vector2WithRarity> dynamicRoutePricesList = new List<Vector2WithRarity>();
         [Space(5)] public List<StringWithRarity> dynamicCurrentWeatherList = new List<StringWithRarity>();
         [Space(5)] public List<StringWithRarity> manualPlanetNameReferenceList = new List<StringWithRarity>();
         [Space(5)] public List<StringWithRarity> manualContentSourceNameReferenceList = new List<StringWithRarity>();
 
-        [Space(10)]
-        [Header("Dynamic Dungeon Size Multiplier Lerp Settings")]
-        [Space(5)]
+        [Space(10)] [Header("Dynamic Dungeon Size Multiplier Lerp Settings")]
+        public bool enableDynamicDungeonSizeRestriction = false;
         public float dungeonSizeMin = 1;
         public float dungeonSizeMax = 1;
         [Range(0, 1)] public float dungeonSizeLerpPercentage = 1;
 
 
-        [Space(10)]
-        [Header("Dynamic DungeonFlow Modification Settings")]
+        [Space(10)] [Header("Dynamic DungeonFlow Modification Settings")]
+        public List<GlobalPropCountOverride> globalPropCountOverridesList = new List<GlobalPropCountOverride>();
 
-        [Space(5)] public List<GlobalPropCountOverride> globalPropCountOverridesList = new List<GlobalPropCountOverride>();
+        [Space(10)] [Header("Misc. Settings")]
+        public bool generateAutomaticConfigurationOptions = true;
 
-        [Space(10)]
-        [Header("Misc. Settings")]
-        [Space(5)] public bool generateAutomaticConfigurationOptions = true;
-
-        [Space(10)]
-        [Header("Experimental Settings (Currently Unused As Of LethalLevelLoader 1.1.0")]
-        [Space(5)] public GameObject mainEntrancePropPrefab;
+        [Space(10)] [Header("Experimental Settings (Currently Unused As Of LethalLevelLoader 1.1.0")]
+        public GameObject mainEntrancePropPrefab;
         [Space(5)] public GameObject fireExitPropPrefab;
         [Space(5)] public Animator mainEntrancePropAnimator;
         [Space(5)] public Animator fireExitPropAnimator;
 
-        [HideInInspector]
-        public UnityEventDungeonGenerator onBeforeExtendedDungeonGenerate;
+        // HideInInspector
+        [HideInInspector] public ContentType dungeonType;
+        [HideInInspector] public int dungeonID;
+        [HideInInspector] public int dungeonDefaultRarity; //To Be Deprecated
 
-        [HideInInspector]
-        public UnityEventSpawnMapObjects onSpawnMapHazardsSpawn;
+        internal static ExtendedDungeonFlow Create(DungeonFlow newDungeonFlow, AudioClip newFirstTimeDungeonAudio, string contentSourceName)
+        {
+            ExtendedDungeonFlow newExtendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
+            newExtendedDungeonFlow.dungeonFlow = newDungeonFlow;
+            newExtendedDungeonFlow.dungeonFirstTimeAudio = newFirstTimeDungeonAudio;
+            newExtendedDungeonFlow.contentSourceName = contentSourceName;
+            return (newExtendedDungeonFlow);
+        }
 
         internal void Initialize(ContentType newDungeonType)
         {
             dungeonType = newDungeonType;
 
-            dungeonID = PatchedContent.ExtendedDungeonFlows.Count;
+            if (dungeonType == ContentType.Custom)
+                dungeonID = PatchedContent.ExtendedDungeonFlows.Count;
+            if (dungeonType == ContentType.Vanilla)
+                dungeonID = RoundManager.Instance.dungeonFlowTypes.ToList().IndexOf(dungeonFlow);
 
             if (dungeonDisplayName == null || dungeonDisplayName == string.Empty)
                 dungeonDisplayName = dungeonFlow.name;
 
-            if (newDungeonType == ContentType.Custom)
-                this.name = dungeonDisplayName + "ExtendedDungeonFlow";
+            name = dungeonFlow.name.Replace("Flow", "") + "ExtendedDungeonFlow";
+
+            if (dungeonFirstTimeAudio == null)
+            {
+                DebugHelper.Log("Warning, Custom Dungeon: " + dungeonDisplayName + " Is Missing A DungeonFirstTimeAudio Reference! Assigning Facility Audio To Prevent Errors.");
+                dungeonFirstTimeAudio = RoundManager.Instance.firstTimeDungeonAudios[0];
+            }
         }
     }
 

@@ -139,6 +139,7 @@ namespace LethalLevelLoader
                     if (compatibleRouteNoun.noun.name.Contains(ExtendedLevel.GetNumberlessPlanetName(selectableLevel)))
                     {
                         extendedLevel.routeNode = compatibleRouteNoun.result;
+                        extendedLevel.routeConfirmNode = compatibleRouteNoun.result.terminalOptions[1].result;
                         extendedLevel.RoutePrice = compatibleRouteNoun.result.itemCost;
                         break;
                     }
@@ -162,72 +163,26 @@ namespace LethalLevelLoader
 
         internal static void CreateVanillaExtendedDungeonFlow(DungeonFlow dungeonFlow)
         {
-            ExtendedDungeonFlow extendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
-            extendedDungeonFlow.dungeonFlow = dungeonFlow;
-            extendedDungeonFlow.contentSourceName = "Lethal Company";
-            extendedDungeonFlow.dungeonFirstTimeAudio = null;
+            AudioClip firstTimeDungeonAudio = null;
+            string dungeonDisplayName = string.Empty;
 
             if (dungeonFlow.name.Contains("Level1"))
-                extendedDungeonFlow.dungeonDisplayName = "Facility";
+            {
+                dungeonDisplayName = "Facility";
+                firstTimeDungeonAudio = RoundManager.Instance.firstTimeDungeonAudios[0];
+            }
             else if (dungeonFlow.name.Contains("Level2"))
-                extendedDungeonFlow.dungeonDisplayName = "Haunted Mansion";
+            {
+                dungeonDisplayName = "Haunted Mansion";
+                firstTimeDungeonAudio = RoundManager.Instance.firstTimeDungeonAudios[1];
+            }
+
+            ExtendedDungeonFlow extendedDungeonFlow = ExtendedDungeonFlow.Create(dungeonFlow, firstTimeDungeonAudio, "Lethal Company");
+            extendedDungeonFlow.dungeonDisplayName = dungeonDisplayName;
 
             extendedDungeonFlow.Initialize(ContentType.Vanilla);
             DungeonFlow_Patch.AddExtendedDungeonFlow(extendedDungeonFlow);
             //Gotta assign the right audio later.
-        }
-
-        internal static void RestoreVanillaDungeonAssetReferences(ExtendedDungeonFlow extendedDungeonFlow)
-        {
-            foreach (Tile tile in extendedDungeonFlow.dungeonFlow.GetTiles())
-                foreach (RandomScrapSpawn randomScrapSpawn in tile.gameObject.GetComponentsInChildren<RandomScrapSpawn>())
-                    foreach (ItemGroup vanillaItemGroup in OriginalContent.ItemGroups)
-                        if (randomScrapSpawn.spawnableItems != null && randomScrapSpawn.spawnableItems.name != null && randomScrapSpawn.spawnableItems.name == vanillaItemGroup.name)
-                            randomScrapSpawn.spawnableItems = RestoreAsset(randomScrapSpawn.spawnableItems, vanillaItemGroup, debugAction: true);
-
-            foreach (RandomMapObject randomMapObject in extendedDungeonFlow.dungeonFlow.GetRandomMapObjects())
-            {
-                foreach (GameObject spawnablePrefab in new List<GameObject>(randomMapObject.spawnablePrefabs))
-                    foreach (GameObject vanillaPrefab in OriginalContent.SpawnableMapObjects)
-                        if (spawnablePrefab != null && spawnablePrefab.name != null && spawnablePrefab.name == vanillaPrefab.name)
-                            randomMapObject.spawnablePrefabs[randomMapObject.spawnablePrefabs.IndexOf(spawnablePrefab)] = RestoreAsset(randomMapObject.spawnablePrefabs[randomMapObject.spawnablePrefabs.IndexOf(spawnablePrefab)], vanillaPrefab, debugAction: true);
-            }
-        }
-
-        internal static void RestoreVanillaLevelAssetReferences(ExtendedLevel extendedLevel)
-        {
-            foreach (SpawnableItemWithRarity spawnableItem in extendedLevel.selectableLevel.spawnableScrap)
-                foreach (Item vanillaItem in OriginalContent.Items)
-                    if (spawnableItem.spawnableItem.itemName == vanillaItem.itemName)
-                        spawnableItem.spawnableItem = RestoreAsset(spawnableItem.spawnableItem, vanillaItem, debugAction: true);
-
-            foreach (EnemyType vanillaEnemyType in OriginalContent.Enemies)
-                foreach (SpawnableEnemyWithRarity enemyRarityPair in extendedLevel.selectableLevel.Enemies.Concat(extendedLevel.selectableLevel.DaytimeEnemies).Concat(extendedLevel.selectableLevel.OutsideEnemies))
-                        if (enemyRarityPair.enemyType != null && enemyRarityPair.enemyType.enemyName == vanillaEnemyType.enemyName)
-                            enemyRarityPair.enemyType = RestoreAsset(enemyRarityPair.enemyType, vanillaEnemyType, debugAction: true);
-
-            foreach (SpawnableMapObject spawnableMapObject in extendedLevel.selectableLevel.spawnableMapObjects)
-                foreach (GameObject vanillaSpawnableMapObject in OriginalContent.SpawnableMapObjects)
-                    if (spawnableMapObject.prefabToSpawn != null && spawnableMapObject.prefabToSpawn.name == vanillaSpawnableMapObject.name)
-                        spawnableMapObject.prefabToSpawn = RestoreAsset(spawnableMapObject.prefabToSpawn, vanillaSpawnableMapObject, debugAction: true);
-
-            foreach (SpawnableOutsideObjectWithRarity spawnableOutsideObject in extendedLevel.selectableLevel.spawnableOutsideObjects)
-                foreach (SpawnableOutsideObject vanillaSpawnableOutsideObject in OriginalContent.SpawnableOutsideObjects)
-                    if (spawnableOutsideObject.spawnableObject != null && spawnableOutsideObject.spawnableObject.name == vanillaSpawnableOutsideObject.name)
-                        spawnableOutsideObject.spawnableObject = RestoreAsset(spawnableOutsideObject.spawnableObject, vanillaSpawnableOutsideObject, debugAction: true);
-
-            foreach (LevelAmbienceLibrary vanillaAmbienceLibrary in OriginalContent.LevelAmbienceLibraries)
-                if (extendedLevel.selectableLevel.levelAmbienceClips != null && extendedLevel.selectableLevel.levelAmbienceClips.name == vanillaAmbienceLibrary.name)
-                    extendedLevel.selectableLevel.levelAmbienceClips = RestoreAsset(extendedLevel.selectableLevel.levelAmbienceClips, vanillaAmbienceLibrary, debugAction: true);
-        }
-
-        internal static T RestoreAsset<T>(UnityEngine.Object currentAsset, T newAsset, bool debugAction = false)
-        {
-            if (debugAction == true)
-                DebugHelper.Log("Restoring " + currentAsset.GetType().ToString() + ": Old Asset Name: " + currentAsset.name + " , New Asset Name: " + newAsset);
-
-            Object.DestroyImmediate(currentAsset);
-            return (newAsset);
         }
 
         internal static void RegisterDungeonContent(ExtendedDungeonFlow extendedDungeonFlow, NetworkManager networkManager)
@@ -313,11 +268,6 @@ namespace LethalLevelLoader
                 vanillaLevel.levelTags = new List<string>() { "Company", "Quota" };
             else if (vanillaLevel.NumberlessPlanetName == "Rend" || vanillaLevel.NumberlessPlanetName == "Dine" || vanillaLevel.NumberlessPlanetName == "Titan")
                 vanillaLevel.levelTags = new List<string>() { "Snow", "Ice", "Tundra" };
-
-            if (vanillaLevel.NumberlessPlanetName == "Rend")
-                vanillaLevel.isHidden = true;
-            if (vanillaLevel.NumberlessPlanetName == "Vow")
-                vanillaLevel.isLocked = true;
 
             vanillaLevel.levelTags.Add("Vanilla");
         }

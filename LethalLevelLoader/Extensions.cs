@@ -102,5 +102,20 @@ namespace LethalLevelLoader
             newCompataibleNoun.result = newResult;
             terminalNode.terminalOptions = terminalNode.terminalOptions.AddItem(newCompataibleNoun).ToArray();
         }
+
+        public static string Sanitized(this string currentString)
+        {
+            return new string(currentString.SkipToLetters().RemoveWhitespace().ToLowerInvariant());
+        }
+
+        public static string RemoveWhitespace(this string input)
+        {
+            return new string(input.ToCharArray().Where(c => !Char.IsWhiteSpace(c)).ToArray());
+        }
+
+        public static string SkipToLetters(this string input)
+        {
+            return new string(input.SkipWhile(c => !char.IsLetter(c)).ToArray());
+        }
     }
 }

@@ -71,6 +71,7 @@ namespace LethalLevelLoader.Tools
         public ConfigEntry<string> manualLevelNames;
         public ConfigEntry<string> manualModNames;
 
+        public ConfigEntry<bool> enableDynamicDungeonSizeRestriction;
         public ConfigEntry<float> minimumDungeonSizeMultiplier;
         public ConfigEntry<float> maximumDungeonSizeMultiplier;
         public ConfigEntry<float> restrictDungeonSizeScaler;
@@ -89,6 +90,7 @@ namespace LethalLevelLoader.Tools
                 enableContentConfiguration = BindValue("Enable Content Configuration", "Enable This To Utilise Any Of The Configuration Options Below.", false);
 
                 subCatagory = "General Settings - ";
+                enableContentConfiguration = BindValue("Enable Dynamic Dungeon Size Restriction", "Enable this to allow the following three settings to function.", extendedDungeonFlow.enableDynamicDungeonSizeRestriction);
                 minimumDungeonSizeMultiplier = BindValue("Minimum Dungeon Size Multiplier", "If The Level's Dungeon Size Multiplier Is Below This Value, The Size Multiplier Will Be Restricted Based On The RestrictDungeonSizeScaler Setting", extendedDungeonFlow.dungeonSizeMin);
                 maximumDungeonSizeMultiplier = BindValue("Maximum Dungeon Size Multiplier", "If The Level's Dungeon Size Multiplier Is Above This Value, The Size Multiplier Will Be Restricted Based On The RestrictDungeonSizeScaler Setting", extendedDungeonFlow.dungeonSizeMax);
 
@@ -110,6 +112,9 @@ namespace LethalLevelLoader.Tools
                 if (enableContentConfiguration.Value == true)
                 {
                     // ----- Setting -----
+
+                    extendedDungeonFlow.enableDynamicDungeonSizeRestriction = enableContentConfiguration.Value;
+
                     extendedDungeonFlow.dungeonSizeMin = minimumDungeonSizeMultiplier.Value;
                     extendedDungeonFlow.dungeonSizeMax = maximumDungeonSizeMultiplier.Value;
                     extendedDungeonFlow.dungeonSizeLerpPercentage = restrictDungeonSizeScaler.Value;

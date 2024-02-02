@@ -17,15 +17,6 @@ namespace LethalLevelLoader
         public static int daysTotal;
         public static int quotasTotal;
 
-        internal static void RestoreCustomContent()
-        {
-            foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
-                AssetBundleLoader.RestoreVanillaLevelAssetReferences(customLevel);
-
-            foreach (ExtendedDungeonFlow customDungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
-                AssetBundleLoader.RestoreVanillaDungeonAssetReferences(customDungeonFlow);
-        }
-
         internal static void PatchVanillaLevelLists()
         {
             StartOfRound.Instance.levels = PatchedContent.SeletectableLevels.ToArray();

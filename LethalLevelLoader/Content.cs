@@ -99,6 +99,12 @@ namespace LethalLevelLoader
                 return (allUniqueLevelTags);
             }
         }
+
+        public static List<AudioMixer> AudioMixers { get; internal set; } = new List<AudioMixer>();
+
+        public static List<AudioMixerGroup> AudioMixerGroups { get; internal set; } = new List<AudioMixerGroup>();
+
+        public static List<AudioMixerSnapshot> AudioMixerSnapshots { get; internal set; } = new List<AudioMixerSnapshot>();
     }
 
     public static class OriginalContent
@@ -131,9 +137,11 @@ namespace LethalLevelLoader
 
         //Audio
 
+        public static List<AudioMixer> AudioMixers { get; internal set; } = new List<AudioMixer>();
+
         public static List<AudioMixerGroup> AudioMixerGroups { get; internal set; } = new List<AudioMixerGroup>();
 
-        public static List<AudioMixer> AudioMixers { get; internal set; } = new List<AudioMixer>();
+        public static List<AudioMixerSnapshot> AudioMixerSnapshots { get; internal set; } = new List<AudioMixerSnapshot>();
 
         public static List<LevelAmbienceLibrary> LevelAmbienceLibraries { get; internal set; } = new List<LevelAmbienceLibrary>();
 

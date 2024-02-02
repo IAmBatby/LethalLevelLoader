@@ -26,6 +26,7 @@ namespace LethalLevelLoader
                 if (routeNode != null)
                 {
                     routePrice = routeNode.itemCost;
+                    routeConfirmNode.itemCost = routePrice;
                     return (routeNode.itemCost);
                 }
                 else
@@ -36,8 +37,8 @@ namespace LethalLevelLoader
             }
             set
             {
-                if (routeNode != null)
-                    routeNode.itemCost = value;
+                routeNode.itemCost = value;
+                routeConfirmNode.itemCost = value;
                 routePrice = value;
             }
         }
@@ -51,7 +52,8 @@ namespace LethalLevelLoader
         [HideInInspector] public string NumberlessPlanetName => GetNumberlessPlanetName(selectableLevel);
 
         [SerializeField][TextArea] internal string infoNodeDescripton = string.Empty;
-        [HideInInspector] internal TerminalNode routeNode; 
+        [HideInInspector] internal TerminalNode routeNode;
+        [HideInInspector] internal TerminalNode routeConfirmNode;
 
         [Space(10)]
         [Header("Misc. Settings")]

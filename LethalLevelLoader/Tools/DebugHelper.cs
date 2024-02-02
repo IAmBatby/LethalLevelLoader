@@ -3,6 +3,7 @@ using DunGen.Graph;
 using HarmonyLib;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -23,6 +24,12 @@ namespace LethalLevelLoader
             //LethalLevelLoaderPlugin.Instance.Log(log);
             string logString = log;
             LethalLevelLoaderPlugin.logger.LogInfo(logString);
+        }
+
+        public static void LogWarning(string log)
+        {
+            string logString = log;
+            LethalLevelLoaderPlugin.logger.LogWarning(logString);
         }
 
         public static void DebugTerminalKeyword(TerminalKeyword terminalKeyword)
@@ -140,9 +147,11 @@ namespace LethalLevelLoader
 
             Log("Obtained (" + OriginalContent.SpawnableMapObjects.Count + " / 2) Vanilla Inside Object References");
 
-            Log("Obtained (" + OriginalContent.AudioMixerGroups.Count + " / 15) Vanilla Audio Mixing Group References");
+            Log("Obtained (" + OriginalContent.AudioMixers.Count + " / 2) Vanilla Audio Mixer References");
 
-            Log("Obtained (" + OriginalContent.AudioMixers.Count + " / 2) Vanilla Audio Mixer Controller References");
+            Log("Obtained (" + OriginalContent.AudioMixerGroups.Count + " / 9) Vanilla Audio Mixing Group References");
+
+            Log("Obtained (" + OriginalContent.AudioMixerSnapshots.Count + " / 6) Vanilla Audio Mixing Snapshot References");
 
             Log("Obtained (" + OriginalContent.LevelAmbienceLibraries.Count + " / 3) Vanilla Ambience Library References");
 
@@ -490,6 +499,33 @@ namespace LethalLevelLoader
             }
 
             DebugHelper.Log(debugString);
+        }
+
+        internal static void DebugAudioAssets()
+        {
+            DebugHelper.Log("Debugging Vanilla Audio Assets");
+
+            foreach (AudioMixer audioMixer in OriginalContent.AudioMixers)
+                DebugHelper.Log("Vanilla AudioMixer: " + audioMixer.name);
+
+            foreach (AudioMixerGroup audioMixerGroup in OriginalContent.AudioMixerGroups)
+                DebugHelper.Log("Vanilla AudioMixerGroup: " + audioMixerGroup.name + " | " + audioMixerGroup.audioMixer.name);
+
+            foreach (AudioMixerSnapshot audioMixerSnapshot in OriginalContent.AudioMixerSnapshots)
+                DebugHelper.Log("Vanilla AudioMixerSnapshot: " + audioMixerSnapshot.name + " | " + audioMixerSnapshot.audioMixer.name);
+
+
+            DebugHelper.Log("Debugging Custom Audio Assets");
+
+            foreach (AudioMixer audioMixer in PatchedContent.AudioMixers)
+                DebugHelper.Log("Custom AudioMixer: " + audioMixer.name);
+
+            foreach (AudioMixerGroup audioMixerGroup in PatchedContent.AudioMixerGroups)
+                DebugHelper.Log("Custom AudioMixerGroup: " + audioMixerGroup.name + " | " + audioMixerGroup.audioMixer.name);
+
+            foreach (AudioMixerSnapshot audioMixerSnapshot in PatchedContent.AudioMixerSnapshots)
+                DebugHelper.Log("Custom AudioMixerSnapshot: " + audioMixerSnapshot.name + " | " + audioMixerSnapshot.audioMixer.name);
+
         }
     }
 

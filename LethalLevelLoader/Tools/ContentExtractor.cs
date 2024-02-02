@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.SceneManagement;
 
 namespace LethalLevelLoader
 {
@@ -68,12 +69,9 @@ namespace LethalLevelLoader
                         if (compatibleNoun.result != null)
                             TryAddReference(OriginalContent.TerminalNodes, compatibleNoun.result);
 
-                foreach (AudioMixerGroup audioMixerGroup in Resources.FindObjectsOfTypeAll(typeof(AudioMixerGroup)))
-                {
-                    TryAddReference(OriginalContent.AudioMixers, audioMixerGroup.audioMixer);
-                    TryAddReference(OriginalContent.AudioMixerGroups, audioMixerGroup);
-                }
+                ExtractMemoryLoadedAudioMixerGroups();
 
+                //BAD BAD BAD
                 foreach (ReverbPreset reverbPreset in Resources.FindObjectsOfTypeAll<ReverbPreset>())
                     TryAddReference(OriginalContent.ReverbPresets, reverbPreset);
 
@@ -81,6 +79,32 @@ namespace LethalLevelLoader
                 OriginalContent.MoonsCatalogue = new List<SelectableLevel>(Terminal_Patch.Terminal.moonsCatalogueList.ToList());
             }
             DebugHelper.DebugScrapedVanillaContent();
+        }
+
+        internal static void ExtractMemoryLoadedAudioMixerGroups()
+        {
+
+            foreach (AudioMixer audioMixer in Resources.FindObjectsOfTypeAll(typeof(AudioMixer)))
+            {
+                if (!OriginalContent.AudioMixers.Contains(audioMixer))
+                    TryAddReference(PatchedContent.AudioMixers, audioMixer);
+            }
+
+            foreach (AudioMixerGroup audioMixerGroup in Resources.FindObjectsOfTypeAll(typeof(AudioMixerGroup)))
+            {
+                if (OriginalContent.AudioMixers.Contains(audioMixerGroup.audioMixer))
+                    TryAddReference(OriginalContent.AudioMixerGroups, audioMixerGroup);
+                else
+                    TryAddReference(PatchedContent.AudioMixerGroups, audioMixerGroup);
+            }
+
+            foreach (AudioMixerSnapshot audioMixerSnapshot in Resources.FindObjectsOfTypeAll(typeof(AudioMixerSnapshot)))
+            {
+                if (OriginalContent.AudioMixers.Contains(audioMixerSnapshot.audioMixer))
+                    TryAddReference(OriginalContent.AudioMixerSnapshots, audioMixerSnapshot);
+                else
+                    TryAddReference(PatchedContent.AudioMixerSnapshots, audioMixerSnapshot);
+            }
         }
 
         internal static void ExtractSelectableLevelReferences(SelectableLevel selectableLevel)
