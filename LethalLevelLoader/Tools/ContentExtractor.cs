@@ -15,7 +15,7 @@ namespace LethalLevelLoader
     {
         internal static void TryScrapeVanillaContent(RoundManager roundManager)
         {
-            if (LethalLevelLoaderPlugin.hasVanillaBeenPatched == false)
+            if (Plugin.hasVanillaBeenPatched == false)
             {
                 StartOfRound startOfRound = StartOfRound.Instance;
                 if (startOfRound != null)
@@ -33,28 +33,28 @@ namespace LethalLevelLoader
                         ExtractDungeonFlowReferences(dungeonFlow);
                 }
 
-                if (Terminal_Patch.Terminal.currentNode != null)
-                    TryAddReference(OriginalContent.TerminalNodes, Terminal_Patch.Terminal.currentNode);
+                if (TerminalManager.Terminal.currentNode != null)
+                    TryAddReference(OriginalContent.TerminalNodes, TerminalManager.Terminal.currentNode);
 
-                foreach (TerminalNode terminalNode in Terminal_Patch.Terminal.terminalNodes.terminalNodes)
+                foreach (TerminalNode terminalNode in TerminalManager.Terminal.terminalNodes.terminalNodes)
                     TryAddReference(OriginalContent.TerminalNodes, terminalNode);
 
 
-                foreach (TerminalNode terminalNode in Terminal_Patch.Terminal.terminalNodes.specialNodes)
+                foreach (TerminalNode terminalNode in TerminalManager.Terminal.terminalNodes.specialNodes)
                     TryAddReference(OriginalContent.TerminalNodes, terminalNode);
 
-                foreach (TerminalNode terminalNode in Terminal_Patch.Terminal.enemyFiles)
-                    TryAddReference(OriginalContent.TerminalNodes, terminalNode);
-
-
-                foreach (TerminalNode terminalNode in Terminal_Patch.Terminal.logEntryFiles)
+                foreach (TerminalNode terminalNode in TerminalManager.Terminal.enemyFiles)
                     TryAddReference(OriginalContent.TerminalNodes, terminalNode);
 
 
-                foreach (TerminalNode terminalNode in Terminal_Patch.Terminal.ShipDecorSelection)
+                foreach (TerminalNode terminalNode in TerminalManager.Terminal.logEntryFiles)
                     TryAddReference(OriginalContent.TerminalNodes, terminalNode);
 
-                foreach (TerminalKeyword terminalKeyword in Terminal_Patch.Terminal.terminalNodes.allKeywords)
+
+                foreach (TerminalNode terminalNode in TerminalManager.Terminal.ShipDecorSelection)
+                    TryAddReference(OriginalContent.TerminalNodes, terminalNode);
+
+                foreach (TerminalKeyword terminalKeyword in TerminalManager.Terminal.terminalNodes.allKeywords)
                 {
                     TryAddReference(OriginalContent.TerminalKeywords, terminalKeyword);
                     foreach (CompatibleNoun compatibleNoun in terminalKeyword.compatibleNouns)
@@ -76,7 +76,7 @@ namespace LethalLevelLoader
                     TryAddReference(OriginalContent.ReverbPresets, reverbPreset);
 
                 OriginalContent.SelectableLevels = new List<SelectableLevel>(StartOfRound.Instance.levels.ToList());
-                OriginalContent.MoonsCatalogue = new List<SelectableLevel>(Terminal_Patch.Terminal.moonsCatalogueList.ToList());
+                OriginalContent.MoonsCatalogue = new List<SelectableLevel>(TerminalManager.Terminal.moonsCatalogueList.ToList());
             }
             DebugHelper.DebugScrapedVanillaContent();
         }

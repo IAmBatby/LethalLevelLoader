@@ -11,8 +11,20 @@ using UnityEngine.SceneManagement;
 
 namespace LethalLevelLoader
 {
-    public class SelectableLevel_Patch
+    public class LevelManager
     {
+        public static ExtendedLevel CurrentExtendedLevel
+        {
+            get
+            {
+                ExtendedLevel returnLevel = null;
+                if (StartOfRound.Instance != null)
+                    if (TryGetExtendedLevel(StartOfRound.Instance.currentLevel, out ExtendedLevel level))
+                        returnLevel = level;
+                return returnLevel;
+            }
+        }
+
         public static List<DayHistory> dayHistoryList = new List<DayHistory>();
         public static int daysTotal;
         public static int quotasTotal;
@@ -20,26 +32,22 @@ namespace LethalLevelLoader
         internal static void PatchVanillaLevelLists()
         {
             StartOfRound.Instance.levels = PatchedContent.SeletectableLevels.ToArray();
-            Terminal_Patch.Terminal.moonsCatalogueList = PatchedContent.MoonsCatalogue.ToArray();
+            TerminalManager.Terminal.moonsCatalogueList = PatchedContent.MoonsCatalogue.ToArray();
         }
 
         public static bool TryGetExtendedLevel(SelectableLevel selectableLevel, out ExtendedLevel returnExtendedLevel, ContentType levelType = ContentType.Any)
         {
             returnExtendedLevel = null;
-            List<ExtendedLevel> extendedLevelsList = new List<ExtendedLevel>();
+            List<ExtendedLevel> extendedLevelsList = null;
 
-            switch (levelType)
-            {
-                case ContentType.Vanilla:
-                    extendedLevelsList = PatchedContent.VanillaExtendedLevels;
-                    break;
-                case ContentType.Custom:
-                    extendedLevelsList = PatchedContent.CustomExtendedLevels;
-                    break;
-                case ContentType.Any:
-                    extendedLevelsList = PatchedContent.ExtendedLevels;
-                    break;
-            }
+            if (selectableLevel == null) return false;
+
+            if (levelType == ContentType.Any)
+                extendedLevelsList = PatchedContent.ExtendedLevels;
+            else if (levelType == ContentType.Custom)
+                extendedLevelsList = PatchedContent.CustomExtendedLevels;
+            else if (levelType == ContentType.Vanilla)
+                extendedLevelsList = PatchedContent.VanillaExtendedLevels;
 
             foreach (ExtendedLevel extendedLevel in extendedLevelsList)
                 if (extendedLevel.selectableLevel == selectableLevel)
@@ -65,7 +73,7 @@ namespace LethalLevelLoader
             daysTotal++;
 
             newDayHistory.extendedLevel = GetExtendedLevel(StartOfRound.Instance.currentLevel);
-            DungeonFlow_Patch.TryGetExtendedDungeonFlow(RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow);
+            DungeonManager.TryGetExtendedDungeonFlow(RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow);
             newDayHistory.extendedDungeonFlow = extendedDungeonFlow;
             newDayHistory.day = daysTotal;
             newDayHistory.quota = TimeOfDay.Instance.timesFulfilledQuota;

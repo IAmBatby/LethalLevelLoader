@@ -9,8 +9,20 @@ using UnityEngine.Events;
 
 namespace LethalLevelLoader
 {
-    public class DungeonFlow_Patch
+    public class DungeonManager
     {
+        public static ExtendedDungeonFlow CurrentExtendedDungeonFlow
+        {
+            get
+            {
+                ExtendedDungeonFlow returnFlow = null;
+                if (RoundManager.Instance != null && RoundManager.Instance.dungeonGenerator != null)
+                    if (TryGetExtendedDungeonFlow(RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow, out ExtendedDungeonFlow flow))
+                        returnFlow = flow;
+                return (returnFlow);
+            }
+        }
+
         internal static void AddExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
         {
             DebugHelper.Log("Adding Dungeon Flow: " + extendedDungeonFlow.dungeonFlow.name);
@@ -119,6 +131,8 @@ namespace LethalLevelLoader
         {
             returnExtendedDungeonFlow = null;
             List<ExtendedDungeonFlow> extendedDungeonFlowsList = null;
+
+            if (dungeonFlow == null) return (false);
 
             if (contentType == ContentType.Any)
                 extendedDungeonFlowsList = PatchedContent.ExtendedDungeonFlows;

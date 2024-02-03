@@ -98,7 +98,7 @@ namespace LethalLevelLoader
         {
             extendedLevelsList = new List<ExtendedLevel>();
             foreach (SelectableLevel level in newSelectableLevelsList)
-                extendedLevelsList.Add(SelectableLevel_Patch.GetExtendedLevel(level));
+                extendedLevelsList.Add(LevelManager.GetExtendedLevel(level));
         }
     }
 

@@ -6,11 +6,10 @@ using System.Net.Http.Headers;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using static UnityEngine.UI.GridLayoutGroup;
 
 namespace LethalLevelLoader
 {
-    public class Terminal_Patch
+    public class TerminalManager
     {
         private static Terminal _terminal;
         internal static Terminal Terminal
@@ -97,7 +96,7 @@ namespace LethalLevelLoader
                     foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                         if (node.terminalEvent.ToLower().Contains(extendedLevel.NumberlessPlanetName.ToLower()))
                         {
-                            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = new List<ExtendedDungeonFlowWithRarity>(DungeonFlow_Patch.GetValidExtendedDungeonFlows(extendedLevel, true).OrderBy(o => -(o.rarity)).ToList());
+                            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = new List<ExtendedDungeonFlowWithRarity>(DungeonManager.GetValidExtendedDungeonFlows(extendedLevel, true).OrderBy(o => -(o.rarity)).ToList());
                             string overrideString = "Simulating arrival to " + extendedLevel.selectableLevel.PlanetName + "\nAnalyzing potential remnants found on surface. \nListing generated probabilities below.\n____________________________ \n\nPOSSIBLE STRUCTURES: \n";
                             int totalRarityPool = 0;
                             foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowResult in availableExtendedFlowsList)
@@ -227,16 +226,16 @@ namespace LethalLevelLoader
         {
             DayHistory dayHistory = null;
 
-            foreach (DayHistory loggedDayHistory in SelectableLevel_Patch.dayHistoryList)
+            foreach (DayHistory loggedDayHistory in LevelManager.dayHistoryList)
                 if (loggedDayHistory.extendedLevel == extendedLevel)
                     dayHistory = loggedDayHistory;
 
             if (dayHistory == null)
                 return ("(Unexplored)");
-            else if (TimeOfDay.Instance.timesFulfilledQuota == dayHistory.quota && SelectableLevel_Patch.daysTotal == dayHistory.day)
+            else if (TimeOfDay.Instance.timesFulfilledQuota == dayHistory.quota && LevelManager.daysTotal == dayHistory.day)
                 return ("(Explored Yesterday)");
             else if (TimeOfDay.Instance.timesFulfilledQuota == dayHistory.quota)
-                return ("(Explored " + (SelectableLevel_Patch.daysTotal - dayHistory.day) + " Ago)");
+                return ("(Explored " + (LevelManager.daysTotal - dayHistory.day) + " Ago)");
             else if ((TimeOfDay.Instance.timesFulfilledQuota - 1) == dayHistory.quota)
                 return ("(Explored Last Quota)");
             else

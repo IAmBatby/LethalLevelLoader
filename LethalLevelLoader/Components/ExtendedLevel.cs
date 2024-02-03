@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using GameNetcodeStuff;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -59,6 +60,8 @@ namespace LethalLevelLoader
         [Header("Misc. Settings")]
         [Space(5)] public bool generateAutomaticConfigurationOptions = true;
 
+        [HideInInspector] public LevelEvents levelEvents = new LevelEvents();
+
         internal static ExtendedLevel Create(SelectableLevel newSelectableLevel, ContentType newContentType)
         {
             ExtendedLevel newExtendedLevel = ScriptableObject.CreateInstance<ExtendedLevel>();
@@ -83,7 +86,10 @@ namespace LethalLevelLoader
             }
 
             if (generateTerminalAssets == true) //Needs to be after levelID setting above.
-                Terminal_Patch.CreateLevelTerminalData(this, routePrice);
+                TerminalManager.CreateLevelTerminalData(this, routePrice);
+
+            levelEvents.onLevelLoaded.AddListener(OnLevelLoaded);
+            levelEvents.onStoryLogCollected.AddListener(OnStoryLogCollected);
         }
 
         internal static string GetNumberlessPlanetName(SelectableLevel selectableLevel)
@@ -93,16 +99,41 @@ namespace LethalLevelLoader
             else
                 return string.Empty;
         }
+
+        internal void OnLevelLoaded()
+        {
+            DebugHelper.Log(NumberlessPlanetName + " Recieved OnLevelLoaded Call!");
+        }
+
+        internal void OnStoryLogCollected(StoryLog collectedStoryLog)
+        {
+            DebugHelper.Log(NumberlessPlanetName + " Collected StoryLog: " + collectedStoryLog.gameObject.name);
+        }
     }
-}
 
-[System.Serializable]
-public class StoryLogData
-{
-    public int storyLogID;
-    public string terminalWord = string.Empty;
-    public string storyLogTitle = string.Empty;
-    [TextArea] public string storyLogDescription = string.Empty;
+    [System.Serializable]
+    public class LevelEvents
+    {
+        public ExtendedEvent onLevelLoaded = new ExtendedEvent();
+        public ExtendedEvent onNighttime = new ExtendedEvent();
+        public ExtendedEvent<EnemyAI> onDaytimeEnemySpawn = new ExtendedEvent<EnemyAI>();
+        public ExtendedEvent<EnemyAI> onNighttimeEnemySpawn = new ExtendedEvent<EnemyAI>();
+        public ExtendedEvent<StoryLog> onStoryLogCollected = new ExtendedEvent<StoryLog>();
+        public ExtendedEvent<LungProp> onApparatusTaken = new ExtendedEvent<LungProp>();
+        public ExtendedEvent<(EntranceTeleport, PlayerControllerB)> onPlayerEnterDungeon = new ExtendedEvent<(EntranceTeleport, PlayerControllerB)>();
+        public ExtendedEvent<(EntranceTeleport, PlayerControllerB)> onPlayerExitDungeon = new ExtendedEvent<(EntranceTeleport, PlayerControllerB)>();
+        public ExtendedEvent<bool> onPowerSwitchToggle = new ExtendedEvent<bool>();
 
-    [HideInInspector] internal int newStoryLogID;
+    }
+
+    [System.Serializable]
+    public class StoryLogData
+    {
+        public int storyLogID;
+        public string terminalWord = string.Empty;
+        public string storyLogTitle = string.Empty;
+        [TextArea] public string storyLogDescription = string.Empty;
+
+        [HideInInspector] internal int newStoryLogID;
+    }
 }

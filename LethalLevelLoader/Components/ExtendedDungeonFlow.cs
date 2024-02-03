@@ -1,11 +1,12 @@
 ﻿using DunGen.Graph;
+using GameNetcodeStuff;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.UI;
+using static LethalLevelLoader.DungeonEvents;
 
 namespace LethalLevelLoader
 {
@@ -49,6 +50,8 @@ namespace LethalLevelLoader
         [HideInInspector] public int dungeonID;
         [HideInInspector] public int dungeonDefaultRarity; //To Be Deprecated
 
+        [HideInInspector] public DungeonEvents dungeonEvents = new DungeonEvents();
+
         internal static ExtendedDungeonFlow Create(DungeonFlow newDungeonFlow, AudioClip newFirstTimeDungeonAudio, string contentSourceName)
         {
             ExtendedDungeonFlow newExtendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
@@ -77,6 +80,56 @@ namespace LethalLevelLoader
                 DebugHelper.Log("Warning, Custom Dungeon: " + dungeonDisplayName + " Is Missing A DungeonFirstTimeAudio Reference! Assigning Facility Audio To Prevent Errors.");
                 dungeonFirstTimeAudio = RoundManager.Instance.firstTimeDungeonAudios[0];
             }
+
+            dungeonEvents.onBeforeDungeonGenerate.AddListener(OnBeforeDungeonGenerate);
+            dungeonEvents.onSpawnedScrapObjects.AddListener(OnSpawnScrapObjects);
+            dungeonEvents.onSpawnedSyncedObjects.AddListener(OnSpawnSyncedObjects);
+            dungeonEvents.onEnemySpawnedFromVent.AddListener(OnEnemySpawnedFromVent);
+            dungeonEvents.onSpawnedMapObjects.AddListener(OnSpawnMapObjects);
+            dungeonEvents.onPlayerEnterDungeon.AddListener(OnPlayerEnterDungeon);
+            dungeonEvents.onPlayerExitDungeon.AddListener(OnPlayerExitDungeon);
+        }
+
+        private void OnBeforeDungeonGenerate(RoundManager roundManager)
+        {
+            DebugHelper.Log(dungeonDisplayName + " recieved event invoke !");
+        }
+
+        private void OnSpawnScrapObjects(List<GrabbableObject> scraps)
+        {
+            DebugHelper.Log(dungeonDisplayName + " recieved spawn scrap event invoke !");
+            foreach (GrabbableObject gbb in scraps)
+                DebugHelper.Log(gbb.itemProperties.itemName);
+        }
+
+
+        private void OnSpawnSyncedObjects(List<GameObject> scraps)
+        {
+            DebugHelper.Log(dungeonDisplayName + " recieved spawn synced prop event invoke !");
+            foreach (GameObject gbb in scraps)
+                DebugHelper.Log(gbb.name);
+        }
+
+        private void OnEnemySpawnedFromVent((EnemyVent, EnemyAI) enemyPair)
+        {
+            DebugHelper.Log(dungeonDisplayName + " recieved enemy vent spawn " + enemyPair.Item2.enemyType.enemyName);
+        }
+
+        private void OnSpawnMapObjects(List<GameObject> scraps)
+        {
+            DebugHelper.Log(dungeonDisplayName + "spawn random objects");
+            foreach (GameObject gbb in scraps)
+                DebugHelper.Log(gbb.name);
+        }
+
+        private void OnPlayerEnterDungeon((EntranceTeleport, PlayerControllerB) playerTeleporterPair)
+        {
+            DebugHelper.Log(dungeonDisplayName + playerTeleporterPair.Item2.playerUsername + " Entered Dungeon via Entrance: " + playerTeleporterPair.Item1.gameObject.name);
+        }
+
+        private void OnPlayerExitDungeon((EntranceTeleport, PlayerControllerB) playerTeleporterPair)
+        {
+            DebugHelper.Log(dungeonDisplayName + playerTeleporterPair.Item2.playerUsername + " Exited Dungeon via Entrance: " + playerTeleporterPair.Item1.gameObject.name);
         }
     }
 
@@ -127,4 +180,17 @@ namespace LethalLevelLoader
         [Range(0,1)] public float globalPropCountScaleRate = 0;
     }
 
+    [System.Serializable]
+    public class DungeonEvents
+    {
+        public ExtendedEvent<RoundManager> onBeforeDungeonGenerate = new ExtendedEvent<RoundManager>();
+        public ExtendedEvent<List<GameObject>> onSpawnedSyncedObjects = new ExtendedEvent<List<GameObject>>();
+        public ExtendedEvent<List<GameObject>> onSpawnedMapObjects = new ExtendedEvent<List<GameObject>>();
+        public ExtendedEvent<List<GrabbableObject>> onSpawnedScrapObjects = new ExtendedEvent<List<GrabbableObject>>();
+        public ExtendedEvent<(EnemyVent, EnemyAI)> onEnemySpawnedFromVent = new ExtendedEvent<(EnemyVent, EnemyAI)>();
+        public ExtendedEvent<(EntranceTeleport, PlayerControllerB)> onPlayerEnterDungeon = new ExtendedEvent<(EntranceTeleport, PlayerControllerB)>();
+        public ExtendedEvent<(EntranceTeleport, PlayerControllerB)> onPlayerExitDungeon = new ExtendedEvent<(EntranceTeleport, PlayerControllerB)>();
+        public ExtendedEvent<bool> onPowerSwitchToggle = new ExtendedEvent<bool>();
+        public ExtendedEvent<LungProp> onApparatusTaken = new ExtendedEvent<LungProp>();
+    }
 }

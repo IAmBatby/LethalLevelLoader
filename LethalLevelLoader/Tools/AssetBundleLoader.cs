@@ -100,7 +100,7 @@ namespace LethalLevelLoader
             {
                 extendedDungeonFlow.Initialize(ContentType.Custom);
                 extendedDungeonFlow.manualPlanetNameReferenceList.Add(new StringWithRarity("Tenebrous", 1000));
-                DungeonFlow_Patch.AddExtendedDungeonFlow(extendedDungeonFlow);
+                DungeonManager.AddExtendedDungeonFlow(extendedDungeonFlow);
             }
             foreach (ExtendedLevel extendedLevel in obtainedExtendedLevelsList)
             {
@@ -135,7 +135,7 @@ namespace LethalLevelLoader
             {
                 ExtendedLevel extendedLevel = ExtendedLevel.Create(selectableLevel, ContentType.Vanilla);
 
-                foreach (CompatibleNoun compatibleRouteNoun in Terminal_Patch.routeKeyword.compatibleNouns)
+                foreach (CompatibleNoun compatibleRouteNoun in TerminalManager.routeKeyword.compatibleNouns)
                     if (compatibleRouteNoun.noun.name.Contains(ExtendedLevel.GetNumberlessPlanetName(selectableLevel)))
                     {
                         extendedLevel.routeNode = compatibleRouteNoun.result;
@@ -181,7 +181,7 @@ namespace LethalLevelLoader
             extendedDungeonFlow.dungeonDisplayName = dungeonDisplayName;
 
             extendedDungeonFlow.Initialize(ContentType.Vanilla);
-            DungeonFlow_Patch.AddExtendedDungeonFlow(extendedDungeonFlow);
+            DungeonManager.AddExtendedDungeonFlow(extendedDungeonFlow);
             //Gotta assign the right audio later.
         }
 
@@ -212,7 +212,7 @@ namespace LethalLevelLoader
             {
                 if (spawnSyncedObject.spawnPrefab.GetComponent<NetworkObject>() == null)
                     spawnSyncedObject.spawnPrefab.AddComponent<NetworkObject>();
-                NetworkManager_Patch.RegisterNetworkPrefab(spawnSyncedObject.spawnPrefab);
+                LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(spawnSyncedObject.spawnPrefab);
 
                 if (!registeredObjectsDebugList.Contains(spawnSyncedObject.spawnPrefab.name))
                     registeredObjectsDebugList.Add(spawnSyncedObject.spawnPrefab.name);
@@ -228,34 +228,10 @@ namespace LethalLevelLoader
             DebugHelper.Log(debugString);
         }
 
-        internal static void WarmUpBundleShaders(ExtendedLevel extendedLevel)
-        {
-            List<(Shader, ShaderWarmupSetup)> shaderWithWarmupSetupList = new List<(Shader, ShaderWarmupSetup)>();
-
-            /*ShaderWarmupSetup warmupSetup;
-            foreach (MeshRenderer meshRenderer in extendedLevel.levelPrefab.GetComponentsInChildren<MeshRenderer>())
-            {
-                MeshFilter meshFilter = meshRenderer.gameObject.GetComponent<MeshFilter>();
-                if (meshFilter != null)
-                {
-                    warmupSetup = new ShaderWarmupSetup();
-                    warmupSetup.vdecl = meshFilter.mesh.GetVertexAttributes();
-
-                    foreach (Material material in meshRenderer.materials)
-                        shaderWithWarmupSetupList.Add((material.shader, warmupSetup));
-                }
-            }
-            DebugHelper.Log("Warming Up " + shaderWithWarmupSetupList.Count + " Shaders Found In: " + extendedLevel.NumberlessPlanetName);
-            foreach ((Shader, ShaderWarmupSetup) shaderWithWarmupSetup in shaderWithWarmupSetupList)
-            {
-                ShaderWarmup.WarmupShader(shaderWithWarmupSetup.Item1, shaderWithWarmupSetup.Item2);
-            }*/
-        }
-
         internal static void SetVanillaLevelTags(ExtendedLevel vanillaLevel)
         {
             foreach (IntWithRarity intWithRarity in vanillaLevel.selectableLevel.dungeonFlowTypes)
-                if (DungeonFlow_Patch.TryGetExtendedDungeonFlow(RoundManager.Instance.dungeonFlowTypes[intWithRarity.id], out ExtendedDungeonFlow extendedDungeonFlow))
+                if (DungeonManager.TryGetExtendedDungeonFlow(RoundManager.Instance.dungeonFlowTypes[intWithRarity.id], out ExtendedDungeonFlow extendedDungeonFlow))
                     extendedDungeonFlow.manualPlanetNameReferenceList.Add(new StringWithRarity(vanillaLevel.NumberlessPlanetName, intWithRarity.rarity));
 
             if (vanillaLevel.NumberlessPlanetName == "Experimentation")

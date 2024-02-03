@@ -23,13 +23,13 @@ namespace LethalLevelLoader
         {
             //LethalLevelLoaderPlugin.Instance.Log(log);
             string logString = log;
-            LethalLevelLoaderPlugin.logger.LogInfo(logString);
+            Plugin.logger.LogInfo(logString);
         }
 
         public static void LogWarning(string log)
         {
             string logString = log;
-            LethalLevelLoaderPlugin.logger.LogWarning(logString);
+            Plugin.logger.LogWarning(logString);
         }
 
         public static void DebugTerminalKeyword(TerminalKeyword terminalKeyword)

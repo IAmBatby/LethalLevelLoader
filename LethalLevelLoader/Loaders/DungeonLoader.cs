@@ -27,39 +27,27 @@ namespace LethalLevelLoader
 
     public class DungeonLoader
     {
-        internal static void PrepareDungeon(DungeonGenerator dungeonGenerator, ExtendedLevel currentExtendedLevel)
+        public delegate List<ExtendedDungeonFlowWithRarity> DungeonFlowsWithRarityDelegate(List<ExtendedDungeonFlowWithRarity> extendedDungeonFlowsWithRarities);
+        public static event DungeonFlowsWithRarityDelegate onBeforeRandomDungeonFlowSelected;
+
+        public delegate ExtendedDungeonFlow SelectedDungeonFlow(ExtendedDungeonFlow dungeonFlow);
+        public static event SelectedDungeonFlow onSelectedRandomDungeonFlow;
+
+        internal static void SelectDungeon()
         {
-            ExtendedDungeonFlow currentExtendedDungeonFlow = SetDungeonFlow(dungeonGenerator, currentExtendedLevel);
+            RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow = null;
+            LethalLevelLoaderNetworkManager.Instance.GetRandomExtendedDungeonFlowServerRpc();
+        }
+
+        internal static void PrepareDungeon()
+        {
+            DungeonGenerator dungeonGenerator = RoundManager.Instance.dungeonGenerator.Generator;
+            ExtendedLevel currentExtendedLevel = LevelManager.CurrentExtendedLevel;
+            ExtendedDungeonFlow currentExtendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
+
             PatchDungeonSize(dungeonGenerator, currentExtendedLevel, currentExtendedDungeonFlow);
             PatchFireEscapes(dungeonGenerator, currentExtendedLevel, SceneManager.GetSceneByName(currentExtendedLevel.selectableLevel.sceneName));
             PatchDynamicGlobalProps(dungeonGenerator, currentExtendedDungeonFlow);
-        }
-
-        internal static ExtendedDungeonFlow SetDungeonFlow(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel)
-        {
-            List<int> randomWeightsList = new List<int>();
-
-            string debugString = "Current Level + (" + extendedLevel.NumberlessPlanetName + ") Weights List: " + "\n" + "\n";
-
-            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = DungeonFlow_Patch.GetValidExtendedDungeonFlows(extendedLevel, debugResults: true);
-
-            foreach (ExtendedDungeonFlowWithRarity extendedDungeon in availableExtendedFlowsList)
-                randomWeightsList.Add(extendedDungeon.rarity);
-
-            ExtendedDungeonFlow extendedDungeonFlow = availableExtendedFlowsList[RoundManager.Instance.GetRandomWeightedIndex(randomWeightsList.ToArray(), RoundManager.Instance.LevelRandom)].extendedDungeonFlow;
-            dungeonGenerator.DungeonFlow = extendedDungeonFlow.dungeonFlow;
-
-            foreach (ExtendedDungeonFlowWithRarity extendedDungeon in availableExtendedFlowsList)
-            {
-                if (extendedDungeon.extendedDungeonFlow == extendedDungeonFlow)       
-                    debugString += extendedDungeon.extendedDungeonFlow.dungeonFlow.name + " | " + extendedDungeon.rarity + " - Selected DungeonFlow" + "\n";
-                else
-                    debugString += extendedDungeon.extendedDungeonFlow.dungeonFlow.name + " | " + extendedDungeon.rarity + "\n";
-            }
-
-            DebugHelper.Log(debugString + "\n");
-
-            return (extendedDungeonFlow);
         }
 
         internal static void PatchDungeonSize(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow)
@@ -87,7 +75,7 @@ namespace LethalLevelLoader
         {
             string debugString = "Fire Exit Patch Report, Details Below;" + "\n" + "\n";
 
-            if (DungeonFlow_Patch.TryGetExtendedDungeonFlow(dungeonGenerator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
+            if (DungeonManager.TryGetExtendedDungeonFlow(dungeonGenerator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
             {
                 List<EntranceTeleport> entranceTeleports = GetEntranceTeleports(scene).OrderBy(o => o.entranceId).ToList();
 

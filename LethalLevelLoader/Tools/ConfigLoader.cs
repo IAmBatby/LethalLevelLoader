@@ -219,12 +219,12 @@ namespace LethalLevelLoader.Tools
                     selectableLevel.planetHasTime = doesPlanetHaveTime.Value;
                     extendedLevel.isHidden = isLevelHidden.Value;
                     if (isLevelRegistered.Value == false)
-                        foreach (CompatibleNoun compatibleNoun in new List<CompatibleNoun>(Terminal_Patch.routeKeyword.compatibleNouns))
+                        foreach (CompatibleNoun compatibleNoun in new List<CompatibleNoun>(TerminalManager.routeKeyword.compatibleNouns))
                             if (compatibleNoun.result == extendedLevel.routeNode)
                             {
-                                List<CompatibleNoun> modifiedNounsList = new List<CompatibleNoun>(Terminal_Patch.routeKeyword.compatibleNouns);
+                                List<CompatibleNoun> modifiedNounsList = new List<CompatibleNoun>(TerminalManager.routeKeyword.compatibleNouns);
                                 modifiedNounsList.Remove(compatibleNoun);
-                                Terminal_Patch.routeKeyword.compatibleNouns = modifiedNounsList.ToArray();
+                                TerminalManager.routeKeyword.compatibleNouns = modifiedNounsList.ToArray();
                             }
 
                     //Scrap
