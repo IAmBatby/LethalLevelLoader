@@ -30,9 +30,6 @@ namespace LethalLevelLoader
 
         public static bool hasVanillaBeenPatched;
 
-        private ConfigEntry<string> terminalMoonsPreviewInfoSetting;
-        private ConfigEntry<bool> simulatePercentage;
-
         internal static GameObject networkManagerPrefab;
 
         private void Awake()

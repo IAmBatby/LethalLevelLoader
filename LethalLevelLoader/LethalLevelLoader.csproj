@@ -3,8 +3,8 @@
   <PropertyGroup>
       <TargetFramework>netstandard2.1</TargetFramework>
       <AssemblyName>LethalLevelLoader</AssemblyName>
-      <Description>Mod for Lethal Company</Description>
-      <Version>1.0.0</Version>
+      <Description>A Custom API to support the manual and dynamic integration of custom levels and dungeons in Lethal Company.</Description>
+      <Version>1.1.0</Version>
       <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
       <LangVersion>preview</LangVersion>
   </PropertyGroup>
