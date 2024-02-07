@@ -21,27 +21,30 @@ namespace LethalLevelLoader.Tools
         {
             ConfigFile newConfigFile = new ConfigFile(Path.Combine(Paths.ConfigPath, "LethalLevelLoader.cfg"), false);
 
+            GeneralSettingsConfig newGeneralSettingsConfig = new GeneralSettingsConfig(newConfigFile, "LethalLevelLoader Settings", 5);
+            newGeneralSettingsConfig.BindConfigs();
+
             foreach (ExtendedDungeonFlow extendedDungeonFlow in PatchedContent.VanillaExtendedDungeonFlows)
             {
-                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(newConfigFile, "Vanilla Dungeon: " + (PatchedContent.VanillaExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1).ToString() + ". - " + extendedDungeonFlow.dungeonDisplayName + " (" + extendedDungeonFlow.dungeonFlow.name + ")", 8);
+                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(newConfigFile, "Vanilla Dungeon: " + (PatchedContent.VanillaExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1).ToString() + ". - " + extendedDungeonFlow.dungeonDisplayName + " (" + extendedDungeonFlow.dungeonFlow.name + ")", 7);
                 newConfig.BindConfigs(extendedDungeonFlow);
             }
 
             foreach (ExtendedDungeonFlow extendedDungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
             {
-                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(newConfigFile, "Custom Dungeon: " + (PatchedContent.CustomExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1).ToString() + ". - " + extendedDungeonFlow.dungeonDisplayName, 6);
+                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(newConfigFile, "Custom Dungeon: " + (PatchedContent.CustomExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1).ToString() + ". - " + extendedDungeonFlow.dungeonDisplayName, 9);
                 newConfig.BindConfigs(extendedDungeonFlow);
             }
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.VanillaExtendedLevels)
             {
-                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(newConfigFile, "Vanilla Level: " + (PatchedContent.VanillaExtendedLevels.IndexOf(extendedLevel) + 1).ToString() + ". - " + extendedLevel.selectableLevel.PlanetName, 7);
+                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(newConfigFile, "Vanilla Level: " + (PatchedContent.VanillaExtendedLevels.IndexOf(extendedLevel) + 1).ToString() + ". - " + extendedLevel.selectableLevel.PlanetName, 6);
                 newConfig.BindConfigs(extendedLevel);
             }
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
             {
-                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(newConfigFile, "Custom Level: " + (PatchedContent.CustomExtendedLevels.IndexOf(extendedLevel) + 1).ToString() + ". - " + extendedLevel.selectableLevel.PlanetName, 5);
+                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(newConfigFile, "Custom Level: " + (PatchedContent.CustomExtendedLevels.IndexOf(extendedLevel) + 1).ToString() + ". - " + extendedLevel.selectableLevel.PlanetName, 8);
                 newConfig.BindConfigs(extendedLevel);
             }
 
@@ -51,16 +54,42 @@ namespace LethalLevelLoader.Tools
             if (debugDungeonsString.Contains(", ") && debugDungeonsString.LastIndexOf(", ") == (debugDungeonsString.Length - 2))
                 debugDungeonsString = debugDungeonsString.Remove(debugDungeonsString.LastIndexOf(", "), 2);
 
-            DebugHelper.Log("Config Report: The following SelectableLevel's had their values overriden via user config: " + debugLevelsString);
             debugLevelsString = string.Empty;
-
-            DebugHelper.Log("Config Report: The following DungeonFlows's had their values overriden via user config: " + debugDungeonsString);
             debugDungeonsString = string.Empty;
         }
 
         internal static string GetConfigCatagory(string catagoryName, string contentName)
         {
             return (spacer + " " + catagoryName + contentName + " " + spacer);
+        }
+    }
+
+    public class GeneralSettingsConfig : ConfigTemplate
+    {
+        private ConfigEntry<PreviewInfoType> previewInfoTypeToggle;
+        private ConfigEntry<SortInfoType> sortInfoTypeToggle;
+        private ConfigEntry<FilterInfoType> filterInfoTypeToggle;
+        private ConfigEntry<SimulateInfoType> simulateInfoTypeToggle;
+
+        private ConfigEntry<bool> requireMatchesOnAllDungeonFlows;
+
+        public GeneralSettingsConfig(ConfigFile newConfigFile, string newCatagory, int newSortingPriority) : base(newConfigFile, newCatagory, newSortingPriority) { }
+
+        public void BindConfigs()
+        {
+            previewInfoTypeToggle = BindValue("Terminal >Moons PreviewInfo Default", "What LethalLevelLoader displays next to each moon in the >moons Terminal listing.", PreviewInfoType.Weather);
+            sortInfoTypeToggle = BindValue("Terminal >Moons SortInfo Default", "How LethalLevelLoader sorts each moon in the >moons Terminal listing.", SortInfoType.None);
+            filterInfoTypeToggle = BindValue("Terminal >Moons FilterInfo Default", "How LethalLevelLoader filters each moon in the >moons Terminal listing.", FilterInfoType.None);
+            simulateInfoTypeToggle = BindValue("Terminal >Simulate Results Type Default", "The format used to display odds using the >simulate Terminal keyword.", SimulateInfoType.Percentage);
+
+            requireMatchesOnAllDungeonFlows = BindValue("Require Matches On All Possible DungeonFlows", "By default any Dungeons requested by the loading level will skip the matching process and be in the possible selection pool, Set this to false to disable this feature", true);
+
+            Settings.levelPreviewInfoType = previewInfoTypeToggle.Value;
+            Settings.levelPreviewSortType = sortInfoTypeToggle.Value;
+            Settings.levelPreviewFilterType = filterInfoTypeToggle.Value;
+            Settings.levelSimulateInfoType = simulateInfoTypeToggle.Value;
+
+            Settings.allDungeonFlowsRequireMatching = requireMatchesOnAllDungeonFlows.Value;
         }
     }
 
@@ -90,7 +119,7 @@ namespace LethalLevelLoader.Tools
                 enableContentConfiguration = BindValue("Enable Content Configuration", "Enable This To Utilise Any Of The Configuration Options Below.", false);
 
                 subCatagory = "General Settings - ";
-                enableContentConfiguration = BindValue("Enable Dynamic Dungeon Size Restriction", "Enable this to allow the following three settings to function.", extendedDungeonFlow.enableDynamicDungeonSizeRestriction);
+                enableDynamicDungeonSizeRestriction = BindValue("Enable Dynamic Dungeon Size Restriction", "Enable this to allow the following three settings to function.", extendedDungeonFlow.enableDynamicDungeonSizeRestriction);
                 minimumDungeonSizeMultiplier = BindValue("Minimum Dungeon Size Multiplier", "If The Level's Dungeon Size Multiplier Is Below This Value, The Size Multiplier Will Be Restricted Based On The RestrictDungeonSizeScaler Setting", extendedDungeonFlow.dungeonSizeMin);
                 maximumDungeonSizeMultiplier = BindValue("Maximum Dungeon Size Multiplier", "If The Level's Dungeon Size Multiplier Is Above This Value, The Size Multiplier Will Be Restricted Based On The RestrictDungeonSizeScaler Setting", extendedDungeonFlow.dungeonSizeMax);
 
@@ -113,6 +142,8 @@ namespace LethalLevelLoader.Tools
                 {
                     // ----- Setting -----
 
+                    DebugHelper.Log(extendedDungeonFlow.dungeonDisplayName + " enabled content configeration");
+
                     extendedDungeonFlow.enableDynamicDungeonSizeRestriction = enableContentConfiguration.Value;
 
                     extendedDungeonFlow.dungeonSizeMin = minimumDungeonSizeMultiplier.Value;
@@ -124,6 +155,9 @@ namespace LethalLevelLoader.Tools
 
                     extendedDungeonFlow.dynamicRoutePricesList = ConfigHelper.ConvertToVector2WithRarityList(dynamicRoutePrices.Value, new Vector2(0, 9999));
                     extendedDungeonFlow.dynamicLevelTagsList = ConfigHelper.ConvertToStringWithRarityList(dynamicLevelTags.Value, new Vector2(0, 9999));
+
+                    foreach (StringWithRarity stringWithRarity in ConfigHelper.ConvertToStringWithRarityList(dynamicLevelTags.Value, new Vector2(0, 9999)))
+                        DebugHelper.Log(stringWithRarity.Name + " | " + stringWithRarity.Rarity);
 
                     if (extendedDungeonFlow.dungeonType == ContentType.Vanilla)
                         ConfigLoader.debugDungeonsString += extendedDungeonFlow.dungeonDisplayName +  "(" + extendedDungeonFlow.dungeonFlow.name + ")" + ", ";
@@ -313,8 +347,8 @@ namespace LethalLevelLoader.Tools
         public string GetSortingSpaces()
         {
             string returnString = string.Empty;
-            //for (int i = 0; i < sortingPriority; i++)
-                //returnString += "​"; //Zero Width Space In Here, Do Not Let It Escape!
+            for (int i = 0; i < sortingPriority; i++)
+                returnString += "​"; //Zero Width Space In Here, Do Not Let It Escape!
             return returnString;
         }
     }

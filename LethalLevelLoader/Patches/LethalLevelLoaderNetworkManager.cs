@@ -31,30 +31,9 @@ namespace LethalLevelLoader
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
-            DebugHelper.Log("Networking Manager Spawned!");
-            //gameObject.name = "LethalLevelLoaderNetworkManager";
+            gameObject.name = "LethalLevelLoaderNetworkManager";
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            TestRpcs();
-        }
-
-        public void TestRpcs()
-        {
-            if (IsServer)
-                TestLogServerRpc();
-        }
-
-        [ServerRpc]
-        public void TestLogServerRpc()
-        {
-            DebugHelper.Log("This is a Server Rpc Call!");
-            TestLogClientRpc();
-        }
-
-        [ClientRpc]
-        public void TestLogClientRpc()
-        {
-            DebugHelper.Log("This is a Client Rpc Call!");
         }
 
         [ServerRpc]
@@ -62,38 +41,60 @@ namespace LethalLevelLoader
         {
             DebugHelper.Log("Getting Random DungeonFlow!");
 
-            List<int> randomWeightsList = new List<int>();
-
             List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = DungeonManager.GetValidExtendedDungeonFlows(LevelManager.CurrentExtendedLevel, debugResults: true);
 
-            foreach (ExtendedDungeonFlowWithRarity extendedDungeon in availableExtendedFlowsList)
-                randomWeightsList.Add(extendedDungeon.rarity);
+            List<int> dungeonFlowIDs = new List<int>();
+            List<int> rarities = new List<int>();
 
-            ExtendedDungeonFlow extendedDungeonFlow = availableExtendedFlowsList[RoundManager.Instance.GetRandomWeightedIndex(randomWeightsList.ToArray(), RoundManager.Instance.LevelRandom)].extendedDungeonFlow;
-            //dungeonGenerator.DungeonFlow = extendedDungeonFlow.dungeonFlow;
-
-            string debugString = "Current Level + (" + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + ") Weights List: " + "\n" + "\n";
-
-            foreach (ExtendedDungeonFlowWithRarity extendedDungeon in availableExtendedFlowsList)
+            if (availableExtendedFlowsList.Count == 0)
             {
-                if (extendedDungeon.extendedDungeonFlow == extendedDungeonFlow)
-                    debugString += extendedDungeon.extendedDungeonFlow.dungeonFlow.name + " | " + extendedDungeon.rarity + " - Selected DungeonFlow" + "\n";
-                else
-                    debugString += extendedDungeon.extendedDungeonFlow.dungeonFlow.name + " | " + extendedDungeon.rarity + "\n";
+                DebugHelper.LogError("No ExtendedDungeonFlow's could be found! This should only happen if the Host's requireMatchesOnAllDungeonFlows is set to true!");
+                DebugHelper.LogError("Loading Facility DungeonFlow to prevent infinite loading!");
+                dungeonFlowIDs.Add(0);
+                rarities.Add(300);
+            }
+            else
+            {
+                foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowWithRarity in availableExtendedFlowsList)
+                {
+                    dungeonFlowIDs.Add(RoundManager.Instance.dungeonFlowTypes.ToList().IndexOf(extendedDungeonFlowWithRarity.extendedDungeonFlow.dungeonFlow));
+                    rarities.Add(extendedDungeonFlowWithRarity.rarity);
+                }
             }
 
-            DebugHelper.Log(debugString + "\n");
-
-            SetRandomExtendedDungeonFlowClientRpc(RoundManager.Instance.dungeonFlowTypes.ToList().IndexOf(extendedDungeonFlow.dungeonFlow));
+            SetRandomExtendedDungeonFlowClientRpc(dungeonFlowIDs.ToArray(), rarities.ToArray());
         }
 
         [ClientRpc]
-        public void SetRandomExtendedDungeonFlowClientRpc(int dungeonFlowIndex)
+        public void SetRandomExtendedDungeonFlowClientRpc(int[] dungeonFlowIDs, int[] rarities)
         {
             DebugHelper.Log("Setting Random DungeonFlow!");
-            DebugHelper.Log("DungeonFlow Recieved Was: " + RoundManager.Instance.dungeonFlowTypes[dungeonFlowIndex].name);
-            RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow = RoundManager.Instance.dungeonFlowTypes[dungeonFlowIndex];
-            DungeonLoader.PrepareDungeon();
+            List<IntWithRarity> dungeonFlowsList = new List<IntWithRarity>();
+            List<IntWithRarity> cachedDungeonFlowsList = new List<IntWithRarity>();
+
+            for (int i = 0; i < dungeonFlowIDs.Length; i++)
+            {
+                IntWithRarity intWithRarity = new IntWithRarity();
+                intWithRarity.Add(dungeonFlowIDs[i], rarities[i]);
+                dungeonFlowsList.Add(intWithRarity);
+            }
+            cachedDungeonFlowsList = new List<IntWithRarity>(LevelManager.CurrentExtendedLevel.selectableLevel.dungeonFlowTypes.ToList());
+            LevelManager.CurrentExtendedLevel.selectableLevel.dungeonFlowTypes = dungeonFlowsList.ToArray();
+            RoundManager.Instance.GenerateNewFloor();
+            LevelManager.CurrentExtendedLevel.selectableLevel.dungeonFlowTypes = cachedDungeonFlowsList.ToArray();
+        }
+
+        [ServerRpc]
+        public void GetDungeonFlowSizeServerRpc()
+        {
+            SetDungeonFlowSizeClientRpc(DungeonLoader.GetClampedDungeonSize());
+        }
+
+        [ClientRpc]
+        public void SetDungeonFlowSizeClientRpc(float hostSize)
+        {
+            RoundManager.Instance.dungeonGenerator.Generator.LengthMultiplier = hostSize;
+            RoundManager.Instance.dungeonGenerator.Generate();
         }
 
 
@@ -120,7 +121,7 @@ namespace LethalLevelLoader
             {
                 if (!addedNetworkPrefabs.Contains(queuedNetworkPrefab))
                 {
-                    DebugHelper.Log("Trying To Register Prefab: " + queuedNetworkPrefab);
+                    //DebugHelper.Log("Trying To Register Prefab: " + queuedNetworkPrefab);
                     networkManager.AddNetworkPrefab(queuedNetworkPrefab);
                     addedNetworkPrefabs.Add(queuedNetworkPrefab);
                 }

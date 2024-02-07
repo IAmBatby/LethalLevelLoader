@@ -81,7 +81,7 @@ namespace LethalLevelLoader.Tools
                     foreach (ReverbPreset reverbPreset in OriginalContent.ReverbPresets)
                         if (reverbPreset.name != null && audioReverbTrigger.reverbPreset.name == reverbPreset.name)
                         {
-                            Debug.Log("Restoring ReverbPreset: " + audioReverbTrigger.reverbPreset.name + " In AudioReverbTrigger: " + audioReverbTrigger.gameObject.name);
+                            DebugHelper.Log("Restoring ReverbPreset: " + audioReverbTrigger.reverbPreset.name + " In AudioReverbTrigger: " + audioReverbTrigger.gameObject.name);
                             audioReverbTrigger.reverbPreset = RestoreAsset(audioReverbTrigger.reverbPreset, reverbPreset, debugAction: false);
                         }
                 }
@@ -128,11 +128,16 @@ namespace LethalLevelLoader.Tools
 
         internal static T RestoreAsset<T>(UnityEngine.Object currentAsset, T newAsset, bool debugAction = false, bool destroyOnReplace = true)
         {
-            if (debugAction == true && currentAsset.name != null)
-                //DebugHelper.Log("Restoring " + currentAsset.GetType().ToString() + ": Old Asset Name: " + currentAsset.name + " , New Asset Name: " + newAsset);
+            if (currentAsset != null && newAsset != null)
+            {
+                if (debugAction == true && currentAsset.name != null)
+                    //DebugHelper.Log("Restoring " + currentAsset.GetType().ToString() + ": Old Asset Name: " + currentAsset.name + " , New Asset Name: " + newAsset);
 
-            if (destroyOnReplace == true)
-                UnityEngine.Object.DestroyImmediate(currentAsset);
+                    if (destroyOnReplace == true)
+                        UnityEngine.Object.DestroyImmediate(currentAsset);
+            }
+            else
+                DebugHelper.LogWarning("Asset Restoration Failed, Null Reference Found!");
             return (newAsset);
         }
 

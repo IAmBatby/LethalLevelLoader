@@ -21,17 +21,13 @@ namespace LethalLevelLoader
     {
         ////////// Level Patches //////////
 
-        [HarmonyPriority(Patches.harmonyPriority)] // +1 Because this needs to run after the Patch in Patches, second patch here for consistency.
-        [HarmonyPatch(typeof(StartOfRound), "SceneManager_OnLoadComplete1")]
-        [HarmonyPostfix]
-        internal static void StartOfRoundPlayerLoadedServerRpc_Postfix(StartOfRound __instance, ulong clientId)
+        internal static void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
-            if (LevelManager.CurrentExtendedLevel != null && __instance.IsServer && SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.selectableLevel.sceneName).isLoaded)
-                if (__instance.fullyLoadedPlayers.Count == GameNetworkManager.Instance.connectedPlayers)
+            if (LevelManager.CurrentExtendedLevel != null && LevelManager.CurrentExtendedLevel.IsLoaded)
                     LevelManager.CurrentExtendedLevel.levelEvents.onLevelLoaded.Invoke();
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)] // +1 Because this needs to run after the Patch in Patches, second patch here for consistency.
+        [HarmonyPriority(Patches.harmonyPriority)]
         [HarmonyPatch(typeof(StoryLog), "CollectLog")]
         [HarmonyPrefix]
         internal static void StoryLogCollectLog_Prefix(StoryLog __instance)
@@ -40,7 +36,7 @@ namespace LethalLevelLoader
                 LevelManager.CurrentExtendedLevel.levelEvents.onStoryLogCollected.Invoke(__instance);
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)] // +1 Because this needs to run after the Patch in Patches, second patch here for consistency.
+        [HarmonyPriority(Patches.harmonyPriority)]
         [HarmonyPatch(typeof(RoundManager), "SpawnRandomDaytimeEnemy")]
         [HarmonyPostfix]
         internal static void RoundManagerSpawnRandomDaytimeEnemy_Postfix(RoundManager __instance, GameObject __result)
@@ -50,7 +46,7 @@ namespace LethalLevelLoader
                     LevelManager.CurrentExtendedLevel.levelEvents.onDaytimeEnemySpawn.Invoke(enemyAI);
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)] // +1 Because this needs to run after the Patch in Patches, second patch here for consistency.
+        [HarmonyPriority(Patches.harmonyPriority)]
         [HarmonyPatch(typeof(RoundManager), "SpawnRandomOutsideEnemy")]
         [HarmonyPostfix]
         internal static void RoundManagerSpawnRandomOutsideEnemy_Postfix(RoundManager __instance, GameObject __result)
@@ -144,9 +140,9 @@ namespace LethalLevelLoader
         }
 
         [HarmonyPriority(Patches.harmonyPriority)]
-        [HarmonyPatch(typeof(EntranceTeleport), "TeleportPlayer")]
+        [HarmonyPatch(typeof(EntranceTeleport), "TeleportPlayerServerRpc")]
         [HarmonyPrefix]
-        internal static void EntranceTeleportTeleportPlayerClientRpc_Prefix(EntranceTeleport __instance)
+        internal static void EntranceTeleportTeleportPlayerServerRpc_Prefix(EntranceTeleport __instance)
         {
             if (DungeonManager.CurrentExtendedDungeonFlow != null)
             {

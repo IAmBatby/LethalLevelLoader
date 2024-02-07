@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public enum ContentType { Vanilla, Custom, Any } //Any & All included for built in checks.
 
@@ -52,13 +53,16 @@ namespace LethalLevelLoader
         [HideInInspector] public ContentType levelType;
         [HideInInspector] public string NumberlessPlanetName => GetNumberlessPlanetName(selectableLevel);
 
-        [SerializeField][TextArea] internal string infoNodeDescripton = string.Empty;
-        [HideInInspector] internal TerminalNode routeNode;
-        [HideInInspector] internal TerminalNode routeConfirmNode;
+        [SerializeField][TextArea] public string infoNodeDescripton = string.Empty;
+        [HideInInspector] public TerminalNode routeNode;
+        [HideInInspector] public TerminalNode routeConfirmNode;
+        [HideInInspector] public TerminalNode infoNode;
 
         [Space(10)]
         [Header("Misc. Settings")]
         [Space(5)] public bool generateAutomaticConfigurationOptions = true;
+
+        public bool IsLoaded => SceneManager.GetSceneByName(selectableLevel.sceneName).isLoaded;
 
         [HideInInspector] public LevelEvents levelEvents = new LevelEvents();
 
@@ -73,8 +77,8 @@ namespace LethalLevelLoader
         }
         internal void Initialize(string newContentSourceName, bool generateTerminalAssets)
         {
-            DebugHelper.Log("Initializing Extended Level For Moon: " + GetNumberlessPlanetName(selectableLevel));
-            DebugHelper.extendedLevelLogReports.Add(this, new ExtendedLevelLogReport(this));
+            //DebugHelper.Log("Initializing Extended Level For Moon: " + GetNumberlessPlanetName(selectableLevel));
+            //DebugHelper.extendedLevelLogReports.Add(this, new ExtendedLevelLogReport(this));
 
             if (contentSourceName == string.Empty)
                 contentSourceName = newContentSourceName;
@@ -87,9 +91,6 @@ namespace LethalLevelLoader
 
             if (generateTerminalAssets == true) //Needs to be after levelID setting above.
                 TerminalManager.CreateLevelTerminalData(this, routePrice);
-
-            levelEvents.onLevelLoaded.AddListener(OnLevelLoaded);
-            levelEvents.onStoryLogCollected.AddListener(OnStoryLogCollected);
         }
 
         internal static string GetNumberlessPlanetName(SelectableLevel selectableLevel)
@@ -98,16 +99,6 @@ namespace LethalLevelLoader
                 return new string(selectableLevel.PlanetName.SkipWhile(c => !char.IsLetter(c)).ToArray());
             else
                 return string.Empty;
-        }
-
-        internal void OnLevelLoaded()
-        {
-            DebugHelper.Log(NumberlessPlanetName + " Recieved OnLevelLoaded Call!");
-        }
-
-        internal void OnStoryLogCollected(StoryLog collectedStoryLog)
-        {
-            DebugHelper.Log(NumberlessPlanetName + " Collected StoryLog: " + collectedStoryLog.gameObject.name);
         }
     }
 

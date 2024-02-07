@@ -103,6 +103,12 @@ namespace LethalLevelLoader
             terminalNode.terminalOptions = terminalNode.terminalOptions.AddItem(newCompataibleNoun).ToArray();
         }
 
+        public static void Add(this IntWithRarity intWithRarity, int id, int rarity)
+        {
+            intWithRarity.id = id;
+            intWithRarity.rarity = rarity;
+        }
+
         public static string Sanitized(this string currentString)
         {
             return new string(currentString.SkipToLetters().RemoveWhitespace().ToLowerInvariant());

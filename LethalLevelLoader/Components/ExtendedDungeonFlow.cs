@@ -65,10 +65,7 @@ namespace LethalLevelLoader
         {
             dungeonType = newDungeonType;
 
-            if (dungeonType == ContentType.Custom)
-                dungeonID = PatchedContent.ExtendedDungeonFlows.Count;
-            if (dungeonType == ContentType.Vanilla)
-                dungeonID = RoundManager.Instance.dungeonFlowTypes.ToList().IndexOf(dungeonFlow);
+            GetDungeonFlowID();
 
             if (dungeonDisplayName == null || dungeonDisplayName == string.Empty)
                 dungeonDisplayName = dungeonFlow.name;
@@ -80,56 +77,14 @@ namespace LethalLevelLoader
                 DebugHelper.Log("Warning, Custom Dungeon: " + dungeonDisplayName + " Is Missing A DungeonFirstTimeAudio Reference! Assigning Facility Audio To Prevent Errors.");
                 dungeonFirstTimeAudio = RoundManager.Instance.firstTimeDungeonAudios[0];
             }
-
-            dungeonEvents.onBeforeDungeonGenerate.AddListener(OnBeforeDungeonGenerate);
-            dungeonEvents.onSpawnedScrapObjects.AddListener(OnSpawnScrapObjects);
-            dungeonEvents.onSpawnedSyncedObjects.AddListener(OnSpawnSyncedObjects);
-            dungeonEvents.onEnemySpawnedFromVent.AddListener(OnEnemySpawnedFromVent);
-            dungeonEvents.onSpawnedMapObjects.AddListener(OnSpawnMapObjects);
-            dungeonEvents.onPlayerEnterDungeon.AddListener(OnPlayerEnterDungeon);
-            dungeonEvents.onPlayerExitDungeon.AddListener(OnPlayerExitDungeon);
         }
 
-        private void OnBeforeDungeonGenerate(RoundManager roundManager)
+        private void GetDungeonFlowID()
         {
-            DebugHelper.Log(dungeonDisplayName + " recieved event invoke !");
-        }
-
-        private void OnSpawnScrapObjects(List<GrabbableObject> scraps)
-        {
-            DebugHelper.Log(dungeonDisplayName + " recieved spawn scrap event invoke !");
-            foreach (GrabbableObject gbb in scraps)
-                DebugHelper.Log(gbb.itemProperties.itemName);
-        }
-
-
-        private void OnSpawnSyncedObjects(List<GameObject> scraps)
-        {
-            DebugHelper.Log(dungeonDisplayName + " recieved spawn synced prop event invoke !");
-            foreach (GameObject gbb in scraps)
-                DebugHelper.Log(gbb.name);
-        }
-
-        private void OnEnemySpawnedFromVent((EnemyVent, EnemyAI) enemyPair)
-        {
-            DebugHelper.Log(dungeonDisplayName + " recieved enemy vent spawn " + enemyPair.Item2.enemyType.enemyName);
-        }
-
-        private void OnSpawnMapObjects(List<GameObject> scraps)
-        {
-            DebugHelper.Log(dungeonDisplayName + "spawn random objects");
-            foreach (GameObject gbb in scraps)
-                DebugHelper.Log(gbb.name);
-        }
-
-        private void OnPlayerEnterDungeon((EntranceTeleport, PlayerControllerB) playerTeleporterPair)
-        {
-            DebugHelper.Log(dungeonDisplayName + playerTeleporterPair.Item2.playerUsername + " Entered Dungeon via Entrance: " + playerTeleporterPair.Item1.gameObject.name);
-        }
-
-        private void OnPlayerExitDungeon((EntranceTeleport, PlayerControllerB) playerTeleporterPair)
-        {
-            DebugHelper.Log(dungeonDisplayName + playerTeleporterPair.Item2.playerUsername + " Exited Dungeon via Entrance: " + playerTeleporterPair.Item1.gameObject.name);
+            if (dungeonType == ContentType.Custom)
+                dungeonID = PatchedContent.ExtendedDungeonFlows.Count;
+            if (dungeonType == ContentType.Vanilla)
+                dungeonID = RoundManager.Instance.dungeonFlowTypes.ToList().IndexOf(dungeonFlow);
         }
     }
 

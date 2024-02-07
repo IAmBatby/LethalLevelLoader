@@ -1,8 +1,12 @@
-﻿using DunGen;
+﻿using BepInEx.Logging;
+using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Netcode;
 using UnityEngine;
@@ -30,6 +34,12 @@ namespace LethalLevelLoader
         {
             string logString = log;
             Plugin.logger.LogWarning(logString);
+        }
+
+        public static void LogError(string log)
+        {
+            string logString = log;
+            Plugin.logger.LogError(logString);
         }
 
         public static void DebugTerminalKeyword(TerminalKeyword terminalKeyword)
@@ -426,6 +436,30 @@ namespace LethalLevelLoader
             }*/
         }
 
+        public static void DebugExtendedDungeonFlowTiles(ExtendedDungeonFlow extendedDungeonFlow)
+        {
+            string debugString = "Logging All Tiles In DungeonFlow: " + extendedDungeonFlow.dungeonDisplayName + "\n";
+            foreach (Tile tile in extendedDungeonFlow.dungeonFlow.GetTiles())
+                debugString += tile.gameObject.name + "\n";
+            DebugHelper.Log(debugString);
+        }
+
+        public static void DebugExtendedDungeonSpawnSyncedObjects(ExtendedDungeonFlow extendedDungeonFlow)
+        {
+            string debugString = "Logging All SpawnSyncedObjects In DungeonFlow: " + extendedDungeonFlow.dungeonDisplayName + "\n";
+            foreach (SpawnSyncedObject spawnSyncedObject in extendedDungeonFlow.dungeonFlow.GetSpawnSyncedObjects())
+                debugString += spawnSyncedObject.gameObject.name + " | " + spawnSyncedObject.spawnPrefab.gameObject.name + "\n";
+            DebugHelper.Log(debugString);
+        }
+
+        public static void DebugExtendedDungeonFlowRandomMapObjects(ExtendedDungeonFlow extendedDungeonFlow)
+        {
+            string debugString = "Logging All RandomMapObjects In DungeonFlow: " + extendedDungeonFlow.dungeonDisplayName + "\n";
+            foreach (RandomMapObject randomMapObjectObject in extendedDungeonFlow.dungeonFlow.GetRandomMapObjects())
+                debugString += randomMapObjectObject.gameObject.name + " | " + randomMapObjectObject.spawnablePrefabs[0].gameObject.name + "\n";
+            DebugHelper.Log(debugString);
+        }
+
         internal static void DebugMoonsCataloguePage(MoonsCataloguePage moonsCataloguePage)
         {
             string debugString = "Finished Refreshing Current Moons Catalogue, Results Are" + "\n";
@@ -526,6 +560,33 @@ namespace LethalLevelLoader
             foreach (AudioMixerSnapshot audioMixerSnapshot in PatchedContent.AudioMixerSnapshots)
                 DebugHelper.Log("Custom AudioMixerSnapshot: " + audioMixerSnapshot.name + " | " + audioMixerSnapshot.audioMixer.name);
 
+        }
+
+        public static void LogDebugInstructionsFrom(CodeMatcher matcher)
+        {
+            var methodName = new StackTrace().GetFrame(1).GetMethod().Name;
+
+            var instructionFormatter = new CodeInstructionFormatter(matcher.Length);
+            var builder = new StringBuilder($"'{methodName}' Matcher Instructions:\n")
+                .AppendLine(
+                    String.Join(
+                        "\n",
+                        matcher
+                            .InstructionEnumeration()
+                            .Select(instructionFormatter.Format)
+                    )
+                )
+                .AppendLine("End of matcher instructions.");
+
+            Log(builder.ToString());
+        }
+
+        class CodeInstructionFormatter(int instructionCount)
+        {
+            private int _instructionIndexPadLength = instructionCount.ToString().Length;
+
+            public string Format(CodeInstruction instruction, int index)
+                => $"    IL_{index.ToString().PadLeft(_instructionIndexPadLength, '0')}: {instruction}";
         }
     }
 

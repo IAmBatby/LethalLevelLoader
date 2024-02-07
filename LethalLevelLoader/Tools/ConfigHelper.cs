@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    class ConfigHelper
+    public class ConfigHelper
     {
         //Turns a single string into a list of StringWithRarity's, For easy config setup
         //Example: string configString = "FirstPlanetName (Rarity: Int), SecondPlanetName (Rarity: Int)"
@@ -122,9 +122,9 @@ namespace LethalLevelLoader
             {
                 foreach (StringWithRarity stringString in new List<StringWithRarity>(stringList))
                 {
-                    if (SanitizeLevelName(item.itemName).Contains(SanitizeLevelName(stringString.Name)) || SanitizeLevelName(stringString.Name).Contains(SanitizeLevelName(item.itemName)))
+                    if (SanitizeString(item.itemName).Contains(SanitizeString(stringString.Name)) || SanitizeString(stringString.Name).Contains(SanitizeString(item.itemName)))
                     {
-                        DebugHelper.Log("Vanilla Item Name: " + SanitizeLevelName(item.itemName) + " , Parsed Item Name: " + SanitizeLevelName(stringString.Name));
+                        DebugHelper.Log("Vanilla Item Name: " + SanitizeString(item.itemName) + " , Parsed Item Name: " + SanitizeString(stringString.Name));
                         SpawnableItemWithRarity newItem = new SpawnableItemWithRarity();
                         newItem.spawnableItem = item;
                         newItem.rarity = stringString.Rarity;
@@ -180,9 +180,9 @@ namespace LethalLevelLoader
             }
         }
 
-        public static string SanitizeLevelName(string levelName)
+        public static string SanitizeString(string inputString)
         {
-            return (levelName.SkipToLetters().RemoveWhitespace().ToLower());
+            return (inputString.SkipToLetters().RemoveWhitespace().ToLower());
         }
     }
 }

@@ -1,11 +1,13 @@
 ﻿using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -14,8 +16,10 @@ using UnityEngine.Windows;
 
 namespace LethalLevelLoader
 {
-    public static class AssetBundleLoader
+    public class AssetBundleLoader
     {
+        public static AssetBundleLoader Instance;
+
         public const string specifiedFileExtension = "*.lethalbundle";
 
         internal static DirectoryInfo lethalLibFile = new DirectoryInfo(Assembly.GetExecutingAssembly().Location);
@@ -30,6 +34,18 @@ namespace LethalLevelLoader
 
         internal static List<string> assetBundle;
 
+        internal static bool finishedLoadingBundles;
+        internal static List<string> loadingAssetBundles = new List<string>();
+        internal static int loadedFilesTotal = 0;
+
+        public delegate void BundlesFinishedLoading();
+        public static event BundlesFinishedLoading onBundlesFinishedLoading;
+
+        public delegate AssetBundle BundleFinishedLoading(AssetBundle assetBundle);
+        public static event BundleFinishedLoading onBundleFinishedLoading;
+
+        internal static TextMeshProUGUI loadingBundlesHeaderText;
+
         internal static void RegisterCustomContent(NetworkManager networkManager)
         {
             DebugHelper.Log("Registering Bundle Content!");
@@ -38,20 +54,34 @@ namespace LethalLevelLoader
                 RegisterDungeonContent(extendedDungeonFlow, networkManager);
         }
 
-        internal static void LoadBundles()
+        internal static void LoadBundles(PreInitSceneScript preInitSceneScript)
         {
             DebugHelper.Log("Finding LethalBundles!");
+
+            Instance = new AssetBundleLoader();
+
             lethalLibFolder = lethalLibFile.Parent;
             pluginsFolder = lethalLibFile.Parent.Parent;
 
             foreach (string file in Directory.GetFiles(pluginsFolder.FullName, specifiedFileExtension, SearchOption.AllDirectories))
-                LoadBundle(file);
+            {
+                FileInfo fileInfo = new FileInfo(file);
+                loadingAssetBundles.Add(fileInfo.Name);
+                loadedFilesTotal++;
+                UpdateLoadingBundlesHeaderText();
+                preInitSceneScript.StartCoroutine(Instance.LoadBundle(file, fileInfo.Name));
+            }
+
+            //finishedLoadingBundles = true;
         }
 
-        internal static void LoadBundle(string bundleFile)
+        IEnumerator LoadBundle(string bundleFile, string fileName)
         {
             FileStream fileStream = new FileStream(Path.Combine(Application.streamingAssetsPath, bundleFile), FileMode.Open, FileAccess.Read);
-            AssetBundle newBundle = AssetBundle.LoadFromStream(fileStream);
+            AssetBundleCreateRequest newBundleRequest = AssetBundle.LoadFromStreamAsync(fileStream);
+            yield return newBundleRequest;
+
+            AssetBundle newBundle = newBundleRequest.assetBundle;
 
             if (newBundle != null)
             {
@@ -68,7 +98,19 @@ namespace LethalLevelLoader
                         obtainedExtendedLevelsList.Add(extendedLevel);
                     }
                 }
+
+                onBundleFinishedLoading?.Invoke(newBundle);
             }
+            else
+            {
+                DebugHelper.LogError("Failed To Load Bundle: " +  bundleFile);
+                yield break;
+            }
+            loadingAssetBundles.Remove(fileName);
+            UpdateLoadingBundlesHeaderText();
+            if ((loadedFilesTotal - loadingAssetBundles.Count) == loadedFilesTotal)
+                onBundlesFinishedLoading?.Invoke();
+            fileStream.Close();
         }
 
         internal static void LoadContentInBundles()
@@ -81,14 +123,14 @@ namespace LethalLevelLoader
                     foreach (string scenePath in streamedAssetBundle.GetAllScenePaths())
                         if (GetSceneName(scenePath) == extendedLevel.selectableLevel.sceneName)
                         {
-                            DebugHelper.Log("Found Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ". Scene Path Is: " + scenePath);
+                            //DebugHelper.Log("Found Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ". Scene Path Is: " + scenePath);
                             foundExtendedLevelScene = true;
                             NetworkScenePatcher.AddScenePath(GetSceneName(scenePath));
                         }
 
                 if (foundExtendedLevelScene == false)
                 {
-                    DebugHelper.Log("Could Not Find Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name);
+                    DebugHelper.LogError("Could Not Find Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name);
                     obtainedExtendedLevelsList.Remove(extendedLevel);
                 }
             }
@@ -104,10 +146,10 @@ namespace LethalLevelLoader
             }
             foreach (ExtendedLevel extendedLevel in obtainedExtendedLevelsList)
             {
-                DebugHelper.Log(extendedLevel.contentSourceName);
+                //DebugHelper.Log(extendedLevel.contentSourceName);
                 if (extendedLevel.selectableLevel != null)
                 {
-                    DebugHelper.Log(extendedLevel.selectableLevel.PlanetName);
+                    //DebugHelper.Log(extendedLevel.selectableLevel.PlanetName);
                     extendedLevel.levelType = ContentType.Custom;
                     extendedLevel.Initialize(extendedLevel.name, generateTerminalAssets: true);
                     PatchedContent.ExtendedLevels.Add(extendedLevel);
@@ -119,12 +161,14 @@ namespace LethalLevelLoader
 
         public static void RegisterExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
         {
-            obtainedExtendedDungeonFlowsList.Add(extendedDungeonFlow);
+            DebugHelper.LogWarning("AssetBundleLoader.RegisterExtendedDungeonFlow() is deprecated. Please move to PatchedContent.RegisterExtendedDungeonFlow() to prevent issues in following updates.");
+            PatchedContent.RegisterExtendedDungeonFlow(extendedDungeonFlow);
         }
 
         public static void RegisterExtendedLevel(ExtendedLevel extendedLevel)
         {
-            obtainedExtendedLevelsList.Add(extendedLevel);
+            DebugHelper.LogWarning("AssetBundleLoader.RegisterExtendedLevel() is deprecated. Please move to PatchedContent.RegisterExtendedLevel() to prevent issues in following updates.");
+            PatchedContent.RegisterExtendedLevel(extendedLevel);
         }
 
         internal static void CreateVanillaExtendedLevels(StartOfRound startOfRound)
@@ -152,7 +196,7 @@ namespace LethalLevelLoader
 
         internal static void CreateVanillaExtendedDungeonFlows()
         {
-            DebugHelper.Log("Creating ExtendedDungeonFlows For Vanilla DungeonFlows");
+            //DebugHelper.Log("Creating ExtendedDungeonFlows For Vanilla DungeonFlows");
 
             if (RoundManager.Instance.dungeonFlowTypes != null)
                 foreach (DungeonFlow dungeonFlow in RoundManager.Instance.dungeonFlowTypes)
@@ -182,6 +226,10 @@ namespace LethalLevelLoader
 
             extendedDungeonFlow.Initialize(ContentType.Vanilla);
             DungeonManager.AddExtendedDungeonFlow(extendedDungeonFlow);
+
+
+            if (extendedDungeonFlow.dungeonID == -1)
+                DungeonManager.RefreshDungeonFlowIDs();
             //Gotta assign the right audio later.
         }
 
@@ -251,6 +299,42 @@ namespace LethalLevelLoader
         internal static string GetSceneName(string scenePath)
         {
             return (scenePath.Substring(scenePath.LastIndexOf('/') + 1).Replace(".unity", ""));
+        }
+
+        internal static void CreateLoadingBundlesHeaderText(PreInitSceneScript preInitSceneScript)
+        {
+            GameObject newHeader = GameObject.Instantiate(preInitSceneScript.headerText.gameObject, preInitSceneScript.headerText.transform.parent);
+            RectTransform newHeaderRectTransform = newHeader.GetComponent<RectTransform>();
+            TextMeshProUGUI newHeaderText = newHeader.GetComponent<TextMeshProUGUI>();
+
+            newHeaderRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            newHeaderRectTransform.anchorMax = new Vector2(0.0f, 0.0f);
+            newHeaderRectTransform.offsetMin = new Vector2(0, -150);
+            newHeaderRectTransform.offsetMax = new Vector2(0, -150);
+            newHeaderRectTransform.anchoredPosition = new Vector2(0, -150);
+            if (loadingAssetBundles.Count != 0)
+                newHeaderText.text = "Loading Bundles: " + loadingAssetBundles.First() + " (" + (loadedFilesTotal - loadingAssetBundles.Count) + " // " + loadedFilesTotal + ")";
+            else
+                newHeaderText.text = "Loading Bundles: " + " (" + (loadedFilesTotal - loadingAssetBundles.Count) + " // " + loadedFilesTotal + ")";
+            newHeaderText.color = new Color(0.641f, 0.641f, 0.641f, 1);
+            newHeaderText.fontSize = 20;
+            //newHeaderRectTransform.sizeDelta = new Vector2(400, 47);
+            newHeaderText.overflowMode = TextOverflowModes.Overflow;
+            newHeaderText.enableWordWrapping = false;
+            newHeaderText.alignment = TextAlignmentOptions.Center;
+
+            loadingBundlesHeaderText = newHeaderText;
+        }
+
+        internal static void UpdateLoadingBundlesHeaderText()
+        {
+            if (loadingBundlesHeaderText != null)
+            {
+                if (loadingAssetBundles.Count != 0)
+                    loadingBundlesHeaderText.text = "Loading Bundles: " + loadingAssetBundles.First() + " " + "(" + (loadedFilesTotal - loadingAssetBundles.Count) + " // " + loadedFilesTotal + ")";
+                else
+                    loadingBundlesHeaderText.text = "Loaded Bundles: " + " (" + (loadedFilesTotal - loadingAssetBundles.Count) + " // " + loadedFilesTotal + ")";
+            }
         }
     }
 }

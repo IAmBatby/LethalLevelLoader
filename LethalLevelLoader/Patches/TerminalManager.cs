@@ -96,19 +96,7 @@ namespace LethalLevelLoader
                     foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                         if (node.terminalEvent.ToLower().Contains(extendedLevel.NumberlessPlanetName.ToLower()))
                         {
-                            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = new List<ExtendedDungeonFlowWithRarity>(DungeonManager.GetValidExtendedDungeonFlows(extendedLevel, true).OrderBy(o => -(o.rarity)).ToList());
-                            string overrideString = "Simulating arrival to " + extendedLevel.selectableLevel.PlanetName + "\nAnalyzing potential remnants found on surface. \nListing generated probabilities below.\n____________________________ \n\nPOSSIBLE STRUCTURES: \n";
-                            int totalRarityPool = 0;
-                            foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowResult in availableExtendedFlowsList)
-                                totalRarityPool += extendedDungeonFlowResult.rarity;
-                            if (extendedLevel.NumberlessPlanetName.Sanitized().Contains("march")) //Obligitory Fuck March.
-                            {
-                                totalRarityPool += 300;
-                                overrideString += "* " + "Facility" + "  //  Chance: " + (300f / (float)totalRarityPool * 100).ToString("F2") + "%" + "\n";
-                            }
-                            foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowResult in availableExtendedFlowsList)
-                                overrideString += "* " + extendedDungeonFlowResult.extendedDungeonFlow.dungeonDisplayName + "  //  Chance: " + ((float)extendedDungeonFlowResult.rarity / (float)totalRarityPool * 100).ToString("F2") + "%" + "\n";
-                            node.displayText = overrideString + "\n" + "\n";
+                            node.displayText = GetSimulationResultsText(extendedLevel) + "\n" + "\n";
                             node.clearPreviousText = true;
                             node.isConfirmationNode = true;
                             return (true);
@@ -257,6 +245,35 @@ namespace LethalLevelLoader
             return (terminalEventString);
         }
 
+
+        internal static string GetSimulationResultsText(ExtendedLevel extendedLevel)
+        {
+            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = new List<ExtendedDungeonFlowWithRarity>(DungeonManager.GetValidExtendedDungeonFlows(extendedLevel, false).OrderBy(o => -(o.rarity)).ToList());
+            string overrideString = "Simulating arrival to " + extendedLevel.selectableLevel.PlanetName + "\nAnalyzing potential remnants found on surface. \nListing generated probabilities below.\n____________________________ \n\nPOSSIBLE STRUCTURES: \n";
+            int totalRarityPool = 0;
+            foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowResult in availableExtendedFlowsList)
+                totalRarityPool += extendedDungeonFlowResult.rarity;
+            if (extendedLevel.NumberlessPlanetName.Sanitized().Contains("march") && extendedLevel.selectableLevel.dungeonFlowTypes.Length == 0) //Obligitory Fuck March.
+            {
+                totalRarityPool += 300;
+                overrideString += "* " + "Facility" + "  //  Chance: " + GetSimulationDataText(300, totalRarityPool) + "\n";
+            }
+            foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowResult in availableExtendedFlowsList)
+                overrideString += "* " + extendedDungeonFlowResult.extendedDungeonFlow.dungeonDisplayName + "  //  Chance: " + GetSimulationDataText(extendedDungeonFlowResult.rarity, totalRarityPool) + "\n";
+
+            return (overrideString);
+        }
+
+        internal static string GetSimulationDataText(int rarity, int totalRarity)
+        {
+            string returnString = string.Empty;
+            if (Settings.levelSimulateInfoType == SimulateInfoType.Percentage)
+                returnString = (((float)rarity / (float)totalRarity * 100).ToString("F2") + "%");
+            else if (Settings.levelSimulateInfoType == SimulateInfoType.Rarity)
+                returnString = (rarity + " // " + totalRarity);
+            return (returnString);
+        }
+
         internal static TerminalKeyword TryFindAlternativeNoun(Terminal terminal, TerminalKeyword foundKeyword, string playerInput)
         {
             if (foundKeyword != null & terminal.hasGottenVerb == false && foundKeyword.isVerb == true)
@@ -389,6 +406,7 @@ namespace LethalLevelLoader
             {
                 extendedLevel.routeNode = terminalNodeRoute;
                 extendedLevel.routeConfirmNode = terminalNodeRouteConfirm;
+                extendedLevel.infoNode = terminalNodeInfo;
             }
         }
 
@@ -452,7 +470,7 @@ namespace LethalLevelLoader
 
         internal static void CreateTerminalEventNode(TerminalKeyword verbKeyword, string nounWord, string terminalEventString)
         {
-            DebugHelper.Log("Creating New TerminalEvent Node! VerbKeyword Word Is: " + verbKeyword.word + " | nounWord Is: " + GetTerminalEventEnum(nounWord).ToLower() + " | TerminalEvent Text Is: " + terminalEventString);
+            //DebugHelper.Log("Creating New TerminalEvent Node! VerbKeyword Word Is: " + verbKeyword.word + " | nounWord Is: " + GetTerminalEventEnum(nounWord).ToLower() + " | TerminalEvent Text Is: " + terminalEventString);
             TerminalKeyword newKeyword = CreateNewTerminalKeyword();
             TerminalNode newNode = CreateNewTerminalNode();
 

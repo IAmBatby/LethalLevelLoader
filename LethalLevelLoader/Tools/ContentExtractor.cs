@@ -13,6 +13,11 @@ namespace LethalLevelLoader
 {
     public class ContentExtractor
     {
+        internal static void TryScrapeVanillaItems(StartOfRound startOfRound)
+        {
+            foreach (Item item in startOfRound.allItemsList.itemsList)
+                TryAddReference(OriginalContent.Items, item);
+        }
         internal static void TryScrapeVanillaContent(RoundManager roundManager)
         {
             if (Plugin.hasVanillaBeenPatched == false)
@@ -22,9 +27,6 @@ namespace LethalLevelLoader
                 {
                     foreach (DungeonFlow dungeonFlow in roundManager.dungeonFlowTypes)
                         TryAddReference(OriginalContent.DungeonFlows, dungeonFlow);
-
-                    foreach (Item item in startOfRound.allItemsList.itemsList)
-                        TryAddReference(OriginalContent.Items, item);
 
                     foreach (SelectableLevel selectableLevel in startOfRound.levels)
                         ExtractSelectableLevelReferences(selectableLevel);
@@ -78,7 +80,7 @@ namespace LethalLevelLoader
                 OriginalContent.SelectableLevels = new List<SelectableLevel>(StartOfRound.Instance.levels.ToList());
                 OriginalContent.MoonsCatalogue = new List<SelectableLevel>(TerminalManager.Terminal.moonsCatalogueList.ToList());
             }
-            DebugHelper.DebugScrapedVanillaContent();
+            //DebugHelper.DebugScrapedVanillaContent();
         }
 
         internal static void ExtractMemoryLoadedAudioMixerGroups()

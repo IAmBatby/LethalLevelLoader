@@ -1,4 +1,5 @@
 ﻿using DunGen.Graph;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -105,6 +106,17 @@ namespace LethalLevelLoader
         public static List<AudioMixerGroup> AudioMixerGroups { get; internal set; } = new List<AudioMixerGroup>();
 
         public static List<AudioMixerSnapshot> AudioMixerSnapshots { get; internal set; } = new List<AudioMixerSnapshot>();
+
+
+        public static void RegisterExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
+        {
+            AssetBundleLoader.obtainedExtendedDungeonFlowsList.Add(extendedDungeonFlow);
+        }
+
+        public static void RegisterExtendedLevel(ExtendedLevel extendedLevel)
+        {
+            AssetBundleLoader.obtainedExtendedLevelsList.Add(extendedLevel);
+        }
     }
 
     public static class OriginalContent
