@@ -85,7 +85,11 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 **Changelog**
 --
 
-**<details><summary>Version 1.1.0.1</summary>**
+**<details><summary>Version 1.1.2</summary>**
+
+* *Fixed an issue where LethalLevelLoader and LethalLib were attempting to modify similar aspects of the base game at the same time, preventing travel to base game Moons.*
+
+**<details><summary>Version 1.1.1</summary>**
 
 * *Fixed an issue where null CompatibleNoun arrays prevented LethalLevelLoader from correctly initializing when used with mods that add new Item's via LethalLib.*
 * *Fixed an issue where deprecated LethalLevelLoader functions where deprecated before usage of them had been updated.*

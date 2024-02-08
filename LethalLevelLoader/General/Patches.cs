@@ -3,6 +3,7 @@ using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
 using LethalLevelLoader.Tools;
+using LethalLib.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -210,6 +211,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static bool OnGenerationStatusChanged_Prefix(RoundManager __instance, GenerationStatus status)
         {
+            DebugHelper.Log(status.ToString());
             if (status == GenerationStatus.Complete && !__instance.dungeonCompletedGenerating)
             {
                 __instance.FinishGeneratingLevel();
@@ -263,6 +265,26 @@ namespace LethalLevelLoader
             }
             else
                 RoundManager.Instance.GenerateNewFloor();
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(LethalLib.Modules.Dungeon), "RoundManager_Start")]
+        [HarmonyPrefix]
+        internal static bool Dungeon_Start_Prefix(On.RoundManager.orig_Start orig, RoundManager self)
+        {
+            DebugHelper.LogWarning("Disabling LethalLib Dungeon.RoundManager_Start() Function To Prevent Conflicts");
+            orig(self);
+            return (false);
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(LethalLib.Modules.Dungeon), "RoundManager_GenerateNewFloor")]
+        [HarmonyPrefix]
+        internal static bool Dungeon_GenerateNewFloor_Prefix(On.RoundManager.orig_GenerateNewFloor orig, RoundManager self)
+        {
+            DebugHelper.LogWarning("Disabling LethalLib Dungeon.RoundManager_GenerateNewFloor() Function To Prevent Conflicts");
+            orig(self);
+            return (false);
         }
     }
 }
