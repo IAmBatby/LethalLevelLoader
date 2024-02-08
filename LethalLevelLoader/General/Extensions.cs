@@ -30,6 +30,10 @@ namespace LethalLevelLoader
                         tilesList.AddRange(GetTilesInTileSet(dungeonTileSet));
                 }
 
+            foreach (Tile tile in new List<Tile>(tilesList))
+                if (tile == null)
+                    tilesList.Remove(tile);
+
             return (tilesList);
         }
 

@@ -103,7 +103,7 @@ namespace LethalLevelLoader
             }
             else
             {
-                DebugHelper.LogError("Failed To Load Bundle: " +  bundleFile);
+                DebugHelper.LogError("Failed To Load Bundle: " + bundleFile);
                 yield break;
             }
             loadingAssetBundles.Remove(fileName);
@@ -335,6 +335,25 @@ namespace LethalLevelLoader
                 else
                     loadingBundlesHeaderText.text = "Loaded Bundles: " + " (" + (loadedFilesTotal - loadingAssetBundles.Count) + " // " + loadedFilesTotal + ")";
             }
+        }
+
+
+        public static Tile[] GetAllTilesInDungeonFlow(DungeonFlow dungeonFlow)
+        {
+            DebugHelper.LogWarning("AssetBundleLoader.GetAllTilesInDungeonFlow() is deprecated. Please move to dungeonFlow.GetTiles() to prevent issues in following updates.");
+            return (dungeonFlow.GetTiles().ToArray());
+        }
+
+        public static RandomMapObject[] GetAllMapObjectsInTiles(Tile[] tiles)
+        {
+            DebugHelper.LogWarning("AssetBundleLoader.GetAllMapObjectsInTiles() is deprecated. Please move to dungeonFlow.GetRandomMapObjects() to prevent issues in following updates.");
+            return (new List<RandomMapObject>().ToArray());
+        }
+
+        public static SpawnSyncedObject[] GetAllSpawnSyncedObjectsInTiles(Tile[] tiles)
+        {
+            DebugHelper.LogWarning("AssetBundleLoader.GetAllSpawnSyncedObjectsInTiles() is deprecated. Please move to dungeonFlow.GetSpawnSyncedObjects() to prevent issues in following updates.");
+            return (new List<SpawnSyncedObject>().ToArray());
         }
     }
 }

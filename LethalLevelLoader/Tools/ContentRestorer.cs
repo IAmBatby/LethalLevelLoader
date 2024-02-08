@@ -12,20 +12,33 @@ namespace LethalLevelLoader.Tools
     {
         internal static void RestoreVanillaDungeonAssetReferences(ExtendedDungeonFlow extendedDungeonFlow)
         {
+            if (extendedDungeonFlow == null)
+            {
+                DebugHelper.LogError("Tried To Restore Null Vanilla ExtendedDungeonFlow! Returning!");
+                return;
+            }
+            if (extendedDungeonFlow.dungeonFlow == null)
+            {
+                DebugHelper.LogError("Tried To Restore Null Vanilla ExtendedDungeonFlow " + extendedDungeonFlow.dungeonDisplayName +  " But DungeonFlow Was Null! Returning!");
+                return;
+            }
+
             foreach (Tile tile in extendedDungeonFlow.dungeonFlow.GetTiles())
+            {
                 foreach (RandomScrapSpawn randomScrapSpawn in tile.gameObject.GetComponentsInChildren<RandomScrapSpawn>())
                     foreach (ItemGroup vanillaItemGroup in OriginalContent.ItemGroups)
-                        if (randomScrapSpawn.spawnableItems != null && randomScrapSpawn.spawnableItems.name != null && randomScrapSpawn.spawnableItems.name == vanillaItemGroup.name)
-                            randomScrapSpawn.spawnableItems = RestoreAsset(randomScrapSpawn.spawnableItems, vanillaItemGroup, debugAction: true);
-
+                        if (vanillaItemGroup != null)
+                            if (randomScrapSpawn.spawnableItems != null && randomScrapSpawn.spawnableItems.name != null)
+                                if (vanillaItemGroup.name != null && randomScrapSpawn.spawnableItems.name == vanillaItemGroup.name)
+                                    randomScrapSpawn.spawnableItems = RestoreAsset(randomScrapSpawn.spawnableItems, vanillaItemGroup, destroyOnReplace: false);
+            }
             foreach (RandomMapObject randomMapObject in extendedDungeonFlow.dungeonFlow.GetRandomMapObjects())
             {
                 foreach (GameObject spawnablePrefab in new List<GameObject>(randomMapObject.spawnablePrefabs))
                     foreach (GameObject vanillaPrefab in OriginalContent.SpawnableMapObjects)
-                        if (spawnablePrefab != null && spawnablePrefab.name != null && spawnablePrefab.name == vanillaPrefab.name)
-                            randomMapObject.spawnablePrefabs[randomMapObject.spawnablePrefabs.IndexOf(spawnablePrefab)] = RestoreAsset(randomMapObject.spawnablePrefabs[randomMapObject.spawnablePrefabs.IndexOf(spawnablePrefab)], vanillaPrefab, debugAction: true);
+                        if (vanillaPrefab != null && spawnablePrefab != null && spawnablePrefab.name != null &&  vanillaPrefab.name != null && spawnablePrefab.name == vanillaPrefab.name)
+                            randomMapObject.spawnablePrefabs[randomMapObject.spawnablePrefabs.IndexOf(spawnablePrefab)] = RestoreAsset(randomMapObject.spawnablePrefabs[randomMapObject.spawnablePrefabs.IndexOf(spawnablePrefab)], vanillaPrefab, destroyOnReplace: false);
             }
-
             foreach (Tile tile in extendedDungeonFlow.dungeonFlow.GetTiles())
                 RestoreAudioAssetReferencesInParent(tile.gameObject);
         }
@@ -130,7 +143,7 @@ namespace LethalLevelLoader.Tools
         {
             if (currentAsset != null && newAsset != null)
             {
-                if (debugAction == true && currentAsset.name != null)
+                //if (debugAction == true && currentAsset.name != null)
                     //DebugHelper.Log("Restoring " + currentAsset.GetType().ToString() + ": Old Asset Name: " + currentAsset.name + " , New Asset Name: " + newAsset);
 
                     if (destroyOnReplace == true)

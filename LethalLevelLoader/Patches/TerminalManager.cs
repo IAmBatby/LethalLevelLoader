@@ -41,6 +41,9 @@ namespace LethalLevelLoader
 
         internal static TerminalKeyword lastParsedVerbKeyword;
 
+        public delegate string PreviewInfoText(ExtendedLevel extendedLevel, PreviewInfoType infoType);
+        public static event PreviewInfoText onBeforePreviewInfoTextAdded;
+
         ////////// Setting Data //////////
 
         internal static void CacheTerminalReferences()
@@ -198,6 +201,11 @@ namespace LethalLevelLoader
                 levelPreviewInfo = Settings.GetOverridePreviewInfo(extendedLevel);
             if (extendedLevel.isLocked == true)
                 levelPreviewInfo += " (Locked)";
+
+            string overridePreviewInfo = onBeforePreviewInfoTextAdded?.Invoke(extendedLevel, Settings.levelPreviewInfoType);
+            if (overridePreviewInfo != null && overridePreviewInfo != string.Empty)
+                levelPreviewInfo = overridePreviewInfo;
+
             return (levelPreviewInfo);
         }
 

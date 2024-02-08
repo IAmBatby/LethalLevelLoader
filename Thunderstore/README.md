@@ -85,6 +85,11 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 **Changelog**
 --
 
+**<details><summary>Version 1.1.0.1</summary>**
+
+* *Fixed an issue where null CompatibleNoun arrays prevented LethalLevelLoader from correctly initializing when used with mods that add new Item's via LethalLib.*
+* *Fixed an issue where deprecated LethalLevelLoader functions where deprecated before usage of them had been updated.*
+* *Fixed an issue where Restoring references to base game content incorrectly destroyed base game content.*
 
 **<details><summary>Version 1.1.0</summary>**
 

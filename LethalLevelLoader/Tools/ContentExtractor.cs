@@ -34,7 +34,6 @@ namespace LethalLevelLoader
                     foreach (DungeonFlow dungeonFlow in roundManager.dungeonFlowTypes)
                         ExtractDungeonFlowReferences(dungeonFlow);
                 }
-
                 if (TerminalManager.Terminal.currentNode != null)
                     TryAddReference(OriginalContent.TerminalNodes, TerminalManager.Terminal.currentNode);
 
@@ -55,21 +54,21 @@ namespace LethalLevelLoader
 
                 foreach (TerminalNode terminalNode in TerminalManager.Terminal.ShipDecorSelection)
                     TryAddReference(OriginalContent.TerminalNodes, terminalNode);
-
                 foreach (TerminalKeyword terminalKeyword in TerminalManager.Terminal.terminalNodes.allKeywords)
                 {
                     TryAddReference(OriginalContent.TerminalKeywords, terminalKeyword);
-                    foreach (CompatibleNoun compatibleNoun in terminalKeyword.compatibleNouns)
-                        if (compatibleNoun.result != null)
-                            TryAddReference(OriginalContent.TerminalNodes, compatibleNoun.result);
+                    if (terminalKeyword.compatibleNouns != null)
+                        foreach (CompatibleNoun compatibleNoun in terminalKeyword.compatibleNouns)
+                            if (compatibleNoun.result != null)
+                                TryAddReference(OriginalContent.TerminalNodes, compatibleNoun.result);
                     if (terminalKeyword.specialKeywordResult != null)
                         TryAddReference(OriginalContent.TerminalNodes, terminalKeyword.specialKeywordResult);
                 }
-
                 foreach (TerminalNode terminalNode in new List<TerminalNode>(OriginalContent.TerminalNodes))
-                    foreach (CompatibleNoun compatibleNoun in terminalNode.terminalOptions)
-                        if (compatibleNoun.result != null)
-                            TryAddReference(OriginalContent.TerminalNodes, compatibleNoun.result);
+                    if (terminalNode.terminalOptions != null)
+                        foreach (CompatibleNoun compatibleNoun in terminalNode.terminalOptions)
+                            if (compatibleNoun.result != null)
+                                TryAddReference(OriginalContent.TerminalNodes, compatibleNoun.result);
 
                 ExtractMemoryLoadedAudioMixerGroups();
 
@@ -79,6 +78,7 @@ namespace LethalLevelLoader
 
                 OriginalContent.SelectableLevels = new List<SelectableLevel>(StartOfRound.Instance.levels.ToList());
                 OriginalContent.MoonsCatalogue = new List<SelectableLevel>(TerminalManager.Terminal.moonsCatalogueList.ToList());
+
             }
             //DebugHelper.DebugScrapedVanillaContent();
         }
