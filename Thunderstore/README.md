@@ -85,6 +85,12 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 **Changelog**
 --
 
+**<details><summary>Version 1.1.4</summary>**
+
+* *Fixed an issue where inside enemies where being applied outside when using the automatic ExtendedLevel configuration files.*
+
+</details>
+
 **<details><summary>Version 1.1.3</summary>**
 
 * *Introduced initial support for LethalExpansion moons.*
@@ -92,15 +98,21 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 * *Fixed oversight were the LethalLevelLoader NetworkManager was not being created on subsequent playthroughs in a single session.*
 * *Fixed an issue were the Terminal would break if filters reduced the MoonsCatalogue to one or zero listings.*
 
+</details>
+
 **<details><summary>Version 1.1.2</summary>**
 
 * *Fixed an issue where LethalLevelLoader and LethalLib were attempting to modify similar aspects of the base game at the same time, preventing travel to base game Moons.*
+
+</details>
 
 **<details><summary>Version 1.1.1</summary>**
 
 * *Fixed an issue where null CompatibleNoun arrays prevented LethalLevelLoader from correctly initializing when used with mods that add new Item's via LethalLib.*
 * *Fixed an issue where deprecated LethalLevelLoader functions where deprecated before usage of them had been updated.*
 * *Fixed an issue where Restoring references to base game content incorrectly destroyed base game content.*
+
+</details>
 
 **<details><summary>Version 1.1.0</summary>**
 

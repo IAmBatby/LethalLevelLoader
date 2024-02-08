@@ -237,10 +237,10 @@ namespace LethalLevelLoader.Tools
 
                 maxInsideEnemyPowerCount = BindValue("Maximum Inside Enemy Power Count", "Override The Maximum Power Used To Spawn Enemies Inside The Dungeon.", selectableLevel.maxEnemyPowerCount);
                 maxOutsideDaytimeEnemyPowerCount = BindValue("Maximum Outside, Daytime Enemy Power Count", "Override The Maximum Power Used To Spawn Enemies Outside During The Day.", selectableLevel.maxDaytimeEnemyPowerCount);
-                maxOutsideNighttimeEnemyPowerCount = BindValue("Maximum Outside, Nighttime Enemy Power Count", "Override The Maximum Power Used To Spawn Enemies Outside During The Day.", selectableLevel.maxDaytimeEnemyPowerCount);
+                maxOutsideNighttimeEnemyPowerCount = BindValue("Maximum Outside, Nighttime Enemy Power Count", "Override The Maximum Power Used To Spawn Enemies Outside During The Night.", selectableLevel.maxOutsideEnemyPowerCount);
 
                 insideEnemiesOverrides = BindValue("Inside Enemies Spawning List", "Add To Or Override The Inside Enemy Spawn Pool. (Minimum: 0, Maximum: 100)", SpawnableEnemiesWithRaritiesToString(selectableLevel.Enemies));
-                outsideDaytimeEnemiesOverrides = BindValue("Outside Daytime Enemies Spawning List", "Add To Or Override The Outside, Daytime Enemy Spawn Pool. (Minimum: 0, Maximum: 100)", SpawnableEnemiesWithRaritiesToString(selectableLevel.Enemies));
+                outsideDaytimeEnemiesOverrides = BindValue("Outside Daytime Enemies Spawning List", "Add To Or Override The Outside, Daytime Enemy Spawn Pool. (Minimum: 0, Maximum: 100)", SpawnableEnemiesWithRaritiesToString(selectableLevel.DaytimeEnemies));
                 outsideNighttimeEnemiesOverrides = BindValue("Outside Nighttime Enemies Spawning List", "Add To Or Override The Outside, Nighttime Enemy Spawn Pool. (Minimum: 0, Maximum: 100)", SpawnableEnemiesWithRaritiesToString(selectableLevel.OutsideEnemies));
 
                 if (enableContentConfiguration.Value == true)
