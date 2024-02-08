@@ -73,6 +73,7 @@ namespace LethalLevelLoader
         
         internal static void RefreshExtendedLevelGroups()
         {
+            currentMoonsCataloguePage.ExtendedLevelGroups.Clear();
             currentMoonsCataloguePage = new MoonsCataloguePage(defaultMoonsCataloguePage.ExtendedLevelGroups);
             if (Settings.levelPreviewSortType != SortInfoType.None)
                 SortMoonsCataloguePage(currentMoonsCataloguePage);
@@ -172,7 +173,8 @@ namespace LethalLevelLoader
                     returnString += "* " + extendedLevel.NumberlessPlanetName + " " + GetExtendedLevelPreviewInfo(extendedLevel) + "\n";
                 returnString += "\n";
             }
-            returnString.Replace(returnString.Substring(returnString.LastIndexOf("\n")), "");
+            if (returnString.Contains("\n"))
+                returnString.Replace(returnString.Substring(returnString.LastIndexOf("\n")), "");
 
             string tagString = Settings.levelPreviewFilterType.ToString().ToUpper();
             if (Settings.levelPreviewFilterType == FilterInfoType.Tag)
@@ -316,6 +318,9 @@ namespace LethalLevelLoader
 
         internal static void CreateExtendedLevelGroups()
         {
+            DebugHelper.Log("Creating ExtendedLevelGroups");
+            foreach (SelectableLevel level in OriginalContent.MoonsCatalogue)
+                DebugHelper.Log(level.PlanetName.ToString());
             ExtendedLevelGroup vanillaGroupA = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(0, 3));
             ExtendedLevelGroup vanillaGroupB = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(3, 2));
             ExtendedLevelGroup vanillaGroupC = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(5, 3));
@@ -410,12 +415,9 @@ namespace LethalLevelLoader
             routeKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeRoute);
             infoKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeInfo);
 
-            if (extendedLevel.levelType == ContentType.Custom)
-            {
-                extendedLevel.routeNode = terminalNodeRoute;
-                extendedLevel.routeConfirmNode = terminalNodeRouteConfirm;
-                extendedLevel.infoNode = terminalNodeInfo;
-            }
+            extendedLevel.routeNode = terminalNodeRoute;
+            extendedLevel.routeConfirmNode = terminalNodeRouteConfirm;
+            extendedLevel.infoNode = terminalNodeInfo;
         }
 
         internal static void RegisterStoryLog(TerminalKeyword terminalKeyword, TerminalNode terminalNode)

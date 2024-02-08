@@ -85,6 +85,13 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 **Changelog**
 --
 
+**<details><summary>Version 1.1.3</summary>**
+
+* *Introduced initial support for LethalExpansion moons.*
+* *Fixed oversight were Dungeons were not correctly being patched over multiple playthroughs in a single session.*
+* *Fixed oversight were the LethalLevelLoader NetworkManager was not being created on subsequent playthroughs in a single session.*
+* *Fixed an issue were the Terminal would break if filters reduced the MoonsCatalogue to one or zero listings.*
+
 **<details><summary>Version 1.1.2</summary>**
 
 * *Fixed an issue where LethalLevelLoader and LethalLib were attempting to modify similar aspects of the base game at the same time, preventing travel to base game Moons.*

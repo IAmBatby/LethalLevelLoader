@@ -27,6 +27,7 @@ namespace LethalLevelLoader
         public MoonsCataloguePage(List<ExtendedLevelGroup> newExtendedLevelGroupList)
         {
             extendedLevelGroups = new List<ExtendedLevelGroup>();
+            extendedLevelGroups.Clear();
 
             foreach (ExtendedLevelGroup newExtendedLevelGroup in newExtendedLevelGroupList)
                 extendedLevelGroups.Add(new ExtendedLevelGroup(newExtendedLevelGroup.extendedLevelsList));

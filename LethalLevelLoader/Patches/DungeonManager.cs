@@ -23,17 +23,21 @@ namespace LethalLevelLoader
             }
         }
 
-        internal static void AddExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
+        internal static void PatchVanillaDungeonLists()
         {
-            //DebugHelper.Log("Adding Dungeon Flow: " + extendedDungeonFlow.dungeonFlow.name);
-            PatchedContent.ExtendedDungeonFlows.Add(extendedDungeonFlow);
-            if (extendedDungeonFlow.dungeonType == ContentType.Custom)
+            foreach (ExtendedDungeonFlow extendedDungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
             {
                 extendedDungeonFlow.dungeonID = RoundManager.Instance.dungeonFlowTypes.Length;
                 RoundManager.Instance.dungeonFlowTypes = RoundManager.Instance.dungeonFlowTypes.AddItem(extendedDungeonFlow.dungeonFlow).ToArray();
                 if (extendedDungeonFlow.dungeonFirstTimeAudio != null)
-                    RoundManager.Instance.firstTimeDungeonAudios = RoundManager.Instance.firstTimeDungeonAudios.AddItem(extendedDungeonFlow.dungeonFirstTimeAudio).ToArray(); 
+                    RoundManager.Instance.firstTimeDungeonAudios = RoundManager.Instance.firstTimeDungeonAudios.AddItem(extendedDungeonFlow.dungeonFirstTimeAudio).ToArray();
             }
+        }
+
+        internal static void AddExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
+        {
+            //DebugHelper.Log("Adding Dungeon Flow: " + extendedDungeonFlow.dungeonFlow.name);
+            PatchedContent.ExtendedDungeonFlows.Add(extendedDungeonFlow);
         }
 
         internal static void TryAddCurrentVanillaLevelDungeonFlow(DungeonGenerator dungeonGenerator, ExtendedLevel currentExtendedLevel)

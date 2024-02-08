@@ -45,6 +45,8 @@ namespace LethalLevelLoader.Tools
 
         internal static void RestoreVanillaLevelAssetReferences(ExtendedLevel extendedLevel)
         {
+            if (extendedLevel.isLethalExpansion == true) return;
+
             foreach (SpawnableItemWithRarity spawnableItem in extendedLevel.selectableLevel.spawnableScrap)
                 foreach (Item vanillaItem in OriginalContent.Items)
                     if (spawnableItem.spawnableItem.itemName == vanillaItem.itemName)
@@ -130,10 +132,10 @@ namespace LethalLevelLoader.Tools
 
             if (restoredMixerGroup != null && restoredMixer != null)
             {
-                if (audioSource.clip != null)
-                    DebugHelper.Log("Restoring Audio Assets On AudioSource: " + audioSource.gameObject.name + ", AudioSource contained AudioClip: " + audioSource.clip.name);
-                else
-                    DebugHelper.Log("Restoring Audio Assets On AudioSource: " + audioSource.gameObject.name);
+                //if (audioSource.clip != null)
+                    //DebugHelper.Log("Restoring Audio Assets On AudioSource: " + audioSource.gameObject.name + ", AudioSource contained AudioClip: " + audioSource.clip.name);
+                //else
+                    //DebugHelper.Log("Restoring Audio Assets On AudioSource: " + audioSource.gameObject.name);
                 audioSource.outputAudioMixerGroup = restoredMixerGroup;
             }
         }

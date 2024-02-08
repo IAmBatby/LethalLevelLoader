@@ -66,6 +66,8 @@ namespace LethalLevelLoader
 
         [HideInInspector] public LevelEvents levelEvents = new LevelEvents();
 
+        internal bool isLethalExpansion = false;
+
         internal static ExtendedLevel Create(SelectableLevel newSelectableLevel, ContentType newContentType)
         {
             ExtendedLevel newExtendedLevel = ScriptableObject.CreateInstance<ExtendedLevel>();
@@ -77,20 +79,31 @@ namespace LethalLevelLoader
         }
         internal void Initialize(string newContentSourceName, bool generateTerminalAssets)
         {
-            //DebugHelper.Log("Initializing Extended Level For Moon: " + GetNumberlessPlanetName(selectableLevel));
-            //DebugHelper.extendedLevelLogReports.Add(this, new ExtendedLevelLogReport(this));
+            if (levelType == ContentType.Vanilla && selectableLevel.levelID > 8)
+            {
+                DebugHelper.LogWarning("LethalExpansion SelectableLevel " + NumberlessPlanetName + " Found, Setting To LevelType: Custom.");
+                levelType = ContentType.Custom;
+                generateTerminalAssets = true;
+                contentSourceName = "Lethal Expansion";
+                levelTags.Clear();
+                isLethalExpansion = true;
+            }
 
             if (contentSourceName == string.Empty)
                 contentSourceName = newContentSourceName;
 
             if (levelType == ContentType.Custom)
-            {
                 levelTags.Add("Custom");
-                selectableLevel.levelID = PatchedContent.ExtendedLevels.Count;
-            }
+
+            SetLevelID();
 
             if (generateTerminalAssets == true) //Needs to be after levelID setting above.
+            {
+                DebugHelper.Log("Generating Terminal Assets For: " + NumberlessPlanetName);
                 TerminalManager.CreateLevelTerminalData(this, routePrice);
+            }
+
+            name = NumberlessPlanetName + "Level";
         }
 
         internal static string GetNumberlessPlanetName(SelectableLevel selectableLevel)
@@ -100,7 +113,20 @@ namespace LethalLevelLoader
             else
                 return string.Empty;
         }
+
+        internal void SetLevelID()
+        {
+            if (levelType == ContentType.Custom)
+            {
+                selectableLevel.levelID = PatchedContent.ExtendedLevels.IndexOf(this);
+                if (routeNode != null)
+                    routeNode.displayPlanetInfo = selectableLevel.levelID;
+                if (routeConfirmNode != null)
+                    routeConfirmNode.buyRerouteToMoon = selectableLevel.levelID;
+            }
+        }
     }
+        
 
     [System.Serializable]
     public class LevelEvents

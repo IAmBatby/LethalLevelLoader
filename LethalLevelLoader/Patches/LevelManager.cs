@@ -29,10 +29,58 @@ namespace LethalLevelLoader
         public static int daysTotal;
         public static int quotasTotal;
 
+        internal static void ValidateLevelLists()
+        {
+            List<SelectableLevel> vanillaLevelsList = new List<SelectableLevel>(OriginalContent.SelectableLevels);
+            List<SelectableLevel> vanillaMoonsCatalogueList = new List<SelectableLevel>(OriginalContent.MoonsCatalogue);
+            List<SelectableLevel> startOfRoundLevelsList = new List<SelectableLevel>(StartOfRound.Instance.levels);
+
+            foreach (SelectableLevel level in new List<SelectableLevel>(vanillaLevelsList))
+                if (level.levelID > 8)
+                    vanillaLevelsList.Remove(level);
+
+            foreach (SelectableLevel level in new List<SelectableLevel>(vanillaMoonsCatalogueList))
+                if (level.levelID > 8)
+                    vanillaMoonsCatalogueList.Remove(level);
+
+            foreach (SelectableLevel level in new List<SelectableLevel>(startOfRoundLevelsList))
+                if (level.levelID > 8)
+                    startOfRoundLevelsList.Remove(level);
+
+            OriginalContent.SelectableLevels = vanillaLevelsList;
+            OriginalContent.MoonsCatalogue = vanillaMoonsCatalogueList;
+
+            PatchVanillaLevelLists();
+        }
+
         internal static void PatchVanillaLevelLists()
         {
             StartOfRound.Instance.levels = PatchedContent.SeletectableLevels.ToArray();
             TerminalManager.Terminal.moonsCatalogueList = PatchedContent.MoonsCatalogue.ToArray();
+        }
+
+        internal static void RefreshCustomExtendedLevelIDs()
+        {
+            foreach (ExtendedLevel level in new List<ExtendedLevel>(PatchedContent.CustomExtendedLevels))
+                level.SetLevelID();
+        }
+
+        internal static void RefreshLethalExpansionMoons()
+        {
+            foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
+                if (extendedLevel.isLethalExpansion == true)
+                {
+                    foreach (CompatibleNoun compatibleRouteNoun in TerminalManager.routeKeyword.compatibleNouns)
+                        if (compatibleRouteNoun.noun.name.ToLower().Contains(extendedLevel.NumberlessPlanetName.ToLower()))
+                        {
+                            extendedLevel.routeNode = compatibleRouteNoun.result;
+                            extendedLevel.routeConfirmNode = compatibleRouteNoun.result.terminalOptions[1].result;
+                            extendedLevel.RoutePrice = extendedLevel.routeNode.itemCost;
+                            break;
+                        }
+                }
+
+            RefreshCustomExtendedLevelIDs();
         }
 
         public static bool TryGetExtendedLevel(SelectableLevel selectableLevel, out ExtendedLevel returnExtendedLevel, ContentType levelType = ContentType.Any)
@@ -80,6 +128,9 @@ namespace LethalLevelLoader
             newDayHistory.weatherEffect = StartOfRound.Instance.currentLevel.currentWeather;
 
             DebugHelper.Log("Created New Day History Log! PlanetName: " + newDayHistory.extendedLevel.NumberlessPlanetName + " , DungeonName: " + newDayHistory.extendedDungeonFlow.dungeonDisplayName + " , Quota: " + newDayHistory.quota + " , Day: " + newDayHistory.day + " , Weather: " + newDayHistory.weatherEffect.ToString());
+
+            if (dayHistoryList == null)
+                dayHistoryList = new List<DayHistory>();
 
             dayHistoryList.Add(newDayHistory);
         }
