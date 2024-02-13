@@ -7,6 +7,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -76,64 +77,93 @@ namespace LethalLevelLoader
                 RegisterDungeonContent(extendedDungeonFlow, networkManager);
         }
 
-        internal static void LoadBundles(PreInitSceneScript preInitSceneScript)
+        internal static async void LoadBundlesAsync()
         {
+            ///// Finding Bundles /////
+            
             DebugHelper.Log("Finding LethalBundles!");
-
             loadingStatus = LoadingStatus.Loading;
-
-            Instance = new AssetBundleLoader();
 
             lethalLibFolder = lethalLibFile.Parent;
             pluginsFolder = lethalLibFile.Parent.Parent;
 
             foreach (string file in Directory.GetFiles(pluginsFolder.FullName, specifiedFileExtension, SearchOption.AllDirectories))
             {
-                FileInfo fileInfo = new FileInfo(file);
-                assetBundles.Add(fileInfo.Name, null);
-                UpdateLoadingBundlesHeaderText(null);
-
-                preInitSceneScript.StartCoroutine(Instance.LoadBundle(file, fileInfo.Name));
+                DebugHelper.Log("Finding Bundle Async: " + file);
+                assetBundles.Add(file, null);
             }
-        }
 
-        IEnumerator LoadBundle(string bundleFile, string fileName)
-        {
-            FileStream fileStream = new FileStream(Path.Combine(Application.streamingAssetsPath, bundleFile), FileMode.Open, FileAccess.Read);
-            AssetBundleCreateRequest newBundleRequest = AssetBundle.LoadFromStreamAsync(fileStream);
-            yield return newBundleRequest;
+            ///// Loading Bundles /////
+            
+            DebugHelper.Log("Loading LethalBundles!");
 
-            AssetBundle newBundle = newBundleRequest.assetBundle;
+            Task[] loadAssetBundleTasks = new Task[assetBundles.Count];
 
-            if (newBundle != null)
+            int counter = 0;
+            foreach (string assetBundle in new List<string>(assetBundles.Keys))
             {
-                DebugHelper.Log("Loading Custom Content From Bundle: " + newBundle.name);
-                assetBundles[fileName] = newBundle;
-
-                if (newBundle.isStreamedSceneAssetBundle == false)
-                    foreach (ExtendedLevel extendedLevel in newBundle.LoadAllAssets<ExtendedLevel>())
-                    {
-                        if (extendedLevel.contentSourceName == string.Empty)
-                            extendedLevel.contentSourceName = newBundle.name;
-                        obtainedExtendedLevelsList.Add(extendedLevel);
-                    }
-
-                onBundleFinishedLoading?.Invoke(newBundle);
+                loadAssetBundleTasks[counter] = LoadBundleAsync(assetBundle);
+                counter++;
             }
-            else
+
+            await Task.WhenAll(loadAssetBundleTasks);
+
+            ///// Validating Bundles /////
+
+            DebugHelper.Log("Validating LethalBundles!");
+
+            Task[] validateAssetBundleTasks = new Task[assetBundles.Count];
+
+            counter = 0;
+            foreach (string assetBundle in new List<string>(assetBundles.Keys))
             {
-                DebugHelper.LogError("Failed To Load Bundle: " + bundleFile);
-                assetBundles.Remove(fileName);
-                yield break;
+                validateAssetBundleTasks[counter] = ValidateBundleAsync(assetBundle);
+                counter++;
             }
+            
+            await Task.WhenAll(validateAssetBundleTasks);
+
+
 
             if (HaveBundlesFinishedLoading == true)
             {
                 loadingStatus = LoadingStatus.Complete;
                 onBundlesFinishedLoading?.Invoke();
             }
+        }
 
-            fileStream.Close();
+        internal static async Task LoadBundleAsync(string bundleFile)
+        {
+            DebugHelper.Log("Loading Bundle Async: " + bundleFile);
+            FileStream fileStream = new FileStream(Path.Combine(Application.streamingAssetsPath, bundleFile), FileMode.Open, FileAccess.Read);
+            AssetBundleCreateRequest newBundleRequest = AssetBundle.LoadFromStreamAsync(fileStream);
+            assetBundles[bundleFile] = newBundleRequest.assetBundle;
+            //fileStream.Close();
+
+            await Task.Yield();
+        }
+
+        internal static async Task ValidateBundleAsync(string bundleFile)
+        {
+            DebugHelper.Log("Validating Bundle Async: " + bundleFile);
+            AssetBundle assetBundle = assetBundles[bundleFile];
+
+            if (assetBundle != null)
+            {
+                if (assetBundle.isStreamedSceneAssetBundle == false)
+                    foreach (ExtendedLevel extendedLevel in assetBundle.LoadAllAssets<ExtendedLevel>())
+                    {
+                        if (extendedLevel.contentSourceName == string.Empty)
+                            extendedLevel.contentSourceName = assetBundle.name;
+                        obtainedExtendedLevelsList.Add(extendedLevel);
+                    }
+
+                onBundleFinishedLoading?.Invoke(assetBundle);
+            }
+            else
+                DebugHelper.LogError("Failed To Load Bundle: " + assetBundle);
+
+            await Task.Yield();
         }
 
         internal static void LoadContentInBundles()
@@ -147,7 +177,7 @@ namespace LethalLevelLoader
                         foreach (string scenePath in assetBundle.Value.GetAllScenePaths())
                             if (GetSceneName(scenePath) == extendedLevel.selectableLevel.sceneName)
                             {
-                                //DebugHelper.Log("Found Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ". Scene Path Is: " + scenePath);
+                                DebugHelper.Log("Found Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ". Scene Path Is: " + scenePath);
                                 foundExtendedLevelScene = true;
                                 NetworkScenePatcher.AddScenePath(GetSceneName(scenePath));
                             }

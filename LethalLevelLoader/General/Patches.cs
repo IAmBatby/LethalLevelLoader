@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using BepInEx;
+using Discord;
 using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
+using System.Threading.Tasks;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -25,7 +27,13 @@ namespace LethalLevelLoader
 
         internal static string delayedSceneLoadingName = string.Empty;
 
-
+        internal static async void Test(Scene scene, LoadSceneMode loadSceneMode)
+        {
+            AssetBundleLoader.LoadBundlesAsync();
+            AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
+            SceneManager.sceneLoaded -= Test;
+            await Task.Yield();
+        }
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(PreInitSceneScript), "Awake")]
@@ -39,8 +47,7 @@ namespace LethalLevelLoader
                     OriginalContent.AudioMixers.Add(audioSource.outputAudioMixerGroup.audioMixer);
             }
 
-            AssetBundleLoader.LoadBundles(__instance);
-            AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
+            //AssetBundleLoader.LoadBundles(__instance);
         }
 
         [HarmonyPriority(harmonyPriority)]

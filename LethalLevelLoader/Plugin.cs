@@ -49,6 +49,8 @@ namespace LethalLevelLoader
             NetworkScenePatcher.Patch();
 
             NetcodePatch();
+
+            SceneManager.sceneLoaded += Patches.Test;
         }
 
         private void NetcodePatch()
