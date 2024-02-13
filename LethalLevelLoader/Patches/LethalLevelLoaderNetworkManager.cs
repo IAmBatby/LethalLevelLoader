@@ -39,7 +39,7 @@ namespace LethalLevelLoader
         [ServerRpc]
         public void GetRandomExtendedDungeonFlowServerRpc()
         {
-            DebugHelper.Log("Getting Random DungeonFlow!");
+            DebugHelper.Log("Getting Random DungeonFlows!");
 
             List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = DungeonManager.GetValidExtendedDungeonFlows(LevelManager.CurrentExtendedLevel, debugResults: true);
 
@@ -68,7 +68,7 @@ namespace LethalLevelLoader
         [ClientRpc]
         public void SetRandomExtendedDungeonFlowClientRpc(int[] dungeonFlowIDs, int[] rarities)
         {
-            DebugHelper.Log("Setting Random DungeonFlow!");
+            DebugHelper.Log("Setting Random DungeonFlows!");
             List<IntWithRarity> dungeonFlowsList = new List<IntWithRarity>();
             List<IntWithRarity> cachedDungeonFlowsList = new List<IntWithRarity>();
 

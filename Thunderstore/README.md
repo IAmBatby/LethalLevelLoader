@@ -85,6 +85,19 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 **Changelog**
 --
 
+**<details><summary>Version 1.1.5</summary>**
+
+* *Partially refactored the AssetBundle loading system to pause attempts to skip to the main menu before bundles have finished loading.*
+* *Implemented a safe guard to prevent the game breaking when loading a previous save that had a custom level as the current level.*
+* *Added a quick fix to retain Lethal Expansion route prices.*
+* *Fixed oversight were custom levels with spaces in their names were not routing correctly.*
+* *Fixed oversight were custom Levels with spaces in their names could not be simulated.*
+* *Fixed oversight were ItemGroup's were only partially being extracted from the base game.*
+* *Implemented a sanitization system to ensure Level assets and their relevant config entries are cleaned of illegal characters that could break the game.*
+* *Added a $ to the "preview price" keyword to improve consistency with base game terminal nodes.*
+
+</details>
+
 **<details><summary>Version 1.1.4</summary>**
 
 * *Fixed an issue where inside enemies where being applied outside when using the automatic ExtendedLevel configuration files.*

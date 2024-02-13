@@ -63,8 +63,13 @@ namespace LethalLevelLoader
 
         internal static void RefreshCustomExtendedLevelIDs()
         {
+            /*foreach (ExtendedLevel level in new List<ExtendedLevel>(PatchedContent.CustomExtendedLevels))
+                if (level.isLethalExpansion == true)
+                    level.SetLevelID();*/
+
             foreach (ExtendedLevel level in new List<ExtendedLevel>(PatchedContent.CustomExtendedLevels))
-                level.SetLevelID();
+                if (level.isLethalExpansion == false)
+                    level.SetLevelID();
         }
 
         internal static void RefreshLethalExpansionMoons()

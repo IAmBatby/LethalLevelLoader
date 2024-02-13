@@ -74,7 +74,7 @@ namespace LethalLevelLoader
 
             if (dungeonFirstTimeAudio == null)
             {
-                DebugHelper.Log("Warning, Custom Dungeon: " + dungeonDisplayName + " Is Missing A DungeonFirstTimeAudio Reference! Assigning Facility Audio To Prevent Errors.");
+                DebugHelper.LogWarning("Custom Dungeon: " + dungeonDisplayName + " Is Missing A DungeonFirstTimeAudio Reference! Assigning Facility Audio To Prevent Errors.");
                 dungeonFirstTimeAudio = RoundManager.Instance.firstTimeDungeonAudios[0];
             }
         }

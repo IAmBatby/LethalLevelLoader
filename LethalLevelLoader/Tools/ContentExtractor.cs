@@ -15,8 +15,22 @@ namespace LethalLevelLoader
     {
         internal static void TryScrapeVanillaItems(StartOfRound startOfRound)
         {
+            //This is a little obtuse but had some weird issues with this, will rework later.
+            List<ItemGroup> extractedItemGroups = new List<ItemGroup>(Resources.FindObjectsOfTypeAll<ItemGroup>());
             foreach (Item item in startOfRound.allItemsList.itemsList)
+            {
                 TryAddReference(OriginalContent.Items, item);
+                foreach (ItemGroup itemGroup in item.spawnPositionTypes)
+                {
+                    if (extractedItemGroups.Contains(itemGroup))
+                    {
+                        OriginalContent.ItemGroups.Add(itemGroup);
+                        extractedItemGroups.Remove(itemGroup);
+                    }
+                }
+            }
+            OriginalContent.ItemGroups = OriginalContent.ItemGroups.Distinct().ToList();
+
         }
         internal static void TryScrapeVanillaContent(RoundManager roundManager)
         {
@@ -142,9 +156,9 @@ namespace LethalLevelLoader
 
         internal static void ExtractDungeonFlowReferences(DungeonFlow dungeonFlow)
         {
-            foreach (Tile tile in dungeonFlow.GetTiles())
+            /*foreach (Tile tile in dungeonFlow.GetTiles())
                 foreach (RandomScrapSpawn randomScrapSpawn in tile.gameObject.GetComponentsInChildren<RandomScrapSpawn>())
-                    TryAddReference(OriginalContent.ItemGroups, randomScrapSpawn.spawnableItems);
+                    TryAddReference(OriginalContent.ItemGroups, randomScrapSpawn.spawnableItems);*/
         }
 
         internal static void TryAddReference<T>(List<T> referenceList, T reference) where T : UnityEngine.Object

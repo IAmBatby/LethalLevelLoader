@@ -98,7 +98,7 @@ namespace LethalLevelLoader
                 else
                 {
                     foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                        if (node.terminalEvent.ToLower().Contains(extendedLevel.NumberlessPlanetName.ToLower()))
+                        if (node.terminalEvent.StripSpecialCharacters().Sanitized().ToLower().Contains(extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized().ToLower()))
                         {
                             node.displayText = GetSimulationResultsText(extendedLevel) + "\n" + "\n";
                             node.clearPreviousText = true;
@@ -151,7 +151,7 @@ namespace LethalLevelLoader
             if (Settings.levelPreviewSortType.Equals(SortInfoType.Price))
                 cataloguePage.RebuildLevelGroups(cataloguePage.ExtendedLevels.OrderBy(o => o.RoutePrice), 3);
             else if (Settings.levelPreviewSortType.Equals(SortInfoType.Difficulty))
-                cataloguePage.RebuildLevelGroups(cataloguePage.ExtendedLevels.OrderBy(o => o.selectableLevel.maxScrap * o.selectableLevel.maxEnemyPowerCount), 3);
+                cataloguePage.RebuildLevelGroups(cataloguePage.ExtendedLevels.OrderBy(o => o.RoutePrice + (o.selectableLevel.maxEnemyPowerCount * 10) + o.selectableLevel.maxTotalScrapValue), 3);
         }
 
         ////////// Getting Data //////////
@@ -186,21 +186,23 @@ namespace LethalLevelLoader
         internal static string GetExtendedLevelPreviewInfo(ExtendedLevel extendedLevel)
         {
             string levelPreviewInfo = string.Empty;
+            //string offset = GetOffsetExtendedLevelName(extendedLevel);
+            string offset = string.Empty;
 
             if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Weather))
                 levelPreviewInfo = GetWeatherConditions(extendedLevel.selectableLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Price))
-                levelPreviewInfo = "(" + extendedLevel.RoutePrice + ")";
+                levelPreviewInfo = offset + "($" + extendedLevel.RoutePrice + ")";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Difficulty))
-                levelPreviewInfo = "(" + extendedLevel.selectableLevel.riskLevel + ")";
+                levelPreviewInfo = offset + "(" + extendedLevel.selectableLevel.riskLevel + ")";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.History))
-                levelPreviewInfo = GetHistoryConditions(extendedLevel);
+                levelPreviewInfo = offset + GetHistoryConditions(extendedLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.All))
-                levelPreviewInfo = "(" + extendedLevel.selectableLevel.riskLevel + ") " + "(" + extendedLevel.RoutePrice + ") " + GetWeatherConditions(extendedLevel.selectableLevel);
+                levelPreviewInfo = offset + "(" + extendedLevel.selectableLevel.riskLevel + ") " + "($" + extendedLevel.RoutePrice + ") " + GetWeatherConditions(extendedLevel.selectableLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Vanilla))
-                levelPreviewInfo = "[planetTime]";
+                levelPreviewInfo = offset + "[planetTime]";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Override))
-                levelPreviewInfo = Settings.GetOverridePreviewInfo(extendedLevel);
+                levelPreviewInfo = offset + Settings.GetOverridePreviewInfo(extendedLevel);
             if (extendedLevel.isLocked == true)
                 levelPreviewInfo += " (Locked)";
 
@@ -282,6 +284,23 @@ namespace LethalLevelLoader
             else if (Settings.levelSimulateInfoType == SimulateInfoType.Rarity)
                 returnString = (rarity + " // " + totalRarity);
             return (returnString);
+        }
+
+        internal static string GetOffsetExtendedLevelName(ExtendedLevel extendedLevel)
+        {
+            int longestLevelName = 0;
+            string returnString = string.Empty;
+
+            foreach (ExtendedLevel currentExtendedLevel in currentMoonsCataloguePage.ExtendedLevels)
+            {
+                if (currentExtendedLevel.NumberlessPlanetName.Length > longestLevelName)
+                    longestLevelName = currentExtendedLevel.NumberlessPlanetName.Length;
+            }
+
+            for (int i = 0; i < (longestLevelName - extendedLevel.NumberlessPlanetName.Length); i++)
+                returnString += " ";
+
+            return returnString;
         }
 
         internal static TerminalKeyword TryFindAlternativeNoun(Terminal terminal, TerminalKeyword foundKeyword, string playerInput)

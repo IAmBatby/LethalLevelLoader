@@ -33,7 +33,7 @@ namespace LethalLevelLoader
                 }
                 else
                 {
-                    DebugHelper.Log("routeNode Is Missing! Using internal value!");
+                    DebugHelper.LogWarning("routeNode Is Missing! Using internal value!");
                     return (routePrice);
                 }
             }
@@ -83,7 +83,7 @@ namespace LethalLevelLoader
             {
                 DebugHelper.LogWarning("LethalExpansion SelectableLevel " + NumberlessPlanetName + " Found, Setting To LevelType: Custom.");
                 levelType = ContentType.Custom;
-                generateTerminalAssets = true;
+                //generateTerminalAssets = true;
                 contentSourceName = "Lethal Expansion";
                 levelTags.Clear();
                 isLethalExpansion = true;
@@ -95,11 +95,12 @@ namespace LethalLevelLoader
             if (levelType == ContentType.Custom)
                 levelTags.Add("Custom");
 
-            SetLevelID();
+            if (isLethalExpansion == false)
+                SetLevelID();
 
             if (generateTerminalAssets == true) //Needs to be after levelID setting above.
             {
-                DebugHelper.Log("Generating Terminal Assets For: " + NumberlessPlanetName);
+                //DebugHelper.Log("Generating Terminal Assets For: " + NumberlessPlanetName);
                 TerminalManager.CreateLevelTerminalData(this, routePrice);
             }
 
