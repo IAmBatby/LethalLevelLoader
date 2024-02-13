@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace LethalLevelLoader
@@ -126,6 +127,17 @@ namespace LethalLevelLoader
         public static string SkipToLetters(this string input)
         {
             return new string(input.SkipWhile(c => !char.IsLetter(c)).ToArray());
+        }
+
+        public static string StripSpecialCharacters(this string input)
+        {
+            string returnString = string.Empty;
+
+            foreach (char charmander in input)
+                if ((!ConfigHelper.illegalCharacters.ToCharArray().Contains(charmander) && char.IsLetterOrDigit(charmander)) || charmander.ToString() == " ")
+                    returnString += charmander;
+
+            return returnString;
         }
     }
 }

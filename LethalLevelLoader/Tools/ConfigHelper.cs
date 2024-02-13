@@ -16,6 +16,7 @@ namespace LethalLevelLoader
         public const string indexSeperator = ",";
         public const string keyPairSeperator = ":";
         public const string vectorSeperator = "-";
+        public const string illegalCharacters = ".,?!@#$%^&*()_+-=';:'\"";
 
         public static List<StringWithRarity> ConvertToStringWithRarityList(string newInputString, Vector2 clampRarity)
         {
@@ -73,7 +74,7 @@ namespace LethalLevelLoader
             List<StringWithRarity> stringList = ConvertToStringWithRarityList(newInputString, clampRarity);
             List<SpawnableEnemyWithRarity> returnList = new List<SpawnableEnemyWithRarity>();
 
-            foreach (EnemyType enemyType in OriginalContent.Enemies)
+            foreach (EnemyType enemyType in OriginalContent.Enemies.Concat(PatchedContent.Enemies))
             {
                 foreach (StringWithRarity stringString in new List<StringWithRarity>(stringList))
                 {
@@ -89,7 +90,7 @@ namespace LethalLevelLoader
             }
 
             //Incase the user put in the real name (eg. Bracken) instead of the internal name (Flowerman) we go through the scannode texts which has the more updated name.
-            foreach (EnemyType enemyType in OriginalContent.Enemies)
+            foreach (EnemyType enemyType in OriginalContent.Enemies.Concat(PatchedContent.Enemies))
             {
                 foreach (StringWithRarity stringString in new List<StringWithRarity>(stringList))
                 {
@@ -118,7 +119,7 @@ namespace LethalLevelLoader
             List<StringWithRarity> stringList = ConvertToStringWithRarityList(newInputString, clampRarity);
             List<SpawnableItemWithRarity> returnList = new List<SpawnableItemWithRarity>();
 
-            foreach (Item item in OriginalContent.Items)
+            foreach (Item item in OriginalContent.Items.Concat(PatchedContent.Items))
             {
                 foreach (StringWithRarity stringString in new List<StringWithRarity>(stringList))
                 {

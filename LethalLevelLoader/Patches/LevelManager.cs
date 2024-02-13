@@ -29,6 +29,8 @@ namespace LethalLevelLoader
         public static int daysTotal;
         public static int quotasTotal;
 
+        public static int invalidSaveLevelID = -1;
+
         internal static void ValidateLevelLists()
         {
             List<SelectableLevel> vanillaLevelsList = new List<SelectableLevel>(OriginalContent.SelectableLevels);

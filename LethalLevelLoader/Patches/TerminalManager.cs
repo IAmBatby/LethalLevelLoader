@@ -336,13 +336,13 @@ namespace LethalLevelLoader
         {
             //Terminal Route Keyword
             TerminalKeyword terminalKeyword = CreateNewTerminalKeyword();
-            terminalKeyword.name = extendedLevel.NumberlessPlanetName;
-            terminalKeyword.word = extendedLevel.NumberlessPlanetName.ToLower();
+            terminalKeyword.name = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized() + "Keyword";
+            terminalKeyword.word = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized();
             terminalKeyword.defaultVerb = routeKeyword;
 
             //Terminal Route Node
             TerminalNode terminalNodeRoute = CreateNewTerminalNode();
-            terminalNodeRoute.name = extendedLevel.NumberlessPlanetName.ToLower() + "Route";
+            terminalNodeRoute.name = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized() + "Route";
             terminalNodeRoute.displayText = "The cost to route to " + extendedLevel.selectableLevel.PlanetName + " is [totalCost]. It is currently [currentPlanetTime] on this moon.";
             terminalNodeRoute.displayText += "\n" + "\n" + "Please CONFIRM or DENY." + "\n" + "\n";
             terminalNodeRoute.clearPreviousText = true;
@@ -353,7 +353,7 @@ namespace LethalLevelLoader
 
             //Terminal Route Confirm Node
             TerminalNode terminalNodeRouteConfirm = CreateNewTerminalNode();
-            terminalNodeRouteConfirm.name = extendedLevel.NumberlessPlanetName.ToLower() + "RouteConfirm";
+            terminalNodeRouteConfirm.name = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized() + "RouteConfirm";
             terminalNodeRouteConfirm.displayText = "Routing autopilot to " + extendedLevel.selectableLevel.PlanetName + " Your new balance is [playerCredits].";
             terminalNodeRouteConfirm.clearPreviousText = true;
             terminalNodeRouteConfirm.buyRerouteToMoon = extendedLevel.selectableLevel.levelID;
@@ -361,7 +361,7 @@ namespace LethalLevelLoader
 
             //Terminal Info Node
             TerminalNode terminalNodeInfo = CreateNewTerminalNode();
-            terminalNodeInfo.name = extendedLevel.NumberlessPlanetName.ToLower() + "Info";
+            terminalNodeInfo.name = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized() + "Info";
             terminalNodeInfo.clearPreviousText = true;
             terminalNodeInfo.maxCharactersToType = 35;
 
@@ -445,7 +445,7 @@ namespace LethalLevelLoader
             //Simulate Keywords
             List<string> simulateMoonsKeywords = new List<string>();
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                simulateMoonsKeywords.Add(extendedLevel.NumberlessPlanetName);
+                simulateMoonsKeywords.Add(extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized());
 
             CreateTerminalEventNodes("simulate", simulateMoonsKeywords);
         }

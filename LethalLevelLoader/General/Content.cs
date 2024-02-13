@@ -108,6 +108,15 @@ namespace LethalLevelLoader
         public static List<AudioMixerSnapshot> AudioMixerSnapshots { get; internal set; } = new List<AudioMixerSnapshot>();
 
 
+        //Items
+
+        public static List<Item> Items { get; internal set; } = new List<Item>();
+
+        //Enemies
+
+        public static List<EnemyType> Enemies { get; internal set; } = new List<EnemyType>();
+
+
         public static void RegisterExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
         {
             AssetBundleLoader.obtainedExtendedDungeonFlowsList.Add(extendedDungeonFlow);

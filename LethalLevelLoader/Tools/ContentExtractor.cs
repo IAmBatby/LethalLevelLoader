@@ -83,6 +83,17 @@ namespace LethalLevelLoader
             //DebugHelper.DebugScrapedVanillaContent();
         }
 
+        internal static void TryScrapeCustomContent()
+        {
+            foreach (EnemyType enemyType in Resources.FindObjectsOfTypeAll(typeof(EnemyType)))
+                if (!OriginalContent.Enemies.Contains(enemyType))
+                    PatchedContent.Enemies.Add(enemyType);
+
+            foreach (Item item in Resources.FindObjectsOfTypeAll(typeof(Item)))
+                if (!OriginalContent.Items.Contains(item))
+                    PatchedContent.Items.Add(item);
+        }
+
         internal static void ExtractMemoryLoadedAudioMixerGroups()
         {
 

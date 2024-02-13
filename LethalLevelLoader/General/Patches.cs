@@ -23,6 +23,10 @@ namespace LethalLevelLoader
     {
         internal const int harmonyPriority = 200;
 
+        internal static string delayedSceneLoadingName = string.Empty;
+
+
+
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(PreInitSceneScript), "Awake")]
         [HarmonyPrefix]
@@ -33,10 +37,10 @@ namespace LethalLevelLoader
                 AssetBundleLoader.CreateLoadingBundlesHeaderText(__instance);
                 if (__instance.TryGetComponent(out AudioSource audioSource))
                     OriginalContent.AudioMixers.Add(audioSource.outputAudioMixerGroup.audioMixer);
-
-                AssetBundleLoader.LoadBundles(__instance);
-                AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
             }
+
+            AssetBundleLoader.LoadBundles(__instance);
+            AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
         }
 
         [HarmonyPriority(harmonyPriority)]
@@ -44,7 +48,33 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static bool PreInitSceneScriptChooseLaunchOption_Prefix()
         {
-            return ((AssetBundleLoader.loadedFilesTotal - AssetBundleLoader.loadingAssetBundles.Count) == AssetBundleLoader.loadedFilesTotal);
+            //return ((AssetBundleLoader.loadedFilesTotal - AssetBundleLoader.loadingAssetBundles.Count) == AssetBundleLoader.loadedFilesTotal);
+            return true;
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(SceneManager), "LoadScene", new Type[] {typeof(string)})]
+        [HarmonyPrefix]
+        internal static bool SceneManagerLoadScene(string sceneName)
+        {
+            if (AssetBundleLoader.loadingStatus == AssetBundleLoader.LoadingStatus.Loading)
+            {
+                DebugHelper.LogWarning("SceneManager has attempted to load " + sceneName + " Scene before AssetBundles have finished loading. Pausing request until LethalLeveLoader is ready to proceed.");
+                delayedSceneLoadingName = sceneName;
+                AssetBundleLoader.onBundlesFinishedLoading -= LoadMainMenu;
+                AssetBundleLoader.onBundlesFinishedLoading += LoadMainMenu;
+
+                return (false);
+            }
+            return (true);
+        }
+
+        internal static void LoadMainMenu()
+        {
+            DebugHelper.LogWarning("Proceeding with the loading of " + delayedSceneLoadingName + " Scene as LethalLevelLoader has finished loading AssetBundles.");
+            if (delayedSceneLoadingName != string.Empty)
+                SceneManager.LoadScene(delayedSceneLoadingName);
+            delayedSceneLoadingName = string.Empty;
         }
 
         [HarmonyPriority(harmonyPriority)]
@@ -135,8 +165,6 @@ namespace LethalLevelLoader
 
                 SceneManager.sceneLoaded += OnSceneLoaded;
                 SceneManager.sceneLoaded += EventPatches.OnSceneLoaded;
-
-                Plugin.hasVanillaBeenPatched = true;
             }
 
             foreach (AudioSource audioSource in Resources.FindObjectsOfTypeAll<AudioSource>())
@@ -147,6 +175,42 @@ namespace LethalLevelLoader
             DungeonManager.PatchVanillaDungeonLists();
             LevelManager.RefreshCustomExtendedLevelIDs();
             TerminalManager.CreateExtendedLevelGroups();
+
+            if (LevelManager.invalidSaveLevelID != -1 && StartOfRound.Instance.levels.Length > LevelManager.invalidSaveLevelID)
+            {
+                DebugHelper.Log("Setting CurrentLevel to previously saved ID that was not loaded at the time of save loading.");
+                DebugHelper.Log(LevelManager.invalidSaveLevelID + " / " + (StartOfRound.Instance.levels.Length));
+                StartOfRound.Instance.ChangeLevelServerRpc(LevelManager.invalidSaveLevelID, TerminalManager.Terminal.groupCredits);
+                LevelManager.invalidSaveLevelID = -1;
+            }
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(RoundManager), "Start")]
+        [HarmonyPostfix]
+        internal static void RoundManagerStart_Postfix()
+        {
+            if (Plugin.hasVanillaBeenPatched == false)
+            {
+                ContentExtractor.TryScrapeCustomContent();
+
+                Plugin.hasVanillaBeenPatched = true;
+            }
+        }
+
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(StartOfRound), "ChangeLevel")]
+        [HarmonyPrefix]
+        internal static void StartOfRoundChangeLevel_Prefix(ref int levelID)
+        {
+            if (levelID >= StartOfRound.Instance.levels.Length)
+            {
+                DebugHelper.LogWarning("Lethal Company attempted to load a saved current level that has not yet been loaded");
+                DebugHelper.LogWarning(levelID + " / " + (StartOfRound.Instance.levels.Length));
+                LevelManager.invalidSaveLevelID = levelID;
+                levelID = 0;
+            }
         }
 
 

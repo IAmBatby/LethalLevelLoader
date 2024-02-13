@@ -26,25 +26,47 @@ namespace LethalLevelLoader
         internal static DirectoryInfo lethalLibFolder;
         internal static DirectoryInfo pluginsFolder;
 
-        internal static List<AssetBundle> loadedAssetBundles = new List<AssetBundle>();
-        internal static List<AssetBundle> loadedStreamedAssetBundles = new List<AssetBundle>();
-
         internal static List<ExtendedLevel> obtainedExtendedLevelsList = new List<ExtendedLevel>();
         internal static List<ExtendedDungeonFlow> obtainedExtendedDungeonFlowsList = new List<ExtendedDungeonFlow>();
 
-        internal static List<string> assetBundle;
+        public enum LoadingStatus { Inactive, Loading, Complete };
+        public static LoadingStatus loadingStatus = LoadingStatus.Inactive;
 
-        internal static bool finishedLoadingBundles;
-        internal static List<string> loadingAssetBundles = new List<string>();
-        internal static int loadedFilesTotal = 0;
+        internal static Dictionary<string, AssetBundle> assetBundles = new Dictionary<string, AssetBundle>();
+
+        internal static bool HaveBundlesFinishedLoading
+        {
+            get
+            {
+                bool bundlesFinishedLoading = true;
+                foreach (KeyValuePair<string, AssetBundle> assetBundle in assetBundles)
+                    if (assetBundle.Value == null)
+                        bundlesFinishedLoading = false;
+                return (bundlesFinishedLoading);
+            }
+        }
+
+        internal static int BundlesFinishedLoadingCount
+        {
+            get
+            {
+                int bundlesFinishedLoading = 0;
+                foreach (KeyValuePair<string, AssetBundle> assetBundle in assetBundles)
+                    if (assetBundle.Value != null)
+                        bundlesFinishedLoading++;
+                return (bundlesFinishedLoading);
+            }
+        }
 
         public delegate void BundlesFinishedLoading();
         public static event BundlesFinishedLoading onBundlesFinishedLoading;
 
-        public delegate AssetBundle BundleFinishedLoading(AssetBundle assetBundle);
+        public delegate void BundleFinishedLoading(AssetBundle assetBundle);
         public static event BundleFinishedLoading onBundleFinishedLoading;
 
         internal static TextMeshProUGUI loadingBundlesHeaderText;
+
+        internal static bool hasRequestedToLoadMainMenu;
 
         internal static void RegisterCustomContent(NetworkManager networkManager)
         {
@@ -58,6 +80,8 @@ namespace LethalLevelLoader
         {
             DebugHelper.Log("Finding LethalBundles!");
 
+            loadingStatus = LoadingStatus.Loading;
+
             Instance = new AssetBundleLoader();
 
             lethalLibFolder = lethalLibFile.Parent;
@@ -66,13 +90,11 @@ namespace LethalLevelLoader
             foreach (string file in Directory.GetFiles(pluginsFolder.FullName, specifiedFileExtension, SearchOption.AllDirectories))
             {
                 FileInfo fileInfo = new FileInfo(file);
-                loadingAssetBundles.Add(fileInfo.Name);
-                loadedFilesTotal++;
-                UpdateLoadingBundlesHeaderText();
+                assetBundles.Add(fileInfo.Name, null);
+                UpdateLoadingBundlesHeaderText(null);
+
                 preInitSceneScript.StartCoroutine(Instance.LoadBundle(file, fileInfo.Name));
             }
-
-            //finishedLoadingBundles = true;
         }
 
         IEnumerator LoadBundle(string bundleFile, string fileName)
@@ -86,30 +108,31 @@ namespace LethalLevelLoader
             if (newBundle != null)
             {
                 DebugHelper.Log("Loading Custom Content From Bundle: " + newBundle.name);
-                if (newBundle.isStreamedSceneAssetBundle == true)
-                    loadedStreamedAssetBundles.Add(newBundle);
-                else
-                {
-                    loadedAssetBundles.Add(newBundle);
+                assetBundles[fileName] = newBundle;
+
+                if (newBundle.isStreamedSceneAssetBundle == false)
                     foreach (ExtendedLevel extendedLevel in newBundle.LoadAllAssets<ExtendedLevel>())
                     {
                         if (extendedLevel.contentSourceName == string.Empty)
                             extendedLevel.contentSourceName = newBundle.name;
                         obtainedExtendedLevelsList.Add(extendedLevel);
                     }
-                }
 
                 onBundleFinishedLoading?.Invoke(newBundle);
             }
             else
             {
                 DebugHelper.LogError("Failed To Load Bundle: " + bundleFile);
+                assetBundles.Remove(fileName);
                 yield break;
             }
-            loadingAssetBundles.Remove(fileName);
-            UpdateLoadingBundlesHeaderText();
-            if ((loadedFilesTotal - loadingAssetBundles.Count) == loadedFilesTotal)
+
+            if (HaveBundlesFinishedLoading == true)
+            {
+                loadingStatus = LoadingStatus.Complete;
                 onBundlesFinishedLoading?.Invoke();
+            }
+
             fileStream.Close();
         }
 
@@ -119,14 +142,15 @@ namespace LethalLevelLoader
             foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(obtainedExtendedLevelsList))
             {
                 foundExtendedLevelScene = false;
-                foreach (AssetBundle streamedAssetBundle in loadedStreamedAssetBundles)
-                    foreach (string scenePath in streamedAssetBundle.GetAllScenePaths())
-                        if (GetSceneName(scenePath) == extendedLevel.selectableLevel.sceneName)
-                        {
-                            //DebugHelper.Log("Found Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ". Scene Path Is: " + scenePath);
-                            foundExtendedLevelScene = true;
-                            NetworkScenePatcher.AddScenePath(GetSceneName(scenePath));
-                        }
+                foreach (KeyValuePair<string, AssetBundle> assetBundle in assetBundles)
+                    if (assetBundle.Value != null && assetBundle.Value.isStreamedSceneAssetBundle)
+                        foreach (string scenePath in assetBundle.Value.GetAllScenePaths())
+                            if (GetSceneName(scenePath) == extendedLevel.selectableLevel.sceneName)
+                            {
+                                //DebugHelper.Log("Found Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ". Scene Path Is: " + scenePath);
+                                foundExtendedLevelScene = true;
+                                NetworkScenePatcher.AddScenePath(GetSceneName(scenePath));
+                            }
 
                 if (foundExtendedLevelScene == false)
                 {
@@ -312,10 +336,10 @@ namespace LethalLevelLoader
             newHeaderRectTransform.offsetMin = new Vector2(0, -150);
             newHeaderRectTransform.offsetMax = new Vector2(0, -150);
             newHeaderRectTransform.anchoredPosition = new Vector2(0, -150);
-            if (loadingAssetBundles.Count != 0)
-                newHeaderText.text = "Loading Bundles: " + loadingAssetBundles.First() + " (" + (loadedFilesTotal - loadingAssetBundles.Count) + " // " + loadedFilesTotal + ")";
+            if (loadingStatus != LoadingStatus.Inactive)
+                newHeaderText.text = "Loading Bundles: " + assetBundles.First().Key + " (" + BundlesFinishedLoadingCount + " // " + assetBundles.Count + ")";
             else
-                newHeaderText.text = "Loading Bundles: " + " (" + (loadedFilesTotal - loadingAssetBundles.Count) + " // " + loadedFilesTotal + ")";
+                newHeaderText.text = "Loading Bundles: " + " (" + (assetBundles.Count - (assetBundles.Count - BundlesFinishedLoadingCount)) + " // " + assetBundles.Count + ")";
             newHeaderText.color = new Color(0.641f, 0.641f, 0.641f, 1);
             newHeaderText.fontSize = 20;
             //newHeaderRectTransform.sizeDelta = new Vector2(400, 47);
@@ -324,16 +348,20 @@ namespace LethalLevelLoader
             newHeaderText.alignment = TextAlignmentOptions.Center;
 
             loadingBundlesHeaderText = newHeaderText;
+
+            onBundleFinishedLoading += UpdateLoadingBundlesHeaderText;
+
+
         }
 
-        internal static void UpdateLoadingBundlesHeaderText()
+        internal static void UpdateLoadingBundlesHeaderText(AssetBundle _)
         {
             if (loadingBundlesHeaderText != null)
             {
-                if (loadingAssetBundles.Count != 0)
-                    loadingBundlesHeaderText.text = "Loading Bundles: " + loadingAssetBundles.First() + " " + "(" + (loadedFilesTotal - loadingAssetBundles.Count) + " // " + loadedFilesTotal + ")";
+                if (loadingStatus != LoadingStatus.Inactive)
+                    loadingBundlesHeaderText.text = "Loading Bundles: " + assetBundles.First().Key + " " + "(" + (assetBundles.Count - (assetBundles.Count - BundlesFinishedLoadingCount)) + " // " + assetBundles.Count + ")";
                 else
-                    loadingBundlesHeaderText.text = "Loaded Bundles: " + " (" + (loadedFilesTotal - loadingAssetBundles.Count) + " // " + loadedFilesTotal + ")";
+                    loadingBundlesHeaderText.text = "Loaded Bundles: " + " (" + (assetBundles.Count - (assetBundles.Count - BundlesFinishedLoadingCount)) + " // " + assetBundles.Count + ")";
             }
         }
 
