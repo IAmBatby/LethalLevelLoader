@@ -25,6 +25,8 @@ namespace LethalLevelLoader
 
         internal static string delayedSceneLoadingName = string.Empty;
 
+        internal static List<string> allSceneNamesCalledToLoad = new List<string>();
+
 
 
         [HarmonyPriority(harmonyPriority)]
@@ -57,6 +59,17 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static bool SceneManagerLoadScene(string sceneName)
         {
+            if (allSceneNamesCalledToLoad.Count == 0)
+                allSceneNamesCalledToLoad.Add(SceneManager.GetActiveScene().name);
+            if (SceneManager.GetSceneByName(sceneName) != null)
+                allSceneNamesCalledToLoad.Add(sceneName);
+
+            if (sceneName == "MainMenu" && !allSceneNamesCalledToLoad.Contains("InitSceneLaunchOptions"))
+            {
+                DebugHelper.LogError("SceneManager has been told to load Main Menu without ever loading InitSceneLaunchOptions. This will break LethalLevelLoader. This is likely due to a \"Skip to Main Menu\" mod.");
+                return (false);
+            }
+
             if (AssetBundleLoader.loadingStatus == AssetBundleLoader.LoadingStatus.Loading)
             {
                 DebugHelper.LogWarning("SceneManager has attempted to load " + sceneName + " Scene before AssetBundles have finished loading. Pausing request until LethalLeveLoader is ready to proceed.");

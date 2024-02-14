@@ -85,6 +85,11 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 **Changelog**
 --
 
+**<details><summary>Version 1.1.6</summary>**
+
+* *Hotfixed oversight were game would fail to load if LethalLevelLoader had no AssetBundles to load.*
+* *Fixed oversight were vanilla SelectableLevel object names were being modified.*
+
 **<details><summary>Version 1.1.5</summary>**
 
 * *Partially refactored the AssetBundle loading system to pause attempts to skip to the main menu before bundles have finished loading.*

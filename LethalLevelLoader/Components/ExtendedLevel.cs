@@ -104,8 +104,11 @@ namespace LethalLevelLoader
                 TerminalManager.CreateLevelTerminalData(this, routePrice);
             }
 
-            name = NumberlessPlanetName.StripSpecialCharacters() + "ExtendedLevel";
-            selectableLevel.name = NumberlessPlanetName.StripSpecialCharacters() + "Level";
+            if (levelType == ContentType.Custom)
+            {
+                name = NumberlessPlanetName.StripSpecialCharacters() + "ExtendedLevel";
+                selectableLevel.name = NumberlessPlanetName.StripSpecialCharacters() + "Level";
+            }
         }
 
         internal static string GetNumberlessPlanetName(SelectableLevel selectableLevel)

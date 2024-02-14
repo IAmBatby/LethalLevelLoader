@@ -87,13 +87,21 @@ namespace LethalLevelLoader
             lethalLibFolder = lethalLibFile.Parent;
             pluginsFolder = lethalLibFile.Parent.Parent;
 
+            int counter = 0;
             foreach (string file in Directory.GetFiles(pluginsFolder.FullName, specifiedFileExtension, SearchOption.AllDirectories))
             {
+                counter++;
                 FileInfo fileInfo = new FileInfo(file);
                 assetBundles.Add(fileInfo.Name, null);
                 UpdateLoadingBundlesHeaderText(null);
 
                 preInitSceneScript.StartCoroutine(Instance.LoadBundle(file, fileInfo.Name));
+            }
+            if (counter == 0)
+            {
+                DebugHelper.Log("No Bundles Found!");
+                loadingStatus = LoadingStatus.Complete;
+                onBundlesFinishedLoading?.Invoke();
             }
         }
 
