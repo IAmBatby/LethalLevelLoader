@@ -562,6 +562,17 @@ namespace LethalLevelLoader
 
         }
 
+        public static void DebugSpawnScrap(ExtendedLevel extendedLevel)
+        {
+            foreach (SpawnableItemWithRarity scrap in extendedLevel.selectableLevel.spawnableScrap)
+            {
+                if (scrap.spawnableItem.spawnPrefab != null)
+                    DebugHelper.Log(extendedLevel.selectableLevel.spawnableScrap.IndexOf(scrap) + " - " + scrap.spawnableItem.name + scrap.spawnableItem.spawnPrefab.name);
+                else
+                    DebugHelper.Log(extendedLevel.selectableLevel.spawnableScrap.IndexOf(scrap) + " - " + scrap.spawnableItem.name + "(Null)");
+            }
+        }
+
         public static void LogDebugInstructionsFrom(CodeMatcher matcher)
         {
             var methodName = new StackTrace().GetFrame(1).GetMethod().Name;

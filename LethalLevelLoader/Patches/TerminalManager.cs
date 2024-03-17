@@ -129,7 +129,7 @@ namespace LethalLevelLoader
                     if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Price))
                         removeExtendedLevel = (extendedLevel.RoutePrice > Terminal.groupCredits);
                     else if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Weather))
-                        removeExtendedLevel = (GetWeatherConditions(extendedLevel.selectableLevel) != string.Empty);
+                        removeExtendedLevel = (GetWeatherConditions(extendedLevel) != string.Empty);
                     else if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Tag))
                         removeExtendedLevel = (!extendedLevel.levelTags.Contains(currentTagFilter));
 
@@ -158,8 +158,39 @@ namespace LethalLevelLoader
 
         internal static string GetMoonsTerminalText()
         {
-            string returnString = "Welcome to the exomoons catalogue.\r\nTo route the autopilot to a moon, use the word ROUTE.\r\nTo learn about any moon, use the word INFO.\r\n____________________________\r\n\r\n* The Company Building   //   Buying at [companyBuyingPercent].\r\n\r\n";
-            return (returnString + GetMoonCatalogDisplayListings() + "\r\n");
+            string fallbackOverviewText = "Welcome to the exomoons catalogue.\r\nTo route the autopilot to a moon, use the word ROUTE.\r\nTo learn about any moon, use the word INFO.\r\n____________________________\r\n\r\n* The Company Building   //   Buying at [companyBuyingPercent].\r\n\r\n";
+            string overviewText = moonsKeyword.specialKeywordResult.displayText;
+            if (overviewText.Contains("\n\n"))
+            {
+                overviewText = overviewText.Substring(overviewText.IndexOf("\n\n"));
+                overviewText = overviewText.SkipToLetters();
+                if (overviewText.Contains("\n\n"))
+                {
+                    overviewText = overviewText.Substring(overviewText.IndexOf("\n\n"));
+                    if (moonsKeyword.specialKeywordResult.displayText.Contains(overviewText))
+                    {
+                        overviewText = overviewText.Substring(overviewText.IndexOf("\n\n"));
+                        overviewText = moonsKeyword.specialKeywordResult.displayText.Replace(overviewText, string.Empty) + "\n\n";
+                    }
+                    else
+                    {
+                        DebugHelper.LogError("Failed To get Moons Catalogue overview text dynamically, falling back to hardcoded English variant.");
+                        overviewText = fallbackOverviewText;
+                    }
+                }
+                else
+                {
+                    DebugHelper.LogError("Failed To get Moons Catalogue overview text dynamically, falling back to hardcoded English variant.");
+                    overviewText = fallbackOverviewText;
+                }
+            }
+            else
+            {
+                DebugHelper.LogError("Failed To get Moons Catalogue overview text dynamically, falling back to hardcoded English variant.");
+                overviewText = fallbackOverviewText;
+            }
+
+            return (overviewText + GetMoonCatalogDisplayListings() + "\r\n");
         }
 
         //This is some abslolute super arbitary wizardry to replicate basegame >moons command
@@ -190,7 +221,7 @@ namespace LethalLevelLoader
             string offset = string.Empty;
 
             if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Weather))
-                levelPreviewInfo = GetWeatherConditions(extendedLevel.selectableLevel);
+                levelPreviewInfo = GetWeatherConditions(extendedLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Price))
                 levelPreviewInfo = offset + "($" + extendedLevel.RoutePrice + ")";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Difficulty))
@@ -198,7 +229,7 @@ namespace LethalLevelLoader
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.History))
                 levelPreviewInfo = offset + GetHistoryConditions(extendedLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.All))
-                levelPreviewInfo = offset + "(" + extendedLevel.selectableLevel.riskLevel + ") " + "($" + extendedLevel.RoutePrice + ") " + GetWeatherConditions(extendedLevel.selectableLevel);
+                levelPreviewInfo = offset + "(" + extendedLevel.selectableLevel.riskLevel + ") " + "($" + extendedLevel.RoutePrice + ") " + GetWeatherConditions(extendedLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Vanilla))
                 levelPreviewInfo = offset + "[planetTime]";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Override))
@@ -214,11 +245,11 @@ namespace LethalLevelLoader
         }
 
         //Just returns the level weather with a space and ().
-        internal static string GetWeatherConditions(SelectableLevel selectableLevel)
+        internal static string GetWeatherConditions(ExtendedLevel extendedLevel)
         {
             string returnString = string.Empty;
-            if (selectableLevel != null && selectableLevel.currentWeather != LevelWeatherType.None)
-                returnString = "(" + selectableLevel.currentWeather.ToString() + ")";
+            if (extendedLevel.currentExtendedWeatherEffect != null)
+                returnString = "(" + extendedLevel.currentExtendedWeatherEffect.weatherDisplayName + ")";
             return (returnString);
         }
 
@@ -360,53 +391,80 @@ namespace LethalLevelLoader
             terminalKeyword.defaultVerb = routeKeyword;
 
             //Terminal Route Node
-            TerminalNode terminalNodeRoute = CreateNewTerminalNode();
-            terminalNodeRoute.name = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized() + "Route";
-            terminalNodeRoute.displayText = "The cost to route to " + extendedLevel.selectableLevel.PlanetName + " is [totalCost]. It is currently [currentPlanetTime] on this moon.";
-            terminalNodeRoute.displayText += "\n" + "\n" + "Please CONFIRM or DENY." + "\n" + "\n";
-            terminalNodeRoute.clearPreviousText = true;
-            terminalNodeRoute.buyRerouteToMoon = -2;
-            terminalNodeRoute.displayPlanetInfo = extendedLevel.selectableLevel.levelID;
-            terminalNodeRoute.itemCost = routePrice;
-            terminalNodeRoute.overrideOptions = true;
+            TerminalNode terminalNodeRoute;
+            if (extendedLevel.RouteNode != null)
+                terminalNodeRoute = extendedLevel.RouteNode;
+            else
+            {
+                terminalNodeRoute = CreateNewTerminalNode();
+                terminalNodeRoute.name = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized() + "Route";
+                if (extendedLevel.overrideRouteNodeDescription != string.Empty)
+                    terminalNodeRoute.displayText = extendedLevel.overrideRouteNodeDescription;
+                else
+                {
+                    terminalNodeRoute.displayText = "The cost to route to " + extendedLevel.selectableLevel.PlanetName + " is [totalCost]. It is currently [currentPlanetTime] on this moon.";
+                    terminalNodeRoute.displayText += "\n" + "\n" + "Please CONFIRM or DENY." + "\n" + "\n";
+                }
+                terminalNodeRoute.clearPreviousText = true;
+                terminalNodeRoute.buyRerouteToMoon = -2;
+                terminalNodeRoute.displayPlanetInfo = extendedLevel.selectableLevel.levelID;
+                terminalNodeRoute.itemCost = routePrice;
+                terminalNodeRoute.overrideOptions = true;
+            }
+
 
             //Terminal Route Confirm Node
-            TerminalNode terminalNodeRouteConfirm = CreateNewTerminalNode();
-            terminalNodeRouteConfirm.name = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized() + "RouteConfirm";
-            terminalNodeRouteConfirm.displayText = "Routing autopilot to " + extendedLevel.selectableLevel.PlanetName + " Your new balance is [playerCredits].";
-            terminalNodeRouteConfirm.clearPreviousText = true;
-            terminalNodeRouteConfirm.buyRerouteToMoon = extendedLevel.selectableLevel.levelID;
-            terminalNodeRouteConfirm.itemCost = routePrice;
+            TerminalNode terminalNodeRouteConfirm;
+            if (extendedLevel.RouteConfirmNode != null)
+                terminalNodeRouteConfirm = extendedLevel.RouteConfirmNode;
+            else
+            {
+                terminalNodeRouteConfirm = CreateNewTerminalNode();
+                terminalNodeRouteConfirm.name = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized() + "RouteConfirm";
+                if (extendedLevel.overrideRouteConfirmNodeDescription != string.Empty)
+                    terminalNodeRouteConfirm.displayText = extendedLevel.overrideRouteConfirmNodeDescription;
+                else
+                    terminalNodeRouteConfirm.displayText = "Routing autopilot to " + extendedLevel.selectableLevel.PlanetName + " Your new balance is [playerCredits].";
+                terminalNodeRouteConfirm.clearPreviousText = true;
+                terminalNodeRouteConfirm.buyRerouteToMoon = extendedLevel.selectableLevel.levelID;
+                terminalNodeRouteConfirm.itemCost = routePrice;
+            }
 
             //Terminal Info Node
-            TerminalNode terminalNodeInfo = CreateNewTerminalNode();
-            terminalNodeInfo.name = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized() + "Info";
-            terminalNodeInfo.clearPreviousText = true;
-            terminalNodeInfo.maxCharactersToType = 35;
-
-
-            string infoString = extendedLevel.selectableLevel.PlanetName + "\n" + "----------------------" + "\n";
-            List<string> selectableLevelLines = new List<string>();
-
-            string inputString;
-            if (extendedLevel.infoNodeDescripton != string.Empty)
-                inputString = extendedLevel.infoNodeDescripton;
+            TerminalNode terminalNodeInfo;
+            if (extendedLevel.InfoNode != null)
+                terminalNodeInfo = extendedLevel.InfoNode;
             else
-            inputString = extendedLevel.selectableLevel.LevelDescription;
-
-            while (inputString.Contains("\n"))
             {
-                string inputStringWithoutTextBeforeFirstComma = inputString.Substring(inputString.IndexOf("\n"));
-                selectableLevelLines.Add(inputString.Replace(inputStringWithoutTextBeforeFirstComma, ""));
-                if (inputStringWithoutTextBeforeFirstComma.Contains("\n"))
-                    inputString = inputStringWithoutTextBeforeFirstComma.Substring(inputStringWithoutTextBeforeFirstComma.IndexOf("\n") + 1);
+                terminalNodeInfo = CreateNewTerminalNode();
+                terminalNodeInfo.name = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized() + "Info";
+                terminalNodeInfo.clearPreviousText = true;
+                terminalNodeInfo.maxCharactersToType = 35;
+                string infoString;
+                if (extendedLevel.overrideInfoNodeDescription != string.Empty)
+                    infoString = extendedLevel.overrideInfoNodeDescription;
+                else
+                {
+                    infoString = extendedLevel.selectableLevel.PlanetName + "\n" + "----------------------" + "\n";
+                    List<string> selectableLevelLines = new List<string>();
+
+                    string inputString = extendedLevel.selectableLevel.LevelDescription;
+
+                    while (inputString.Contains("\n"))
+                    {
+                        string inputStringWithoutTextBeforeFirstComma = inputString.Substring(inputString.IndexOf("\n"));
+                        selectableLevelLines.Add(inputString.Replace(inputStringWithoutTextBeforeFirstComma, ""));
+                        if (inputStringWithoutTextBeforeFirstComma.Contains("\n"))
+                            inputString = inputStringWithoutTextBeforeFirstComma.Substring(inputStringWithoutTextBeforeFirstComma.IndexOf("\n") + 1);
+                    }
+                    selectableLevelLines.Add(inputString);
+
+                    foreach (string line in selectableLevelLines)
+                        infoString += "\n" + line + "\n";
+                }
+
+                terminalNodeInfo.displayText = infoString;
             }
-            selectableLevelLines.Add(inputString);
-
-            foreach (string line in selectableLevelLines)
-                infoString += "\n" + line + "\n";
-
-            terminalNodeInfo.displayText = infoString;
 
             foreach (StoryLogData newStoryLog in extendedLevel.storyLogs)
                 if (newStoryLog.terminalWord != string.Empty && newStoryLog.storyLogTitle != string.Empty && newStoryLog.storyLogDescription != string.Empty)
@@ -416,7 +474,7 @@ namespace LethalLevelLoader
                     newStoryLogKeyword.name = newStoryLog.terminalWord + "Keyword";
                     newStoryLogKeyword.defaultVerb = viewKeyword;
                     TerminalNode newStoryLogNode = CreateNewTerminalNode();
-                    newStoryLogNode.name = newStoryLog.terminalWord + "Node";
+                    newStoryLogNode.name = "LogFile" + Terminal.logEntryFiles.Count + 1;
                     newStoryLogNode.clearPreviousText = true;
                     newStoryLogNode.creatureName = newStoryLog.storyLogTitle;
                     newStoryLogNode.storyLogFileID = Terminal.logEntryFiles.Count;
@@ -434,9 +492,9 @@ namespace LethalLevelLoader
             routeKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeRoute);
             infoKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeInfo);
 
-            extendedLevel.routeNode = terminalNodeRoute;
-            extendedLevel.routeConfirmNode = terminalNodeRouteConfirm;
-            extendedLevel.infoNode = terminalNodeInfo;
+            extendedLevel.RouteNode = terminalNodeRoute;
+            extendedLevel.RouteConfirmNode = terminalNodeRouteConfirm;
+            extendedLevel.InfoNode = terminalNodeInfo;
         }
 
         internal static void RegisterStoryLog(TerminalKeyword terminalKeyword, TerminalNode terminalNode)

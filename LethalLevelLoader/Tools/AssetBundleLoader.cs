@@ -1,6 +1,7 @@
 ﻿using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -28,6 +29,7 @@ namespace LethalLevelLoader
 
         internal static List<ExtendedLevel> obtainedExtendedLevelsList = new List<ExtendedLevel>();
         internal static List<ExtendedDungeonFlow> obtainedExtendedDungeonFlowsList = new List<ExtendedDungeonFlow>();
+        internal static List<ExtendedWeatherEffect> obtainedExtendedWeatherEffectsList = new List<ExtendedWeatherEffect>();
 
         public enum LoadingStatus { Inactive, Loading, Complete };
         public static LoadingStatus loadingStatus = LoadingStatus.Inactive;
@@ -119,12 +121,21 @@ namespace LethalLevelLoader
                 assetBundles[fileName] = newBundle;
 
                 if (newBundle.isStreamedSceneAssetBundle == false)
+                {
                     foreach (ExtendedLevel extendedLevel in newBundle.LoadAllAssets<ExtendedLevel>())
                     {
                         if (extendedLevel.contentSourceName == string.Empty)
                             extendedLevel.contentSourceName = newBundle.name;
                         obtainedExtendedLevelsList.Add(extendedLevel);
                     }
+
+                    foreach (ExtendedWeatherEffect extendedWeatherEffect in newBundle.LoadAllAssets<ExtendedWeatherEffect>())
+                    {
+                        if (extendedWeatherEffect.contentSourceName == string.Empty)
+                            extendedWeatherEffect.contentSourceName = newBundle.name;
+                        obtainedExtendedWeatherEffectsList.Add(extendedWeatherEffect);
+                    }
+                }
 
                 onBundleFinishedLoading?.Invoke(newBundle);
             }
@@ -166,6 +177,9 @@ namespace LethalLevelLoader
                     obtainedExtendedLevelsList.Remove(extendedLevel);
                 }
             }
+
+            foreach (ExtendedWeatherEffect effect in obtainedExtendedWeatherEffectsList)
+                effect.Initialize();
         }
 
         internal static void InitializeBundles()
@@ -214,12 +228,13 @@ namespace LethalLevelLoader
                 foreach (CompatibleNoun compatibleRouteNoun in TerminalManager.routeKeyword.compatibleNouns)
                     if (compatibleRouteNoun.noun.name.Contains(ExtendedLevel.GetNumberlessPlanetName(selectableLevel)))
                     {
-                        extendedLevel.routeNode = compatibleRouteNoun.result;
-                        extendedLevel.routeConfirmNode = compatibleRouteNoun.result.terminalOptions[1].result;
+                        extendedLevel.RouteNode = compatibleRouteNoun.result;
+                        extendedLevel.RouteConfirmNode = compatibleRouteNoun.result.terminalOptions[1].result;
                         extendedLevel.RoutePrice = compatibleRouteNoun.result.itemCost;
                         break;
                     }
                 extendedLevel.Initialize("Lethal Company", generateTerminalAssets: false);
+                extendedLevel.name = extendedLevel.NumberlessPlanetName + "Level";
 
                 SetVanillaLevelTags(extendedLevel);
                 PatchedContent.ExtendedLevels.Add(extendedLevel);
@@ -235,6 +250,19 @@ namespace LethalLevelLoader
                     CreateVanillaExtendedDungeonFlow(dungeonFlow);
             else
                 DebugHelper.Log("Error! RoundManager dungeonFlowTypes Array Was Null!");
+        }
+
+        internal static void CreateVanillaExtendedWeatherEffects(StartOfRound startOfRound, TimeOfDay timeOfDay)
+        {
+            foreach (LevelWeatherType levelWeatherType in Enum.GetValues(typeof(LevelWeatherType)))
+            {
+                ExtendedWeatherEffect newExtendedWeatherEffect;
+                if (levelWeatherType != LevelWeatherType.None)
+                    newExtendedWeatherEffect = ExtendedWeatherEffect.Create(levelWeatherType, timeOfDay.effects[(int)levelWeatherType], levelWeatherType.ToString(), "Lethal Company", ContentType.Vanilla);
+                else
+                    newExtendedWeatherEffect = ExtendedWeatherEffect.Create(levelWeatherType, null, null, levelWeatherType.ToString(), "Lethal Company", ContentType.Vanilla);
+                newExtendedWeatherEffect.Initialize();
+            }
         }
 
         internal static void CreateVanillaExtendedDungeonFlow(DungeonFlow dungeonFlow)

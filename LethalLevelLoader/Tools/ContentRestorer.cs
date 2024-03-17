@@ -47,26 +47,36 @@ namespace LethalLevelLoader.Tools
         {
             if (extendedLevel.isLethalExpansion == true) return;
 
-            foreach (SpawnableItemWithRarity spawnableItem in extendedLevel.selectableLevel.spawnableScrap)
-                foreach (Item vanillaItem in OriginalContent.Items)
-                    if (spawnableItem.spawnableItem.itemName == vanillaItem.itemName)
-                        spawnableItem.spawnableItem = RestoreAsset(spawnableItem.spawnableItem, vanillaItem, debugAction: true);
+            DebugHelper.Log("#1");
+            foreach (SpawnableItemWithRarity spawnableItem in new List<SpawnableItemWithRarity>(extendedLevel.selectableLevel.spawnableScrap))
+            {
+                if (spawnableItem.spawnableItem == null)
+                    extendedLevel.selectableLevel.spawnableScrap.Remove(spawnableItem);
+                else
+                    foreach (Item vanillaItem in OriginalContent.Items)
+                        if (spawnableItem.spawnableItem.name == vanillaItem.name)
+                            spawnableItem.spawnableItem = RestoreAsset(spawnableItem.spawnableItem, vanillaItem, debugAction: true);
+            }
 
+            DebugHelper.Log("#2");
             foreach (EnemyType vanillaEnemyType in OriginalContent.Enemies)
                 foreach (SpawnableEnemyWithRarity enemyRarityPair in extendedLevel.selectableLevel.Enemies.Concat(extendedLevel.selectableLevel.DaytimeEnemies).Concat(extendedLevel.selectableLevel.OutsideEnemies))
                     if (enemyRarityPair.enemyType != null && enemyRarityPair.enemyType.enemyName == vanillaEnemyType.enemyName)
                         enemyRarityPair.enemyType = RestoreAsset(enemyRarityPair.enemyType, vanillaEnemyType, debugAction: true);
 
+            DebugHelper.Log("#3");
             foreach (SpawnableMapObject spawnableMapObject in extendedLevel.selectableLevel.spawnableMapObjects)
                 foreach (GameObject vanillaSpawnableMapObject in OriginalContent.SpawnableMapObjects)
                     if (spawnableMapObject.prefabToSpawn != null && spawnableMapObject.prefabToSpawn.name == vanillaSpawnableMapObject.name)
                         spawnableMapObject.prefabToSpawn = RestoreAsset(spawnableMapObject.prefabToSpawn, vanillaSpawnableMapObject, debugAction: true);
 
+            DebugHelper.Log("#4");
             foreach (SpawnableOutsideObjectWithRarity spawnableOutsideObject in extendedLevel.selectableLevel.spawnableOutsideObjects)
                 foreach (SpawnableOutsideObject vanillaSpawnableOutsideObject in OriginalContent.SpawnableOutsideObjects)
                     if (spawnableOutsideObject.spawnableObject != null && spawnableOutsideObject.spawnableObject.name == vanillaSpawnableOutsideObject.name)
                         spawnableOutsideObject.spawnableObject = RestoreAsset(spawnableOutsideObject.spawnableObject, vanillaSpawnableOutsideObject, debugAction: true);
 
+            DebugHelper.Log("#5");
             foreach (LevelAmbienceLibrary vanillaAmbienceLibrary in OriginalContent.LevelAmbienceLibraries)
                 if (extendedLevel.selectableLevel.levelAmbienceClips != null && extendedLevel.selectableLevel.levelAmbienceClips.name == vanillaAmbienceLibrary.name)
                     extendedLevel.selectableLevel.levelAmbienceClips = RestoreAsset(extendedLevel.selectableLevel.levelAmbienceClips, vanillaAmbienceLibrary, debugAction: true);
@@ -145,8 +155,8 @@ namespace LethalLevelLoader.Tools
         {
             if (currentAsset != null && newAsset != null)
             {
-                //if (debugAction == true && currentAsset.name != null)
-                    //DebugHelper.Log("Restoring " + currentAsset.GetType().ToString() + ": Old Asset Name: " + currentAsset.name + " , New Asset Name: " + newAsset);
+                if (debugAction == true && currentAsset.name != null)
+                    DebugHelper.Log("Restoring " + currentAsset.GetType().ToString() + ": Old Asset Name: " + currentAsset.name + " , New Asset Name: " + newAsset);
 
                     if (destroyOnReplace == true)
                         UnityEngine.Object.DestroyImmediate(currentAsset);

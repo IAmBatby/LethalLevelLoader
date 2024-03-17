@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using static LethalLevelLoader.DungeonEvents;
 
 namespace LethalLevelLoader
@@ -49,6 +50,8 @@ namespace LethalLevelLoader
         [HideInInspector] public ContentType dungeonType;
         [HideInInspector] public int dungeonID;
         [HideInInspector] public int dungeonDefaultRarity; //To Be Deprecated
+
+        [HideInInspector] public bool isCurrentDungeon => (DungeonManager.CurrentExtendedDungeonFlow == this);
 
         [HideInInspector] public DungeonEvents dungeonEvents = new DungeonEvents();
 

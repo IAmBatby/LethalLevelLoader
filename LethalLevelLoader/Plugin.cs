@@ -15,20 +15,20 @@ namespace LethalLevelLoader
 {
     [BepInPlugin(ModGUID, ModName, ModVersion)]
     [BepInDependency(LethalLib.Plugin.ModGUID)]
-    internal class Plugin : BaseUnityPlugin
+    public class Plugin : BaseUnityPlugin
     {
         public const string ModGUID = "imabatby.lethallevelloader";
         public const string ModName = "LethalLevelLoader";
-        public const string ModVersion = "1.1.0.6";
+        public const string ModVersion = "1.1.0.7";
 
-        public static Plugin Instance;
+        internal static Plugin Instance;
 
-        public static AssetBundle MainAssets;
+        internal static AssetBundle MainAssets;
         internal static readonly Harmony Harmony = new Harmony(ModGUID);
 
         internal static BepInEx.Logging.ManualLogSource logger;
 
-        public static bool hasVanillaBeenPatched;
+        internal static bool hasVanillaBeenPatched;
 
         internal static GameObject networkManagerPrefab;
 

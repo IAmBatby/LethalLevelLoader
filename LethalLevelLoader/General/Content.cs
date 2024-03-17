@@ -88,6 +88,32 @@ namespace LethalLevelLoader
             }
         }
 
+        public static List<ExtendedWeatherEffect> ExtendedWeatherEffects { get; internal set; } = new List<ExtendedWeatherEffect>();
+
+        public static List<ExtendedWeatherEffect> VanillaExtendedWeatherEffects
+        {
+            get
+            {
+                List<ExtendedWeatherEffect> list = new List<ExtendedWeatherEffect>();
+                foreach (ExtendedWeatherEffect effect in ExtendedWeatherEffects)
+                    if (effect.contentType == ContentType.Vanilla)
+                        list.Add(effect);
+                return (list);
+            }
+        }
+
+        public static List<ExtendedWeatherEffect> CustomExtendedWeatherEffects
+        {
+            get
+            {
+                List<ExtendedWeatherEffect> list = new List<ExtendedWeatherEffect>();
+                foreach (ExtendedWeatherEffect effect in ExtendedWeatherEffects)
+                    if (effect.contentType == ContentType.Custom)
+                        list.Add(effect);
+                return (list);
+            }
+        }
+
         public static List<string> AllExtendedLevelTags
         {
             get

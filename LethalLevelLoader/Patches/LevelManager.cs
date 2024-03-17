@@ -31,6 +31,12 @@ namespace LethalLevelLoader
 
         public static int invalidSaveLevelID = -1;
 
+        public static List<string> cachedFootstepSurfaceTagsList = new List<string>();
+        public static List<Material> cachedExtendedFootstepSurfaceMaterialsList = new List<Material>();
+        public static List<GameObject> cachedExtendedFootstepSurfaceGameObjectsList = new List<GameObject>(); 
+        public static Dictionary<FootstepSurface, ExtendedFootstepSurface> cachedFootstepSurfacesDictionary = new Dictionary<FootstepSurface, ExtendedFootstepSurface>();
+
+
         internal static void ValidateLevelLists()
         {
             List<SelectableLevel> vanillaLevelsList = new List<SelectableLevel>(OriginalContent.SelectableLevels);
@@ -80,9 +86,9 @@ namespace LethalLevelLoader
                     foreach (CompatibleNoun compatibleRouteNoun in TerminalManager.routeKeyword.compatibleNouns)
                         if (compatibleRouteNoun.noun.name.ToLower().Contains(extendedLevel.NumberlessPlanetName.ToLower()))
                         {
-                            extendedLevel.routeNode = compatibleRouteNoun.result;
-                            extendedLevel.routeConfirmNode = compatibleRouteNoun.result.terminalOptions[1].result;
-                            extendedLevel.RoutePrice = extendedLevel.routeNode.itemCost;
+                            extendedLevel.RouteNode = compatibleRouteNoun.result;
+                            extendedLevel.RouteConfirmNode = compatibleRouteNoun.result.terminalOptions[1].result;
+                            extendedLevel.RoutePrice = extendedLevel.RouteNode.itemCost;
                             break;
                         }
                 }
@@ -120,6 +126,74 @@ namespace LethalLevelLoader
                     returnExtendedLevel = extendedLevel;
 
             return (returnExtendedLevel);
+        }
+
+        public static void RegisterExtendedFootstepSurfaces(ExtendedLevel extendedLevel)
+        {
+            List<FootstepSurface> currentFootstepSurfaces = StartOfRound.Instance.footstepSurfaces.ToList();
+
+            if (extendedLevel.extendedFootstepSurfaces != null)
+            {
+                foreach (ExtendedFootstepSurface extendedFootstepSurface in extendedLevel.extendedFootstepSurfaces)
+                {
+                    if (extendedFootstepSurface != null && extendedFootstepSurface.footstepSurface != null)
+                        if ((extendedFootstepSurface.associatedGameObjects != null && extendedFootstepSurface.associatedGameObjects.Count != 0) || (extendedFootstepSurface.associatedMaterials != null && extendedFootstepSurface.associatedMaterials.Count != 0))
+                        {
+                            if (!currentFootstepSurfaces.Contains(extendedFootstepSurface.footstepSurface))
+                            {
+                                DebugHelper.Log("Registering New Footstep Surface:  " + extendedFootstepSurface.footstepSurface.surfaceTag + " From ExtendedLevel: " + extendedLevel);
+                                StartOfRound.Instance.footstepSurfaces = StartOfRound.Instance.footstepSurfaces.AddItem(extendedFootstepSurface.footstepSurface).ToArray();
+                                extendedFootstepSurface.arrayIndex = StartOfRound.Instance.footstepSurfaces.Length - 1;
+                            }
+                        }
+                }
+
+
+                if (extendedLevel.extendedFootstepSurfaces.Count != 0)
+                    RefreshCachedFootstepSurfaceData();
+            }
+        }
+
+        public static void RefreshCachedFootstepSurfaceData()
+        {
+            DebugHelper.Log("#1");
+            cachedFootstepSurfacesDictionary = new Dictionary<FootstepSurface, ExtendedFootstepSurface>();
+            foreach (FootstepSurface footstepSurface in StartOfRound.Instance.footstepSurfaces)
+                cachedFootstepSurfacesDictionary.Add(footstepSurface, null);
+            DebugHelper.Log("#2");
+            List<ExtendedFootstepSurface> extendedFootstepSurfaceList = new List<ExtendedFootstepSurface>();
+            foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
+                foreach (ExtendedFootstepSurface extendedFootstepSurface in customLevel.extendedFootstepSurfaces)
+                    if (!extendedFootstepSurfaceList.Contains(extendedFootstepSurface))
+                    {
+                        extendedFootstepSurfaceList.Add(extendedFootstepSurface);
+                        if (cachedFootstepSurfacesDictionary.ContainsKey(extendedFootstepSurface.footstepSurface))
+                            cachedFootstepSurfacesDictionary[extendedFootstepSurface.footstepSurface] = extendedFootstepSurface;
+                    }
+            DebugHelper.Log("#3");
+            cachedFootstepSurfaceTagsList = new List<string>();
+            cachedExtendedFootstepSurfaceMaterialsList = new List<Material>();
+            cachedExtendedFootstepSurfaceGameObjectsList = new List<GameObject>();
+            DebugHelper.Log("#4");
+            foreach (FootstepSurface footstepSurface in cachedFootstepSurfacesDictionary.Keys)
+            {
+                if (footstepSurface != null)
+                {
+                    if (cachedFootstepSurfacesDictionary.TryGetValue(footstepSurface, out ExtendedFootstepSurface extendedFootstepSurface))
+                    {
+                        if (extendedFootstepSurface != null)
+                        {
+                            foreach (Material material in extendedFootstepSurface.associatedMaterials)
+                                cachedExtendedFootstepSurfaceMaterialsList.Add(material);
+                            foreach (GameObject gameObject in extendedFootstepSurface.associatedGameObjects)
+                                cachedExtendedFootstepSurfaceGameObjectsList.Add(gameObject);
+                        }
+                    }
+                    else
+                        cachedFootstepSurfaceTagsList.Add(footstepSurface.surfaceTag);
+                }
+            }
+            DebugHelper.Log("#5");
         }
 
         public static void LogDayHistory()

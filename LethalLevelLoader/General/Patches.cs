@@ -1,6 +1,7 @@
 ﻿using Discord;
 using DunGen;
 using DunGen.Graph;
+using GameNetcodeStuff;
 using HarmonyLib;
 using LethalLevelLoader.Tools;
 using LethalLib.Modules;
@@ -26,8 +27,6 @@ namespace LethalLevelLoader
         internal static string delayedSceneLoadingName = string.Empty;
 
         internal static List<string> allSceneNamesCalledToLoad = new List<string>();
-
-
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(PreInitSceneScript), "Awake")]
@@ -211,6 +210,17 @@ namespace LethalLevelLoader
             }
         }
 
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(TimeOfDay), "Start")]
+        [HarmonyPostfix]
+        internal static void TimeOfDayStart_Postfix(TimeOfDay __instance)
+        {
+            AssetBundleLoader.CreateVanillaExtendedWeatherEffects(StartOfRound.Instance, __instance);
+            WeatherManager.PopulateVanillaExtendedWeatherEffectsDictionary();
+            WeatherManager.PopulateExtendedLevelEnabledExtendedWeatherEffects();
+            StartOfRound.Instance.SetPlanetsWeather(0);
+        }
+
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(StartOfRound), "ChangeLevel")]
@@ -224,6 +234,20 @@ namespace LethalLevelLoader
                 LevelManager.invalidSaveLevelID = levelID;
                 levelID = 0;
             }
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(StartOfRound), "SetPlanetsWeather")]
+        [HarmonyPrefix]
+        internal static bool StartOfRoundSetPlanetsWeather_Prefix(int connectedPlayersOnServer)
+        {
+            if (WeatherManager.vanillaExtendedWeatherEffectsDictionary.Count != 0)
+            {
+                WeatherManager.SetExtendedLevelsExtendedWeatherEffect(connectedPlayersOnServer);
+                return (false);
+            }
+            else
+                return (true);
         }
 
 
@@ -263,25 +287,42 @@ namespace LethalLevelLoader
         {
             if (node == TerminalManager.moonsKeyword.specialKeywordResult)
             {
+                string debugString = node.displayText;
+                if (debugString.Contains("\n\n"))
+                {
+                    debugString = debugString.Substring(debugString.IndexOf("\n\n"));
+                    DebugHelper.Log("TerminalNode DisplayText 1: " + debugString);
+                    if (debugString.Contains("\n\n"))
+                    {
+                        debugString = debugString.SkipToLetters();
+                        debugString = debugString.Substring(debugString.IndexOf("\n\n"));
+                        DebugHelper.Log("TerminalNode DisplayText 2: " + debugString);
+                        debugString = node.displayText.Replace(debugString, string.Empty);
+                        DebugHelper.Log("TerminalNode DisplayText 3: " + debugString);
+                    }
+                }
                 TerminalManager.RefreshExtendedLevelGroups();
                 node.displayText = TerminalManager.GetMoonsTerminalText();
             }
             else if (__instance.currentNode == TerminalManager.moonsKeyword.specialKeywordResult)
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                    if (extendedLevel.routeNode == node && extendedLevel.isLocked == true)
+                    if (extendedLevel.RouteNode == node && extendedLevel.isLocked == true)
                         TerminalManager.SwapRouteNodeToLockedNode(extendedLevel, ref node);
         }
 
         //Called via SceneManager event.
         internal static void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
-            if (LevelManager.CurrentExtendedLevel != null && LevelManager.CurrentExtendedLevel.IsLoaded)
+            if (LevelManager.CurrentExtendedLevel != null && LevelManager.CurrentExtendedLevel.IsLoadedLevel)
                 if (LevelManager.CurrentExtendedLevel.levelType == ContentType.Custom && LevelManager.CurrentExtendedLevel.isLethalExpansion == false)
+                {
+                    DebugHelper.DebugSpawnScrap(LevelManager.CurrentExtendedLevel);
                     foreach (GameObject rootObject in SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.selectableLevel.sceneName).GetRootGameObjects())
                     {
                         LevelLoader.UpdateStoryLogs(LevelManager.CurrentExtendedLevel, rootObject);
                         ContentRestorer.RestoreAudioAssetReferencesInParent(rootObject);
                     }
+                }
             
         }
 
@@ -375,6 +416,44 @@ namespace LethalLevelLoader
             DebugHelper.LogWarning("Disabling LethalLib Dungeon.RoundManager_GenerateNewFloor() Function To Prevent Conflicts");
             orig(self);
             return (false);
+        }
+
+        internal static GameObject previousHit;
+        internal static FootstepSurface previouslyAssignedFootstepSurface;
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(PlayerControllerB), "GetCurrentMaterialStandingOn")]
+        [HarmonyPrefix]
+        internal static bool PlayerControllerBGetCurrentMaterialStandingOn_Prefix(PlayerControllerB __instance)
+        {
+            if (LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces.Count != 0)
+                if (Physics.Raycast(new Ray(__instance.thisPlayerBody.position + Vector3.up, -Vector3.up), out RaycastHit hit, 6f, StartOfRound.Instance.walkableSurfacesMask, QueryTriggerInteraction.Ignore))
+                    if (hit.collider.gameObject == previousHit)
+                        return (false);
+            return (true);
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(PlayerControllerB), "GetCurrentMaterialStandingOn")]
+        [HarmonyPostfix]
+        internal static void PlayerControllerBGetCurrentMaterialStandingOn_Postfix(PlayerControllerB __instance)
+        {
+            if (LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces.Count != 0)
+                if (Physics.Raycast(new Ray(__instance.thisPlayerBody.position + Vector3.up, -Vector3.up), out RaycastHit hit, 6f, StartOfRound.Instance.walkableSurfacesMask, QueryTriggerInteraction.Ignore))
+                    if (hit.collider.gameObject != previousHit || previousHit == null)
+                    {
+                        previousHit = hit.collider.gameObject;
+                        if (hit.collider.CompareTag("Untagged") || !LevelManager.cachedFootstepSurfaceTagsList.Contains(hit.collider.tag))
+                            if (hit.collider.gameObject.TryGetComponent(out MeshRenderer meshRenderer))
+                                foreach (Material material in meshRenderer.sharedMaterials)
+                                    foreach (ExtendedFootstepSurface extendedFootstepSurface in LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces)
+                                        foreach (Material associatedMaterial in extendedFootstepSurface.associatedMaterials)
+                                            if (material.name == associatedMaterial.name)
+                                            {
+                                                __instance.currentFootstepSurfaceIndex = extendedFootstepSurface.arrayIndex;
+                                                return;
+                                            }
+                    }
         }
     }
 }

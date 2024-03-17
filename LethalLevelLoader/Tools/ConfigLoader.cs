@@ -254,7 +254,7 @@ namespace LethalLevelLoader.Tools
                     extendedLevel.isHidden = isLevelHidden.Value;
                     if (isLevelRegistered.Value == false)
                         foreach (CompatibleNoun compatibleNoun in new List<CompatibleNoun>(TerminalManager.routeKeyword.compatibleNouns))
-                            if (compatibleNoun.result == extendedLevel.routeNode)
+                            if (compatibleNoun.result == extendedLevel.RouteNode)
                             {
                                 List<CompatibleNoun> modifiedNounsList = new List<CompatibleNoun>(TerminalManager.routeKeyword.compatibleNouns);
                                 modifiedNounsList.Remove(compatibleNoun);

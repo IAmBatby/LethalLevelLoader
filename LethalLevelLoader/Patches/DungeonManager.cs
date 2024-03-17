@@ -89,14 +89,14 @@ namespace LethalLevelLoader
             {
                 string debugMatchString = string.Empty;
                 ExtendedDungeonFlow extendedDungeonFlow = customDungeonFlow.extendedDungeonFlow;
+                if (customDungeonFlow.UpdateRarity(GetHighestRarityViaMatchingNormalizedStrings(extendedLevel.levelTags, extendedDungeonFlow.dynamicLevelTagsList)))
+                    debugMatchString = " Based On Level Tags!";
                 if (customDungeonFlow.UpdateRarity(GetHighestRarityViaMatchingNormalizedString(extendedLevel.contentSourceName, extendedDungeonFlow.manualContentSourceNameReferenceList)))
                     debugMatchString = " Based On Content Source Name!";
                 if (customDungeonFlow.UpdateRarity(GetHighestRarityViaMatchingNormalizedString(extendedLevel.NumberlessPlanetName, extendedDungeonFlow.manualPlanetNameReferenceList)))
                     debugMatchString = " Based On Planet Name!";
                 if (customDungeonFlow.UpdateRarity(GetHighestRarityViaMatchingWithinRanges(extendedLevel.RoutePrice, extendedDungeonFlow.dynamicRoutePricesList)))
                     debugMatchString = " Based On Route Price!";
-                if (customDungeonFlow.UpdateRarity(GetHighestRarityViaMatchingNormalizedStrings(extendedLevel.levelTags, extendedDungeonFlow.dynamicLevelTagsList)))
-                    debugMatchString = " Based On Level Tags!";
                 if (customDungeonFlow.UpdateRarity(GetHighestRarityViaMatchingNormalizedString(extendedLevel.selectableLevel.currentWeather.ToString(), extendedDungeonFlow.dynamicCurrentWeatherList)))
                     debugMatchString = " Based On Current Weather!";
                 if (debugMatchString != string.Empty)

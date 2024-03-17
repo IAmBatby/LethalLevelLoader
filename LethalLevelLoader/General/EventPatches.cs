@@ -19,12 +19,17 @@ namespace LethalLevelLoader
     //Nothing in this class should modify the game in any way.
     internal class EventPatches
     {
+        internal static DayMode previousDayMode = DayMode.None;
+        internal static bool firedDawnEvent = false;
         ////////// Level Patches //////////
 
         internal static void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
-            if (LevelManager.CurrentExtendedLevel != null && LevelManager.CurrentExtendedLevel.IsLoaded)
-                    LevelManager.CurrentExtendedLevel.levelEvents.onLevelLoaded.Invoke();
+            if (LevelManager.CurrentExtendedLevel != null && LevelManager.CurrentExtendedLevel.IsLoadedLevel)
+            {
+                previousDayMode = DayMode.None;
+                LevelManager.CurrentExtendedLevel.levelEvents.onLevelLoaded.Invoke();
+            }
         }
 
         [HarmonyPriority(Patches.harmonyPriority)]
@@ -175,6 +180,18 @@ namespace LethalLevelLoader
                 if (LevelManager.CurrentExtendedLevel != null)
                     LevelManager.CurrentExtendedLevel.levelEvents.onApparatusTaken.Invoke(__instance);
             }
+        }
+
+        [HarmonyPriority(Patches.harmonyPriority)]
+        [HarmonyPatch(typeof(TimeOfDay), "GetDayPhase")]
+        [HarmonyPostfix]
+        internal static void TimeOfDayGetDayPhase_Postfix(DayMode __result)
+        {
+            if (previousDayMode == DayMode.None || previousDayMode != __result)
+                LevelManager.CurrentExtendedLevel.levelEvents.onDayModeToggle.Invoke(__result);
+
+            previousDayMode = __result;
+
         }
     }
 
