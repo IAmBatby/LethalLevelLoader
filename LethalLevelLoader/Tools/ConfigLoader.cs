@@ -71,6 +71,7 @@ namespace LethalLevelLoader.Tools
         private ConfigEntry<FilterInfoType> filterInfoTypeToggle;
         private ConfigEntry<SimulateInfoType> simulateInfoTypeToggle;
 
+        private ConfigEntry<int> moonsCatalogueSplitCount;
         private ConfigEntry<bool> requireMatchesOnAllDungeonFlows;
 
         public GeneralSettingsConfig(ConfigFile newConfigFile, string newCatagory, int newSortingPriority) : base(newConfigFile, newCatagory, newSortingPriority) { }
@@ -82,12 +83,17 @@ namespace LethalLevelLoader.Tools
             filterInfoTypeToggle = BindValue("Terminal >Moons FilterInfo Default", "How LethalLevelLoader filters each moon in the >moons Terminal listing.", FilterInfoType.None);
             simulateInfoTypeToggle = BindValue("Terminal >Simulate Results Type Default", "The format used to display odds using the >simulate Terminal keyword.", SimulateInfoType.Percentage);
 
+            moonsCatalogueSplitCount = BindValue("Moons Catalogue Group Split Count", "The amount of moons that will be in each automatically generated group.", 3);
+
             requireMatchesOnAllDungeonFlows = BindValue("Require Matches On All Possible DungeonFlows", "By default any Dungeons requested by the loading level will skip the matching process and be in the possible selection pool, Set this to false to disable this feature", true);
 
             Settings.levelPreviewInfoType = previewInfoTypeToggle.Value;
             Settings.levelPreviewSortType = sortInfoTypeToggle.Value;
             Settings.levelPreviewFilterType = filterInfoTypeToggle.Value;
             Settings.levelSimulateInfoType = simulateInfoTypeToggle.Value;
+
+            if (moonsCatalogueSplitCount.Value > 0)
+                Settings.moonsCatalogueSplitCount = moonsCatalogueSplitCount.Value;
 
             Settings.allDungeonFlowsRequireMatching = requireMatchesOnAllDungeonFlows.Value;
         }

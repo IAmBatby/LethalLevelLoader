@@ -62,15 +62,20 @@ namespace LethalLevelLoader
             }
             set
             {
-                RouteNode.itemCost = value;
-                RouteConfirmNode.itemCost = value;
+                if (RouteNode != null && RouteConfirmNode != null)
+                {
+                    RouteNode.itemCost = value;
+                    RouteConfirmNode.itemCost = value;
+                }
+                else
+                    DebugHelper.LogWarning("routeNode Is Missing! Only setting internal value!");
                 routePrice = value;
             }
         }
 
         [HideInInspector] public ContentType levelType;
         public string NumberlessPlanetName => GetNumberlessPlanetName(selectableLevel);
-
+        public int CalculatedDifficultyRating => LevelManager.CalculateExtendedLevelDifficultyRating(this);
         public bool IsCurrentLevel => LevelManager.CurrentExtendedLevel == this;
         public bool IsLoadedLevel => SceneManager.GetSceneByName(selectableLevel.sceneName).isLoaded;
 
@@ -155,6 +160,12 @@ namespace LethalLevelLoader
         internal void DebugDaymodeToggle(DayMode dayMode)
         {
             DebugHelper.Log("DayMode Toggle Event: " + dayMode.ToString());
+        }
+
+        public void ForceSetRoutePrice(int newValue)
+        {
+            Debug.LogWarning("ForceSetRoutePrice Should Only Be Used In Editor! Consider Using RoutePrice Property To Sync TerminalNode's With New Value.");
+            routePrice = newValue;
         }
     }
         

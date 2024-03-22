@@ -54,26 +54,7 @@ namespace LethalLevelLoader
 
         public void RebuildLevelGroups(ExtendedLevel[] newExtendedLevels, int splitCount)
         {
-            List<ExtendedLevelGroup> returnList = new List<ExtendedLevelGroup>();
-
-            int counter = 0;
-            int levelsAdded = 0;
-            List<ExtendedLevel> currentExtendedLevelsBatch = new List<ExtendedLevel>();
-            foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(newExtendedLevels))
-            {
-                currentExtendedLevelsBatch.Add(extendedLevel);
-                levelsAdded++;
-                counter++;
-
-                if (counter == splitCount || levelsAdded == newExtendedLevels.Length)
-                {
-                    returnList.Add(new ExtendedLevelGroup(currentExtendedLevelsBatch));
-                    currentExtendedLevelsBatch.Clear();
-                    counter = 0;
-                }
-            }
-
-            extendedLevelGroups = returnList;
+            extendedLevelGroups = TerminalManager.GetExtendedLevelGroups(newExtendedLevels, splitCount);
         }
 
         public void RefreshLevelGroups(List<ExtendedLevelGroup> newLevelGroups)
@@ -90,6 +71,8 @@ namespace LethalLevelLoader
     {
         public List<ExtendedLevel> extendedLevelsList;
 
+        public int AverageCalculatedDifficulty => GetAverageCalculatedDifficulty();
+
         public ExtendedLevelGroup(List<ExtendedLevel> newExtendedLevelsList)
         {
             extendedLevelsList = new List<ExtendedLevel>(newExtendedLevelsList);
@@ -100,6 +83,14 @@ namespace LethalLevelLoader
             extendedLevelsList = new List<ExtendedLevel>();
             foreach (SelectableLevel level in newSelectableLevelsList)
                 extendedLevelsList.Add(LevelManager.GetExtendedLevel(level));
+        }
+
+        public int GetAverageCalculatedDifficulty()
+        {
+            List<int> calculatedDifficulties = new List<int>();
+            foreach (ExtendedLevel level in extendedLevelsList)
+                calculatedDifficulties.Add(level.CalculatedDifficultyRating);
+            return ((int)calculatedDifficulties.Average());
         }
     }
 

@@ -19,9 +19,16 @@ namespace LethalLevelLoader
     //Nothing in this class should modify the game in any way.
     internal class EventPatches
     {
+        public static LevelEvents GlobalLevelEvents = new LevelEvents();
+        public static DungeonEvents DungeonEvents = new DungeonEvents();
         internal static DayMode previousDayMode = DayMode.None;
         internal static bool firedDawnEvent = false;
         ////////// Level Patches //////////
+        
+        internal static void InvokeExtendedEvent<T>(ExtendedEvent<T> extendedEvent, T eventParameter)
+        {
+            extendedEvent.Invoke(eventParameter);
+        }
 
         internal static void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {

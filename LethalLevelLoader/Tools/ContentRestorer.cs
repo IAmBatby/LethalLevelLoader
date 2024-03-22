@@ -5,11 +5,14 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Audio;
+using Object = UnityEngine.Object;
 
 namespace LethalLevelLoader.Tools
 {
     internal static class ContentRestorer
     {
+        internal static List<Object> objectsToDestroy = new List<Object>();
+
         internal static void RestoreVanillaDungeonAssetReferences(ExtendedDungeonFlow extendedDungeonFlow)
         {
             if (extendedDungeonFlow == null)
@@ -150,16 +153,27 @@ namespace LethalLevelLoader.Tools
             }
         }
 
+        internal static void DestroyRestoredAssets()
+        {
+            foreach (Object objectToDestroy in objectsToDestroy)
+            {
+                Debug.Log("Destroying: " + objectToDestroy.name);
+                UnityEngine.Object.DestroyImmediate(objectToDestroy);
+            }
+            objectsToDestroy.Clear();
+        }
+
 
         internal static T RestoreAsset<T>(UnityEngine.Object currentAsset, T newAsset, bool debugAction = false, bool destroyOnReplace = true)
         {
             if (currentAsset != null && newAsset != null)
             {
                 if (debugAction == true && currentAsset.name != null)
-                    DebugHelper.Log("Restoring " + currentAsset.GetType().ToString() + ": Old Asset Name: " + currentAsset.name + " , New Asset Name: " + newAsset);
+                    DebugHelper.Log("Restoring " + currentAsset.GetType().ToString() + ": Old Asset Name: " + currentAsset.name + " , New Asset Name: ");
 
-                    if (destroyOnReplace == true)
-                        UnityEngine.Object.DestroyImmediate(currentAsset);
+                if (destroyOnReplace == true)
+                    if (!objectsToDestroy.Contains(currentAsset))
+                        objectsToDestroy.Add(currentAsset);
             }
             else
                 DebugHelper.LogWarning("Asset Restoration Failed, Null Reference Found!");

@@ -143,15 +143,15 @@ namespace LethalLevelLoader
                         extendedLevelGroup.extendedLevelsList.Remove(extendedLevel);
 
             if (Settings.levelPreviewFilterType != FilterInfoType.None)
-                moonsCataloguePage.RebuildLevelGroups(new List<ExtendedLevelGroup>(moonsCataloguePage.ExtendedLevelGroups), 3);
+                moonsCataloguePage.RebuildLevelGroups(new List<ExtendedLevelGroup>(moonsCataloguePage.ExtendedLevelGroups), Settings.moonsCatalogueSplitCount);
         }
 
         internal static void SortMoonsCataloguePage(MoonsCataloguePage cataloguePage)
         {
             if (Settings.levelPreviewSortType.Equals(SortInfoType.Price))
-                cataloguePage.RebuildLevelGroups(cataloguePage.ExtendedLevels.OrderBy(o => o.RoutePrice), 3);
+                cataloguePage.RebuildLevelGroups(cataloguePage.ExtendedLevels.OrderBy(o => o.RoutePrice), Settings.moonsCatalogueSplitCount);
             else if (Settings.levelPreviewSortType.Equals(SortInfoType.Difficulty))
-                cataloguePage.RebuildLevelGroups(cataloguePage.ExtendedLevels.OrderBy(o => o.RoutePrice + (o.selectableLevel.maxEnemyPowerCount * 10) + o.selectableLevel.maxTotalScrapValue), 3);
+                cataloguePage.RebuildLevelGroups(cataloguePage.ExtendedLevels.OrderBy(o => o.CalculatedDifficultyRating), Settings.moonsCatalogueSplitCount);
         }
 
         ////////// Getting Data //////////
@@ -225,11 +225,11 @@ namespace LethalLevelLoader
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Price))
                 levelPreviewInfo = offset + "($" + extendedLevel.RoutePrice + ")";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Difficulty))
-                levelPreviewInfo = offset + "(" + extendedLevel.selectableLevel.riskLevel + ")";
+                levelPreviewInfo = offset + "(" + extendedLevel.selectableLevel.riskLevel + " | " + extendedLevel.CalculatedDifficultyRating + ")";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.History))
                 levelPreviewInfo = offset + GetHistoryConditions(extendedLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.All))
-                levelPreviewInfo = offset + "(" + extendedLevel.selectableLevel.riskLevel + ") " + "($" + extendedLevel.RoutePrice + ") " + GetWeatherConditions(extendedLevel);
+                levelPreviewInfo = offset + "(" + extendedLevel.selectableLevel.riskLevel + " | " + extendedLevel.CalculatedDifficultyRating + ") " + "($" + extendedLevel.RoutePrice + ") " + GetWeatherConditions(extendedLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Vanilla))
                 levelPreviewInfo = offset + "[planetTime]";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Override))
@@ -364,6 +364,30 @@ namespace LethalLevelLoader
             return (false);
         }
 
+        public static List<ExtendedLevelGroup> GetExtendedLevelGroups(ExtendedLevel[] newExtendedLevels, int splitCount)
+        {
+            List<ExtendedLevelGroup> returnList = new List<ExtendedLevelGroup>();
+
+            int counter = 0;
+            int levelsAdded = 0;
+            List<ExtendedLevel> currentExtendedLevelsBatch = new List<ExtendedLevel>();
+            foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(newExtendedLevels))
+            {
+                currentExtendedLevelsBatch.Add(extendedLevel);
+                levelsAdded++;
+                counter++;
+
+                if (counter == splitCount || levelsAdded == newExtendedLevels.Length)
+                {
+                    returnList.Add(new ExtendedLevelGroup(currentExtendedLevelsBatch));
+                    currentExtendedLevelsBatch.Clear();
+                    counter = 0;
+                }
+            }
+
+            return (returnList);
+        }
+
         ////////// Creating Data //////////
 
         internal static void CreateExtendedLevelGroups()
@@ -375,9 +399,51 @@ namespace LethalLevelLoader
             ExtendedLevelGroup vanillaGroupB = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(3, 2));
             ExtendedLevelGroup vanillaGroupC = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(5, 3));
 
-            ExtendedLevelGroup customGroup = new ExtendedLevelGroup(PatchedContent.CustomExtendedLevels);
+            Dictionary<string, List<ExtendedLevel>> extendedLevelsContentSourceNameDictionary = new Dictionary<string, List<ExtendedLevel>>();
 
-            defaultMoonsCataloguePage = new MoonsCataloguePage(new List<ExtendedLevelGroup>() { vanillaGroupA, vanillaGroupB, vanillaGroupC, customGroup });
+            foreach (ExtendedLevel customExtendedLevel in PatchedContent.CustomExtendedLevels)
+            {
+                if (extendedLevelsContentSourceNameDictionary.TryGetValue(customExtendedLevel.contentSourceName, out List<ExtendedLevel> extendedLevels))
+                    extendedLevels.Add(customExtendedLevel);
+                else
+                    extendedLevelsContentSourceNameDictionary.Add(customExtendedLevel.contentSourceName, new List<ExtendedLevel> { customExtendedLevel });                 
+            }
+
+            List<ExtendedLevelGroup> defaultVanillaExtendedLevelGroups = new List<ExtendedLevelGroup>() { vanillaGroupA, vanillaGroupB, vanillaGroupC };
+            List<ExtendedLevelGroup> defaultCustomGroupedExtendedLevelGroups = new List<ExtendedLevelGroup>();
+            List<ExtendedLevelGroup> defaultCustomSingleExtendedLevelGroups = new List<ExtendedLevelGroup>();
+
+            List<ExtendedLevel> singleExtendedLevelsList = new List<ExtendedLevel>();
+
+            foreach (KeyValuePair<string, List<ExtendedLevel>> customExtendedLevelLists in new Dictionary<string, List<ExtendedLevel>>(extendedLevelsContentSourceNameDictionary))
+            {
+                extendedLevelsContentSourceNameDictionary[customExtendedLevelLists.Key] = customExtendedLevelLists.Value.OrderBy(o => o.CalculatedDifficultyRating).ToList();
+                if (customExtendedLevelLists.Value.Count == 1)
+                    singleExtendedLevelsList.Add(customExtendedLevelLists.Value[0]);
+                else
+                    defaultCustomGroupedExtendedLevelGroups.Add(new ExtendedLevelGroup(customExtendedLevelLists.Value));
+            }
+
+            //defaultCustomExtendedLevelGroups.Add(new ExtendedLevelGroup(singleExtendedLevelsList.OrderBy(o => o.CalculatedDifficultyRating).ToList()));
+            //defaultCustomExtendedLevelGroups = defaultCustomExtendedLevelGroups.OrderBy(o => o.AverageCalculatedDifficulty).ToList();
+            singleExtendedLevelsList = singleExtendedLevelsList.OrderBy(o => o.CalculatedDifficultyRating).ToList();
+            defaultCustomSingleExtendedLevelGroups = GetExtendedLevelGroups(singleExtendedLevelsList.ToArray(), Settings.moonsCatalogueSplitCount);
+
+            List<ExtendedLevelGroup> combinedOrderedCustomExtendedLevelGroups = defaultCustomGroupedExtendedLevelGroups.Concat(defaultCustomSingleExtendedLevelGroups).OrderBy(o => o.AverageCalculatedDifficulty).ToList();
+            List<ExtendedLevelGroup> allDefaultExtendedLevelGroups = defaultVanillaExtendedLevelGroups.Concat(combinedOrderedCustomExtendedLevelGroups).ToList();
+            string debugString = "Debugging DefaultExtendedLevelsGroup" + "\n";
+            int counter = 0;
+            foreach (ExtendedLevelGroup extendedLevelGroup in allDefaultExtendedLevelGroups)
+            {
+                debugString += "Group #" + counter + " ";
+                foreach (ExtendedLevel extendedLevel in extendedLevelGroup.extendedLevelsList)
+                    debugString += extendedLevel.NumberlessPlanetName + "(" + extendedLevel.contentSourceName + ") , ";
+                debugString += "\n";
+
+                counter++;
+            }
+            DebugHelper.Log(debugString);
+            defaultMoonsCataloguePage = new MoonsCataloguePage(allDefaultExtendedLevelGroups);
             currentMoonsCataloguePage = new MoonsCataloguePage(new List<ExtendedLevelGroup>());
             RefreshExtendedLevelGroups();
         }

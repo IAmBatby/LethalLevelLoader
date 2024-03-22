@@ -167,13 +167,10 @@ namespace LethalLevelLoader
 
                 foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
                     ContentRestorer.RestoreVanillaLevelAssetReferences(customLevel);
+                ContentRestorer.DestroyRestoredAssets();
 
                 foreach (ExtendedDungeonFlow customDungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
                     ContentRestorer.RestoreVanillaDungeonAssetReferences(customDungeonFlow);
-
-                TerminalManager.CreateMoonsFilterTerminalAssets();
-
-                ConfigLoader.BindConfigs();
 
                 SceneManager.sceneLoaded += OnSceneLoaded;
                 SceneManager.sceneLoaded += EventPatches.OnSceneLoaded;
@@ -182,11 +179,25 @@ namespace LethalLevelLoader
             foreach (AudioSource audioSource in Resources.FindObjectsOfTypeAll<AudioSource>())
                 audioSource.spatialize = false;
 
+            ConfigLoader.BindConfigs();
+
             LevelManager.ValidateLevelLists();
+
             LevelManager.PatchVanillaLevelLists();
             DungeonManager.PatchVanillaDungeonLists();
+
             LevelManager.RefreshCustomExtendedLevelIDs();
+
+            LevelManager.PopulateDynamicRiskLevelDictionary();
+            LevelManager.AssignCalculatedRiskLevels();
+
             TerminalManager.CreateExtendedLevelGroups();
+
+
+            if (Plugin.hasVanillaBeenPatched == false)
+            {
+                TerminalManager.CreateMoonsFilterTerminalAssets();
+            }
 
             if (LevelManager.invalidSaveLevelID != -1 && StartOfRound.Instance.levels.Length > LevelManager.invalidSaveLevelID)
             {
@@ -257,6 +268,11 @@ namespace LethalLevelLoader
         internal static void TerminalStart_Postfix()
         {
             LevelManager.RefreshLethalExpansionMoons();
+            StartOfRound.Instance.SetPlanetsWeather();
+
+            List<ExtendedLevel> levels = PatchedContent.ExtendedLevels.OrderBy(o => o.CalculatedDifficultyRating).ToList();
+            foreach (ExtendedLevel extendedLevel in levels)
+                LevelManager.CalculateExtendedLevelDifficultyRating(extendedLevel, true);
         }
 
         [HarmonyPriority(harmonyPriority)]
@@ -272,12 +288,23 @@ namespace LethalLevelLoader
             }
         }
 
+        internal static bool ranLethalLevelLoaderTerminalEvent;
+
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(Terminal), "RunTerminalEvents")]
         [HarmonyPrefix]
-        internal static bool TerminalRunTerminalEvents_Prefix(TerminalNode node)
+        internal static bool TerminalRunTerminalEvents_Prefix(Terminal __instance, TerminalNode node)
         {
-            return (TerminalManager.RunLethalLevelLoaderTerminalEvents(node));
+            if (__instance.currentNode != TerminalManager.moonsKeyword.specialKeywordResult)
+            {
+                ranLethalLevelLoaderTerminalEvent = false;
+                return (true);
+            }
+            else
+            {
+                ranLethalLevelLoaderTerminalEvent = !TerminalManager.RunLethalLevelLoaderTerminalEvents(node);
+                return (!ranLethalLevelLoaderTerminalEvent);
+            }
         }
 
         [HarmonyPriority(harmonyPriority)]
@@ -287,20 +314,6 @@ namespace LethalLevelLoader
         {
             if (node == TerminalManager.moonsKeyword.specialKeywordResult)
             {
-                string debugString = node.displayText;
-                if (debugString.Contains("\n\n"))
-                {
-                    debugString = debugString.Substring(debugString.IndexOf("\n\n"));
-                    DebugHelper.Log("TerminalNode DisplayText 1: " + debugString);
-                    if (debugString.Contains("\n\n"))
-                    {
-                        debugString = debugString.SkipToLetters();
-                        debugString = debugString.Substring(debugString.IndexOf("\n\n"));
-                        DebugHelper.Log("TerminalNode DisplayText 2: " + debugString);
-                        debugString = node.displayText.Replace(debugString, string.Empty);
-                        DebugHelper.Log("TerminalNode DisplayText 3: " + debugString);
-                    }
-                }
                 TerminalManager.RefreshExtendedLevelGroups();
                 node.displayText = TerminalManager.GetMoonsTerminalText();
             }
@@ -308,6 +321,15 @@ namespace LethalLevelLoader
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                     if (extendedLevel.RouteNode == node && extendedLevel.isLocked == true)
                         TerminalManager.SwapRouteNodeToLockedNode(extendedLevel, ref node);
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(Terminal), "LoadNewNode")]
+        [HarmonyPostfix]
+        internal static void TerminalLoadNewNode_Postfix(Terminal __instance, ref TerminalNode node)
+        {
+            if (ranLethalLevelLoaderTerminalEvent == true)
+                __instance.currentNode = TerminalManager.moonsKeyword.specialKeywordResult;
         }
 
         //Called via SceneManager event.
@@ -334,6 +356,9 @@ namespace LethalLevelLoader
             if (LevelManager.CurrentExtendedLevel != null)
                 DungeonLoader.PrepareDungeon();
             LevelManager.LogDayHistory();
+
+            if (RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow == null)
+                DebugHelper.LogError("Critical Failure! DungeonGenerator DungeonFlow Is Null!");
         }
 
         //Basegame has a bug where it stops listening before it gets the Complete call, so this is just a fixed version of the basegame function.
