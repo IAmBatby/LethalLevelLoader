@@ -34,7 +34,7 @@ namespace LethalLevelLoader
         }
         internal static void TryScrapeVanillaContent(RoundManager roundManager)
         {
-            if (Plugin.hasVanillaBeenPatched == false)
+            if (Plugin.IsSetupComplete == false)
             {
                 StartOfRound startOfRound = StartOfRound.Instance;
                 if (startOfRound != null)

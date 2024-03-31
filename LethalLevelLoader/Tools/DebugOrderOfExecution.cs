@@ -9,7 +9,7 @@ namespace LethalLevelLoader
     {
         //Start Of Round
 
-        /*[HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.Awake))]
+        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.Awake))]
         [HarmonyPrefix]
         public static void StartOfRound_Awake(StartOfRound __instance)
         {
@@ -83,6 +83,6 @@ namespace LethalLevelLoader
         public static void StartOfRound_Start(Terminal __instance)
         {
             DebugHelper.Log("OrderOfExecution: Terminal Start");
-        }*/
+        }
     }
 }

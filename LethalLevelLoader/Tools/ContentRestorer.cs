@@ -22,7 +22,7 @@ namespace LethalLevelLoader.Tools
             }
             if (extendedDungeonFlow.dungeonFlow == null)
             {
-                DebugHelper.LogError("Tried To Restore Null Vanilla ExtendedDungeonFlow " + extendedDungeonFlow.dungeonDisplayName +  " But DungeonFlow Was Null! Returning!");
+                DebugHelper.LogError("Tried To Restore Null Vanilla ExtendedDungeonFlow " + extendedDungeonFlow.DungeonName +  " But DungeonFlow Was Null! Returning!");
                 return;
             }
 

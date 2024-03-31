@@ -33,7 +33,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void PreInitSceneScriptAwake_Prefix(PreInitSceneScript __instance)
         {
-            if (Plugin.hasVanillaBeenPatched == false)
+            if (Plugin.IsSetupComplete == false)
             {
                 AssetBundleLoader.CreateLoadingBundlesHeaderText(__instance);
                 if (__instance.TryGetComponent(out AudioSource audioSource))
@@ -41,6 +41,9 @@ namespace LethalLevelLoader
 
                 AssetBundleLoader.LoadBundles(__instance);
                 AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
+
+
+                ContentTagParser.ImportVanillaContentTags();
             }
         }
 
@@ -54,7 +57,7 @@ namespace LethalLevelLoader
         }
 
         [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(SceneManager), "LoadScene", new Type[] {typeof(string)})]
+        [HarmonyPatch(typeof(SceneManager), "LoadScene", new Type[] { typeof(string) })]
         [HarmonyPrefix]
         internal static bool SceneManagerLoadScene(string sceneName)
         {
@@ -94,7 +97,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void GameNetworkManagerStart_Prefix(GameNetworkManager __instance)
         {
-            if (Plugin.hasVanillaBeenPatched == false)
+            if (Plugin.IsSetupComplete == false)
             {
                 foreach (NetworkPrefab networkPrefab in __instance.GetComponent<NetworkManager>().NetworkConfig.Prefabs.m_Prefabs)
                     if (networkPrefab.Prefab.name.Contains("EntranceTeleport"))
@@ -108,8 +111,8 @@ namespace LethalLevelLoader
                 networkManagerPrefab.GetComponent<NetworkObject>().DestroyWithScene = false;
                 GameObject.DontDestroyOnLoad(networkManagerPrefab);
                 LethalLevelLoaderNetworkManager.networkingManagerPrefab = networkManagerPrefab;
-              
-                AssetBundleLoader.RegisterCustomContent(__instance.GetComponent<NetworkManager>());
+
+                AssetBundleLoader.NetworkRegisterCustomContent(__instance.GetComponent<NetworkManager>());
                 LethalLevelLoaderNetworkManager.RegisterPrefabs(__instance.GetComponent<NetworkManager>());
             }
         }
@@ -119,7 +122,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void StartOfRoundAwake_Prefix(StartOfRound __instance)
         {
-            if (Plugin.hasVanillaBeenPatched == false)
+            if (Plugin.IsSetupComplete == false)
                 ContentExtractor.TryScrapeVanillaItems(__instance);
         }
 
@@ -136,23 +139,25 @@ namespace LethalLevelLoader
 
             RoundManager.Instance.firstTimeDungeonAudios = RoundManager.Instance.firstTimeDungeonAudios.ToList().AddItem(RoundManager.Instance.firstTimeDungeonAudios[0]).ToArray();
 
-            if (Plugin.hasVanillaBeenPatched == false)
+            if (Plugin.IsSetupComplete == false)
             {
                 ContentExtractor.TryScrapeVanillaContent(__instance);
                 TerminalManager.CacheTerminalReferences();
 
                 AssetBundleLoader.CreateVanillaExtendedDungeonFlows();
                 AssetBundleLoader.CreateVanillaExtendedLevels(StartOfRound.Instance);
+                AssetBundleLoader.CreateVanillaExtendedItems();
+                AssetBundleLoader.CreateVanillaExtendedEnemyTypes();
                 AssetBundleLoader.InitializeBundles();
 
-                string debugString = "LethalLevelLoader Loaded The Following ExtendedLevels:"+ "\n";
+                string debugString = "LethalLevelLoader Loaded The Following ExtendedLevels:" + "\n";
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                    debugString += (PatchedContent.ExtendedLevels.IndexOf(extendedLevel) + 1) + ". " + extendedLevel.selectableLevel.PlanetName + " (" + extendedLevel.levelType + ")" + "\n";
+                    debugString += (PatchedContent.ExtendedLevels.IndexOf(extendedLevel) + 1) + ". " + extendedLevel.selectableLevel.PlanetName + " (" + extendedLevel.ContentType + ")" + "\n";
                 DebugHelper.Log(debugString);
 
                 debugString = "LethalLevelLoader Loaded The Following ExtendedDungeonFlows:" + "\n";
                 foreach (ExtendedDungeonFlow extendedDungeonFlow in PatchedContent.ExtendedDungeonFlows)
-                    debugString += (PatchedContent.ExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1) + ". " + extendedDungeonFlow.dungeonDisplayName + " (" + extendedDungeonFlow.dungeonFlow.name + ") (" + extendedDungeonFlow.dungeonType + ")" + "\n";
+                    debugString += (PatchedContent.ExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1) + ". " + extendedDungeonFlow.DungeonName + " (" + extendedDungeonFlow.dungeonFlow.name + ") (" + extendedDungeonFlow.ContentType + ")" + "\n";
                 DebugHelper.Log(debugString);
             }
         }
@@ -162,7 +167,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void RoundManagerStart_Prefix()
         {
-            if (Plugin.hasVanillaBeenPatched == false)
+            if (Plugin.IsSetupComplete == false)
             {
 
                 foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
@@ -174,6 +179,9 @@ namespace LethalLevelLoader
 
                 SceneManager.sceneLoaded += OnSceneLoaded;
                 SceneManager.sceneLoaded += EventPatches.OnSceneLoaded;
+
+                LevelManager.PopulateDynamicRiskLevelDictionary();
+                LevelManager.AssignCalculatedRiskLevels();
             }
 
             foreach (AudioSource audioSource in Resources.FindObjectsOfTypeAll<AudioSource>())
@@ -185,18 +193,33 @@ namespace LethalLevelLoader
 
             LevelManager.PatchVanillaLevelLists();
             DungeonManager.PatchVanillaDungeonLists();
+            EnemyManager.UpdateEnemyIDs();
 
             LevelManager.RefreshCustomExtendedLevelIDs();
 
-            LevelManager.PopulateDynamicRiskLevelDictionary();
-            LevelManager.AssignCalculatedRiskLevels();
+            ItemManager.RefreshDynamicItemRarityOnAllExtendedLevels();
+            EnemyManager.RefreshDynamicEnemyTypeRarityOnAllExtendedLevels();
+
 
             TerminalManager.CreateExtendedLevelGroups();
 
 
-            if (Plugin.hasVanillaBeenPatched == false)
+            if (Plugin.IsSetupComplete == false)
             {
                 TerminalManager.CreateMoonsFilterTerminalAssets();
+
+                TerminalManager.CreateTerminalDataForAllExtendedStoryLogs();
+
+                ContentTagParser.ApplyVanillaContentTags();
+
+                ContentTagManager.MergeAllExtendedModTags();
+
+                ContentTagManager.PopulateContentTagData();
+
+                DebugHelper.DebugAllContentTags();
+
+                ItemManager.GetExtendedItemPriceData();
+                ItemManager.GetExtendedItemWeightData();
             }
 
             if (LevelManager.invalidSaveLevelID != -1 && StartOfRound.Instance.levels.Length > LevelManager.invalidSaveLevelID)
@@ -213,11 +236,10 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         internal static void RoundManagerStart_Postfix()
         {
-            if (Plugin.hasVanillaBeenPatched == false)
+            DebugHelper.Log("RoundManagerStartPostfix");
+            if (Plugin.IsSetupComplete == false)
             {
                 ContentExtractor.TryScrapeCustomContent();
-
-                Plugin.hasVanillaBeenPatched = true;
             }
         }
 
@@ -226,24 +248,14 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         internal static void TimeOfDayStart_Postfix(TimeOfDay __instance)
         {
-            AssetBundleLoader.CreateVanillaExtendedWeatherEffects(StartOfRound.Instance, __instance);
-            WeatherManager.PopulateVanillaExtendedWeatherEffectsDictionary();
-            WeatherManager.PopulateExtendedLevelEnabledExtendedWeatherEffects();
-            StartOfRound.Instance.SetPlanetsWeather(0);
-        }
-
-
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartOfRound), "ChangeLevel")]
-        [HarmonyPrefix]
-        internal static void StartOfRoundChangeLevel_Prefix(ref int levelID)
-        {
-            if (levelID >= StartOfRound.Instance.levels.Length)
+            DebugHelper.Log("TimeOfDayStartPostfix");
+            if (Plugin.IsSetupComplete == false)
             {
-                DebugHelper.LogWarning("Lethal Company attempted to load a saved current level that has not yet been loaded");
-                DebugHelper.LogWarning(levelID + " / " + (StartOfRound.Instance.levels.Length));
-                LevelManager.invalidSaveLevelID = levelID;
-                levelID = 0;
+                AssetBundleLoader.CreateVanillaExtendedWeatherEffects(StartOfRound.Instance, __instance);
+                WeatherManager.PopulateVanillaExtendedWeatherEffectsDictionary();
+                WeatherManager.PopulateExtendedLevelEnabledExtendedWeatherEffects();
+                StartOfRound.Instance.SetPlanetsWeather(0);
+                Plugin.CompleteSetup();
             }
         }
 
@@ -335,8 +347,8 @@ namespace LethalLevelLoader
         //Called via SceneManager event.
         internal static void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
-            if (LevelManager.CurrentExtendedLevel != null && LevelManager.CurrentExtendedLevel.IsLoadedLevel)
-                if (LevelManager.CurrentExtendedLevel.levelType == ContentType.Custom && LevelManager.CurrentExtendedLevel.isLethalExpansion == false)
+            if (LevelManager.CurrentExtendedLevel != null && LevelManager.CurrentExtendedLevel.IsLevelLoaded)
+                if (LevelManager.CurrentExtendedLevel.ContentType == ContentType.Custom && LevelManager.CurrentExtendedLevel.isLethalExpansion == false)
                 {
                     DebugHelper.DebugSpawnScrap(LevelManager.CurrentExtendedLevel);
                     foreach (GameObject rootObject in SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.selectableLevel.sceneName).GetRootGameObjects())
@@ -345,7 +357,7 @@ namespace LethalLevelLoader
                         ContentRestorer.RestoreAudioAssetReferencesInParent(rootObject);
                     }
                 }
-            
+
         }
 
         [HarmonyPriority(harmonyPriority)]
@@ -423,24 +435,49 @@ namespace LethalLevelLoader
                 RoundManager.Instance.GenerateNewFloor();
         }
 
+
         [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(LethalLib.Modules.Dungeon), "RoundManager_Start")]
+        [HarmonyPatch(typeof(StoryLog), "Start")]
         [HarmonyPrefix]
-        internal static bool Dungeon_Start_Prefix(On.RoundManager.orig_Start orig, RoundManager self)
+        internal static void StoryLogStart_Prefix(StoryLog __instance)
         {
-            DebugHelper.LogWarning("Disabling LethalLib Dungeon.RoundManager_Start() Function To Prevent Conflicts");
-            orig(self);
-            return (false);
+            foreach (ExtendedStoryLog extendedStoryLog in LevelManager.CurrentExtendedLevel.ExtendedMod.ExtendedStoryLogs)
+                if (extendedStoryLog.sceneName == __instance.gameObject.scene.name)
+                {
+                    if (__instance.storyLogID == extendedStoryLog.storyLogID)
+                    {
+                        DebugHelper.Log("Updating " + extendedStoryLog.storyLogTitle + "ID");
+                        __instance.storyLogID = extendedStoryLog.newStoryLogID;
+                    }
+                }
+        }
+
+        static List<SpawnableMapObject> tempoarySpawnableMapObjectList = new List<SpawnableMapObject>();
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects")]
+        [HarmonyPrefix]
+        internal static void RoundManagerSpawnMapObjects_Prefix()
+        {
+            List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.selectableLevel.spawnableMapObjects);
+            foreach (SpawnableMapObject newRandomMapObject in DungeonManager.CurrentExtendedDungeonFlow.spawnableMapObjects)
+            {
+                spawnableMapObjects.Add(newRandomMapObject);
+                tempoarySpawnableMapObjectList.Add(newRandomMapObject);
+            }
+            LevelManager.CurrentExtendedLevel.selectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
         }
 
         [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(LethalLib.Modules.Dungeon), "RoundManager_GenerateNewFloor")]
-        [HarmonyPrefix]
-        internal static bool Dungeon_GenerateNewFloor_Prefix(On.RoundManager.orig_GenerateNewFloor orig, RoundManager self)
+        [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects")]
+        [HarmonyPostfix]
+        internal static void RoundManagerSpawnMapObjects_Postfix()
         {
-            DebugHelper.LogWarning("Disabling LethalLib Dungeon.RoundManager_GenerateNewFloor() Function To Prevent Conflicts");
-            orig(self);
-            return (false);
+            List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.selectableLevel.spawnableMapObjects);
+            foreach (SpawnableMapObject spawnableMapObject in tempoarySpawnableMapObjectList)
+                spawnableMapObjects.Remove(spawnableMapObject);
+            LevelManager.CurrentExtendedLevel.selectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
+            tempoarySpawnableMapObjectList.Clear();
         }
 
         internal static GameObject previousHit;
@@ -451,10 +488,10 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static bool PlayerControllerBGetCurrentMaterialStandingOn_Prefix(PlayerControllerB __instance)
         {
-            if (LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces.Count != 0)
+            /*if (LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces.Count != 0)
                 if (Physics.Raycast(new Ray(__instance.thisPlayerBody.position + Vector3.up, -Vector3.up), out RaycastHit hit, 6f, StartOfRound.Instance.walkableSurfacesMask, QueryTriggerInteraction.Ignore))
                     if (hit.collider.gameObject == previousHit)
-                        return (false);
+                        return (false);*/
             return (true);
         }
 
@@ -463,7 +500,7 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         internal static void PlayerControllerBGetCurrentMaterialStandingOn_Postfix(PlayerControllerB __instance)
         {
-            if (LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces.Count != 0)
+            /*if (LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces.Count != 0)
                 if (Physics.Raycast(new Ray(__instance.thisPlayerBody.position + Vector3.up, -Vector3.up), out RaycastHit hit, 6f, StartOfRound.Instance.walkableSurfacesMask, QueryTriggerInteraction.Ignore))
                     if (hit.collider.gameObject != previousHit || previousHit == null)
                     {
@@ -479,6 +516,7 @@ namespace LethalLevelLoader
                                                 return;
                                             }
                     }
+            */
         }
     }
 }

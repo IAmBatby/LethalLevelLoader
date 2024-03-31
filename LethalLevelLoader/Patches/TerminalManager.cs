@@ -25,17 +25,19 @@ namespace LethalLevelLoader
 
         internal static TerminalNode lockedNode;
 
-        internal static MoonsCataloguePage defaultMoonsCataloguePage;
-        internal static MoonsCataloguePage currentMoonsCataloguePage;
+        public static MoonsCataloguePage defaultMoonsCataloguePage { get; internal set; }
+        public static MoonsCataloguePage currentMoonsCataloguePage { get; internal set; }
 
         //Cached References To Important Base-Game TerminalKeywords;
         internal static TerminalKeyword routeKeyword;
-        internal static TerminalKeyword infoKeyword;
-        internal static TerminalKeyword confirmKeyword;
-        internal static TerminalKeyword denyKeyword;
+        internal static TerminalKeyword routeInfoKeyword;
+        internal static TerminalKeyword routeConfirmKeyword;
+        internal static TerminalKeyword routeDenyKeyword;
         internal static TerminalKeyword moonsKeyword;
         internal static TerminalKeyword viewKeyword;
+        internal static TerminalKeyword buyKeyword;
         internal static TerminalNode cancelRouteNode;
+        internal static TerminalNode cancelPurchaseNode;
 
         internal static string currentTagFilter;
 
@@ -49,12 +51,14 @@ namespace LethalLevelLoader
         internal static void CacheTerminalReferences()
         {
             routeKeyword = Terminal.terminalNodes.allKeywords[26];
-            infoKeyword = Terminal.terminalNodes.allKeywords[6];
-            confirmKeyword = Terminal.terminalNodes.allKeywords[3];
-            denyKeyword = Terminal.terminalNodes.allKeywords[4];
+            routeInfoKeyword = Terminal.terminalNodes.allKeywords[6];
+            routeConfirmKeyword = Terminal.terminalNodes.allKeywords[3];
+            routeDenyKeyword = Terminal.terminalNodes.allKeywords[4];
             moonsKeyword = Terminal.terminalNodes.allKeywords[21];
             viewKeyword = Terminal.terminalNodes.allKeywords[19];
+            buyKeyword = Terminal.terminalNodes.allKeywords[0];
             cancelRouteNode = routeKeyword.compatibleNouns[0].result.terminalOptions[0].result;
+            cancelPurchaseNode = buyKeyword.compatibleNouns[0].result.terminalOptions[1].result;
 
             lockedNode = CreateNewTerminalNode();
             lockedNode.name = "lockedLevelNode";
@@ -131,7 +135,7 @@ namespace LethalLevelLoader
                     else if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Weather))
                         removeExtendedLevel = (GetWeatherConditions(extendedLevel) != string.Empty);
                     else if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Tag))
-                        removeExtendedLevel = (!extendedLevel.levelTags.Contains(currentTagFilter));
+                        removeExtendedLevel = (!extendedLevel.ContentTagsAsStrings.Contains(currentTagFilter));
 
                     if (removeExtendedLevel == true)
                         removeLevelList.Add(extendedLevel);
@@ -152,6 +156,12 @@ namespace LethalLevelLoader
                 cataloguePage.RebuildLevelGroups(cataloguePage.ExtendedLevels.OrderBy(o => o.RoutePrice), Settings.moonsCatalogueSplitCount);
             else if (Settings.levelPreviewSortType.Equals(SortInfoType.Difficulty))
                 cataloguePage.RebuildLevelGroups(cataloguePage.ExtendedLevels.OrderBy(o => o.CalculatedDifficultyRating), Settings.moonsCatalogueSplitCount);
+        }
+
+        internal static void SetStoryLogAuthorPostProcessText()
+        {
+
+
         }
 
         ////////// Getting Data //////////
@@ -302,7 +312,7 @@ namespace LethalLevelLoader
                 overrideString += "* " + "Facility" + "  //  Chance: " + GetSimulationDataText(300, totalRarityPool) + "\n";
             }
             foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowResult in availableExtendedFlowsList)
-                overrideString += "* " + extendedDungeonFlowResult.extendedDungeonFlow.dungeonDisplayName + "  //  Chance: " + GetSimulationDataText(extendedDungeonFlowResult.rarity, totalRarityPool) + "\n";
+                overrideString += "* " + extendedDungeonFlowResult.extendedDungeonFlow.DungeonName + "  //  Chance: " + GetSimulationDataText(extendedDungeonFlowResult.rarity, totalRarityPool) + "\n";
 
             return (overrideString);
         }
@@ -403,10 +413,10 @@ namespace LethalLevelLoader
 
             foreach (ExtendedLevel customExtendedLevel in PatchedContent.CustomExtendedLevels)
             {
-                if (extendedLevelsContentSourceNameDictionary.TryGetValue(customExtendedLevel.contentSourceName, out List<ExtendedLevel> extendedLevels))
+                if (extendedLevelsContentSourceNameDictionary.TryGetValue(customExtendedLevel.ModName, out List<ExtendedLevel> extendedLevels))
                     extendedLevels.Add(customExtendedLevel);
                 else
-                    extendedLevelsContentSourceNameDictionary.Add(customExtendedLevel.contentSourceName, new List<ExtendedLevel> { customExtendedLevel });                 
+                    extendedLevelsContentSourceNameDictionary.Add(customExtendedLevel.ModName, new List<ExtendedLevel> { customExtendedLevel });                 
             }
 
             List<ExtendedLevelGroup> defaultVanillaExtendedLevelGroups = new List<ExtendedLevelGroup>() { vanillaGroupA, vanillaGroupB, vanillaGroupC };
@@ -437,7 +447,7 @@ namespace LethalLevelLoader
             {
                 debugString += "Group #" + counter + " ";
                 foreach (ExtendedLevel extendedLevel in extendedLevelGroup.extendedLevelsList)
-                    debugString += extendedLevel.NumberlessPlanetName + "(" + extendedLevel.contentSourceName + ") , ";
+                    debugString += extendedLevel.NumberlessPlanetName + "(" + extendedLevel.ModName + ") , ";
                 debugString += "\n";
 
                 counter++;
@@ -532,35 +542,137 @@ namespace LethalLevelLoader
                 terminalNodeInfo.displayText = infoString;
             }
 
-            foreach (StoryLogData newStoryLog in extendedLevel.storyLogs)
-                if (newStoryLog.terminalWord != string.Empty && newStoryLog.storyLogTitle != string.Empty && newStoryLog.storyLogDescription != string.Empty)
-                {
-                    TerminalKeyword newStoryLogKeyword = CreateNewTerminalKeyword();
-                    newStoryLogKeyword.word = newStoryLog.terminalWord;
-                    newStoryLogKeyword.name = newStoryLog.terminalWord + "Keyword";
-                    newStoryLogKeyword.defaultVerb = viewKeyword;
-                    TerminalNode newStoryLogNode = CreateNewTerminalNode();
-                    newStoryLogNode.name = "LogFile" + Terminal.logEntryFiles.Count + 1;
-                    newStoryLogNode.clearPreviousText = true;
-                    newStoryLogNode.creatureName = newStoryLog.storyLogTitle;
-                    newStoryLogNode.storyLogFileID = Terminal.logEntryFiles.Count;
-                    newStoryLog.newStoryLogID = Terminal.logEntryFiles.Count;
-
-                    Terminal.logEntryFiles.Add(newStoryLogNode);
-                    viewKeyword.AddCompatibleNoun(newStoryLogKeyword, newStoryLogNode);
-                }
-
-
             //Population Into Basegame
 
-            terminalNodeRoute.AddCompatibleNoun(denyKeyword, cancelRouteNode);
-            terminalNodeRoute.AddCompatibleNoun(confirmKeyword, terminalNodeRouteConfirm);
+            terminalNodeRoute.AddCompatibleNoun(routeDenyKeyword, cancelRouteNode);
+            terminalNodeRoute.AddCompatibleNoun(routeConfirmKeyword, terminalNodeRouteConfirm);
             routeKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeRoute);
-            infoKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeInfo);
+            routeInfoKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeInfo);
 
             extendedLevel.RouteNode = terminalNodeRoute;
             extendedLevel.RouteConfirmNode = terminalNodeRouteConfirm;
             extendedLevel.InfoNode = terminalNodeInfo;
+        }
+
+        internal static void CreateTerminalDataForAllExtendedStoryLogs()
+        {
+            foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods)
+                foreach (ExtendedStoryLog extendedStoryLog in extendedMod.ExtendedStoryLogs)
+                    CreateStoryLogTerminalData(extendedStoryLog);
+        }
+
+        internal static void CreateStoryLogTerminalData(ExtendedStoryLog newStoryLog)
+        {
+            TerminalKeyword newStoryLogKeyword = CreateNewTerminalKeyword();
+            newStoryLogKeyword.word = newStoryLog.terminalKeywordNoun;
+            newStoryLogKeyword.name = newStoryLog.terminalKeywordNoun + "Keyword";
+            newStoryLogKeyword.defaultVerb = viewKeyword;
+            TerminalNode newStoryLogNode = CreateNewTerminalNode();
+            newStoryLogNode.name = "LogFile" + (Terminal.logEntryFiles.Count + 1);
+            newStoryLogNode.displayText = newStoryLog.storyLogDescription;
+            newStoryLogNode.clearPreviousText = true;
+            newStoryLogNode.creatureName = newStoryLog.storyLogTitle;
+            newStoryLogNode.storyLogFileID = Terminal.logEntryFiles.Count;
+            newStoryLog.newStoryLogID = Terminal.logEntryFiles.Count;
+
+            Terminal.logEntryFiles.Add(newStoryLogNode);
+            viewKeyword.AddCompatibleNoun(newStoryLogKeyword, newStoryLogNode);
+        }
+
+        internal static void CreateItemTerminalData(ExtendedItem extendedItem)
+        {
+            int buyableItemIndex = Terminal.buyableItemsList.Count();
+
+
+
+            //Terminal Buy Keyword
+            TerminalKeyword terminalKeyword = CreateNewTerminalKeyword();
+            terminalKeyword.name = extendedItem.Item.itemName.StripSpecialCharacters().Sanitized() + "Keyword";
+            terminalKeyword.word = extendedItem.Item.itemName.StripSpecialCharacters().Sanitized();
+            terminalKeyword.defaultVerb = buyKeyword;
+
+            //Terminal Buy Keyword
+            TerminalNode terminalNodeBuy;
+            if (extendedItem.BuyNode != null)
+                terminalNodeBuy = extendedItem.BuyNode;
+            else
+            {
+                terminalNodeBuy = CreateNewTerminalNode();
+                terminalNodeBuy.name = extendedItem.Item.itemName.StripSpecialCharacters().Sanitized() + "Buy";
+                if (extendedItem.overrideBuyNodeDescription != string.Empty)
+                    terminalNodeBuy.displayText = extendedItem.overrideBuyNodeDescription;
+                else
+                {
+                    if (!string.IsNullOrEmpty(extendedItem.pluralisedItemName))
+                        terminalNodeBuy.displayText = "You have requested to order " + extendedItem.pluralisedItemName + ". Amount: [variableAmount].";
+                    else
+                        terminalNodeBuy.displayText = "You have requested to order " + extendedItem.Item.itemName + ". Amount: [variableAmount].";
+                    terminalNodeBuy.displayText += "\n Total cost of items: [totalCost].";
+                    terminalNodeBuy.displayText += "\n" + "\n" + "Please CONFIRM or DENY." + "\n" + "\n";
+                }
+                terminalNodeBuy.clearPreviousText = true;
+                terminalNodeBuy.maxCharactersToType = 15;
+                terminalNodeBuy.buyItemIndex = buyableItemIndex;
+                terminalNodeBuy.isConfirmationNode = true;
+                terminalNodeBuy.itemCost = extendedItem.Item.creditsWorth;
+                terminalNodeBuy.overrideOptions = true;
+            }
+
+            //Terminal Route Confirm Node
+            TerminalNode terminalNodeBuyConfirm;
+            if (extendedItem.BuyConfirmNode != null)
+                terminalNodeBuyConfirm = extendedItem.BuyConfirmNode;
+            else
+            {
+                terminalNodeBuyConfirm = CreateNewTerminalNode();
+                terminalNodeBuyConfirm.name = extendedItem.Item.itemName.StripSpecialCharacters().Sanitized() + "BuyConfirm";
+                if (extendedItem.overrideBuyConfirmNodeDescription != string.Empty)
+                    terminalNodeBuyConfirm.displayText = extendedItem.overrideBuyConfirmNodeDescription;
+                else
+                {
+                    if (!string.IsNullOrEmpty(extendedItem.pluralisedItemName))
+                        terminalNodeBuyConfirm.displayText = "Ordered [variableAmount] " + extendedItem.pluralisedItemName + ". Your new balance is";
+                    else
+                        terminalNodeBuyConfirm.displayText = "Ordered [variableAmount] " + extendedItem.Item.itemName + ". Your new balance is";
+                    terminalNodeBuyConfirm.displayText += "[playerCredits]";
+                    terminalNodeBuyConfirm.displayText += "\n" + "\n" + "Our contractors enjoy fast, free shipping while on the job! Any purchased items will arrive hourly at your approximate location.";
+                }
+                terminalNodeBuyConfirm.clearPreviousText = true;
+                terminalNodeBuyConfirm.maxCharactersToType = 35;
+                terminalNodeBuyConfirm.buyItemIndex = buyableItemIndex;
+                terminalNodeBuyConfirm.isConfirmationNode = false;
+            }
+
+            //Terminal Info Node
+            TerminalNode terminalNodeInfo = null;
+            if (!string.IsNullOrEmpty(extendedItem.overrideInfoNodeDescription))
+            {
+                if (extendedItem.BuyInfoNode != null)
+                    terminalNodeInfo = extendedItem.BuyInfoNode;
+                else
+                {
+                    terminalNodeInfo = CreateNewTerminalNode();
+                    terminalNodeInfo.name = extendedItem.Item.itemName.StripSpecialCharacters().Sanitized() + "Info";
+                    terminalNodeInfo.clearPreviousText = true;
+                    terminalNodeInfo.maxCharactersToType = 25;
+                    terminalNodeInfo.displayText = "\n" + extendedItem.overrideInfoNodeDescription;
+                }
+            }
+
+
+            //Population Into Basegame
+
+            terminalNodeBuy.AddCompatibleNoun(routeConfirmKeyword, terminalNodeBuyConfirm);
+            terminalNodeBuy.AddCompatibleNoun(routeDenyKeyword, cancelPurchaseNode);
+            buyKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeBuy);
+            if (terminalNodeInfo != null)
+                routeInfoKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeInfo);
+
+            extendedItem.BuyNode = terminalNodeBuy;
+            extendedItem.BuyConfirmNode = terminalNodeBuyConfirm;
+            extendedItem.BuyInfoNode = terminalNodeInfo;
+
+            Terminal.buyableItemsList = Terminal.buyableItemsList.AddItem(extendedItem.Item).ToArray();
         }
 
         internal static void RegisterStoryLog(TerminalKeyword terminalKeyword, TerminalNode terminalNode)
@@ -577,7 +689,12 @@ namespace LethalLevelLoader
             //Tag Keywords
             List<string> tagMoonWordsList = new List<string>();
             List<string> tagMoonTerminalEventsList = new List<string>();
-            foreach (string levelTag in PatchedContent.AllExtendedLevelTags)
+            List<string> allLevelTags = new List<string>();
+            foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
+                foreach (ContentTag contentTag in extendedLevel.ContentTags)
+                    if (!allLevelTags.Contains(contentTag.contentTagName))
+                        allLevelTags.Add(contentTag.contentTagName);
+            foreach (string levelTag in allLevelTags)
             {
                 tagMoonWordsList.Add(levelTag);
                 tagMoonTerminalEventsList.Add("Tag;" + levelTag);

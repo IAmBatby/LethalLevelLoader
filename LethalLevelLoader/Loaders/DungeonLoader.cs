@@ -95,7 +95,7 @@ namespace LethalLevelLoader
                 foreach (EntranceTeleport entranceTeleport in entranceTeleports)
                 {
                     entranceTeleport.entranceId = entranceTeleports.IndexOf(entranceTeleport);
-                    entranceTeleport.dungeonFlowId = extendedDungeonFlow.dungeonID; //I'm pretty sure this is fine but this would be something to check if stuff goes weird.
+                    entranceTeleport.dungeonFlowId = extendedDungeonFlow.DungeonID; //I'm pretty sure this is fine but this would be something to check if stuff goes weird.
                 }
 
                 debugString += "EntranceTeleport's Found, " + extendedLevel.NumberlessPlanetName + " Contains " + (entranceTeleports.Count) + " Entrances! ( " + (entranceTeleports.Count - 1) + " Fire Escapes) " + "\n";

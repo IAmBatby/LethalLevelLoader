@@ -25,6 +25,7 @@ namespace LethalLevelLoader
                 return returnLevel;
             }
         }
+        public static LevelEvents GlobalLevelEvents = new LevelEvents();
 
         public static List<DayHistory> dayHistoryList = new List<DayHistory>();
         public static int daysTotal;
@@ -151,7 +152,7 @@ namespace LethalLevelLoader
 
         public static void RegisterExtendedFootstepSurfaces(ExtendedLevel extendedLevel)
         {
-            List<FootstepSurface> currentFootstepSurfaces = StartOfRound.Instance.footstepSurfaces.ToList();
+            /*List<FootstepSurface> currentFootstepSurfaces = StartOfRound.Instance.footstepSurfaces.ToList();
 
             if (extendedLevel.extendedFootstepSurfaces != null)
             {
@@ -172,12 +173,12 @@ namespace LethalLevelLoader
 
                 if (extendedLevel.extendedFootstepSurfaces.Count != 0)
                     RefreshCachedFootstepSurfaceData();
-            }
+            }*/
         }
 
         public static void RefreshCachedFootstepSurfaceData()
         {
-            cachedFootstepSurfacesDictionary = new Dictionary<FootstepSurface, ExtendedFootstepSurface>();
+            /*cachedFootstepSurfacesDictionary = new Dictionary<FootstepSurface, ExtendedFootstepSurface>();
             foreach (FootstepSurface footstepSurface in StartOfRound.Instance.footstepSurfaces)
                 cachedFootstepSurfacesDictionary.Add(footstepSurface, null);
             List<ExtendedFootstepSurface> extendedFootstepSurfaceList = new List<ExtendedFootstepSurface>();
@@ -209,7 +210,7 @@ namespace LethalLevelLoader
                     else
                         cachedFootstepSurfaceTagsList.Add(footstepSurface.surfaceTag);
                 }
-            }
+            }*/
         }
 
         public static void PopulateDynamicRiskLevelDictionary()
@@ -307,13 +308,16 @@ namespace LethalLevelLoader
 
             foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
             {
-                int customLevelCalculatedDifficultyRating = customLevel.CalculatedDifficultyRating;
-                int closestCalculatedRiskLevelRating = orderedCalculatedDifficultyList[0];
+                if (customLevel.overrideDynamicRiskLevelAssignment == false)
+                {
+                    int customLevelCalculatedDifficultyRating = customLevel.CalculatedDifficultyRating;
+                    int closestCalculatedRiskLevelRating = orderedCalculatedDifficultyList[0];
 
-                closestCalculatedRiskLevelRating = orderedCalculatedDifficultyList.OrderBy(item => Math.Abs(customLevelCalculatedDifficultyRating - item)).First();
+                    closestCalculatedRiskLevelRating = orderedCalculatedDifficultyList.OrderBy(item => Math.Abs(customLevelCalculatedDifficultyRating - item)).First();
 
-                if (closestCalculatedRiskLevelRating != 0)
-                    customLevel.selectableLevel.riskLevel = assignmentRiskLevelDictionary[closestCalculatedRiskLevelRating];
+                    if (closestCalculatedRiskLevelRating != 0)
+                        customLevel.selectableLevel.riskLevel = assignmentRiskLevelDictionary[closestCalculatedRiskLevelRating];
+                }
             }
 
             List<ExtendedLevel> extendedLevelsOrdered = new List<ExtendedLevel>(PatchedContent.ExtendedLevels).OrderBy(o => o.CalculatedDifficultyRating).ToList();
@@ -324,12 +328,18 @@ namespace LethalLevelLoader
 
         public static void LogDayHistory()
         {
+            //Heavy early returns here because this runs from a DunGen patch and needs to be safe for unconventional Unity-Editor generation usage.
+            if (Plugin.IsSetupComplete == false || StartOfRound.Instance == null || RoundManager.Instance == null || TimeOfDay.Instance == null)
+            {
+                DebugHelper.LogWarning("Game Seems Uninitialized, Exiting LogDayHistory Early!");
+                return;
+            }
+
             DayHistory newDayHistory = new DayHistory();
             daysTotal++;
 
-            newDayHistory.extendedLevel = GetExtendedLevel(StartOfRound.Instance.currentLevel);
-            DungeonManager.TryGetExtendedDungeonFlow(RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow);
-            newDayHistory.extendedDungeonFlow = extendedDungeonFlow;
+            newDayHistory.extendedLevel = LevelManager.CurrentExtendedLevel;
+            newDayHistory.extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
             newDayHistory.day = daysTotal;
             newDayHistory.quota = TimeOfDay.Instance.timesFulfilledQuota;
             newDayHistory.weatherEffect = StartOfRound.Instance.currentLevel.currentWeather;
@@ -340,7 +350,7 @@ namespace LethalLevelLoader
             else
                 debugString += "MISSING EXTENDEDLEVEL ,";
             if (newDayHistory.extendedDungeonFlow != null)
-                debugString += newDayHistory.extendedDungeonFlow.dungeonDisplayName + " ,";
+                debugString += newDayHistory.extendedDungeonFlow.DungeonName + " ,";
             else
                 debugString += "MISSING EXTENDEDDUNGEONFLOW ,";
             debugString += "Quota: " + newDayHistory.quota + " , Day: " + newDayHistory.day + " , Weather: " + newDayHistory.weatherEffect.ToString();
@@ -366,10 +376,13 @@ namespace LethalLevelLoader
             int scrapValue = 0;
             foreach (SpawnableItemWithRarity spawnableScrap in extendedLevel.selectableLevel.spawnableScrap)
             {
-                if (((spawnableScrap.spawnableItem.minValue + spawnableScrap.spawnableItem.maxValue) * 5) != 0 && spawnableScrap.rarity != 0)
+                if (spawnableScrap.spawnableItem != null)
                 {
-                    if ((spawnableScrap.rarity / 10) != 0)
-                        scrapValue += (spawnableScrap.spawnableItem.maxValue - spawnableScrap.spawnableItem.minValue) / (spawnableScrap.rarity / 10);
+                    if (((spawnableScrap.spawnableItem.minValue + spawnableScrap.spawnableItem.maxValue) * 5) != 0 && spawnableScrap.rarity != 0)
+                    {
+                        if ((spawnableScrap.rarity / 10) != 0)
+                            scrapValue += (spawnableScrap.spawnableItem.maxValue - spawnableScrap.spawnableItem.minValue) / (spawnableScrap.rarity / 10);
+                    }
                 }
             }
             returnRating += scrapValue;
@@ -383,7 +396,7 @@ namespace LethalLevelLoader
             int enemyValue = 0;
             foreach (SpawnableEnemyWithRarity spawnableEnemy in extendedLevel.selectableLevel.Enemies.Concat(extendedLevel.selectableLevel.OutsideEnemies).Concat(extendedLevel.selectableLevel.DaytimeEnemies))
             {
-                if (spawnableEnemy.rarity != 0)
+                if (spawnableEnemy.rarity != 0 && spawnableEnemy.enemyType != null)
                     if ((spawnableEnemy.rarity / 10) != 0)
                         enemyValue += (spawnableEnemy.enemyType.PowerLevel * 100) / (spawnableEnemy.rarity / 10);
             }

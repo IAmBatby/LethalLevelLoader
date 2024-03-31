@@ -42,6 +42,11 @@ namespace LethalLevelLoader
             Plugin.logger.LogError(logString);
         }
 
+        public static void LogError(Exception exception)
+        {
+            Plugin.logger.LogError(exception);
+        }
+
         public static void DebugTerminalKeyword(TerminalKeyword terminalKeyword)
         {
             if (terminalKeyword != null)
@@ -184,7 +189,7 @@ namespace LethalLevelLoader
 
         public static void DebugSelectableLevelReferences(ExtendedLevel extendedLevel)
         {
-            string logString = "Logging SelectableLevel References For Moon: " + extendedLevel.NumberlessPlanetName + " (" + extendedLevel.levelType.ToString() + ")." + "\n";
+            string logString = "Logging SelectableLevel References For Moon: " + extendedLevel.NumberlessPlanetName + " (" + extendedLevel.ContentType.ToString() + ")." + "\n";
 
             logString += "Inside Enemies" + "\n" + "\n";
 
@@ -438,7 +443,7 @@ namespace LethalLevelLoader
 
         public static void DebugExtendedDungeonFlowTiles(ExtendedDungeonFlow extendedDungeonFlow)
         {
-            string debugString = "Logging All Tiles In DungeonFlow: " + extendedDungeonFlow.dungeonDisplayName + "\n";
+            string debugString = "Logging All Tiles In DungeonFlow: " + extendedDungeonFlow.DungeonName + "\n";
             foreach (Tile tile in extendedDungeonFlow.dungeonFlow.GetTiles())
                 debugString += tile.gameObject.name + "\n";
             DebugHelper.Log(debugString);
@@ -446,7 +451,7 @@ namespace LethalLevelLoader
 
         public static void DebugExtendedDungeonSpawnSyncedObjects(ExtendedDungeonFlow extendedDungeonFlow)
         {
-            string debugString = "Logging All SpawnSyncedObjects In DungeonFlow: " + extendedDungeonFlow.dungeonDisplayName + "\n";
+            string debugString = "Logging All SpawnSyncedObjects In DungeonFlow: " + extendedDungeonFlow.DungeonName + "\n";
             foreach (SpawnSyncedObject spawnSyncedObject in extendedDungeonFlow.dungeonFlow.GetSpawnSyncedObjects())
                 debugString += spawnSyncedObject.gameObject.name + " | " + spawnSyncedObject.spawnPrefab.gameObject.name + "\n";
             DebugHelper.Log(debugString);
@@ -454,7 +459,7 @@ namespace LethalLevelLoader
 
         public static void DebugExtendedDungeonFlowRandomMapObjects(ExtendedDungeonFlow extendedDungeonFlow)
         {
-            string debugString = "Logging All RandomMapObjects In DungeonFlow: " + extendedDungeonFlow.dungeonDisplayName + "\n";
+            string debugString = "Logging All RandomMapObjects In DungeonFlow: " + extendedDungeonFlow.DungeonName + "\n";
             foreach (RandomMapObject randomMapObjectObject in extendedDungeonFlow.dungeonFlow.GetRandomMapObjects())
                 debugString += randomMapObjectObject.gameObject.name + " | " + randomMapObjectObject.spawnablePrefabs[0].gameObject.name + "\n";
             DebugHelper.Log(debugString);
@@ -570,6 +575,57 @@ namespace LethalLevelLoader
                     DebugHelper.Log(extendedLevel.selectableLevel.spawnableScrap.IndexOf(scrap) + " - " + scrap.spawnableItem.name + scrap.spawnableItem.spawnPrefab.name);
                 else
                     DebugHelper.Log(extendedLevel.selectableLevel.spawnableScrap.IndexOf(scrap) + " - " + scrap.spawnableItem.name + "(Null)");
+            }
+        }
+
+        public static void DebugExtendedMod(ExtendedMod extendedMod)
+        {
+            string debugString = "Debug Report For ExtendedMod: " + extendedMod.ModName + " by " + extendedMod.AuthorName + "\n";
+
+            debugString += "\nExtendedContents: Count - " + extendedMod.ExtendedContents.Count + "\n";
+            foreach (ExtendedContent extendedContent in extendedMod.ExtendedContents)
+                debugString += "\n" + extendedContent.name + " (" + extendedContent.GetType().Name + ")";
+
+            Log(debugString + "\n");
+        }
+
+        public static void DebugAllContentTags()
+        {
+            foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods.Concat(new List<ExtendedMod>() { PatchedContent.VanillaMod }))
+            {
+                List<ContentTag> foundContentTags = new List<ContentTag>();
+                Dictionary<ContentTag, List<ExtendedContent>> foundContentTagsDict = new Dictionary<ContentTag, List<ExtendedContent>>();
+                foreach (ExtendedContent extendedContent in extendedMod.ExtendedContents)
+                    foreach (ContentTag contentTag in extendedContent.ContentTags)
+                    {
+                        if (foundContentTagsDict.TryGetValue(contentTag, out List<ExtendedContent> foundContentTagsList))
+                            foundContentTagsList.Add(extendedContent);
+                        else
+                            foundContentTagsDict.Add(contentTag, new List<ExtendedContent>() { extendedContent });
+                    }
+
+                string debugString = string.Empty;
+                if (foundContentTagsDict.Count > 0)
+                {
+                    debugString = extendedMod.ModName + " Had The Following Content Tags, " + "\n";
+
+                    foreach (KeyValuePair<ContentTag, List<ExtendedContent>> contentTagPair in foundContentTagsDict)
+                    {
+                        debugString += "\n" + "Tag: " + contentTagPair.Key.contentTagName + " | Associated Contents: ";
+                        int counter = 0;
+                        foreach (ExtendedContent extendedContent in contentTagPair.Value)
+                        {
+                            debugString += extendedContent.name;
+                            if (counter != contentTagPair.Value.Count - 1)
+                                debugString += ", ";
+                            counter++;
+                        }
+                    }
+                }
+                else
+                    debugString = extendedMod.ModName + " Had No Content Tags.";
+
+                Log(debugString + "\n");
             }
         }
 

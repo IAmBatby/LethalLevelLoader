@@ -10,10 +10,10 @@ public enum ContentType { Vanilla, Custom, Any } //Any & All included for built 
 namespace LethalLevelLoader
 {
     [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedLevel")]
-    public class ExtendedLevel : ScriptableObject
+    public class ExtendedLevel : ExtendedContent
     {
         [Header("General Settings")]
-        [Space(5)] public string contentSourceName = string.Empty; //Levels from AssetBundles will have this as their Assembly Name.
+        /*Obsolete*/ [Space(5)] public string contentSourceName = string.Empty; //Levels from AssetBundles will have this as their Assembly Name.
         [Space(5)] public SelectableLevel selectableLevel;
         [Space(5)] [SerializeField] private int routePrice = 0;
 
@@ -21,22 +21,17 @@ namespace LethalLevelLoader
         [Space(5)] public bool isHidden = false;
         [Space(5)] public bool isLocked = false;
         [Space(5)] public string lockedNodeText = string.Empty;
-
-        [Space(10)] public List<StoryLogData> storyLogs = new List<StoryLogData>();
-
-        [Space(10)] public List<ExtendedFootstepSurface> extendedFootstepSurfaces = new List<ExtendedFootstepSurface>();
-
+        [Space(5)] public bool overrideDynamicRiskLevelAssignment = false;
 
         [Space(10)]
         [Header("Dynamic DungeonFlow Injections Settings")]
-        [Space(5)] public ContentType allowedDungeonContentTypes = ContentType.Any;
-        [Space(5)] public List<string> levelTags = new List<string>();
+        /*Obsolete*/ [Space(5)] public List<string> levelTags = new List<string>();
 
         [Space(10)]
         [Header("Terminal Override Settings")]
-        [SerializeField][TextArea(2, 20)] public string overrideInfoNodeDescription = string.Empty;
-        [SerializeField][TextArea(2, 20)] public string overrideRouteNodeDescription = string.Empty;
-        [SerializeField][TextArea(2, 20)] public string overrideRouteConfirmNodeDescription = string.Empty;
+        [SerializeField][TextArea(2, 20)] internal string overrideInfoNodeDescription = string.Empty;
+        [SerializeField][TextArea(2, 20)] internal string overrideRouteNodeDescription = string.Empty;
+        [SerializeField][TextArea(2, 20)] internal string overrideRouteConfirmNodeDescription = string.Empty;
 
         [Space(10)]
         [Header("Misc. Settings")]
@@ -73,50 +68,39 @@ namespace LethalLevelLoader
             }
         }
 
-        [HideInInspector] public ContentType levelType;
         public string NumberlessPlanetName => GetNumberlessPlanetName(selectableLevel);
         public int CalculatedDifficultyRating => LevelManager.CalculateExtendedLevelDifficultyRating(this);
         public bool IsCurrentLevel => LevelManager.CurrentExtendedLevel == this;
-        public bool IsLoadedLevel => SceneManager.GetSceneByName(selectableLevel.sceneName).isLoaded;
+        public bool IsLevelLoaded => SceneManager.GetSceneByName(selectableLevel.sceneName).isLoaded;
 
-        [HideInInspector] public LevelEvents levelEvents = new LevelEvents();
+        [HideInInspector] public LevelEvents LevelEvents { get; internal set; } = new LevelEvents();
 
         public TerminalNode RouteNode { get; internal set; }
-        public TerminalNode RouteConfirmNode { get; set; }
-        public TerminalNode InfoNode { get; set; }
+        public TerminalNode RouteConfirmNode { get; internal set; }
+        public TerminalNode InfoNode { get; internal set; }
 
+        //Dunno about these yet
         public List<ExtendedWeatherEffect> enabledExtendedWeatherEffects = new List<ExtendedWeatherEffect>();
         public ExtendedWeatherEffect currentExtendedWeatherEffect;
 
-        internal bool isLethalExpansion = false;
+        /*Obsolete*/ internal bool isLethalExpansion = false;
 
-        internal static ExtendedLevel Create(SelectableLevel newSelectableLevel, ContentType newContentType)
+        internal static ExtendedLevel Create(SelectableLevel newSelectableLevel)
         {
             ExtendedLevel newExtendedLevel = ScriptableObject.CreateInstance<ExtendedLevel>();
-            
-
-            newExtendedLevel.levelType = newContentType;
             newExtendedLevel.selectableLevel = newSelectableLevel;
 
             return (newExtendedLevel);
         }
         internal void Initialize(string newContentSourceName, bool generateTerminalAssets)
         {
-            if (levelType == ContentType.Vanilla && selectableLevel.levelID > 8)
+            if (ContentType == ContentType.Vanilla && selectableLevel.levelID > 8)
             {
                 DebugHelper.LogWarning("LethalExpansion SelectableLevel " + NumberlessPlanetName + " Found, Setting To LevelType: Custom.");
-                levelType = ContentType.Custom;
                 //generateTerminalAssets = true;
-                contentSourceName = "Lethal Expansion";
-                levelTags.Clear();
+                //contentSourceName = "Lethal Expansion";
                 isLethalExpansion = true;
             }
-
-            if (contentSourceName == string.Empty)
-                contentSourceName = newContentSourceName;
-
-            if (levelType == ContentType.Custom)
-                levelTags.Add("Custom");
 
             if (isLethalExpansion == false)
                 SetLevelID();
@@ -127,14 +111,18 @@ namespace LethalLevelLoader
                 TerminalManager.CreateLevelTerminalData(this, routePrice);
             }
 
-            if (levelType == ContentType.Custom)
+            if (ContentType == ContentType.Custom)
             {
                 name = NumberlessPlanetName.StripSpecialCharacters() + "ExtendedLevel";
                 selectableLevel.name = NumberlessPlanetName.StripSpecialCharacters() + "Level";
                 LevelManager.RegisterExtendedFootstepSurfaces(this);
             }
 
-            levelEvents.onDayModeToggle.AddListener(DebugDaymodeToggle);
+            //Obsolete
+            if (levelTags.Count > 0 && ContentTags.Count == 0)
+                foreach (ContentTag convertedContentTag in ContentTagManager.CreateNewContentTags(levelTags))
+                    ContentTags.Add(convertedContentTag);
+            levelTags.Clear();
         }
 
         internal static string GetNumberlessPlanetName(SelectableLevel selectableLevel)
@@ -147,7 +135,7 @@ namespace LethalLevelLoader
 
         internal void SetLevelID()
         {
-            if (levelType == ContentType.Custom)
+            if (ContentType == ContentType.Custom)
             {
                 selectableLevel.levelID = PatchedContent.ExtendedLevels.IndexOf(this);
                 if (RouteNode != null)
@@ -157,14 +145,10 @@ namespace LethalLevelLoader
             }
         }
 
-        internal void DebugDaymodeToggle(DayMode dayMode)
-        {
-            DebugHelper.Log("DayMode Toggle Event: " + dayMode.ToString());
-        }
-
         public void ForceSetRoutePrice(int newValue)
         {
-            Debug.LogWarning("ForceSetRoutePrice Should Only Be Used In Editor! Consider Using RoutePrice Property To Sync TerminalNode's With New Value.");
+            if (Plugin.Instance != null)
+                Debug.LogWarning("ForceSetRoutePrice Should Only Be Used In Editor! Consider Using RoutePrice Property To Sync TerminalNode's With New Value.");
             routePrice = newValue;
         }
     }
@@ -174,7 +158,6 @@ namespace LethalLevelLoader
     public class LevelEvents
     {
         public ExtendedEvent onLevelLoaded = new ExtendedEvent();
-        public ExtendedEvent onNighttime = new ExtendedEvent();
         public ExtendedEvent<EnemyAI> onDaytimeEnemySpawn = new ExtendedEvent<EnemyAI>();
         public ExtendedEvent<EnemyAI> onNighttimeEnemySpawn = new ExtendedEvent<EnemyAI>();
         public ExtendedEvent<StoryLog> onStoryLogCollected = new ExtendedEvent<StoryLog>();
@@ -183,17 +166,5 @@ namespace LethalLevelLoader
         public ExtendedEvent<(EntranceTeleport, PlayerControllerB)> onPlayerExitDungeon = new ExtendedEvent<(EntranceTeleport, PlayerControllerB)>();
         public ExtendedEvent<bool> onPowerSwitchToggle = new ExtendedEvent<bool>();
         public ExtendedEvent<DayMode> onDayModeToggle = new ExtendedEvent<DayMode>();
-
-    }
-
-    [System.Serializable]
-    public class StoryLogData
-    {
-        public int storyLogID;
-        public string terminalWord = string.Empty;
-        public string storyLogTitle = string.Empty;
-        [TextArea] public string storyLogDescription = string.Empty;
-
-        [HideInInspector] internal int newStoryLogID;
     }
 }

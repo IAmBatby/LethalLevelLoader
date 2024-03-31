@@ -26,13 +26,13 @@ namespace LethalLevelLoader.Tools
 
             foreach (ExtendedDungeonFlow extendedDungeonFlow in PatchedContent.VanillaExtendedDungeonFlows)
             {
-                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(newConfigFile, "Vanilla Dungeon: " + (PatchedContent.VanillaExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1).ToString() + ". - " + extendedDungeonFlow.dungeonDisplayName.StripSpecialCharacters() + " (" + extendedDungeonFlow.dungeonFlow.name + ")", 7);
+                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(newConfigFile, "Vanilla Dungeon: " + (PatchedContent.VanillaExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1).ToString() + ". - " + extendedDungeonFlow.DungeonName.StripSpecialCharacters() + " (" + extendedDungeonFlow.dungeonFlow.name + ")", 7);
                 newConfig.BindConfigs(extendedDungeonFlow);
             }
 
             foreach (ExtendedDungeonFlow extendedDungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
             {
-                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(newConfigFile, "Custom Dungeon: " + (PatchedContent.CustomExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1).ToString() + ". - " + extendedDungeonFlow.dungeonDisplayName.StripSpecialCharacters(), 9);
+                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(newConfigFile, "Custom Dungeon: " + (PatchedContent.CustomExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1).ToString() + ". - " + extendedDungeonFlow.DungeonName.StripSpecialCharacters(), 9);
                 newConfig.BindConfigs(extendedDungeonFlow);
             }
 
@@ -148,7 +148,7 @@ namespace LethalLevelLoader.Tools
                 {
                     // ----- Setting -----
 
-                    DebugHelper.Log(extendedDungeonFlow.dungeonDisplayName + " enabled content configeration");
+                    DebugHelper.Log(extendedDungeonFlow.DungeonName + " enabled content configeration");
 
                     extendedDungeonFlow.enableDynamicDungeonSizeRestriction = enableContentConfiguration.Value;
 
@@ -156,19 +156,19 @@ namespace LethalLevelLoader.Tools
                     extendedDungeonFlow.dungeonSizeMax = maximumDungeonSizeMultiplier.Value;
                     extendedDungeonFlow.dungeonSizeLerpPercentage = restrictDungeonSizeScaler.Value;
 
-                    extendedDungeonFlow.manualContentSourceNameReferenceList = ConfigHelper.ConvertToStringWithRarityList(manualModNames.Value, new Vector2(0, 9999));
-                    extendedDungeonFlow.manualPlanetNameReferenceList = ConfigHelper.ConvertToStringWithRarityList(manualLevelNames.Value, new Vector2(0, 9999));
+                    extendedDungeonFlow.levelMatchingProperties.modNames = ConfigHelper.ConvertToStringWithRarityList(manualModNames.Value, new Vector2(0, 9999));
+                    extendedDungeonFlow.levelMatchingProperties.planetNames = ConfigHelper.ConvertToStringWithRarityList(manualLevelNames.Value, new Vector2(0, 9999));
 
-                    extendedDungeonFlow.dynamicRoutePricesList = ConfigHelper.ConvertToVector2WithRarityList(dynamicRoutePrices.Value, new Vector2(0, 9999));
-                    extendedDungeonFlow.dynamicLevelTagsList = ConfigHelper.ConvertToStringWithRarityList(dynamicLevelTags.Value, new Vector2(0, 9999));
+                    extendedDungeonFlow.levelMatchingProperties.currentRoutePrice = ConfigHelper.ConvertToVector2WithRarityList(dynamicRoutePrices.Value, new Vector2(0, 9999));
+                    extendedDungeonFlow.levelMatchingProperties.levelTags = ConfigHelper.ConvertToStringWithRarityList(dynamicLevelTags.Value, new Vector2(0, 9999));
 
                     foreach (StringWithRarity stringWithRarity in ConfigHelper.ConvertToStringWithRarityList(dynamicLevelTags.Value, new Vector2(0, 9999)))
                         DebugHelper.Log(stringWithRarity.Name + " | " + stringWithRarity.Rarity);
 
-                    if (extendedDungeonFlow.dungeonType == ContentType.Vanilla)
-                        ConfigLoader.debugDungeonsString += extendedDungeonFlow.dungeonDisplayName +  "(" + extendedDungeonFlow.dungeonFlow.name + ")" + ", ";
-                    else if (extendedDungeonFlow.dungeonType == ContentType.Custom)
-                        ConfigLoader.debugDungeonsString += extendedDungeonFlow.dungeonDisplayName + ", ";
+                    if (extendedDungeonFlow.ContentType == ContentType.Vanilla)
+                        ConfigLoader.debugDungeonsString += extendedDungeonFlow.DungeonName +  "(" + extendedDungeonFlow.dungeonFlow.name + ")" + ", ";
+                    else if (extendedDungeonFlow.ContentType == ContentType.Custom)
+                        ConfigLoader.debugDungeonsString += extendedDungeonFlow.DungeonName + ", ";
                 }
             }
             else

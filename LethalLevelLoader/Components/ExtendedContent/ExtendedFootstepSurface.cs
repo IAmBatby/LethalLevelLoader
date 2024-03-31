@@ -6,7 +6,7 @@ using UnityEngine;
 namespace LethalLevelLoader;
 
 [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedFootstepSurface")]
-public class ExtendedFootstepSurface : ScriptableObject
+public class ExtendedFootstepSurface : ExtendedContent
 {
     public FootstepSurface footstepSurface;
     public List<Material> associatedMaterials;

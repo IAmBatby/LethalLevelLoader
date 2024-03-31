@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -10,6 +11,10 @@ namespace LethalLevelLoader
 {
     public static class PatchedContent
     {
+        public static ExtendedMod VanillaMod { get; internal set; }
+
+        public static List<ExtendedMod> ExtendedMods { get; internal set; } = new List<ExtendedMod>();
+
         public static List<ExtendedLevel> ExtendedLevels { get; internal set; } = new List<ExtendedLevel>();
 
         public static List<ExtendedLevel> VanillaExtendedLevels
@@ -18,7 +23,7 @@ namespace LethalLevelLoader
             {
                 List<ExtendedLevel> list = new List<ExtendedLevel>();
                 foreach (ExtendedLevel level in ExtendedLevels)
-                    if (level.levelType == ContentType.Vanilla)
+                    if (level.ContentType == ContentType.Vanilla)
                         list.Add(level);
                 return (list);
             }
@@ -30,7 +35,7 @@ namespace LethalLevelLoader
             {
                 List<ExtendedLevel> list = new List<ExtendedLevel>();
                 foreach (ExtendedLevel level in ExtendedLevels)
-                    if (level.levelType == ContentType.Custom)
+                    if (level.ContentType == ContentType.Custom)
                         list.Add(level);
                 return (list);
             }
@@ -56,7 +61,7 @@ namespace LethalLevelLoader
                 foreach (SelectableLevel selectableLevel in OriginalContent.MoonsCatalogue)
                     list.Add(selectableLevel);
                 foreach (ExtendedLevel level in ExtendedLevels)
-                    if (level.levelType == ContentType.Custom)
+                    if (level.ContentType == ContentType.Custom)
                         list.Add(level.selectableLevel);
                 return (list);
             }
@@ -70,7 +75,7 @@ namespace LethalLevelLoader
             {
                 List<ExtendedDungeonFlow> list = new List<ExtendedDungeonFlow>();
                 foreach (ExtendedDungeonFlow dungeon in ExtendedDungeonFlows)
-                    if (dungeon.dungeonType == ContentType.Vanilla)
+                    if (dungeon.ContentType == ContentType.Vanilla)
                         list.Add(dungeon);
                 return (list);
             }
@@ -82,7 +87,7 @@ namespace LethalLevelLoader
             {
                 List<ExtendedDungeonFlow> list = new List<ExtendedDungeonFlow>();
                 foreach (ExtendedDungeonFlow dungeon in ExtendedDungeonFlows)
-                    if (dungeon.dungeonType == ContentType.Custom)
+                    if (dungeon.ContentType == ContentType.Custom)
                         list.Add(dungeon);
                 return (list);
             }
@@ -114,16 +119,43 @@ namespace LethalLevelLoader
             }
         }
 
-        public static List<string> AllExtendedLevelTags
+        public static List<ExtendedItem> ExtendedItems { get; internal set; } = new List<ExtendedItem>();
+
+        public static List<ExtendedItem> CustomExtendedItems
         {
             get
             {
-                List<string> allUniqueLevelTags = new List<string>();
-                foreach (ExtendedLevel extendedLevel in ExtendedLevels)
-                    foreach (string levelTag in extendedLevel.levelTags)
-                        if (!allUniqueLevelTags.Contains(levelTag))
-                            allUniqueLevelTags.Add(levelTag);
-                return (allUniqueLevelTags);
+                List<ExtendedItem> returnList = new List<ExtendedItem>();
+                foreach (ExtendedItem item in ExtendedItems)
+                    if (item.ContentType == ContentType.Custom)
+                        returnList.Add(item);
+                return (returnList);
+            }
+        }
+
+        public static List<ExtendedEnemyType> ExtendedEnemyTypes { get; internal set; } = new List<ExtendedEnemyType>();
+
+        public static List<ExtendedEnemyType> CustomExtendedEnemyTypes
+        {
+            get
+            {
+                List<ExtendedEnemyType> returnList = new List<ExtendedEnemyType>();
+                foreach (ExtendedEnemyType extendedEnemyType in ExtendedEnemyTypes)
+                    if (extendedEnemyType.ContentType == ContentType.Custom)
+                        returnList.Add(extendedEnemyType);
+                return (returnList);
+            }
+        }
+
+        public static List<ExtendedEnemyType> VanillaExtendedEnemyTypes
+        {
+            get
+            {
+                List<ExtendedEnemyType> returnList = new List<ExtendedEnemyType>();
+                foreach (ExtendedEnemyType extendedEnemyType in ExtendedEnemyTypes)
+                    if (extendedEnemyType.ContentType == ContentType.Vanilla)
+                        returnList.Add(extendedEnemyType);
+                return (returnList);
             }
         }
 
@@ -145,12 +177,27 @@ namespace LethalLevelLoader
 
         public static void RegisterExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
         {
-            AssetBundleLoader.obtainedExtendedDungeonFlowsList.Add(extendedDungeonFlow);
+            AssetBundleLoader.RegisterNewExtendedContent(extendedDungeonFlow, extendedDungeonFlow.name);
         }
 
         public static void RegisterExtendedLevel(ExtendedLevel extendedLevel)
         {
-            AssetBundleLoader.obtainedExtendedLevelsList.Add(extendedLevel);
+            AssetBundleLoader.RegisterNewExtendedContent(extendedLevel, extendedLevel.name);
+        }
+
+        public static void RegisterExtendedMod(ExtendedMod extendedMod)
+        {
+
+        }
+
+        internal static void SortExtendedMods()
+        {
+            ExtendedMods = new List<ExtendedMod>(ExtendedMods.OrderBy(o => o.ModName).ToList());
+
+            foreach (ExtendedMod extendedMod in ExtendedMods)
+            {
+                extendedMod.SortRegisteredContent();
+            }
         }
     }
 

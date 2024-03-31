@@ -43,39 +43,53 @@ namespace LethalLevelLoader
 
             List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = DungeonManager.GetValidExtendedDungeonFlows(LevelManager.CurrentExtendedLevel, debugResults: true);
 
-            List<int> dungeonFlowIDs = new List<int>();
+            //List<string> dungeonFlowNames = new List<string>();
+            List<StringContainer> dungeonFlowNames = new List<StringContainer>();
             List<int> rarities = new List<int>();
 
             if (availableExtendedFlowsList.Count == 0)
             {
                 DebugHelper.LogError("No ExtendedDungeonFlow's could be found! This should only happen if the Host's requireMatchesOnAllDungeonFlows is set to true!");
                 DebugHelper.LogError("Loading Facility DungeonFlow to prevent infinite loading!");
-                dungeonFlowIDs.Add(0);
+                StringContainer newStringContainer = new StringContainer();
+                newStringContainer.SomeText = PatchedContent.ExtendedDungeonFlows[0].dungeonFlow.name;
+                dungeonFlowNames.Add(newStringContainer);
                 rarities.Add(300);
             }
             else
             {
+                List<DungeonFlow> dungeonFlowTypes = RoundManager.Instance.dungeonFlowTypes.ToList();
                 foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowWithRarity in availableExtendedFlowsList)
                 {
-                    dungeonFlowIDs.Add(RoundManager.Instance.dungeonFlowTypes.ToList().IndexOf(extendedDungeonFlowWithRarity.extendedDungeonFlow.dungeonFlow));
+                    StringContainer newStringContainer = new StringContainer();
+                    newStringContainer.SomeText = dungeonFlowTypes[dungeonFlowTypes.IndexOf(extendedDungeonFlowWithRarity.extendedDungeonFlow.dungeonFlow)].name;
+                    dungeonFlowNames.Add(newStringContainer);
+
                     rarities.Add(extendedDungeonFlowWithRarity.rarity);
                 }
             }
 
-            SetRandomExtendedDungeonFlowClientRpc(dungeonFlowIDs.ToArray(), rarities.ToArray());
+            SetRandomExtendedDungeonFlowClientRpc(dungeonFlowNames.ToArray(), rarities.ToArray());
         }
 
         [ClientRpc]
-        public void SetRandomExtendedDungeonFlowClientRpc(int[] dungeonFlowIDs, int[] rarities)
+        public void SetRandomExtendedDungeonFlowClientRpc(StringContainer[] dungeonFlowNames, int[] rarities)
         {
             DebugHelper.Log("Setting Random DungeonFlows!");
             List<IntWithRarity> dungeonFlowsList = new List<IntWithRarity>();
             List<IntWithRarity> cachedDungeonFlowsList = new List<IntWithRarity>();
 
-            for (int i = 0; i < dungeonFlowIDs.Length; i++)
+            Dictionary<string, int> dungeonFlowIds = new Dictionary<string, int>();
+            int counter = 0;
+            foreach (DungeonFlow dungeonFlow in RoundManager.Instance.dungeonFlowTypes)
+            {
+                dungeonFlowIds.Add(dungeonFlow.name, counter);
+                counter++;
+            }    
+            for (int i = 0; i < dungeonFlowNames.Length; i++)
             {
                 IntWithRarity intWithRarity = new IntWithRarity();
-                intWithRarity.Add(dungeonFlowIDs[i], rarities[i]);
+                intWithRarity.Add(dungeonFlowIds[dungeonFlowNames[i].SomeText], rarities[i]);
                 dungeonFlowsList.Add(intWithRarity);
             }
             cachedDungeonFlowsList = new List<IntWithRarity>(LevelManager.CurrentExtendedLevel.selectableLevel.dungeonFlowTypes.ToList());
@@ -133,6 +147,22 @@ namespace LethalLevelLoader
 
             networkHasStarted = true;
             
+        }
+
+        public class StringContainer : INetworkSerializable
+        {
+            public string SomeText;
+            public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+            {
+                if (serializer.IsWriter)
+                {
+                    serializer.GetFastBufferWriter().WriteValueSafe(SomeText);
+                }
+                else
+                {
+                    serializer.GetFastBufferReader().ReadValueSafe(out SomeText);
+                }
+            }
         }
     }
 }

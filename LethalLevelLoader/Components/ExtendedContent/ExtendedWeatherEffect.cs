@@ -7,7 +7,7 @@ using UnityEngine;
 namespace LethalLevelLoader
 {
     [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedWeatherEffect")]
-    public class ExtendedWeatherEffect : ScriptableObject
+    public class ExtendedWeatherEffect : ExtendedContent
     {
         public LevelWeatherType baseWeatherType;
 
@@ -46,13 +46,5 @@ namespace LethalLevelLoader
 
             return (newExtendedWeatherEffect);
         }
-
-        internal void Initialize()
-        {
-            PatchedContent.ExtendedWeatherEffects.Add(this);
-
-            DebugHelper.Log("Initializing ExtendedWeatherEffect: " + weatherDisplayName + "(" + contentType.ToString() + ")");
-        }
-
     }
 }

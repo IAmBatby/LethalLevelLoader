@@ -4,6 +4,7 @@ using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
@@ -14,6 +15,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.Windows;
+using static LethalLevelLoader.ExtendedContent;
 
 namespace LethalLevelLoader
 {
@@ -27,14 +29,13 @@ namespace LethalLevelLoader
         internal static DirectoryInfo lethalLibFolder;
         internal static DirectoryInfo pluginsFolder;
 
-        internal static List<ExtendedLevel> obtainedExtendedLevelsList = new List<ExtendedLevel>();
-        internal static List<ExtendedDungeonFlow> obtainedExtendedDungeonFlowsList = new List<ExtendedDungeonFlow>();
-        internal static List<ExtendedWeatherEffect> obtainedExtendedWeatherEffectsList = new List<ExtendedWeatherEffect>();
+        internal static Dictionary<string, ExtendedMod> obtainedExtendedModsDictionary = new Dictionary<string, ExtendedMod>();
 
         public enum LoadingStatus { Inactive, Loading, Complete };
         public static LoadingStatus loadingStatus = LoadingStatus.Inactive;
 
-        internal static Dictionary<string, AssetBundle> assetBundles = new Dictionary<string, AssetBundle>();
+        internal static Dictionary<string, AssetBundle> assetBundles = new Dictionary<string, AssetBundle>(); 
+        internal static Dictionary<string, string> assetBundleLoadTimes = new Dictionary<string, string>();
 
         internal static bool HaveBundlesFinishedLoading
         {
@@ -70,12 +71,22 @@ namespace LethalLevelLoader
 
         internal static bool hasRequestedToLoadMainMenu;
 
-        internal static void RegisterCustomContent(NetworkManager networkManager)
+        //This Function is used to Register NetworkPrefabs to the GameNetworkManager on GameNetworkManager.Start()
+        internal static void NetworkRegisterCustomContent(NetworkManager networkManager)
         {
             DebugHelper.Log("Registering Bundle Content!");
 
-            foreach (ExtendedDungeonFlow extendedDungeonFlow in obtainedExtendedDungeonFlowsList)
-                RegisterDungeonContent(extendedDungeonFlow, networkManager);
+            foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods)
+            {
+                foreach (ExtendedDungeonFlow extendedDungeonFlow in extendedMod.ExtendedDungeonFlows)
+                    NetworkRegisterDungeonContent(extendedDungeonFlow, networkManager);
+
+                foreach (ExtendedItem extendedItem in extendedMod.ExtendedItems)
+                    LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedItem.Item.spawnPrefab);
+
+                foreach (ExtendedEnemyType extendedEnemyType in extendedMod.ExtendedEnemyTypes)
+                    LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedEnemyType.EnemyType.enemyPrefab);
+            }
         }
 
         internal static void LoadBundles(PreInitSceneScript preInitSceneScript)
@@ -85,6 +96,11 @@ namespace LethalLevelLoader
             loadingStatus = LoadingStatus.Loading;
 
             Instance = new AssetBundleLoader();
+
+            onBundlesFinishedLoading += OnBundlesFinishedLoading;
+
+            PatchedContent.VanillaMod = ExtendedMod.Create("LethalCompany", "Zeekerss");
+            //PatchedContent.ExtendedMods.Add(PatchedContent.VanillaMod);
 
             lethalLibFolder = lethalLibFile.Parent;
             pluginsFolder = lethalLibFile.Parent.Parent;
@@ -109,6 +125,8 @@ namespace LethalLevelLoader
 
         IEnumerator LoadBundle(string bundleFile, string fileName)
         {
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
             FileStream fileStream = new FileStream(Path.Combine(Application.streamingAssetsPath, bundleFile), FileMode.Open, FileAccess.Read);
             AssetBundleCreateRequest newBundleRequest = AssetBundle.LoadFromStreamAsync(fileStream);
             yield return newBundleRequest;
@@ -122,18 +140,14 @@ namespace LethalLevelLoader
 
                 if (newBundle.isStreamedSceneAssetBundle == false)
                 {
-                    foreach (ExtendedLevel extendedLevel in newBundle.LoadAllAssets<ExtendedLevel>())
+                    ExtendedMod[] extendedMods = newBundle.LoadAllAssets<ExtendedMod>();
+                    if (extendedMods.Length > 0)
+                        RegisterExtendedMod(extendedMods[0]);
+                    else
                     {
-                        if (extendedLevel.contentSourceName == string.Empty)
-                            extendedLevel.contentSourceName = newBundle.name;
-                        obtainedExtendedLevelsList.Add(extendedLevel);
-                    }
-
-                    foreach (ExtendedWeatherEffect extendedWeatherEffect in newBundle.LoadAllAssets<ExtendedWeatherEffect>())
-                    {
-                        if (extendedWeatherEffect.contentSourceName == string.Empty)
-                            extendedWeatherEffect.contentSourceName = newBundle.name;
-                        obtainedExtendedWeatherEffectsList.Add(extendedWeatherEffect);
+                        DebugHelper.Log("No ExtendedMod Found In Bundle: " + newBundle.name + ". Forcefully Loading ExtendedContent!");
+                        foreach (ExtendedContent extendedContent in newBundle.LoadAllAssets<ExtendedContent>())
+                            RegisterNewExtendedContent(extendedContent, newBundle.name);
                     }
                 }
 
@@ -145,7 +159,7 @@ namespace LethalLevelLoader
                 assetBundles.Remove(fileName);
                 yield break;
             }
-
+             
             if (HaveBundlesFinishedLoading == true)
             {
                 loadingStatus = LoadingStatus.Complete;
@@ -153,54 +167,222 @@ namespace LethalLevelLoader
             }
 
             fileStream.Close();
+            stopWatch.Stop();
+            TimeSpan timeSpan = TimeSpan.FromMilliseconds(stopWatch.ElapsedMilliseconds);
+            string elapsedSeconds = string.Format("{0:D2}", timeSpan.Seconds);
+            string elapsedMilliseconds = string.Format("{0:D1}", timeSpan.Milliseconds);
+            elapsedMilliseconds = new string(new char[] { elapsedMilliseconds[0], elapsedMilliseconds[1] });
+            assetBundleLoadTimes.Add(bundleFile.Substring(bundleFile.LastIndexOf("\\") + 1), elapsedSeconds + "." + elapsedMilliseconds + " Seconds. (" + stopWatch.ElapsedMilliseconds + "ms)");
         }
 
+        internal static void RegisterExtendedMod(ExtendedMod extendedMod)
+        {
+            DebugHelper.Log("Found ExtendedMod: " + extendedMod.name);
+            ExtendedMod matchingExtendedMod = null;
+            foreach (ExtendedMod registeredExtendedMod in obtainedExtendedModsDictionary.Values)
+            {
+                if (registeredExtendedMod.ModName == extendedMod.ModName)
+                    matchingExtendedMod = registeredExtendedMod;
+                else if (registeredExtendedMod.AuthorName == extendedMod.AuthorName && registeredExtendedMod.CombineExtendedModWithMatchingExtendedModsAuthorName == true && extendedMod.CombineExtendedModWithMatchingExtendedModsAuthorName == true)
+                    matchingExtendedMod = registeredExtendedMod;
+            }
+
+            if (matchingExtendedMod != null)
+            {
+                if (!matchingExtendedMod.ModName.Contains(matchingExtendedMod.AuthorName))
+                {
+                    DebugHelper.Log("Renaming ExtendedMod: " + matchingExtendedMod.ModName + " To: " +  matchingExtendedMod.AuthorName + "sMod" + " Due To Upcoming ExtendedMod Merge!");
+                    matchingExtendedMod.ModName = matchingExtendedMod.AuthorName + "sMod";
+                    //matchingExtendedMod.name = matchingExtendedMod.ModName;
+                }
+                DebugHelper.Log("Merging ExtendedMod: " + extendedMod.ModName + " (" + extendedMod.AuthorName + ")" + " With Already Obtained ExtendedMod: " + matchingExtendedMod.ModName + " (" + matchingExtendedMod.AuthorName + ")");
+                foreach (ExtendedContent extendedContent in extendedMod.ExtendedContents)
+                {
+                    try
+                    {
+                        matchingExtendedMod.RegisterExtendedContent(extendedContent);
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugHelper.LogError(ex);
+                    }
+                }
+            }
+            else
+            {
+                obtainedExtendedModsDictionary.Add(extendedMod.AuthorName, extendedMod);
+                List<ExtendedContent> serializedExtendedContents = new List<ExtendedContent>(extendedMod.ExtendedContents);
+                extendedMod.UnregisterAllExtendedContent();
+                foreach (ExtendedContent extendedContent in serializedExtendedContents)
+                {
+                    try
+                    {
+                        extendedMod.RegisterExtendedContent(extendedContent);
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugHelper.LogError(ex);
+                    }
+                }
+            }
+        }
+
+        internal static void RegisterNewExtendedMod()
+        {
+
+        }
+
+        internal static void OnBundlesFinishedLoading()
+        {
+            List<string> timeValues = new List<string>(assetBundleLoadTimes.Values);
+            timeValues.Sort();
+            foreach (string timeValue in timeValues)
+                foreach (KeyValuePair<string, string> loadedAssetBundles in assetBundleLoadTimes)
+                    if (loadedAssetBundles.Value == timeValue)
+                        DebugHelper.Log(loadedAssetBundles.Key + " Loaded In " + loadedAssetBundles.Value);
+
+            foreach (KeyValuePair<string, ExtendedMod> obtainedExtendedMod in obtainedExtendedModsDictionary)
+            {
+                PatchedContent.ExtendedMods.Add(obtainedExtendedMod.Value);
+                DebugHelper.DebugExtendedMod(obtainedExtendedMod.Value);
+            }
+
+            PatchedContent.ExtendedMods = new List<ExtendedMod>(PatchedContent.ExtendedMods.OrderBy(o => o.ModName).ToList());
+
+            foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods)
+                extendedMod.SortRegisteredContent();
+        }
+
+        //This Function is used to Register new ExtendedConte to LethalLevelLoader, assiging content to it's relevant ExtendedMod or creating a new ExtendedMod if neccasary.
+        internal static void RegisterNewExtendedContent(ExtendedContent extendedContent, string fallbackName)
+        {
+            ExtendedMod extendedMod = null;
+            if (extendedContent is ExtendedLevel extendedLevel)
+            {
+                if (string.IsNullOrEmpty(extendedLevel.contentSourceName))
+                    extendedLevel.contentSourceName = fallbackName;
+                extendedMod = GetOrCreateExtendedMod(extendedLevel.contentSourceName);
+            }
+            else if (extendedContent is ExtendedDungeonFlow extendedDungeonFlow)
+            {
+                if (string.IsNullOrEmpty(extendedDungeonFlow.contentSourceName))
+                    extendedDungeonFlow.contentSourceName = fallbackName;
+                extendedMod = GetOrCreateExtendedMod(extendedDungeonFlow.contentSourceName);
+            }
+            else if (extendedContent is ExtendedItem extendedItem)
+            {
+                extendedMod = GetOrCreateExtendedMod(extendedItem.Item.itemName.RemoveWhitespace());
+            }
+            else if (extendedContent is ExtendedEnemyType extendedEnemyType)
+            {
+                extendedMod = GetOrCreateExtendedMod(extendedEnemyType.EnemyType.enemyName.RemoveWhitespace());
+            }
+            else if (extendedContent is ExtendedWeatherEffect extendedWeatherEffect)
+            {
+                if (extendedWeatherEffect.contentSourceName == string.Empty)
+                    extendedWeatherEffect.contentSourceName = fallbackName;
+                extendedMod = GetOrCreateExtendedMod(extendedWeatherEffect.contentSourceName);
+            }
+
+            if (extendedMod != null)
+            {
+                try
+                {
+                    extendedMod.RegisterExtendedContent(extendedContent);
+                }
+                catch (Exception ex)
+                {
+                    DebugHelper.LogError(ex);
+                }
+            }
+        }
+
+        internal static ExtendedMod GetOrCreateExtendedMod(string contentSourceName)
+        {
+            if (obtainedExtendedModsDictionary.TryGetValue(contentSourceName, out ExtendedMod extendedMod))
+                return (extendedMod);
+            else
+            {
+                DebugHelper.Log("Creating New ExtendedMod: " + contentSourceName);
+                ExtendedMod newExtendedMod = ExtendedMod.Create(contentSourceName);
+                obtainedExtendedModsDictionary.Add(contentSourceName, newExtendedMod);
+                return (newExtendedMod);
+
+            }
+        }
+
+        //This function should probably just be in NetworkRegisterContent
         internal static void LoadContentInBundles()
         {
             bool foundExtendedLevelScene;
-            foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(obtainedExtendedLevelsList))
+            List<ExtendedMod> obtainedExtendedModsList = obtainedExtendedModsDictionary.Values.OrderBy(o => o.ModName).ToList();
+
+            foreach (ExtendedMod extendedMod in obtainedExtendedModsList)
             {
-                foundExtendedLevelScene = false;
-                foreach (KeyValuePair<string, AssetBundle> assetBundle in assetBundles)
-                    if (assetBundle.Value != null && assetBundle.Value.isStreamedSceneAssetBundle)
-                        foreach (string scenePath in assetBundle.Value.GetAllScenePaths())
-                            if (GetSceneName(scenePath) == extendedLevel.selectableLevel.sceneName)
+                foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(extendedMod.ExtendedLevels))
+                {
+                    foundExtendedLevelScene = false;
+                    string debugString = "Could Not Find Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ", Unregistering Early. \nSelectable Scene Name Is: " + extendedLevel.selectableLevel.sceneName + ". Scenes Found In Bundles Are: " + "\n";
+                    foreach (KeyValuePair<string, AssetBundle> assetBundle in assetBundles)
+                        if (assetBundle.Value != null && assetBundle.Value.isStreamedSceneAssetBundle)
+                            foreach (string scenePath in assetBundle.Value.GetAllScenePaths())
                             {
-                                //DebugHelper.Log("Found Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ". Scene Path Is: " + scenePath);
-                                foundExtendedLevelScene = true;
-                                NetworkScenePatcher.AddScenePath(GetSceneName(scenePath));
+                                debugString += ", " + GetSceneName(scenePath);
+                                if (GetSceneName(scenePath) == extendedLevel.selectableLevel.sceneName)
+                                {
+                                    //DebugHelper.Log("Found Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ". Scene Path Is: " + scenePath);
+                                    foundExtendedLevelScene = true;
+                                    NetworkScenePatcher.AddScenePath(GetSceneName(scenePath));
+                                }
                             }
 
-                if (foundExtendedLevelScene == false)
-                {
-                    DebugHelper.LogError("Could Not Find Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name);
-                    obtainedExtendedLevelsList.Remove(extendedLevel);
+                    if (foundExtendedLevelScene == false)
+                    {
+                        DebugHelper.LogError(debugString);
+                        extendedMod.UnregisterExtendedContent(extendedLevel);
+                    }
                 }
             }
 
-            foreach (ExtendedWeatherEffect effect in obtainedExtendedWeatherEffectsList)
-                effect.Initialize();
+            foreach (AssetBundle assetBundle in assetBundles.Values)
+                if (assetBundle != null && assetBundle.isStreamedSceneAssetBundle == false)
+                {
+                    DebugHelper.Log("Unloading: " + assetBundle.name);
+                    assetBundle.Unload(false);
+                }
         }
 
         internal static void InitializeBundles()
         {
-            foreach (ExtendedDungeonFlow extendedDungeonFlow in obtainedExtendedDungeonFlowsList)
+            foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods)
             {
-                extendedDungeonFlow.Initialize(ContentType.Custom);
-                extendedDungeonFlow.manualPlanetNameReferenceList.Add(new StringWithRarity("Tenebrous", 1000));
-                DungeonManager.AddExtendedDungeonFlow(extendedDungeonFlow);
-            }
-            foreach (ExtendedLevel extendedLevel in obtainedExtendedLevelsList)
-            {
-                //DebugHelper.Log(extendedLevel.contentSourceName);
-                if (extendedLevel.selectableLevel != null)
+                foreach (ExtendedLevel extendedLevel in extendedMod.ExtendedLevels)
                 {
-                    //DebugHelper.Log(extendedLevel.selectableLevel.PlanetName);
-                    extendedLevel.levelType = ContentType.Custom;
+                    extendedLevel.ContentType = ContentType.Custom;
                     extendedLevel.Initialize(extendedLevel.name, generateTerminalAssets: true);
                     PatchedContent.ExtendedLevels.Add(extendedLevel);
                 }
-                //WarmUpBundleShaders(extendedLevel);
+                foreach (ExtendedDungeonFlow extendedDungeonFlow in extendedMod.ExtendedDungeonFlows)
+                {
+                    extendedDungeonFlow.ContentType = ContentType.Custom;
+                    extendedDungeonFlow.Initialize();
+                    //extendedDungeonFlow.manualPlanetNameReferenceList.Add(new StringWithRarity("Tenebrous", 1000));
+                    PatchedContent.ExtendedDungeonFlows.Add(extendedDungeonFlow); 
+                }
+                foreach (ExtendedItem extendedItem in extendedMod.ExtendedItems)
+                {
+                    extendedItem.ContentType = ContentType.Custom;
+                    extendedItem.Initialize();
+                    PatchedContent.ExtendedItems.Add(extendedItem);
+                }
+                foreach (ExtendedEnemyType extendedEnemyType in extendedMod.ExtendedEnemyTypes)
+                {
+                    extendedEnemyType.ContentType = ContentType.Custom;
+                    extendedEnemyType.Initalize();
+                    PatchedContent.ExtendedEnemyTypes.Add(extendedEnemyType);
+                }
+                foreach (ExtendedWeatherEffect extendedWeatherEffect in extendedMod.ExtendedWeatherEffects)
+                    PatchedContent.ExtendedWeatherEffects.Add(extendedWeatherEffect);
             }
             //DebugHelper.DebugAllLevels();
         }
@@ -223,7 +405,7 @@ namespace LethalLevelLoader
 
             foreach (SelectableLevel selectableLevel in startOfRound.levels)
             {
-                ExtendedLevel extendedLevel = ExtendedLevel.Create(selectableLevel, ContentType.Vanilla);
+                ExtendedLevel extendedLevel = ExtendedLevel.Create(selectableLevel);
 
                 foreach (CompatibleNoun compatibleRouteNoun in TerminalManager.routeKeyword.compatibleNouns)
                     if (compatibleRouteNoun.noun.name.Contains(ExtendedLevel.GetNumberlessPlanetName(selectableLevel)))
@@ -234,10 +416,10 @@ namespace LethalLevelLoader
                         break;
                     }
                 extendedLevel.Initialize("Lethal Company", generateTerminalAssets: false);
-                extendedLevel.name = extendedLevel.NumberlessPlanetName + "Level";
+                extendedLevel.name = extendedLevel.NumberlessPlanetName + "ExtendedLevel";
 
-                SetVanillaLevelTags(extendedLevel);
                 PatchedContent.ExtendedLevels.Add(extendedLevel);
+                PatchedContent.VanillaMod.RegisterExtendedContent(extendedLevel);
             }
         }
 
@@ -252,6 +434,53 @@ namespace LethalLevelLoader
                 DebugHelper.Log("Error! RoundManager dungeonFlowTypes Array Was Null!");
         }
 
+        internal static void CreateVanillaExtendedItems()
+        {
+            List<Item> scrapItems = new List<Item>();
+            foreach (ExtendedLevel vanillaLevel in PatchedContent.VanillaExtendedLevels)
+                foreach (SpawnableItemWithRarity itemWithRarity in vanillaLevel.selectableLevel.spawnableScrap)
+                    if (itemWithRarity != null && itemWithRarity.spawnableItem != null)
+                        if (!scrapItems.Contains(itemWithRarity.spawnableItem))
+                            scrapItems.Add(itemWithRarity.spawnableItem);
+
+            foreach (Item scrapItem in scrapItems)
+            {
+                ExtendedItem extendedVanillaItem = ExtendedItem.Create(scrapItem, PatchedContent.VanillaMod, ContentType.Vanilla);
+                extendedVanillaItem.isBuyableItem = false;
+                PatchedContent.ExtendedItems.Add(extendedVanillaItem);
+            }
+
+
+            Terminal terminal = TerminalManager.Terminal;
+            int counter = 0;
+            foreach (Item item in terminal.buyableItemsList)
+            {
+                ExtendedItem extendedVanillaItem = ExtendedItem.Create(item, PatchedContent.VanillaMod, ContentType.Vanilla);
+                extendedVanillaItem.isBuyableItem = true;
+
+                foreach (CompatibleNoun compatibleNoun in TerminalManager.buyKeyword.compatibleNouns)
+                    if (compatibleNoun.result.buyItemIndex == counter)
+                    {
+                        extendedVanillaItem.BuyNode = compatibleNoun.result;
+                        extendedVanillaItem.BuyConfirmNode = compatibleNoun.result.terminalOptions[0].result;
+                        foreach (CompatibleNoun infoCompatibleNoun in TerminalManager.routeInfoKeyword.compatibleNouns)
+                            if (infoCompatibleNoun.noun.word == compatibleNoun.noun.word)
+                                extendedVanillaItem.BuyInfoNode = infoCompatibleNoun.result;
+                    }
+                PatchedContent.ExtendedItems.Add(extendedVanillaItem);
+                counter++;
+            }
+        }
+
+        internal static void CreateVanillaExtendedEnemyTypes()
+        {
+            foreach (EnemyType enemyType in OriginalContent.Enemies)
+            {
+                ExtendedEnemyType newExtendedEnemyType = ExtendedEnemyType.Create(enemyType, PatchedContent.VanillaMod, ContentType.Vanilla);
+                PatchedContent.ExtendedEnemyTypes.Add(newExtendedEnemyType);
+            }
+        }
+
         internal static void CreateVanillaExtendedWeatherEffects(StartOfRound startOfRound, TimeOfDay timeOfDay)
         {
             foreach (LevelWeatherType levelWeatherType in Enum.GetValues(typeof(LevelWeatherType)))
@@ -261,7 +490,9 @@ namespace LethalLevelLoader
                     newExtendedWeatherEffect = ExtendedWeatherEffect.Create(levelWeatherType, timeOfDay.effects[(int)levelWeatherType], levelWeatherType.ToString(), "Lethal Company", ContentType.Vanilla);
                 else
                     newExtendedWeatherEffect = ExtendedWeatherEffect.Create(levelWeatherType, null, null, levelWeatherType.ToString(), "Lethal Company", ContentType.Vanilla);
-                newExtendedWeatherEffect.Initialize();
+                
+                PatchedContent.ExtendedWeatherEffects.Add(newExtendedWeatherEffect);
+                PatchedContent.VanillaMod.ExtendedWeatherEffects.Add(newExtendedWeatherEffect);
             }
         }
 
@@ -281,19 +512,19 @@ namespace LethalLevelLoader
                 firstTimeDungeonAudio = RoundManager.Instance.firstTimeDungeonAudios[1];
             }
 
-            ExtendedDungeonFlow extendedDungeonFlow = ExtendedDungeonFlow.Create(dungeonFlow, firstTimeDungeonAudio, "Lethal Company");
-            extendedDungeonFlow.dungeonDisplayName = dungeonDisplayName;
+            ExtendedDungeonFlow extendedDungeonFlow = ExtendedDungeonFlow.Create(dungeonFlow, firstTimeDungeonAudio);
+            extendedDungeonFlow.DungeonName = dungeonDisplayName;
 
-            extendedDungeonFlow.Initialize(ContentType.Vanilla);
-            DungeonManager.AddExtendedDungeonFlow(extendedDungeonFlow);
+            extendedDungeonFlow.Initialize();
+            PatchedContent.VanillaMod.RegisterExtendedContent(extendedDungeonFlow);
+            PatchedContent.ExtendedDungeonFlows.Add(extendedDungeonFlow);
 
-
-            if (extendedDungeonFlow.dungeonID == -1)
+            if (extendedDungeonFlow.DungeonID == -1)
                 DungeonManager.RefreshDungeonFlowIDs();
             //Gotta assign the right audio later.
         }
 
-        internal static void RegisterDungeonContent(ExtendedDungeonFlow extendedDungeonFlow, NetworkManager networkManager)
+        internal static void NetworkRegisterDungeonContent(ExtendedDungeonFlow extendedDungeonFlow, NetworkManager networkManager)
         {
             List<string> restoredObjectsDebugList = new List<string>();
             List<string> registeredObjectsDebugList = new List<string>();
@@ -340,20 +571,7 @@ namespace LethalLevelLoader
         {
             foreach (IntWithRarity intWithRarity in vanillaLevel.selectableLevel.dungeonFlowTypes)
                 if (DungeonManager.TryGetExtendedDungeonFlow(RoundManager.Instance.dungeonFlowTypes[intWithRarity.id], out ExtendedDungeonFlow extendedDungeonFlow))
-                    extendedDungeonFlow.manualPlanetNameReferenceList.Add(new StringWithRarity(vanillaLevel.NumberlessPlanetName, intWithRarity.rarity));
-
-            if (vanillaLevel.NumberlessPlanetName == "Experimentation")
-                vanillaLevel.levelTags = new List<string>() { "Wasteland" };
-            else if (vanillaLevel.NumberlessPlanetName == "Assurance" || vanillaLevel.NumberlessPlanetName == "Offense")
-                vanillaLevel.levelTags = new List<string>() { "Desert", "Canyon" };
-            else if (vanillaLevel.NumberlessPlanetName == "Vow" || vanillaLevel.NumberlessPlanetName == "March")
-                vanillaLevel.levelTags = new List<string>() { "Forest", "Valley" };
-            else if (vanillaLevel.NumberlessPlanetName == "Gordion")
-                vanillaLevel.levelTags = new List<string>() { "Company", "Quota" };
-            else if (vanillaLevel.NumberlessPlanetName == "Rend" || vanillaLevel.NumberlessPlanetName == "Dine" || vanillaLevel.NumberlessPlanetName == "Titan")
-                vanillaLevel.levelTags = new List<string>() { "Snow", "Ice", "Tundra" };
-
-            vanillaLevel.levelTags.Add("Vanilla");
+                    extendedDungeonFlow.levelMatchingProperties.planetNames.Add(new StringWithRarity(vanillaLevel.NumberlessPlanetName, intWithRarity.rarity));
         }
 
         internal static string GetSceneName(string scenePath)

@@ -28,7 +28,9 @@ namespace LethalLevelLoader
 
         internal static BepInEx.Logging.ManualLogSource logger;
 
-        internal static bool hasVanillaBeenPatched;
+        public delegate void OnSetupComplete();
+        public static event OnSetupComplete onSetupComplete;
+        public static bool IsSetupComplete { get; private set; } = false;
 
         internal static GameObject networkManagerPrefab;
 
@@ -46,9 +48,17 @@ namespace LethalLevelLoader
 
             Harmony.PatchAll(typeof(Patches));
             Harmony.PatchAll(typeof(EventPatches));
+            Harmony.PatchAll(typeof(SafetyPatches));
             NetworkScenePatcher.Patch();
 
             NetcodePatch();
+        }
+
+        internal static void CompleteSetup()
+        {
+            DebugHelper.Log("LethalLevelLoader Has Finished Initializing.");
+            Plugin.IsSetupComplete = true;
+            onSetupComplete?.Invoke();
         }
 
         private void NetcodePatch()

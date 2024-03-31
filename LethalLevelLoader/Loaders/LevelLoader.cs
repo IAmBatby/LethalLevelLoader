@@ -47,10 +47,6 @@ namespace LethalLevelLoader
 
         internal static void UpdateStoryLogs(ExtendedLevel extendedLevel, GameObject sceneRootObject)
         {
-            foreach (StoryLog sceneStoryLog in sceneRootObject.GetComponentsInChildren<StoryLog>())
-                foreach (StoryLogData storyLogData in extendedLevel.storyLogs)
-                    if (sceneStoryLog.storyLogID == storyLogData.storyLogID)
-                        sceneStoryLog.storyLogID = storyLogData.newStoryLogID;
         }
     }
 }
