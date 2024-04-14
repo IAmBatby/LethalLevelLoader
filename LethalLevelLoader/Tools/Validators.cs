@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Unity.Netcode;
 using UnityEditor.ShaderKeywordFilter;
 using UnityEngine;
 
@@ -64,6 +65,22 @@ namespace LethalLevelLoader
 
         public static bool ValidateExtendedContent(ExtendedEnemyType extendedEnemyType)
         {
+            if (extendedEnemyType == null)
+                return (false);
+            if (extendedEnemyType.EnemyType == null)
+                return (false);
+            if (extendedEnemyType.EnemyType.enemyPrefab == null)
+                return (false);
+            if (extendedEnemyType.EnemyType.enemyPrefab.GetComponent<NetworkObject>() == false)
+                return (false);
+            EnemyAI enemyAI = extendedEnemyType.EnemyType.enemyPrefab.GetComponent<EnemyAI>();
+            if (enemyAI == null)
+                enemyAI = extendedEnemyType.EnemyType.enemyPrefab.GetComponentInChildren<EnemyAI>();
+            if (enemyAI == null)
+                return (false);
+            if (enemyAI.enemyType == null)
+                return (false);
+            
             return (true);
         }
 

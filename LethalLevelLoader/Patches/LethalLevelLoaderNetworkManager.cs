@@ -5,6 +5,10 @@ using Unity.Netcode;
 using JetBrains.Annotations;
 using DunGen.Graph;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System;
+using System.Reflection;
 
 namespace LethalLevelLoader
 {
@@ -58,7 +62,7 @@ namespace LethalLevelLoader
             }
             else
             {
-                List<DungeonFlow> dungeonFlowTypes = RoundManager.Instance.dungeonFlowTypes.ToList();
+                List<DungeonFlow> dungeonFlowTypes = Patches.RoundManager.GetDungeonFlows();
                 foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowWithRarity in availableExtendedFlowsList)
                 {
                     StringContainer newStringContainer = new StringContainer();
@@ -78,10 +82,10 @@ namespace LethalLevelLoader
             DebugHelper.Log("Setting Random DungeonFlows!");
             List<IntWithRarity> dungeonFlowsList = new List<IntWithRarity>();
             List<IntWithRarity> cachedDungeonFlowsList = new List<IntWithRarity>();
-
+            
             Dictionary<string, int> dungeonFlowIds = new Dictionary<string, int>();
             int counter = 0;
-            foreach (DungeonFlow dungeonFlow in RoundManager.Instance.dungeonFlowTypes)
+            foreach (DungeonFlow dungeonFlow in Patches.RoundManager.GetDungeonFlows())
             {
                 dungeonFlowIds.Add(dungeonFlow.name, counter);
                 counter++;
@@ -94,7 +98,7 @@ namespace LethalLevelLoader
             }
             cachedDungeonFlowsList = new List<IntWithRarity>(LevelManager.CurrentExtendedLevel.selectableLevel.dungeonFlowTypes.ToList());
             LevelManager.CurrentExtendedLevel.selectableLevel.dungeonFlowTypes = dungeonFlowsList.ToArray();
-            RoundManager.Instance.GenerateNewFloor();
+            Patches.RoundManager.GenerateNewFloor();
             LevelManager.CurrentExtendedLevel.selectableLevel.dungeonFlowTypes = cachedDungeonFlowsList.ToArray();
         }
 
@@ -107,8 +111,8 @@ namespace LethalLevelLoader
         [ClientRpc]
         public void SetDungeonFlowSizeClientRpc(float hostSize)
         {
-            RoundManager.Instance.dungeonGenerator.Generator.LengthMultiplier = hostSize;
-            RoundManager.Instance.dungeonGenerator.Generate();
+            Patches.RoundManager.dungeonGenerator.Generator.LengthMultiplier = hostSize;
+            Patches.RoundManager.dungeonGenerator.Generate();
         }
 
 

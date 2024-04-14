@@ -22,6 +22,10 @@ namespace LethalLevelLoader
         [Space(5)] public bool isLocked = false;
         [Space(5)] public string lockedNodeText = string.Empty;
         [Space(5)] public bool overrideDynamicRiskLevelAssignment = false;
+        [Space(5)] public GameObject overrideQuicksandPrefab;
+        [Space(5)] public AnimationClip ShipFlyToMoonClip;
+        [Space(5)] public AnimationClip ShipFlyFromMoonClip;
+        [field: SerializeField] public List<StringWithRarity> SceneSelections { get; internal set; } = new List<StringWithRarity>();
 
         [Space(10)]
         [Header("Dynamic DungeonFlow Injections Settings")]
@@ -83,8 +87,6 @@ namespace LethalLevelLoader
         public List<ExtendedWeatherEffect> enabledExtendedWeatherEffects = new List<ExtendedWeatherEffect>();
         public ExtendedWeatherEffect currentExtendedWeatherEffect;
 
-        /*Obsolete*/ internal bool isLethalExpansion = false;
-
         internal static ExtendedLevel Create(SelectableLevel newSelectableLevel)
         {
             ExtendedLevel newExtendedLevel = ScriptableObject.CreateInstance<ExtendedLevel>();
@@ -94,29 +96,47 @@ namespace LethalLevelLoader
         }
         internal void Initialize(string newContentSourceName, bool generateTerminalAssets)
         {
-            if (ContentType == ContentType.Vanilla && selectableLevel.levelID > 8)
+            bool mainSceneRegistered = false;
+
+            foreach (StringWithRarity sceneSelection in SceneSelections)
+                if (sceneSelection.Name == selectableLevel.sceneName)
+                    mainSceneRegistered = true;
+
+            if (mainSceneRegistered == false)
             {
-                DebugHelper.LogWarning("LethalExpansion SelectableLevel " + NumberlessPlanetName + " Found, Setting To LevelType: Custom.");
-                //generateTerminalAssets = true;
-                //contentSourceName = "Lethal Expansion";
-                isLethalExpansion = true;
+                StringWithRarity newSceneSelection = new StringWithRarity(selectableLevel.sceneName, 300);
+                SceneSelections.Add(newSceneSelection);
             }
 
-            if (isLethalExpansion == false)
-                SetLevelID();
+            foreach (StringWithRarity sceneSelection in new List<StringWithRarity>(SceneSelections))
+                if (!PatchedContent.AllLevelSceneNames.Contains(sceneSelection.Name))
+                {
+                    DebugHelper.LogWarning("Removing SceneSelection From: " + selectableLevel.PlanetName + " As SceneName: " + sceneSelection.Name + " Is Not Loaded!");
+                    SceneSelections.Remove(sceneSelection);
+                }
 
-            if (generateTerminalAssets == true) //Needs to be after levelID setting above.
-            {
-                //DebugHelper.Log("Generating Terminal Assets For: " + NumberlessPlanetName);
-                TerminalManager.CreateLevelTerminalData(this, routePrice);
-            }
+            if (ShipFlyToMoonClip == null)
+                ShipFlyToMoonClip = LevelLoader.defaultShipFlyToMoonClip;
+            if (ShipFlyFromMoonClip == null)
+                ShipFlyFromMoonClip = LevelLoader.defaultShipFlyFromMoonClip;
+
+            if (overrideQuicksandPrefab == null)
+                overrideQuicksandPrefab = LevelLoader.defaultQuicksandPrefab;
 
             if (ContentType == ContentType.Custom)
             {
                 name = NumberlessPlanetName.StripSpecialCharacters() + "ExtendedLevel";
                 selectableLevel.name = NumberlessPlanetName.StripSpecialCharacters() + "Level";
-                LevelManager.RegisterExtendedFootstepSurfaces(this);
+                if (generateTerminalAssets == true) //Needs to be after levelID setting above.
+                {
+                    //DebugHelper.Log("Generating Terminal Assets For: " + NumberlessPlanetName);
+                    TerminalManager.CreateLevelTerminalData(this, routePrice);
+                }
             }
+
+            SetExtendedDungeonFlowMatches();
+            //if (ContentType == ContentType.Vanilla)
+                //AssetBundleLoader.SetVanillaLevelTags(this);
 
             //Obsolete
             if (levelTags.Count > 0 && ContentTags.Count == 0)
@@ -143,6 +163,20 @@ namespace LethalLevelLoader
                 if (RouteConfirmNode != null)
                     RouteConfirmNode.buyRerouteToMoon = selectableLevel.levelID;
             }
+        }
+
+        internal void SetExtendedDungeonFlowMatches()
+        {
+            foreach (IntWithRarity intWithRarity in selectableLevel.dungeonFlowTypes)
+                if (DungeonManager.TryGetExtendedDungeonFlow(Patches.RoundManager.dungeonFlowTypes[intWithRarity.id].dungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
+                    extendedDungeonFlow.levelMatchingProperties.planetNames.Add(new StringWithRarity(NumberlessPlanetName, intWithRarity.rarity));
+
+
+            if (selectableLevel.sceneName == "Level4March")
+                foreach (IndoorMapType indoorMapType in Patches.RoundManager.dungeonFlowTypes)
+                    if (indoorMapType.dungeonFlow.name == "Level1Flow3Exits")
+                        if (DungeonManager.TryGetExtendedDungeonFlow(indoorMapType.dungeonFlow, out ExtendedDungeonFlow marchDungeonFlow))
+                            marchDungeonFlow.levelMatchingProperties.planetNames.Add(new StringWithRarity(NumberlessPlanetName, 300));
         }
 
         public void ForceSetRoutePrice(int newValue)

@@ -16,6 +16,12 @@ namespace LethalLevelLoader
     {
         internal static List<MeshCollider> customLevelMeshCollidersList = new List<MeshCollider>();
 
+        internal static AnimatorOverrideController shipAnimatorOverrideController;
+        internal static AnimationClip defaultShipFlyToMoonClip;
+        internal static AnimationClip defaultShipFlyFromMoonClip;
+
+        internal static GameObject defaultQuicksandPrefab;
+
         internal static async void EnableMeshColliders()
         {
             List<MeshCollider> instansiatedCustomLevelMeshColliders = new List<MeshCollider>();
@@ -47,6 +53,13 @@ namespace LethalLevelLoader
 
         internal static void UpdateStoryLogs(ExtendedLevel extendedLevel, GameObject sceneRootObject)
         {
+        }
+
+        internal static void RefreshShipAnimatorClips(ExtendedLevel extendedLevel)
+        {
+            DebugHelper.Log("Refreshing Ship Animator Clips!");
+            shipAnimatorOverrideController["HangarShipLandB"] = extendedLevel.ShipFlyToMoonClip;
+            shipAnimatorOverrideController["ShipLeave"] = extendedLevel.ShipFlyFromMoonClip;
         }
     }
 }

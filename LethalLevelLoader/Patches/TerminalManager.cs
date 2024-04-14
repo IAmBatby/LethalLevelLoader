@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
 using Unity.Netcode;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -50,7 +51,7 @@ namespace LethalLevelLoader
 
         internal static void CacheTerminalReferences()
         {
-            routeKeyword = Terminal.terminalNodes.allKeywords[26];
+            routeKeyword = Terminal.terminalNodes.allKeywords[27];
             routeInfoKeyword = Terminal.terminalNodes.allKeywords[6];
             routeConfirmKeyword = Terminal.terminalNodes.allKeywords[3];
             routeDenyKeyword = Terminal.terminalNodes.allKeywords[4];
@@ -84,6 +85,17 @@ namespace LethalLevelLoader
             FilterMoonsCataloguePage(currentMoonsCataloguePage);
         }
 
+        internal static void SetSimulationResultsText(TerminalNode node)
+        {
+            foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
+                if (node.terminalEvent.StripSpecialCharacters().Sanitized().ToLower().Contains(extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized().ToLower()))
+                {
+                    node.displayText = GetSimulationResultsText(extendedLevel) + "\n" + "\n";
+                    node.clearPreviousText = true;
+                    node.isConfirmationNode = true;
+                }
+        }
+
         internal static bool RunLethalLevelLoaderTerminalEvents(TerminalNode node)
         {
             if (node != null && string.IsNullOrEmpty(node.terminalEvent) == false)
@@ -98,17 +110,6 @@ namespace LethalLevelLoader
                     Settings.levelPreviewFilterType = (FilterInfoType)filterEnumValue;
                     currentTagFilter = GetTerminalEventString(node.terminalEvent);
                     DebugHelper.Log("Tag EventString: " + GetTerminalEventString(node.terminalEvent));
-                }
-                else
-                {
-                    foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                        if (node.terminalEvent.StripSpecialCharacters().Sanitized().ToLower().Contains(extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized().ToLower()))
-                        {
-                            node.displayText = GetSimulationResultsText(extendedLevel) + "\n" + "\n";
-                            node.clearPreviousText = true;
-                            node.isConfirmationNode = true;
-                            return (true);
-                        }
                 }
 
                 RefreshExtendedLevelGroups();
@@ -235,11 +236,11 @@ namespace LethalLevelLoader
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Price))
                 levelPreviewInfo = offset + "($" + extendedLevel.RoutePrice + ")";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Difficulty))
-                levelPreviewInfo = offset + "(" + extendedLevel.selectableLevel.riskLevel + " | " + extendedLevel.CalculatedDifficultyRating + ")";
+                levelPreviewInfo = offset + "(" + extendedLevel.selectableLevel.riskLevel + ")";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.History))
                 levelPreviewInfo = offset + GetHistoryConditions(extendedLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.All))
-                levelPreviewInfo = offset + "(" + extendedLevel.selectableLevel.riskLevel + " | " + extendedLevel.CalculatedDifficultyRating + ") " + "($" + extendedLevel.RoutePrice + ") " + GetWeatherConditions(extendedLevel);
+                levelPreviewInfo = offset + "(" + extendedLevel.selectableLevel.riskLevel + ") " + "($" + extendedLevel.RoutePrice + ") " + GetWeatherConditions(extendedLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Vanilla))
                 levelPreviewInfo = offset + "[planetTime]";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Override))
@@ -258,8 +259,9 @@ namespace LethalLevelLoader
         internal static string GetWeatherConditions(ExtendedLevel extendedLevel)
         {
             string returnString = string.Empty;
-            if (extendedLevel.currentExtendedWeatherEffect != null)
-                returnString = "(" + extendedLevel.currentExtendedWeatherEffect.weatherDisplayName + ")";
+            /*if (extendedLevel.currentExtendedWeatherEffect != null)
+                returnString = "(" + extendedLevel.currentExtendedWeatherEffect.weatherDisplayName + ")";*/
+            returnString = "(" + extendedLevel.selectableLevel.currentWeather.ToString() + ")";
             return (returnString);
         }
 
@@ -306,11 +308,6 @@ namespace LethalLevelLoader
             int totalRarityPool = 0;
             foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowResult in availableExtendedFlowsList)
                 totalRarityPool += extendedDungeonFlowResult.rarity;
-            if (extendedLevel.NumberlessPlanetName.Sanitized().Contains("march") && extendedLevel.selectableLevel.dungeonFlowTypes.Length == 0) //Obligitory Fuck March.
-            {
-                totalRarityPool += 300;
-                overrideString += "* " + "Facility" + "  //  Chance: " + GetSimulationDataText(300, totalRarityPool) + "\n";
-            }
             foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowResult in availableExtendedFlowsList)
                 overrideString += "* " + extendedDungeonFlowResult.extendedDungeonFlow.DungeonName + "  //  Chance: " + GetSimulationDataText(extendedDungeonFlowResult.rarity, totalRarityPool) + "\n";
 
@@ -406,8 +403,8 @@ namespace LethalLevelLoader
             foreach (SelectableLevel level in OriginalContent.MoonsCatalogue)
                 DebugHelper.Log(level.PlanetName.ToString());
             ExtendedLevelGroup vanillaGroupA = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(0, 3));
-            ExtendedLevelGroup vanillaGroupB = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(3, 2));
-            ExtendedLevelGroup vanillaGroupC = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(5, 3));
+            ExtendedLevelGroup vanillaGroupB = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(3, 3));
+            ExtendedLevelGroup vanillaGroupC = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(6, 3));
 
             Dictionary<string, List<ExtendedLevel>> extendedLevelsContentSourceNameDictionary = new Dictionary<string, List<ExtendedLevel>>();
 
@@ -500,7 +497,7 @@ namespace LethalLevelLoader
                 if (extendedLevel.overrideRouteConfirmNodeDescription != string.Empty)
                     terminalNodeRouteConfirm.displayText = extendedLevel.overrideRouteConfirmNodeDescription;
                 else
-                    terminalNodeRouteConfirm.displayText = "Routing autopilot to " + extendedLevel.selectableLevel.PlanetName + " Your new balance is [playerCredits].";
+                    terminalNodeRouteConfirm.displayText = "Routing autopilot to " + extendedLevel.selectableLevel.PlanetName + " Your new balance is [playerCredits]. \n\nPlease enjoy your flight.";
                 terminalNodeRouteConfirm.clearPreviousText = true;
                 terminalNodeRouteConfirm.buyRerouteToMoon = extendedLevel.selectableLevel.levelID;
                 terminalNodeRouteConfirm.itemCost = routePrice;
@@ -675,6 +672,28 @@ namespace LethalLevelLoader
             Terminal.buyableItemsList = Terminal.buyableItemsList.AddItem(extendedItem.Item).ToArray();
         }
 
+        internal static void CreateEnemyTypeTerminalData(ExtendedEnemyType extendedEnemyType)
+        {
+            TerminalKeyword newEnemyInfoKeyword = CreateNewTerminalKeyword();
+            newEnemyInfoKeyword.word = extendedEnemyType.enemyDisplayName.ToLower();
+
+            TerminalNode newEnemyInfoNode = CreateNewTerminalNode();
+            newEnemyInfoNode.displayText = extendedEnemyType.infoNodeDescription;
+            newEnemyInfoNode.creatureFileID = extendedEnemyType.EnemyID;
+            newEnemyInfoNode.creatureName = extendedEnemyType.enemyDisplayName;
+
+            if (extendedEnemyType.infoNodeVideoClip != null)
+            {
+                newEnemyInfoNode.displayVideo = extendedEnemyType.infoNodeVideoClip;
+                newEnemyInfoNode.loadImageSlowly = true;
+            }
+
+            extendedEnemyType.EnemyInfoNode = newEnemyInfoNode;
+
+            Patches.Terminal.enemyFiles.Add(newEnemyInfoNode);
+            routeInfoKeyword.AddCompatibleNoun(newEnemyInfoKeyword, newEnemyInfoNode);
+        }
+
         internal static void RegisterStoryLog(TerminalKeyword terminalKeyword, TerminalNode terminalNode)
         {
 
@@ -705,7 +724,7 @@ namespace LethalLevelLoader
             //Simulate Keywords
             List<string> simulateMoonsKeywords = new List<string>();
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                simulateMoonsKeywords.Add(extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized());
+                simulateMoonsKeywords.Add("simulate" + extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized());
 
             CreateTerminalEventNodes("simulate", simulateMoonsKeywords);
         }

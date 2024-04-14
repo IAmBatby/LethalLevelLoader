@@ -70,6 +70,7 @@ namespace LethalLevelLoader.Tools
         private ConfigEntry<SortInfoType> sortInfoTypeToggle;
         private ConfigEntry<FilterInfoType> filterInfoTypeToggle;
         private ConfigEntry<SimulateInfoType> simulateInfoTypeToggle;
+        private ConfigEntry<DebugType> debugTypeToggle;
 
         private ConfigEntry<int> moonsCatalogueSplitCount;
         private ConfigEntry<bool> requireMatchesOnAllDungeonFlows;
@@ -78,6 +79,8 @@ namespace LethalLevelLoader.Tools
 
         public void BindConfigs()
         {
+
+            debugTypeToggle = BindValue("LethalLevelLoader Debugging Mode", "Controls what type of debug logs you recieve, If you use mods, Keep this set to User, If you create content with LethalLeveLoader, set this to Developer", DebugType.User);
             previewInfoTypeToggle = BindValue("Terminal >Moons PreviewInfo Default", "What LethalLevelLoader displays next to each moon in the >moons Terminal listing.", PreviewInfoType.Weather);
             sortInfoTypeToggle = BindValue("Terminal >Moons SortInfo Default", "How LethalLevelLoader sorts each moon in the >moons Terminal listing.", SortInfoType.None);
             filterInfoTypeToggle = BindValue("Terminal >Moons FilterInfo Default", "How LethalLevelLoader filters each moon in the >moons Terminal listing.", FilterInfoType.None);
@@ -87,6 +90,7 @@ namespace LethalLevelLoader.Tools
 
             requireMatchesOnAllDungeonFlows = BindValue("Require Matches On All Possible DungeonFlows", "By default any Dungeons requested by the loading level will skip the matching process and be in the possible selection pool, Set this to false to disable this feature", true);
 
+            Settings.debugType = debugTypeToggle.Value;
             Settings.levelPreviewInfoType = previewInfoTypeToggle.Value;
             Settings.levelPreviewSortType = sortInfoTypeToggle.Value;
             Settings.levelPreviewFilterType = filterInfoTypeToggle.Value;

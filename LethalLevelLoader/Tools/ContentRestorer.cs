@@ -48,8 +48,6 @@ namespace LethalLevelLoader.Tools
 
         internal static void RestoreVanillaLevelAssetReferences(ExtendedLevel extendedLevel)
         {
-            if (extendedLevel.isLethalExpansion == true) return;
-
             DebugHelper.Log("#1");
             foreach (SpawnableItemWithRarity spawnableItem in new List<SpawnableItemWithRarity>(extendedLevel.selectableLevel.spawnableScrap))
             {
@@ -157,7 +155,7 @@ namespace LethalLevelLoader.Tools
         {
             foreach (Object objectToDestroy in objectsToDestroy)
             {
-                Debug.Log("Destroying: " + objectToDestroy.name);
+                DebugHelper.Log("Destroying: " + objectToDestroy.name);
                 UnityEngine.Object.DestroyImmediate(objectToDestroy);
             }
             objectsToDestroy.Clear();

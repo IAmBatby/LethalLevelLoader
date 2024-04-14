@@ -19,8 +19,9 @@ namespace LethalLevelLoader
                 DebugHelper.Log("Raised Rarity Due To Matching Dungeon Tags!");
             if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedDungeonFlow.AuthorName, authorNames)))
                 DebugHelper.Log("Raised Rarity Due To Matching Author Name!");
-            if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedDungeonFlow.ModName, modNames)))
-                DebugHelper.Log("Raised Rarity Due To Matching Mod Name!");
+            foreach (string modNameAlias in extendedDungeonFlow.ExtendedMod.ModNameAliases)
+                if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(modNameAlias, modNames)))
+                    DebugHelper.Log("Raised Rarity Due To Matching Mod Name!");
             if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedDungeonFlow.dungeonFlow.name, dungeonNames)))
                 DebugHelper.Log("Raised Rarity Due To Matching Dungeon Name!");
 

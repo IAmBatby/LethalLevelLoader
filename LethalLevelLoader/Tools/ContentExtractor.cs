@@ -1,6 +1,7 @@
 ﻿using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
+using IL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,34 +20,37 @@ namespace LethalLevelLoader
             List<ItemGroup> extractedItemGroups = new List<ItemGroup>(Resources.FindObjectsOfTypeAll<ItemGroup>());
             foreach (Item item in startOfRound.allItemsList.itemsList)
             {
-                TryAddReference(OriginalContent.Items, item);
-                foreach (ItemGroup itemGroup in item.spawnPositionTypes)
+                if (item.spawnPrefab != null)
                 {
-                    if (extractedItemGroups.Contains(itemGroup))
+                    TryAddReference(OriginalContent.Items, item);
+                    foreach (ItemGroup itemGroup in item.spawnPositionTypes)
                     {
-                        OriginalContent.ItemGroups.Add(itemGroup);
-                        extractedItemGroups.Remove(itemGroup);
+                        if (extractedItemGroups.Contains(itemGroup))
+                        {
+                            OriginalContent.ItemGroups.Add(itemGroup);
+                            extractedItemGroups.Remove(itemGroup);
+                        }
                     }
                 }
             }
             OriginalContent.ItemGroups = OriginalContent.ItemGroups.Distinct().ToList();
 
         }
-        internal static void TryScrapeVanillaContent(RoundManager roundManager)
+        internal static void TryScrapeVanillaContent(StartOfRound startOfRound, RoundManager roundManager)
         {
             if (Plugin.IsSetupComplete == false)
             {
-                StartOfRound startOfRound = StartOfRound.Instance;
+                DebugHelper.Log("StartOfRound was: " + startOfRound + ", RoundManager was: " + roundManager);
                 if (startOfRound != null)
                 {
-                    foreach (DungeonFlow dungeonFlow in roundManager.dungeonFlowTypes)
-                        TryAddReference(OriginalContent.DungeonFlows, dungeonFlow);
+                    foreach (IndoorMapType indoorFlowType in roundManager.dungeonFlowTypes)
+                        TryAddReference(OriginalContent.DungeonFlows, indoorFlowType.dungeonFlow);
 
                     foreach (SelectableLevel selectableLevel in startOfRound.levels)
                         ExtractSelectableLevelReferences(selectableLevel);
 
-                    foreach (DungeonFlow dungeonFlow in roundManager.dungeonFlowTypes)
-                        ExtractDungeonFlowReferences(dungeonFlow);
+                    foreach (IndoorMapType indoorFlowType in roundManager.dungeonFlowTypes)
+                        ExtractDungeonFlowReferences(indoorFlowType.dungeonFlow);
                 }
                 if (TerminalManager.Terminal.currentNode != null)
                     TryAddReference(OriginalContent.TerminalNodes, TerminalManager.Terminal.currentNode);
@@ -90,7 +94,7 @@ namespace LethalLevelLoader
                 foreach (ReverbPreset reverbPreset in Resources.FindObjectsOfTypeAll<ReverbPreset>())
                     TryAddReference(OriginalContent.ReverbPresets, reverbPreset);
 
-                OriginalContent.SelectableLevels = new List<SelectableLevel>(StartOfRound.Instance.levels.ToList());
+                OriginalContent.SelectableLevels = new List<SelectableLevel>(startOfRound.levels.ToList());
                 OriginalContent.MoonsCatalogue = new List<SelectableLevel>(TerminalManager.Terminal.moonsCatalogueList.ToList());
 
             }
@@ -99,13 +103,47 @@ namespace LethalLevelLoader
 
         internal static void TryScrapeCustomContent()
         {
+            /*
             foreach (EnemyType enemyType in Resources.FindObjectsOfTypeAll(typeof(EnemyType)))
                 if (!OriginalContent.Enemies.Contains(enemyType))
                     PatchedContent.Enemies.Add(enemyType);
 
             foreach (Item item in Resources.FindObjectsOfTypeAll(typeof(Item)))
                 if (!OriginalContent.Items.Contains(item))
-                    PatchedContent.Items.Add(item);
+                    PatchedContent.Items.Add(item);*/
+        }
+
+        internal static void ObtainSpecialItemReferences()
+        {
+            foreach (GrabbableObject sceneGrabbableObject in Patches.StartOfRound.shipAnimator.gameObject.GetComponentsInChildren<GrabbableObject>())
+                if (sceneGrabbableObject.itemProperties != null && !OriginalContent.Items.Contains(sceneGrabbableObject.itemProperties))
+                    if (sceneGrabbableObject.itemProperties.spawnPrefab != null)
+                        OriginalContent.Items.Add(sceneGrabbableObject.itemProperties);
+
+            foreach (EnemyType enemyType in OriginalContent.Enemies)
+            {
+                if (enemyType.name == "Nutcracker_0")
+                {
+                    NutcrackerEnemyAI nutcrackerEnemy = enemyType.enemyPrefab.GetComponent<NutcrackerEnemyAI>();
+                    if (nutcrackerEnemy != null)
+                    {
+                        OriginalContent.Items.Add(nutcrackerEnemy.gunPrefab.GetComponent<GrabbableObject>().itemProperties);
+                        OriginalContent.Items.Add(nutcrackerEnemy.shotgunShellPrefab.GetComponent<GrabbableObject>().itemProperties);
+                    }
+                }
+                else if (enemyType.name == "Butler_0")
+                {
+                    ButlerEnemyAI butlerEnemy = enemyType.enemyPrefab.GetComponent<ButlerEnemyAI>();
+                    if (butlerEnemy != null)
+                        OriginalContent.Items.Add(butlerEnemy.knifePrefab.GetComponent<GrabbableObject>().itemProperties);
+                }
+                else if (enemyType.name == "RedLocustBees")
+                {
+                    RedLocustBees beesEnemy = enemyType.enemyPrefab.GetComponent<RedLocustBees>();
+                    if (beesEnemy != null)
+                        OriginalContent.Items.Add(beesEnemy.hivePrefab.GetComponent<GrabbableObject>().itemProperties); 
+                }
+            }
         }
 
         internal static void ExtractMemoryLoadedAudioMixerGroups()

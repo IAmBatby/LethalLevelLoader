@@ -15,11 +15,12 @@ namespace LethalLevelLoader
 {
     [BepInPlugin(ModGUID, ModName, ModVersion)]
     [BepInDependency(LethalLib.Plugin.ModGUID)]
+    [BepInDependency(LethalModDataLib.PluginInfo.PLUGIN_GUID)]
     public class Plugin : BaseUnityPlugin
     {
         public const string ModGUID = "imabatby.lethallevelloader";
         public const string ModName = "LethalLevelLoader";
-        public const string ModVersion = "1.1.0.7";
+        public const string ModVersion = "1.2.0.0";
 
         internal static Plugin Instance;
 
@@ -52,6 +53,22 @@ namespace LethalLevelLoader
             NetworkScenePatcher.Patch();
 
             NetcodePatch();
+
+            //AssetBundleLoader.LoadBundles();
+            //AssetBundleLoader.Instance.pluginInstace = this;
+
+            GameObject test = new GameObject("LethalLevelLoader AssetBundleLoader");
+            test.AddComponent<AssetBundleLoader>().LoadBundles();
+            test.hideFlags = HideFlags.HideAndDontSave;
+            AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
+
+            foreach (GameObject gameObject in UnityEngine.Object.FindObjectsOfType<GameObject>(true))
+                DebugHelper.Log("GameObject Found: " + gameObject.name);
+
+            foreach (MonoBehaviour monoBehaviour in UnityEngine.Object.FindObjectsOfType<MonoBehaviour>(true))
+                DebugHelper.Log("MonoBheaviour Found: " + monoBehaviour.gameObject.name + " - " + monoBehaviour.GetType().Name);
+
+            //UnityEngine.Object.FindFirstObjectByType<GameObject>()
         }
 
         internal static void CompleteSetup()

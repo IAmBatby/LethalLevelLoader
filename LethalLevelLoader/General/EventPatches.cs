@@ -2,7 +2,6 @@
 using GameNetcodeStuff;
 using HarmonyLib;
 using IL;
-using LethalLib.Modules;
 using On;
 using System;
 using System.Collections.Generic;
@@ -50,7 +49,7 @@ namespace LethalLevelLoader
                 LevelManager.GlobalLevelEvents.onStoryLogCollected.Invoke(__instance);
             }
         }
-
+        /*
         [HarmonyPriority(Patches.harmonyPriority)]
         [HarmonyPatch(typeof(RoundManager), "SpawnRandomDaytimeEnemy")]
         [HarmonyPostfix]
@@ -75,7 +74,7 @@ namespace LethalLevelLoader
                     LevelManager.CurrentExtendedLevel.LevelEvents.onNighttimeEnemySpawn.Invoke(enemyAI);
                     LevelManager.GlobalLevelEvents.onNighttimeEnemySpawn.Invoke(enemyAI);
                 }
-        }
+        }*/
 
 
 
@@ -89,8 +88,8 @@ namespace LethalLevelLoader
         {
             if (DungeonManager.CurrentExtendedDungeonFlow != null)
             {
-                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onBeforeDungeonGenerate.Invoke(RoundManager.Instance);
-                DungeonManager.GlobalDungeonEvents.onBeforeDungeonGenerate.Invoke(RoundManager.Instance);
+                DungeonManager.CurrentExtendedDungeonFlow.dungeonEvents.onBeforeDungeonGenerate.Invoke(Patches.RoundManager);
+                DungeonManager.GlobalDungeonEvents.onBeforeDungeonGenerate.Invoke(Patches.RoundManager);
             }
         }
 
@@ -101,7 +100,7 @@ namespace LethalLevelLoader
         {
             if (DungeonManager.CurrentExtendedDungeonFlow != null)
             {
-                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onPowerSwitchToggle.Invoke(on);
+                DungeonManager.CurrentExtendedDungeonFlow.dungeonEvents.onPowerSwitchToggle.Invoke(on);
                 DungeonManager.GlobalDungeonEvents.onPowerSwitchToggle.Invoke(on);
             }
             if (LevelManager.CurrentExtendedLevel != null)
@@ -119,7 +118,7 @@ namespace LethalLevelLoader
             if (DungeonManager.CurrentExtendedDungeonFlow != null)
             {
                 List<GrabbableObject> scrap = UnityEngine.Object.FindObjectsOfType<GrabbableObject>().ToList();
-                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onSpawnedScrapObjects.Invoke(scrap);
+                DungeonManager.CurrentExtendedDungeonFlow.dungeonEvents.onSpawnedScrapObjects.Invoke(scrap);
                 DungeonManager.GlobalDungeonEvents.onSpawnedScrapObjects.Invoke(scrap);
             }
         }
@@ -131,8 +130,8 @@ namespace LethalLevelLoader
         {
             if (DungeonManager.CurrentExtendedDungeonFlow != null)
             {
-                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onSpawnedSyncedObjects.Invoke(RoundManager.Instance.spawnedSyncedObjects);
-                DungeonManager.GlobalDungeonEvents.onSpawnedSyncedObjects.Invoke(RoundManager.Instance.spawnedSyncedObjects);
+                DungeonManager.CurrentExtendedDungeonFlow.dungeonEvents.onSpawnedSyncedObjects.Invoke(Patches.RoundManager.spawnedSyncedObjects);
+                DungeonManager.GlobalDungeonEvents.onSpawnedSyncedObjects.Invoke(Patches.RoundManager.spawnedSyncedObjects);
             }
         }
 
@@ -153,8 +152,8 @@ namespace LethalLevelLoader
         {
             if (DungeonManager.CurrentExtendedDungeonFlow != null && cachedSelectedVent != null)
             {
-                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onEnemySpawnedFromVent.Invoke((cachedSelectedVent, RoundManager.Instance.SpawnedEnemies.Last()));
-                DungeonManager.GlobalDungeonEvents.onEnemySpawnedFromVent.Invoke((cachedSelectedVent, RoundManager.Instance.SpawnedEnemies.Last()));
+                DungeonManager.CurrentExtendedDungeonFlow.dungeonEvents.onEnemySpawnedFromVent.Invoke((cachedSelectedVent, Patches.RoundManager.SpawnedEnemies.Last()));
+                DungeonManager.GlobalDungeonEvents.onEnemySpawnedFromVent.Invoke((cachedSelectedVent, Patches.RoundManager.SpawnedEnemies.Last()));
                 cachedSelectedVent = null;
             }
         }
@@ -171,7 +170,7 @@ namespace LethalLevelLoader
                     foreach (SpawnableMapObject randomMapObject in LevelManager.CurrentExtendedLevel.selectableLevel.spawnableMapObjects)
                         if (rootObject.name.Sanitized().Contains(randomMapObject.prefabToSpawn.name.Sanitized())) //To ensure were only getting the Dungeon relevant objects.
                             mapObjects.Add(rootObject);
-                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onSpawnedMapObjects.Invoke(mapObjects);
+                DungeonManager.CurrentExtendedDungeonFlow.dungeonEvents.onSpawnedMapObjects.Invoke(mapObjects);
                 DungeonManager.GlobalDungeonEvents.onSpawnedMapObjects.Invoke(mapObjects);
             }
         }
@@ -185,22 +184,22 @@ namespace LethalLevelLoader
 
             if (DungeonManager.CurrentExtendedDungeonFlow != null)
             {
-                PlayerControllerB player = StartOfRound.Instance.allPlayerScripts[playerObj];
+                PlayerControllerB player = Patches.StartOfRound.allPlayerScripts[playerObj];
                 if (__instance.isEntranceToBuilding == true)
                 {
-                    DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onPlayerEnterDungeon.Invoke((__instance, player));
+                    DungeonManager.CurrentExtendedDungeonFlow.dungeonEvents.onPlayerEnterDungeon.Invoke((__instance, player));
                     DungeonManager.GlobalDungeonEvents.onPlayerEnterDungeon.Invoke((__instance, player));
                 }
                 else
                 {
-                    DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onPlayerExitDungeon.Invoke((__instance, player));
+                    DungeonManager.CurrentExtendedDungeonFlow.dungeonEvents.onPlayerExitDungeon.Invoke((__instance, player));
                     DungeonManager.GlobalDungeonEvents.onPlayerExitDungeon.Invoke((__instance, player));
                 }
             }
 
             if (LevelManager.CurrentExtendedLevel != null)
             {
-                PlayerControllerB player = StartOfRound.Instance.allPlayerScripts[playerObj];
+                PlayerControllerB player = Patches.StartOfRound.allPlayerScripts[playerObj];
                 if (__instance.isEntranceToBuilding == true)
                 {
                     LevelManager.CurrentExtendedLevel.LevelEvents.onPlayerEnterDungeon.Invoke((__instance, player));
@@ -224,7 +223,7 @@ namespace LethalLevelLoader
             {
                 if (DungeonManager.CurrentExtendedDungeonFlow != null)
                 {
-                    DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onApparatusTaken.Invoke(__instance);
+                    DungeonManager.CurrentExtendedDungeonFlow.dungeonEvents.onApparatusTaken.Invoke(__instance);
                     DungeonManager.GlobalDungeonEvents.onApparatusTaken.Invoke(__instance);
                 }
                 if (LevelManager.CurrentExtendedLevel != null)

@@ -4,7 +4,6 @@ using DunGen.Graph;
 using GameNetcodeStuff;
 using HarmonyLib;
 using LethalLevelLoader.Tools;
-using LethalLib.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +27,12 @@ namespace LethalLevelLoader
 
         internal static List<string> allSceneNamesCalledToLoad = new List<string>();
 
+        //Singletons and such for these are set in each classes Awake function, But they all are accessible on the first awake function of the earliest one of these four managers awake function, so i grab them directly via findobjectoftype to safely access them as early as possible.
+        public static StartOfRound StartOfRound { get; internal set; }
+        public static RoundManager RoundManager { get; internal set; }
+        public static Terminal Terminal { get; internal set; }
+        public static TimeOfDay TimeOfDay { get; internal set; }
+
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(PreInitSceneScript), "Awake")]
         [HarmonyPrefix]
@@ -35,15 +40,22 @@ namespace LethalLevelLoader
         {
             if (Plugin.IsSetupComplete == false)
             {
-                AssetBundleLoader.CreateLoadingBundlesHeaderText(__instance);
+                //AssetBundleLoader.CreateLoadingBundlesHeaderText(__instance);
                 if (__instance.TryGetComponent(out AudioSource audioSource))
                     OriginalContent.AudioMixers.Add(audioSource.outputAudioMixerGroup.audioMixer);
 
-                AssetBundleLoader.LoadBundles(__instance);
-                AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
+                //AssetBundleLoader.LoadBundles(__instance);
+                //AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
 
 
                 ContentTagParser.ImportVanillaContentTags();
+
+
+                foreach (GameObject gameObject in UnityEngine.Object.FindObjectsOfType<GameObject>(true))
+                    DebugHelper.Log("GameObject Found: " + gameObject.name);
+
+                foreach (MonoBehaviour monoBehaviour in UnityEngine.Object.FindObjectsOfType<MonoBehaviour>(true))
+                    DebugHelper.Log("MonoBheaviour Found: " + monoBehaviour.gameObject.name + " - " + monoBehaviour.GetType().Name);
             }
         }
 
@@ -72,7 +84,7 @@ namespace LethalLevelLoader
                 return (false);
             }
 
-            if (AssetBundleLoader.loadingStatus == AssetBundleLoader.LoadingStatus.Loading)
+            if (AssetBundleLoader.CurrentLoadingStatus == AssetBundleLoader.LoadingStatus.Loading)
             {
                 DebugHelper.LogWarning("SceneManager has attempted to load " + sceneName + " Scene before AssetBundles have finished loading. Pausing request until LethalLeveLoader is ready to proceed.");
                 delayedSceneLoadingName = sceneName;
@@ -104,13 +116,14 @@ namespace LethalLevelLoader
                         if (networkPrefab.Prefab.GetComponent<AudioSource>() != null)
                             OriginalContent.AudioMixers.Add(networkPrefab.Prefab.GetComponent<AudioSource>().outputAudioMixerGroup.audioMixer);
 
-                GameObject networkManagerPrefab = LethalLib.Modules.NetworkPrefabs.CreateNetworkPrefab("LethalLevelLoaderNetworkManagerTest");
+                GameObject networkManagerPrefab = PrefabHelper.CreateNetworkPrefab("LethalLevelLoaderNetworkManagerTest");
                 networkManagerPrefab.AddComponent<LethalLevelLoaderNetworkManager>();
                 networkManagerPrefab.GetComponent<NetworkObject>().DontDestroyWithOwner = true;
                 networkManagerPrefab.GetComponent<NetworkObject>().SceneMigrationSynchronization = true;
                 networkManagerPrefab.GetComponent<NetworkObject>().DestroyWithScene = false;
                 GameObject.DontDestroyOnLoad(networkManagerPrefab);
                 LethalLevelLoaderNetworkManager.networkingManagerPrefab = networkManagerPrefab;
+                LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(networkManagerPrefab);
 
                 AssetBundleLoader.NetworkRegisterCustomContent(__instance.GetComponent<NetworkManager>());
                 LethalLevelLoaderNetworkManager.RegisterPrefabs(__instance.GetComponent<NetworkManager>());
@@ -122,34 +135,63 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void StartOfRoundAwake_Prefix(StartOfRound __instance)
         {
-            if (Plugin.IsSetupComplete == false)
-                ContentExtractor.TryScrapeVanillaItems(__instance);
-        }
+            //Reference Setup
+            StartOfRound = __instance;
+            RoundManager = UnityEngine.Object.FindFirstObjectByType<RoundManager>();
+            Terminal = UnityEngine.Object.FindFirstObjectByType<Terminal>();
+            TimeOfDay = UnityEngine.Object.FindFirstObjectByType<TimeOfDay>();
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(RoundManager), "Awake")]
-        [HarmonyPostfix]
-        internal static void RoundManagerAwake_Postfix(RoundManager __instance)
-        {
-            if (GameNetworkManager.Instance.GetComponent<NetworkManager>().IsServer)
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            SceneManager.sceneLoaded += EventPatches.OnSceneLoaded;
+
+            //Removing the broken cardboard box item please understand 
+            StartOfRound.allItemsList.itemsList.RemoveAt(2);
+            SaveManager.defaultCachedItemsList = new List<Item>(StartOfRound.allItemsList.itemsList);
+            //Scrape Vanilla For Content References
+            if (Plugin.IsSetupComplete == false)
             {
-                LethalLevelLoaderNetworkManager lethalLevelLoaderNetworkManager = GameObject.Instantiate(LethalLevelLoaderNetworkManager.networkingManagerPrefab).GetComponent<LethalLevelLoaderNetworkManager>();
-                lethalLevelLoaderNetworkManager.GetComponent<NetworkObject>().Spawn(destroyWithScene: false);
+                DebugStopwatch.StartStopWatch("Scrape Vanilla Content");
+                ContentExtractor.TryScrapeVanillaItems(StartOfRound);
+                ContentExtractor.TryScrapeVanillaContent(StartOfRound, RoundManager);
+                ContentExtractor.ObtainSpecialItemReferences();
             }
 
-            RoundManager.Instance.firstTimeDungeonAudios = RoundManager.Instance.firstTimeDungeonAudios.ToList().AddItem(RoundManager.Instance.firstTimeDungeonAudios[0]).ToArray();
+            //Startup LethalLevelLoader's Network Manager Instance
+            if (GameNetworkManager.Instance.GetComponent<NetworkManager>().IsServer)
+                GameObject.Instantiate(LethalLevelLoaderNetworkManager.networkingManagerPrefab).GetComponent<NetworkObject>().Spawn(destroyWithScene: false);
+
+            //Add the facility's firstTimeDungeonAudio additionally to RoundManager's list to fix a basegame bug.
+            RoundManager.firstTimeDungeonAudios = RoundManager.firstTimeDungeonAudios.ToList().AddItem(RoundManager.firstTimeDungeonAudios[0]).ToArray();
+            DebugStopwatch.StartStopWatch("Fix AudioSource Settings");
+            //Disable Spatialization In All AudioSources To Fix Log Spam Bug.
+            foreach (AudioSource audioSource in Resources.FindObjectsOfTypeAll<AudioSource>())
+                audioSource.spatialize = false;
 
             if (Plugin.IsSetupComplete == false)
             {
-                ContentExtractor.TryScrapeVanillaContent(__instance);
+                //Terminal Specific Reference Setup
                 TerminalManager.CacheTerminalReferences();
 
+                LevelManager.InitalizeShipAnimatorOverrideController();
+
+                DungeonLoader.defaultKeyPrefab = RoundManager.keyPrefab;
+                LevelLoader.defaultQuicksandPrefab = RoundManager.quicksandPrefab;
+
+                DebugStopwatch.StartStopWatch("Create Vanilla ExtendedContent");
+                //Create & Initialize ExtendedContent Objects For Vanilla Content.
                 AssetBundleLoader.CreateVanillaExtendedDungeonFlows();
-                AssetBundleLoader.CreateVanillaExtendedLevels(StartOfRound.Instance);
+                AssetBundleLoader.CreateVanillaExtendedLevels(StartOfRound);
                 AssetBundleLoader.CreateVanillaExtendedItems();
                 AssetBundleLoader.CreateVanillaExtendedEnemyTypes();
+
+                DebugStopwatch.StartStopWatch("Initalize Custom ExtendedContent");
+                //Initialize ExtendedContent Objects For Custom Content.
                 AssetBundleLoader.InitializeBundles();
 
+                foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
+                    extendedLevel.SetLevelID();
+
+                //Some Debugging.
                 string debugString = "LethalLevelLoader Loaded The Following ExtendedLevels:" + "\n";
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                     debugString += (PatchedContent.ExtendedLevels.IndexOf(extendedLevel) + 1) + ". " + extendedLevel.selectableLevel.PlanetName + " (" + extendedLevel.ContentType + ")" + "\n";
@@ -159,103 +201,107 @@ namespace LethalLevelLoader
                 foreach (ExtendedDungeonFlow extendedDungeonFlow in PatchedContent.ExtendedDungeonFlows)
                     debugString += (PatchedContent.ExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1) + ". " + extendedDungeonFlow.DungeonName + " (" + extendedDungeonFlow.dungeonFlow.name + ") (" + extendedDungeonFlow.ContentType + ")" + "\n";
                 DebugHelper.Log(debugString);
-            }
-        }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(RoundManager), "Start")]
-        [HarmonyPrefix]
-        internal static void RoundManagerStart_Prefix()
-        {
-            if (Plugin.IsSetupComplete == false)
-            {
-
+                DebugStopwatch.StartStopWatch("Restore Content");
+                //Restore Custom Content References To Vanilla Content
                 foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
                     ContentRestorer.RestoreVanillaLevelAssetReferences(customLevel);
-                ContentRestorer.DestroyRestoredAssets();
 
                 foreach (ExtendedDungeonFlow customDungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
                     ContentRestorer.RestoreVanillaDungeonAssetReferences(customDungeonFlow);
 
-                SceneManager.sceneLoaded += OnSceneLoaded;
-                SceneManager.sceneLoaded += EventPatches.OnSceneLoaded;
+                //Destroy Placeholder Custom Content References That Have Now Been Restored
+                ContentRestorer.DestroyRestoredAssets();
 
+                DebugStopwatch.StartStopWatch("Dynamic Risk Level");
+
+                //Use Vanilla SelectableLevel's To Populate Information About Moon Difficulty.
                 LevelManager.PopulateDynamicRiskLevelDictionary();
+
+                //Assign Risk Level's To Custom SelectableLevel's Using The Populated Vanilla Information As Reference
                 LevelManager.AssignCalculatedRiskLevels();
-            }
 
-            foreach (AudioSource audioSource in Resources.FindObjectsOfTypeAll<AudioSource>())
-                audioSource.spatialize = false;
+                DebugStopwatch.StartStopWatch("Apply, Merge & Populate Content Tags");
 
-            ConfigLoader.BindConfigs();
-
-            LevelManager.ValidateLevelLists();
-
-            LevelManager.PatchVanillaLevelLists();
-            DungeonManager.PatchVanillaDungeonLists();
-            EnemyManager.UpdateEnemyIDs();
-
-            LevelManager.RefreshCustomExtendedLevelIDs();
-
-            ItemManager.RefreshDynamicItemRarityOnAllExtendedLevels();
-            EnemyManager.RefreshDynamicEnemyTypeRarityOnAllExtendedLevels();
-
-
-            TerminalManager.CreateExtendedLevelGroups();
-
-
-            if (Plugin.IsSetupComplete == false)
-            {
-                TerminalManager.CreateMoonsFilterTerminalAssets();
-
-                TerminalManager.CreateTerminalDataForAllExtendedStoryLogs();
-
+                //Apply ContentTags To Vanilla ExtendedContent Objects.
                 ContentTagParser.ApplyVanillaContentTags();
 
+                //Iterate Through All ExtendedMod Objects And Merge Any Reoccuring ContentTagName In The Same ExtendedMod.
                 ContentTagManager.MergeAllExtendedModTags();
 
+                //Populate Information About All Current ContentTag's Used In ExtendedContent For Developer Use.
                 ContentTagManager.PopulateContentTagData();
 
+                //Debugging.
                 DebugHelper.DebugAllContentTags();
-
                 ItemManager.GetExtendedItemPriceData();
                 ItemManager.GetExtendedItemWeightData();
             }
 
-            if (LevelManager.invalidSaveLevelID != -1 && StartOfRound.Instance.levels.Length > LevelManager.invalidSaveLevelID)
+            DebugStopwatch.StartStopWatch("Bind Configs");
+            //Bind User Configation Information.
+            ConfigLoader.BindConfigs();
+
+            DebugStopwatch.StartStopWatch("Patch Basegame Lists");
+            //Patch The Basegame References To SelectableLevel's To Include Enabled Custom SelectableLevels.
+            LevelManager.PatchVanillaLevelLists();
+
+            //Patch The Basegame References To DungeonFlows's To Include Enabled Custom DungeonFlows.
+            DungeonManager.PatchVanillaDungeonLists();
+
+            //Patch The Basegame References To EnemyTypes's To Include Enabled Custom EnemyTypes.
+            EnemyManager.UpdateEnemyIDs();
+
+            foreach (ExtendedEnemyType extendedEnemyType in PatchedContent.CustomExtendedEnemyTypes)
+                TerminalManager.CreateEnemyTypeTerminalData(extendedEnemyType);
+
+            DebugStopwatch.StartStopWatch("ExtendedItem Injection");
+
+            //Dynamically Inject Custom Item's Into SelectableLevel's Based On Level & Dungeon MatchingProperties.
+            ItemManager.RefreshDynamicItemRarityOnAllExtendedLevels();
+
+            DebugStopwatch.StartStopWatch("ExtendedEnemyType Injection");
+
+            //Dynamically Inject Custom EnemyType's Into SelectableLevel's Based On Level & Dungeon MatchingProperties.
+            EnemyManager.RefreshDynamicEnemyTypeRarityOnAllExtendedLevels();
+
+            DebugStopwatch.StartStopWatch("Create ExtendedLevelGroups & Filter Assets");
+
+            //Populate SelectableLevel Data To Be Used In Overhaul Of The Terminal Moons Catalogue.
+            TerminalManager.CreateExtendedLevelGroups();
+
+            if (Plugin.IsSetupComplete == false)
+            {
+                //Populate SelectableLevel Data To Be Used In Overhaul Of The Terminal Moons Catalogue.
+                TerminalManager.CreateMoonsFilterTerminalAssets();
+
+                //Create Terminal Data For Custom StoryLog's And Patch Basegame References To StoryLog's To Include Custom StoryLogs.
+                TerminalManager.CreateTerminalDataForAllExtendedStoryLogs();
+            }
+
+            //We Might Not Need This Now
+            /*if (LevelManager.invalidSaveLevelID != -1 && StartOfRound.levels.Length > LevelManager.invalidSaveLevelID)
             {
                 DebugHelper.Log("Setting CurrentLevel to previously saved ID that was not loaded at the time of save loading.");
-                DebugHelper.Log(LevelManager.invalidSaveLevelID + " / " + (StartOfRound.Instance.levels.Length));
-                StartOfRound.Instance.ChangeLevelServerRpc(LevelManager.invalidSaveLevelID, TerminalManager.Terminal.groupCredits);
+                DebugHelper.Log(LevelManager.invalidSaveLevelID + " / " + (StartOfRound.levels.Length));
+                StartOfRound.ChangeLevelServerRpc(LevelManager.invalidSaveLevelID, TerminalManager.Terminal.groupCredits);
                 LevelManager.invalidSaveLevelID = -1;
-            }
-        }
+            }*/
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(RoundManager), "Start")]
-        [HarmonyPostfix]
-        internal static void RoundManagerStart_Postfix()
-        {
-            DebugHelper.Log("RoundManagerStartPostfix");
+            DebugStopwatch.StartStopWatch("Initalize Save");
+
+            SaveManager.InitializeSave();
+
+            SaveManager.RefreshSaveItemInfo();
+
+            DebugStopwatch.StopStopWatch("Initalize Save");
             if (Plugin.IsSetupComplete == false)
             {
-                ContentExtractor.TryScrapeCustomContent();
-            }
-        }
-
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(TimeOfDay), "Start")]
-        [HarmonyPostfix]
-        internal static void TimeOfDayStart_Postfix(TimeOfDay __instance)
-        {
-            DebugHelper.Log("TimeOfDayStartPostfix");
-            if (Plugin.IsSetupComplete == false)
-            {
-                AssetBundleLoader.CreateVanillaExtendedWeatherEffects(StartOfRound.Instance, __instance);
+                AssetBundleLoader.CreateVanillaExtendedWeatherEffects(StartOfRound, TimeOfDay);
                 WeatherManager.PopulateVanillaExtendedWeatherEffectsDictionary();
                 WeatherManager.PopulateExtendedLevelEnabledExtendedWeatherEffects();
-                StartOfRound.Instance.SetPlanetsWeather(0);
                 Plugin.CompleteSetup();
+                StartOfRound.SetPlanetsWeather();
             }
         }
 
@@ -264,28 +310,62 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static bool StartOfRoundSetPlanetsWeather_Prefix(int connectedPlayersOnServer)
         {
+            if (Plugin.IsSetupComplete == false)
+                return (false);
+            /*
             if (WeatherManager.vanillaExtendedWeatherEffectsDictionary.Count != 0)
             {
                 WeatherManager.SetExtendedLevelsExtendedWeatherEffect(connectedPlayersOnServer);
                 return (false);
             }
-            else
-                return (true);
+            else*/
+            return (true);
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(StartOfRound), "ChangeLevel")]
+        [HarmonyPrefix]
+        public static bool StartOfRoundChangeLevel_Prefix(ref int levelID)
+        {
+            //Because Level ID's can change between modpack adjustments and such, we save the name of the level instead and find and load that up instead of the saved ID the basegame uses.
+            if (TimeOfDay.currentLevel == null && !string.IsNullOrEmpty(SaveManager.currentSaveFile.CurrentLevelName))
+                foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
+                    if (extendedLevel.selectableLevel.name == SaveManager.currentSaveFile.CurrentLevelName)
+                    {
+                        DebugHelper.Log("Loading Previously Saved SelectableLevel: " + extendedLevel.selectableLevel.PlanetName);
+                        levelID = StartOfRound.levels.ToList().IndexOf(extendedLevel.selectableLevel);
+                        return (true);
+                    }
+            //If we can't find the previous current level, that probably means the game is going to try and use an ID bigger than the current array, or reference the wrong level, so we reset it back to experimentation here.
+            if (levelID >= StartOfRound.levels.Length || levelID > OriginalContent.SelectableLevels.Count)
+                levelID = 0;
+
+            return (true);
         }
 
 
         [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(Terminal), "Start")]
+        [HarmonyPatch(typeof(StartOfRound), "ChangeLevel")]
         [HarmonyPostfix]
-        internal static void TerminalStart_Postfix()
+        public static void StartOfRoundChangeLevel_Postfix(int levelID)
         {
-            LevelManager.RefreshLethalExpansionMoons();
-            StartOfRound.Instance.SetPlanetsWeather();
-
-            List<ExtendedLevel> levels = PatchedContent.ExtendedLevels.OrderBy(o => o.CalculatedDifficultyRating).ToList();
-            foreach (ExtendedLevel extendedLevel in levels)
-                LevelManager.CalculateExtendedLevelDifficultyRating(extendedLevel, true);
+            if (RoundManager.currentLevel != null && SaveManager.currentSaveFile.CurrentLevelName != RoundManager.currentLevel.PlanetName)
+            {
+                DebugHelper.Log("Saving Current SelectableLevel: " + RoundManager.currentLevel.PlanetName);
+                SaveManager.SaveCurrentSelectableLevel(RoundManager.currentLevel);
+            }
         }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(StartOfRound), "LoadShipGrabbableItems")]
+        [HarmonyPrefix]
+        internal static bool StartOfRoundLoadShipGrabbableItems_Prefix()
+        {
+            //SaveManager.LoadShipGrabbableItems(); 
+            //return (false);
+            return (true);
+        }
+
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(Terminal), "ParseWord")]
@@ -307,7 +387,13 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static bool TerminalRunTerminalEvents_Prefix(Terminal __instance, TerminalNode node)
         {
-            if (__instance.currentNode != TerminalManager.moonsKeyword.specialKeywordResult)
+            if (node.terminalEvent.Contains("simulate"))
+            {
+                ranLethalLevelLoaderTerminalEvent = false;
+                TerminalManager.SetSimulationResultsText(node);
+                return (true);
+            }
+            else if (__instance.currentNode != TerminalManager.moonsKeyword.specialKeywordResult)
             {
                 ranLethalLevelLoaderTerminalEvent = false;
                 return (true);
@@ -348,16 +434,49 @@ namespace LethalLevelLoader
         internal static void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
             if (LevelManager.CurrentExtendedLevel != null && LevelManager.CurrentExtendedLevel.IsLevelLoaded)
-                if (LevelManager.CurrentExtendedLevel.ContentType == ContentType.Custom && LevelManager.CurrentExtendedLevel.isLethalExpansion == false)
+                foreach (GameObject rootObject in SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.selectableLevel.sceneName).GetRootGameObjects())
                 {
-                    DebugHelper.DebugSpawnScrap(LevelManager.CurrentExtendedLevel);
-                    foreach (GameObject rootObject in SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.selectableLevel.sceneName).GetRootGameObjects())
-                    {
-                        LevelLoader.UpdateStoryLogs(LevelManager.CurrentExtendedLevel, rootObject);
-                        ContentRestorer.RestoreAudioAssetReferencesInParent(rootObject);
-                    }
+                    LevelLoader.UpdateStoryLogs(LevelManager.CurrentExtendedLevel, rootObject);
+                    ContentRestorer.RestoreAudioAssetReferencesInParent(rootObject);
                 }
 
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(StartOfRound), "ChangeLevel")]
+        [HarmonyPostfix]
+        internal static void StartOfRoundChangeLevel_Postfix(ref int levelID)
+        {
+            SaveManager.currentSaveFile.CurrentLevelName = LevelManager.CurrentExtendedLevel.selectableLevel.name;
+            SaveManager.currentSaveFile.Save();
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(StartOfRound), "StartGame")]
+        [HarmonyPrefix]
+        internal static void StartOfRoundStartGame_Prefix()
+        {
+            LevelLoader.RefreshShipAnimatorClips(LevelManager.CurrentExtendedLevel);
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(NetworkSceneManager), "LoadScene")]
+        [HarmonyPrefix]
+        internal static void NetworkSceneManagerLoadScene_Prefix(ref string sceneName)
+        {
+            if (LevelManager.CurrentExtendedLevel == null) return;
+            
+            if (LevelManager.CurrentExtendedLevel.selectableLevel.sceneName == sceneName)
+            {
+                sceneName = string.Empty;
+
+                RoundManager.InitializeRandomNumberGenerators();
+
+                List<int> sceneSelections = LevelManager.CurrentExtendedLevel.SceneSelections.Select(s => s.Rarity).ToList();
+                int selectedSceneIndex = RoundManager.GetRandomWeightedIndex(sceneSelections.ToArray(), RoundManager.LevelRandom);
+                sceneName = LevelManager.CurrentExtendedLevel.SceneSelections[selectedSceneIndex].Name;
+                DebugHelper.Log("Selected SceneName: " +  sceneName + " For ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName);
+            }
         }
 
         [HarmonyPriority(harmonyPriority)]
@@ -369,7 +488,7 @@ namespace LethalLevelLoader
                 DungeonLoader.PrepareDungeon();
             LevelManager.LogDayHistory();
 
-            if (RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow == null)
+            if (Patches.RoundManager.dungeonGenerator.Generator.DungeonFlow == null)
                 DebugHelper.LogError("Critical Failure! DungeonGenerator DungeonFlow Is Null!");
         }
 
@@ -388,7 +507,7 @@ namespace LethalLevelLoader
             }
             return (false);
         }
-
+        
         [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.GenerateNewLevelClientRpc))]
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> GenerateNewLevelClientRpcTranspiler(IEnumerable<CodeInstruction> instructions)
@@ -417,9 +536,9 @@ namespace LethalLevelLoader
         //Called via Transpiler.
         public static void InjectHostDungeonSizeSelection(RoundManager roundManager)
         {
-            if (LevelManager.CurrentExtendedLevel != null)
+            /*if (LevelManager.CurrentExtendedLevel != null)
                 LethalLevelLoaderNetworkManager.Instance.GetDungeonFlowSizeServerRpc();
-            else
+            else*/
                 roundManager.dungeonGenerator.Generate();
         }
 
@@ -428,11 +547,27 @@ namespace LethalLevelLoader
         {
             if (LevelManager.CurrentExtendedLevel != null)
             {
-                DungeonManager.TryAddCurrentVanillaLevelDungeonFlow(RoundManager.Instance.dungeonGenerator.Generator, LevelManager.CurrentExtendedLevel);
+                //DungeonManager.TryAddCurrentVanillaLevelDungeonFlow(Patches.RoundManager.dungeonGenerator.Generator, LevelManager.CurrentExtendedLevel);
                 DungeonLoader.SelectDungeon();
             }
             else
-                RoundManager.Instance.GenerateNewFloor();
+                Patches.RoundManager.GenerateNewFloor();
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(RoundManager), "SetLockedDoors")]
+        [HarmonyPrefix]
+        internal static void RoundManagerSetLockedDoors_Prefix()
+        {
+            RoundManager.keyPrefab = DungeonManager.CurrentExtendedDungeonFlow.overrideKeyPrefab;
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(RoundManager), "SpawnOutsideHazards")]
+        [HarmonyPrefix]
+        internal static void RoundManagerSpawnOutsideHazards_Prefix()
+        {
+            RoundManager.quicksandPrefab = LevelManager.CurrentExtendedLevel.overrideQuicksandPrefab;
         }
 
 
@@ -489,7 +624,7 @@ namespace LethalLevelLoader
         internal static bool PlayerControllerBGetCurrentMaterialStandingOn_Prefix(PlayerControllerB __instance)
         {
             /*if (LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces.Count != 0)
-                if (Physics.Raycast(new Ray(__instance.thisPlayerBody.position + Vector3.up, -Vector3.up), out RaycastHit hit, 6f, StartOfRound.Instance.walkableSurfacesMask, QueryTriggerInteraction.Ignore))
+                if (Physics.Raycast(new Ray(__instance.thisPlayerBody.position + Vector3.up, -Vector3.up), out RaycastHit hit, 6f, Patches.StartOfRound.walkableSurfacesMask, QueryTriggerInteraction.Ignore))
                     if (hit.collider.gameObject == previousHit)
                         return (false);*/
             return (true);
@@ -501,7 +636,7 @@ namespace LethalLevelLoader
         internal static void PlayerControllerBGetCurrentMaterialStandingOn_Postfix(PlayerControllerB __instance)
         {
             /*if (LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces.Count != 0)
-                if (Physics.Raycast(new Ray(__instance.thisPlayerBody.position + Vector3.up, -Vector3.up), out RaycastHit hit, 6f, StartOfRound.Instance.walkableSurfacesMask, QueryTriggerInteraction.Ignore))
+                if (Physics.Raycast(new Ray(__instance.thisPlayerBody.position + Vector3.up, -Vector3.up), out RaycastHit hit, 6f, Patches.StartOfRound.walkableSurfacesMask, QueryTriggerInteraction.Ignore))
                     if (hit.collider.gameObject != previousHit || previousHit == null)
                     {
                         previousHit = hit.collider.gameObject;

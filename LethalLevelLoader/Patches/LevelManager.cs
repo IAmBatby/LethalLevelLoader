@@ -19,8 +19,8 @@ namespace LethalLevelLoader
             get
             {
                 ExtendedLevel returnLevel = null;
-                if (StartOfRound.Instance != null)
-                    if (TryGetExtendedLevel(StartOfRound.Instance.currentLevel, out ExtendedLevel level))
+                if (Patches.StartOfRound != null)
+                    if (TryGetExtendedLevel(Patches.StartOfRound.currentLevel, out ExtendedLevel level))
                         returnLevel = level;
                 return returnLevel;
             }
@@ -59,63 +59,19 @@ namespace LethalLevelLoader
             {"S+++", 0}
         };
 
-        internal static void ValidateLevelLists()
-        {
-            List<SelectableLevel> vanillaLevelsList = new List<SelectableLevel>(OriginalContent.SelectableLevels);
-            List<SelectableLevel> vanillaMoonsCatalogueList = new List<SelectableLevel>(OriginalContent.MoonsCatalogue);
-            List<SelectableLevel> startOfRoundLevelsList = new List<SelectableLevel>(StartOfRound.Instance.levels);
-
-            foreach (SelectableLevel level in new List<SelectableLevel>(vanillaLevelsList))
-                if (level.levelID > 8)
-                    vanillaLevelsList.Remove(level);
-
-            foreach (SelectableLevel level in new List<SelectableLevel>(vanillaMoonsCatalogueList))
-                if (level.levelID > 8)
-                    vanillaMoonsCatalogueList.Remove(level);
-
-            foreach (SelectableLevel level in new List<SelectableLevel>(startOfRoundLevelsList))
-                if (level.levelID > 8)
-                    startOfRoundLevelsList.Remove(level);
-
-            OriginalContent.SelectableLevels = vanillaLevelsList;
-            OriginalContent.MoonsCatalogue = vanillaMoonsCatalogueList;
-
-            PatchVanillaLevelLists();
-        }
-
         internal static void PatchVanillaLevelLists()
         {
-            StartOfRound.Instance.levels = PatchedContent.SeletectableLevels.ToArray();
+            Patches.StartOfRound.levels = PatchedContent.SeletectableLevels.ToArray();
             TerminalManager.Terminal.moonsCatalogueList = PatchedContent.MoonsCatalogue.ToArray();
         }
 
-        internal static void RefreshCustomExtendedLevelIDs()
+        internal static void InitalizeShipAnimatorOverrideController()
         {
-            /*foreach (ExtendedLevel level in new List<ExtendedLevel>(PatchedContent.CustomExtendedLevels))
-                if (level.isLethalExpansion == true)
-                    level.SetLevelID();*/
-
-            foreach (ExtendedLevel level in new List<ExtendedLevel>(PatchedContent.CustomExtendedLevels))
-                if (level.isLethalExpansion == false)
-                    level.SetLevelID();
-        }
-
-        internal static void RefreshLethalExpansionMoons()
-        {
-            foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
-                if (extendedLevel.isLethalExpansion == true)
-                {
-                    foreach (CompatibleNoun compatibleRouteNoun in TerminalManager.routeKeyword.compatibleNouns)
-                        if (compatibleRouteNoun.noun.name.ToLower().Contains(extendedLevel.NumberlessPlanetName.ToLower()))
-                        {
-                            extendedLevel.RouteNode = compatibleRouteNoun.result;
-                            extendedLevel.RouteConfirmNode = compatibleRouteNoun.result.terminalOptions[1].result;
-                            extendedLevel.RoutePrice = extendedLevel.RouteNode.itemCost;
-                            break;
-                        }
-                }
-
-            RefreshCustomExtendedLevelIDs();
+            AnimatorOverrideController overrideController = new AnimatorOverrideController(Patches.StartOfRound.shipAnimator.runtimeAnimatorController);
+            Patches.StartOfRound.shipAnimator.runtimeAnimatorController = overrideController;
+            LevelLoader.shipAnimatorOverrideController = overrideController;
+            LevelLoader.defaultShipFlyToMoonClip = overrideController["HangarShipLandB"];
+            LevelLoader.defaultShipFlyFromMoonClip = overrideController["ShipLeave"];
         }
 
         public static bool TryGetExtendedLevel(SelectableLevel selectableLevel, out ExtendedLevel returnExtendedLevel, ContentType levelType = ContentType.Any)
@@ -152,7 +108,7 @@ namespace LethalLevelLoader
 
         public static void RegisterExtendedFootstepSurfaces(ExtendedLevel extendedLevel)
         {
-            /*List<FootstepSurface> currentFootstepSurfaces = StartOfRound.Instance.footstepSurfaces.ToList();
+            /*List<FootstepSurface> currentFootstepSurfaces = Patches.StartOfRound.footstepSurfaces.ToList();
 
             if (extendedLevel.extendedFootstepSurfaces != null)
             {
@@ -164,8 +120,8 @@ namespace LethalLevelLoader
                             if (!currentFootstepSurfaces.Contains(extendedFootstepSurface.footstepSurface))
                             {
                                 DebugHelper.Log("Registering New Footstep Surface:  " + extendedFootstepSurface.footstepSurface.surfaceTag + " From ExtendedLevel: " + extendedLevel);
-                                StartOfRound.Instance.footstepSurfaces = StartOfRound.Instance.footstepSurfaces.AddItem(extendedFootstepSurface.footstepSurface).ToArray();
-                                extendedFootstepSurface.arrayIndex = StartOfRound.Instance.footstepSurfaces.Length - 1;
+                                Patches.StartOfRound.footstepSurfaces = Patches.StartOfRound.footstepSurfaces.AddItem(extendedFootstepSurface.footstepSurface).ToArray();
+                                extendedFootstepSurface.arrayIndex = Patches.StartOfRound.footstepSurfaces.Length - 1;
                             }
                         }
                 }
@@ -179,7 +135,7 @@ namespace LethalLevelLoader
         public static void RefreshCachedFootstepSurfaceData()
         {
             /*cachedFootstepSurfacesDictionary = new Dictionary<FootstepSurface, ExtendedFootstepSurface>();
-            foreach (FootstepSurface footstepSurface in StartOfRound.Instance.footstepSurfaces)
+            foreach (FootstepSurface footstepSurface in Patches.StartOfRound.footstepSurfaces)
                 cachedFootstepSurfacesDictionary.Add(footstepSurface, null);
             List<ExtendedFootstepSurface> extendedFootstepSurfaceList = new List<ExtendedFootstepSurface>();
             foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
@@ -329,7 +285,7 @@ namespace LethalLevelLoader
         public static void LogDayHistory()
         {
             //Heavy early returns here because this runs from a DunGen patch and needs to be safe for unconventional Unity-Editor generation usage.
-            if (Plugin.IsSetupComplete == false || StartOfRound.Instance == null || RoundManager.Instance == null || TimeOfDay.Instance == null)
+            if (Plugin.IsSetupComplete == false || Patches.StartOfRound == null || Patches.RoundManager == null || TimeOfDay.Instance == null)
             {
                 DebugHelper.LogWarning("Game Seems Uninitialized, Exiting LogDayHistory Early!");
                 return;
@@ -342,7 +298,7 @@ namespace LethalLevelLoader
             newDayHistory.extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
             newDayHistory.day = daysTotal;
             newDayHistory.quota = TimeOfDay.Instance.timesFulfilledQuota;
-            newDayHistory.weatherEffect = StartOfRound.Instance.currentLevel.currentWeather;
+            newDayHistory.weatherEffect = Patches.StartOfRound.currentLevel.currentWeather;
 
             string debugString = "Created New Day History Log! PlanetName: ";
             if (newDayHistory.extendedLevel != null)
@@ -393,14 +349,14 @@ namespace LethalLevelLoader
             returnRating += enemySpawnValue;
             debugString += "Enemy Spawn Value: " + enemySpawnValue + ", ";
 
-            int enemyValue = 0;
+            float enemyValue = 0;
             foreach (SpawnableEnemyWithRarity spawnableEnemy in extendedLevel.selectableLevel.Enemies.Concat(extendedLevel.selectableLevel.OutsideEnemies).Concat(extendedLevel.selectableLevel.DaytimeEnemies))
             {
                 if (spawnableEnemy.rarity != 0 && spawnableEnemy.enemyType != null)
                     if ((spawnableEnemy.rarity / 10) != 0)
                         enemyValue += (spawnableEnemy.enemyType.PowerLevel * 100) / (spawnableEnemy.rarity / 10);
             }
-            returnRating += enemyValue;
+            returnRating += Mathf.RoundToInt(enemyValue);
             debugString += "Enemy Value: " + enemyValue + ", ";
 
             debugString += "Calculated Difficulty Value: " + returnRating + ", ";
@@ -413,7 +369,7 @@ namespace LethalLevelLoader
             debugString += "Multiplied Calculated Difficulty Value: " + returnRating;
 
             if (debugResults == true)
-                Debug.Log(debugString);
+                DebugHelper.Log(debugString);
             return (returnRating);
         }
     }

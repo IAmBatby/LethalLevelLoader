@@ -23,28 +23,39 @@ namespace LethalLevelLoader
         public static Dictionary<ExtendedLevel, ExtendedLevelLogReport> extendedLevelLogReports = new Dictionary<ExtendedLevel, ExtendedLevelLogReport>();
         public static Dictionary<ExtendedDungeonFlow, ExtendedLevelLogReport> extendedDungeonFlowLogReports = new Dictionary<ExtendedDungeonFlow, ExtendedLevelLogReport>();
 
-        public static void Log(string log)
+        public static void Log(string log, DebugType debugType = DebugType.IAmBatby)
         {
-            //LethalLevelLoaderPlugin.Instance.Log(log);
-            string logString = log;
-            Plugin.logger.LogInfo(logString);
+            if ((int)Settings.debugType >= (int)debugType)
+            {
+                string logString = log;
+                Plugin.logger.LogInfo(logString);
+            }
         }
 
-        public static void LogWarning(string log)
+        public static void LogWarning(string log, DebugType debugType = DebugType.IAmBatby)
         {
-            string logString = log;
-            Plugin.logger.LogWarning(logString);
+            if ((int)Settings.debugType >= (int)debugType)
+            {
+                string logString = log;
+                Plugin.logger.LogWarning(logString);
+            }
         }
 
-        public static void LogError(string log)
+        public static void LogError(string log, DebugType debugType = DebugType.IAmBatby)
         {
-            string logString = log;
-            Plugin.logger.LogError(logString);
+            if ((int)Settings.debugType >= (int)debugType)
+            {
+                string logString = log;
+                Plugin.logger.LogError(logString);
+            }
         }
 
-        public static void LogError(Exception exception)
+        public static void LogError(Exception exception, DebugType debugType = DebugType.IAmBatby)
         {
-            Plugin.logger.LogError(exception);
+            if ((int)Settings.debugType >= (int)debugType)
+            {
+                Plugin.logger.LogError(exception);
+            }
         }
 
         public static void DebugTerminalKeyword(TerminalKeyword terminalKeyword)
@@ -100,15 +111,15 @@ namespace LethalLevelLoader
             string logString = "Injected Levels List: " + "\n" + "\n";
 
             int counter = 0;
-            if (StartOfRound.Instance != null)
+            if (Patches.StartOfRound != null)
             {
-                foreach (SelectableLevel level in StartOfRound.Instance.levels)
+                foreach (SelectableLevel level in Patches.StartOfRound.levels)
                 {
                     logString += counter + ". " + level.PlanetName + " (" + level.levelID + ") " + "\n";
                     counter++;
                 }
 
-                logString += "Current Level Is: " + StartOfRound.Instance.currentLevel.PlanetName + " (" + StartOfRound.Instance.currentLevel.levelID + ") " + "\n";
+                logString += "Current Level Is: " + Patches.StartOfRound.currentLevel.PlanetName + " (" + Patches.StartOfRound.currentLevel.levelID + ") " + "\n";
             }
 
             Log(logString + "\n" + "\n");
@@ -261,7 +272,7 @@ namespace LethalLevelLoader
 
         public static void DebugPlanetWeatherRandomisation(int players, List<SelectableLevel> selectableLevelsList)
         {
-            StartOfRound startOfRound = StartOfRound.Instance;
+            StartOfRound startOfRound = Patches.StartOfRound;
 
             List<SelectableLevel> selectableLevels = new List<SelectableLevel>(selectableLevelsList);
 
@@ -335,9 +346,9 @@ namespace LethalLevelLoader
         public static void SetTimeAndPlanetToSavedSettings_Prefix()
         {
             DebugHelper.Log("SaveGameValues Prefix.");
-            DebugHelper.Log("Current Level ID: " + StartOfRound.Instance.currentLevelID);
-            DebugHelper.Log("Current Level List Count: " + StartOfRound.Instance.levels.Length);
-            DebugHelper.Log("Current Level From ID: " + StartOfRound.Instance.levels[StartOfRound.Instance.currentLevelID]);
+            DebugHelper.Log("Current Level ID: " + Patches.StartOfRound.currentLevelID);
+            DebugHelper.Log("Current Level List Count: " + Patches.StartOfRound.levels.Length);
+            DebugHelper.Log("Current Level From ID: " + Patches.StartOfRound.levels[Patches.StartOfRound.currentLevelID]);
         }
 
         [HarmonyPatch(typeof(GameNetworkManager), "SaveGameValues")]
@@ -345,9 +356,9 @@ namespace LethalLevelLoader
         public static void SaveGameValues_Prefix()
         {
             DebugHelper.Log("SaveGameValues Prefix.");
-            DebugHelper.Log("Current Level ID: " + StartOfRound.Instance.currentLevelID);
-            DebugHelper.Log("Current Level List Count: " + StartOfRound.Instance.levels.Length);
-            DebugHelper.Log("Current Level From ID: " + StartOfRound.Instance.levels[StartOfRound.Instance.currentLevelID]);
+            DebugHelper.Log("Current Level ID: " + Patches.StartOfRound.currentLevelID);
+            DebugHelper.Log("Current Level List Count: " + Patches.StartOfRound.levels.Length);
+            DebugHelper.Log("Current Level From ID: " + Patches.StartOfRound.levels[Patches.StartOfRound.currentLevelID]);
         }*/
 
 
@@ -371,7 +382,7 @@ namespace LethalLevelLoader
             List<NetworkBehaviour> networkBehaviours = new List<NetworkBehaviour>();
             Log("Starting Debug Network Components, Scene Is: " + scene.name);
             string debugString = "Network Components Report." + "\n";
-            debugString += "Current Level Being Reported On Is: " + RoundManager.Instance.currentLevel.PlanetName;
+            debugString += "Current Level Being Reported On Is: " + Patches.RoundManager.currentLevel.PlanetName;
             foreach (GameObject rootObject in scene.GetRootGameObjects())
             {
                 foreach (NetworkObject networkObject in rootObject.GetComponentsInChildren<NetworkObject>())

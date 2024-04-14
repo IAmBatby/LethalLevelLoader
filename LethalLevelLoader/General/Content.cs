@@ -13,6 +13,8 @@ namespace LethalLevelLoader
     {
         public static ExtendedMod VanillaMod { get; internal set; }
 
+        public static List<string> AllLevelSceneNames { get; internal set; } = new List<string>();
+
         public static List<ExtendedMod> ExtendedMods { get; internal set; } = new List<ExtendedMod>();
 
         public static List<ExtendedLevel> ExtendedLevels { get; internal set; } = new List<ExtendedLevel>();

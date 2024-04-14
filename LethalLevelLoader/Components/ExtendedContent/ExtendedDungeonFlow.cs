@@ -16,18 +16,15 @@ namespace LethalLevelLoader
     {
         [Header("Extended DungeonFlow Settings")]
         /*Obsolete*/ public string contentSourceName = string.Empty;
-        [field: SerializeField] public string DungeonName { get; internal set; } = string.Empty;
+        [field: SerializeField] public string DungeonName{ get { return dungeonDisplayName; } set { dungeonDisplayName = value; } }
+        [HideInInspector] public string dungeonDisplayName = string.Empty;
         [Space(5)] public DungeonFlow dungeonFlow;
+        [Space(5)] public float mapTileSize = 1f;
         [Space(5)] public AudioClip dungeonFirstTimeAudio;
 
         [Space(10)]
         [Header("Dynamic DungeonFlow Injections Settings")]
         public LevelMatchingProperties levelMatchingProperties;
-        /*Obsolete*/ public List<StringWithRarity> dynamicLevelTagsList = new List<StringWithRarity>();
-        /*Obsolete*/ public List<Vector2WithRarity> dynamicRoutePricesList = new List<Vector2WithRarity>();
-        /*Obsolete*/ public List<StringWithRarity> dynamicCurrentWeatherList = new List<StringWithRarity>();
-        /*Obsolete*/ public List<StringWithRarity> manualPlanetNameReferenceList = new List<StringWithRarity>();
-        /*Obsolete*/ public List<StringWithRarity> manualContentSourceNameReferenceList = new List<StringWithRarity>();
 
         [Space(10)] [Header("Dynamic Dungeon Size Multiplier Lerp Settings")]
         public bool enableDynamicDungeonSizeRestriction = false;
@@ -37,6 +34,7 @@ namespace LethalLevelLoader
 
 
         [Space(10)] [Header("Dynamic DungeonFlow Modification Settings")]
+        public GameObject overrideKeyPrefab;
         public List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>();
         public List<GlobalPropCountOverride> globalPropCountOverridesList = new List<GlobalPropCountOverride>();
 
@@ -48,7 +46,21 @@ namespace LethalLevelLoader
 
         [HideInInspector] public bool IsCurrentDungeon => (DungeonManager.CurrentExtendedDungeonFlow == this);
 
-        [HideInInspector] public DungeonEvents DungeonEvents { get; internal set; } = new DungeonEvents();
+        [HideInInspector] public DungeonEvents dungeonEvents = new DungeonEvents();
+
+        /*Obsolete*/
+        public List<StringWithRarity> dynamicLevelTagsList = new List<StringWithRarity>();
+        /*Obsolete*/
+        public List<Vector2WithRarity> dynamicRoutePricesList = new List<Vector2WithRarity>();
+        /*Obsolete*/
+        public List<StringWithRarity> dynamicCurrentWeatherList = new List<StringWithRarity>();
+        /*Obsolete*/
+        public List<StringWithRarity> manualPlanetNameReferenceList = new List<StringWithRarity>();
+        /*Obsolete*/
+        public List<StringWithRarity> manualContentSourceNameReferenceList = new List<StringWithRarity>();
+
+        /*Obsolete*/
+        [HideInInspector] public int dungeonDefaultRarity;
 
         internal static ExtendedDungeonFlow Create(DungeonFlow newDungeonFlow, AudioClip newFirstTimeDungeonAudio)
         {
@@ -75,8 +87,11 @@ namespace LethalLevelLoader
             if (dungeonFirstTimeAudio == null)
             {
                 DebugHelper.LogWarning("Custom Dungeon: " + DungeonName + " Is Missing A DungeonFirstTimeAudio Reference! Assigning Facility Audio To Prevent Errors.");
-                dungeonFirstTimeAudio = RoundManager.Instance.firstTimeDungeonAudios[0];
+                dungeonFirstTimeAudio = Patches.RoundManager.firstTimeDungeonAudios[0];
             }
+
+            if (overrideKeyPrefab == null)
+                overrideKeyPrefab = DungeonLoader.defaultKeyPrefab;
         }
 
         private void GetDungeonFlowID()
@@ -84,7 +99,9 @@ namespace LethalLevelLoader
             if (ContentType == ContentType.Custom)
                 DungeonID = PatchedContent.ExtendedDungeonFlows.Count;
             if (ContentType == ContentType.Vanilla)
-                DungeonID = RoundManager.Instance.dungeonFlowTypes.ToList().IndexOf(dungeonFlow);
+                foreach (IndoorMapType indoorMapType in Patches.RoundManager.dungeonFlowTypes)
+                    if (indoorMapType.dungeonFlow == dungeonFlow)
+                        DungeonID = Patches.RoundManager.dungeonFlowTypes.ToList().IndexOf(indoorMapType);
         }
 
         internal override void TryCreateMatchingProperties()

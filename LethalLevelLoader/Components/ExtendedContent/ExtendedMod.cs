@@ -6,12 +6,14 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
+    public enum ModMergeSetting { MatchingAuthorName, MatchingModName, Disabled }
     [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedMod")]
     public class ExtendedMod : ScriptableObject
     {
         [field: SerializeField] public string ModName { get; internal set; } = "Unspecified";
         [field: SerializeField] public string AuthorName { get; internal set; } = "Unknown";
-        [field: SerializeField] internal bool CombineExtendedModWithMatchingExtendedModsAuthorName { get; private set; } = true;
+        public List<string> ModNameAliases { get; internal set; } = new List<string>();
+        [field: SerializeField] public ModMergeSetting ModMergeSetting { get; internal set; } = ModMergeSetting.MatchingAuthorName;
 
         [field: SerializeField]
         public List<ExtendedLevel> ExtendedLevels { get; private set; } = new List<ExtendedLevel>();

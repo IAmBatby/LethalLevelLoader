@@ -1,5 +1,5 @@
 ,Is Automatically Applied:,No,No,No,No,No,No,No,No,No,No
-Item Name,Total Tags,16,9,2,6,11,11,4,4,14,2
+Item Name,Total Tags,17,11,2,6,13,13,4,4,16,2
 ,,Organic,Killable,Passive,Neutral,Hostile,Biped,Quadruped,Small,Medium,Large
 Baboon Hawk,5,Organic,Killable,,Neutral,,Biped,,,Medium,
 Bunker Spider,5,Organic,Killable,,Neutral,,,Quadruped,,Medium,
@@ -21,3 +21,5 @@ Nutcracker,5,Organic,Killable,,,Hostile,Biped,,,Medium,
 Centipede,4,Organic,Killable,,,Hostile,,,Small,,
 Puffer,4,Organic,,,Neutral,,,Quadruped,,Medium,
 Crawler,5,Organic,Killable,,,Hostile,,Quadruped,,Medium,
+Butler,5,Organic,Killable,,,Hostile,Biped,,,Medium,
+Rad Mech,4,,Killable,,,Hostile,Biped,,,Medium,

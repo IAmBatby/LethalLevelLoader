@@ -17,13 +17,13 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void StartOfRoundChangeLevel_Prefix(ref int levelID)
         {
-            if (levelID >= StartOfRound.Instance.levels.Length)
+           /* if (levelID >= Patches.StartOfRound.levels.Length)
             {
                 DebugHelper.LogWarning("Lethal Company attempted to load a saved current level that has not yet been loaded");
-                DebugHelper.LogWarning(levelID + " / " + (StartOfRound.Instance.levels.Length));
+                DebugHelper.LogWarning(levelID + " / " + (Patches.StartOfRound.levels.Length));
                 LevelManager.invalidSaveLevelID = levelID;
                 levelID = 0;
-            }
+            }*/
         }
 
         static List<SpawnableMapObject> tempoarySpawnableMapObjectList = new List<SpawnableMapObject>();
@@ -98,7 +98,7 @@ namespace LethalLevelLoader
                     invalidSpawnableItemWithRarity.Add(spawnableScrap);
 
             if (invalidSpawnableItemWithRarity.Count != 0)
-                Debug.LogError("Removed: " + invalidSpawnableItemWithRarity + " SpawnableItemWithRarities From CurrentLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Due To Invalid Properties To Prevent Errors.");
+                DebugHelper.LogError("Removed: " + invalidSpawnableItemWithRarity.Count + " SpawnableItemWithRarities From CurrentLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Due To Invalid Properties To Prevent Errors.");
             foreach (SpawnableItemWithRarity invalidItem in invalidSpawnableItemWithRarity)
                 LevelManager.CurrentExtendedLevel.selectableLevel.spawnableScrap.Remove(invalidItem);
 
@@ -110,7 +110,6 @@ namespace LethalLevelLoader
 
             return (true);
         }
-
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(LethalLib.Modules.Dungeon), "RoundManager_Start")]

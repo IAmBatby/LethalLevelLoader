@@ -84,17 +84,28 @@ namespace LethalLevelLoader
 
             }*/
 
-            List<EnemyType> enemyTypes = PatchedContent.ExtendedEnemyTypes.Select(e => e.EnemyType).ToList();
+            List<ExtendedEnemyType> vanillaEnemyTypes = PatchedContent.VanillaExtendedEnemyTypes;
+            List<ExtendedEnemyType> customEnemyTypes = PatchedContent.CustomExtendedEnemyTypes;
+            int highestVanillaEnemyScanNodeCreatureID = -1;
 
-            foreach (EnemyType enemyType in enemyTypes)
+            foreach (ExtendedEnemyType extendedEnemyType in vanillaEnemyTypes)
+                if (extendedEnemyType.EnemyID > highestVanillaEnemyScanNodeCreatureID)
+                    highestVanillaEnemyScanNodeCreatureID = extendedEnemyType.EnemyID;
+
+            DebugHelper.Log("Highest Enemy ScanNode Creature ID Was: " + highestVanillaEnemyScanNodeCreatureID);
+
+            int counter = 1; //we want this to be 1
+            foreach (ExtendedEnemyType extendedEnemyType in customEnemyTypes)
             {
-                    DebugHelper.Log("Resource Find EnemyAI: " + enemyType.enemyPrefab.gameObject.name + " | " + enemyType.enemyPrefab.gameObject.GetInstanceID() + " | " + enemyType.enemyName);
+                ScanNodeProperties enemyScanNode = extendedEnemyType.EnemyType.enemyPrefab.GetComponentInChildren<ScanNodeProperties>();
+                if (enemyScanNode != null)
+                {
+                    extendedEnemyType.ScanNodeProperties = enemyScanNode;
+                    extendedEnemyType.ScanNodeProperties.creatureScanID = (highestVanillaEnemyScanNodeCreatureID + counter);
+                    DebugHelper.Log("Setting Custom EnemyType: " + extendedEnemyType.EnemyType.enemyName + " ID To: " + (highestVanillaEnemyScanNodeCreatureID + counter));
+                }
+                counter++;
             }
-
-            foreach (GameObject networkPrefab in GameNetworkManager.Instance.GetComponent<NetworkManager>().NetworkConfig.Prefabs.m_Prefabs.Select(p => p.Prefab))
-                if (networkPrefab != null && networkPrefab.GetComponent<EnemyAI>() != null)
-                    if (networkPrefab.GetComponent<EnemyAI>().enemyType != null)
-                        DebugHelper.Log("Enemy NetworkPrefab: " + networkPrefab.gameObject.name + " | " + networkPrefab.GetInstanceID() + " | " + networkPrefab.GetComponent<EnemyAI>().enemyType.enemyName);
         }
     }
 

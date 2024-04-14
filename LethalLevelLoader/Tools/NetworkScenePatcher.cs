@@ -1,4 +1,5 @@
-﻿using Mono.Cecil.Cil;
+﻿using LethalLevelLoader;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;
 using System.Collections.Generic;
@@ -115,7 +116,7 @@ public static class NetworkScenePatcher
             buildIndexToScenePath.Add(buildIndex, scenePath);
             sceneHashToScenePath.Add(hash, scenePath);
 
-            Debug.Log($"Added modded scene path: {scenePath}");
+            DebugHelper.Log($"Added modded scene path: {scenePath}");
         }
     }
     static string SceneNameFromHash_Hook(Func<NetworkSceneManager, uint, string> orig, NetworkSceneManager self, uint sceneHash)
@@ -128,7 +129,7 @@ public static class NetworkScenePatcher
     static bool ValidateSceneBeforeLoading_Hook(Func<NetworkSceneManager, int, string, LoadSceneMode, bool> orig, NetworkSceneManager self, int sceneIndex, string sceneName, LoadSceneMode loadSceneMode)
     {
         bool valid = orig(self, sceneIndex, sceneName, loadSceneMode);
-        Debug.LogWarning(valid ? $"Validation check success for scene: {sceneName}" : $"Bypassed validation check for scene {sceneName}");
+        DebugHelper.LogWarning(valid ? $"Validation check success for scene: {sceneName}" : $"Bypassed validation check for scene {sceneName}");
         return true;
     }
 }

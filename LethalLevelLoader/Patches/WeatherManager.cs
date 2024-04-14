@@ -35,7 +35,7 @@ namespace LethalLevelLoader
 
         public static void SetExtendedLevelsWeather(int connectedPlayersOnServer)
         {
-            StartOfRound startOfRound = StartOfRound.Instance;
+            StartOfRound startOfRound = Patches.StartOfRound;
             List<ExtendedLevel> extendedLevels = new List<ExtendedLevel>(PatchedContent.ExtendedLevels);
 
             foreach (ExtendedLevel extendedLevel in extendedLevels)
@@ -70,7 +70,7 @@ namespace LethalLevelLoader
 
         public static void SetExtendedLevelsExtendedWeatherEffect(int connectedPlayersOnServer)
         {
-            StartOfRound startOfRound = StartOfRound.Instance;
+            StartOfRound startOfRound = Patches.StartOfRound;
             List<ExtendedLevel> extendedLevels = new List<ExtendedLevel>(PatchedContent.ExtendedLevels);
 
             foreach (ExtendedLevel extendedLevel in extendedLevels)

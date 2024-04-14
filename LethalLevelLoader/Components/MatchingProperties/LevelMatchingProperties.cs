@@ -21,8 +21,9 @@ namespace LethalLevelLoader
                 DebugHelper.Log("Raised Rarity Due To Matching Level Tags!");
             if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.AuthorName, authorNames)))
                 DebugHelper.Log("Raised Rarity Due To Matching Author Name!");
-            if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.ModName, modNames)))
-                DebugHelper.Log("Raised Rarity Due To Matching Mod Name!");
+            foreach (string modNameAlias in extendedLevel.ExtendedMod.ModNameAliases)
+                if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(modNameAlias, modNames)))
+                    DebugHelper.Log("Raised Rarity Due To Matching Mod Name!");
             if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.NumberlessPlanetName, planetNames)))
                 DebugHelper.Log("Raised Rarity Due To Matching Planet Name!");
             if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingWithinRanges(extendedLevel.RoutePrice, currentRoutePrice)))

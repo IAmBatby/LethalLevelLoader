@@ -10,7 +10,9 @@ namespace LethalLevelLoader
     [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedEnemyType")]
     public class ExtendedEnemyType : ExtendedContent
     {
-        public EnemyType EnemyType;
+        public EnemyType EnemyType; //should change to property
+        public ScanNodeProperties ScanNodeProperties { get; internal set; }
+        public int EnemyID { get; set; }
         [SerializeField] internal string enemyDisplayName;
 
         [Space(10)]
@@ -41,7 +43,7 @@ namespace LethalLevelLoader
 
         public void Initalize()
         {
-            Debug.Log("Initializing Custom Enemy: " + EnemyType.enemyName);
+            DebugHelper.Log("Initializing Custom Enemy: " + EnemyType.enemyName);
 
             TryCreateMatchingProperties();
         }

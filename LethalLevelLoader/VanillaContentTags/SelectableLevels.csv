@@ -1,12 +1,15 @@
-,Is Automatically Applied:,No,No,No,No,No,No,No
-Item Name,Total Tags,6,3,1,2,2,3,1
-,,Free,Paid,Wasteland,Valley,Canyon,Tundra,Company
-Experimentation,2,Free,,Wasteland,,,,
-Assurance,2,Free,,,,Canyon,,
-Vow,2,Free,,,Valley,,,
-Gordion,2,Free,,,,,,Company
-Offense,2,Free,,,,Canyon,,
-March,2,Free,,,Valley,,,
-Rend,2,,Paid,,,,Tundra,
-Dine,2,,Paid,,,,Tundra,
-Titan,2,,Paid,,,,Tundra,
+,Is Automatically Applied:,No,No,No,No,No,No,No,No,No,No
+Item Name,Total Tags,7,5,1,2,2,3,1,1,1,1
+,,Free,Paid,Wasteland,Valley,Canyon,Tundra,Marsh,Military,Rocky,Company
+Experimentation,2,Free,,Wasteland,,,,,,,
+Assurance,2,Free,,,,Canyon,,,,,
+Vow,2,Free,,,Valley,,,,,,
+Gordion,2,Free,,,,,,,,,Company
+Offense,2,Free,,,,Canyon,,,,,
+March,2,Free,,,Valley,,,,,,
+Adamance,3,Free,,,,,,Marsh,Military,,
+Rend,2,,Paid,,,,Tundra,,,,
+Dine,2,,Paid,,,,Tundra,,,,
+Titan,2,,Paid,,,,Tundra,,,,
+Artifice,1,,Paid,,,,,,,,
+Embrion,2,,Paid,,,,,,,Rocky,

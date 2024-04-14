@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
-using static LethalLib.Modules.ContentLoader;
 
 namespace LethalLevelLoader
 {
@@ -71,11 +70,11 @@ namespace LethalLevelLoader
 
         public void Initialize()
         {
-            Debug.Log("Initializing Custom Item: " + Item.itemName + ". Is Buyable: " + isBuyableItem + ". Is Scrap: " + Item.isScrap);
+            DebugHelper.Log("Initializing Custom Item: " + Item.itemName + ". Is Buyable: " + isBuyableItem + ". Is Scrap: " + Item.isScrap);
 
             TryCreateMatchingProperties();
 
-            StartOfRound.Instance.allItemsList.itemsList.Add(Item);
+            Patches.StartOfRound.allItemsList.itemsList.Add(Item);
             if (isBuyableItem)
                 TerminalManager.CreateItemTerminalData(this);
         }

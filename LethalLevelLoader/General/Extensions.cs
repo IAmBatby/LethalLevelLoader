@@ -139,5 +139,10 @@ namespace LethalLevelLoader
 
             return returnString;
         }
+
+        public static List<DungeonFlow> GetDungeonFlows(this RoundManager roundManager)
+        {
+            return roundManager.dungeonFlowTypes.Select(i => i.dungeonFlow).ToList();
+        }
     }
 }
