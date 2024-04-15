@@ -12,8 +12,6 @@ namespace LethalLevelLoader.Tools
 {
     internal static class ConfigLoader
     {
-        public const string spacer = "-------------------------";
-
         public static string debugLevelsString = string.Empty;
         public static string debugDungeonsString = string.Empty;
 
@@ -21,30 +19,30 @@ namespace LethalLevelLoader.Tools
         {
             ConfigFile newConfigFile = new ConfigFile(Path.Combine(Paths.ConfigPath, "LethalLevelLoader.cfg"), false);
 
-            GeneralSettingsConfig newGeneralSettingsConfig = new GeneralSettingsConfig(newConfigFile, "LethalLevelLoader Settings", 5);
+            GeneralSettingsConfig newGeneralSettingsConfig = new GeneralSettingsConfig(newConfigFile, " - LethalLevelLoader Settings -", 5);
             newGeneralSettingsConfig.BindConfigs();
 
             foreach (ExtendedDungeonFlow extendedDungeonFlow in PatchedContent.VanillaExtendedDungeonFlows)
             {
-                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(newConfigFile, "Vanilla Dungeon: " + (PatchedContent.VanillaExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1).ToString() + ". - " + extendedDungeonFlow.DungeonName.StripSpecialCharacters() + " (" + extendedDungeonFlow.dungeonFlow.name + ")", 7);
+                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(newConfigFile, "Vanilla Dungeon:  " + extendedDungeonFlow.DungeonName.StripSpecialCharacters() + " (" + extendedDungeonFlow.dungeonFlow.name + ")", 7);
                 newConfig.BindConfigs(extendedDungeonFlow);
             }
 
             foreach (ExtendedDungeonFlow extendedDungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
             {
-                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(newConfigFile, "Custom Dungeon: " + (PatchedContent.CustomExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1).ToString() + ". - " + extendedDungeonFlow.DungeonName.StripSpecialCharacters(), 9);
+                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(newConfigFile, "Custom Dungeon:  " + extendedDungeonFlow.DungeonName.StripSpecialCharacters(), 9);
                 newConfig.BindConfigs(extendedDungeonFlow);
             }
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.VanillaExtendedLevels)
             {
-                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(newConfigFile, "Vanilla Level: " + (PatchedContent.VanillaExtendedLevels.IndexOf(extendedLevel) + 1).ToString() + ". - " + extendedLevel.selectableLevel.PlanetName.StripSpecialCharacters(), 6);
+                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(newConfigFile, "Vanilla Level:  " + extendedLevel.selectableLevel.PlanetName.StripSpecialCharacters(), 6);
                 newConfig.BindConfigs(extendedLevel);
             }
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
             {
-                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(newConfigFile, "Custom Level: " + (PatchedContent.CustomExtendedLevels.IndexOf(extendedLevel) + 1).ToString() + ". - " + extendedLevel.selectableLevel.PlanetName.StripSpecialCharacters(), 8);
+                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(newConfigFile, "Custom Level:  " + extendedLevel.selectableLevel.PlanetName.StripSpecialCharacters(), 8);
                 newConfig.BindConfigs(extendedLevel);
             }
 
@@ -58,9 +56,9 @@ namespace LethalLevelLoader.Tools
             debugDungeonsString = string.Empty;
         }
 
-        internal static string GetConfigCatagory(string catagoryName, string contentName)
+        internal static string GetConfigCategory(string categoryName, string contentName)
         {
-            return (spacer + " " + catagoryName + contentName + " " + spacer);
+            return (categoryName + contentName);
         }
     }
 
@@ -75,7 +73,7 @@ namespace LethalLevelLoader.Tools
         private ConfigEntry<int> moonsCatalogueSplitCount;
         private ConfigEntry<bool> requireMatchesOnAllDungeonFlows;
 
-        public GeneralSettingsConfig(ConfigFile newConfigFile, string newCatagory, int newSortingPriority) : base(newConfigFile, newCatagory, newSortingPriority) { }
+        public GeneralSettingsConfig(ConfigFile newConfigFile, string newCategory, int newSortingPriority) : base(newConfigFile, newCategory, newSortingPriority) { }
 
         public void BindConfigs()
         {
@@ -120,7 +118,7 @@ namespace LethalLevelLoader.Tools
 
         public ConfigEntry<bool> disabledWarning;
 
-        public ExtendedDungeonConfig(ConfigFile newConfigFile, string newCatagory, int sortingPriority) : base(newConfigFile, newCatagory, sortingPriority) { }
+        public ExtendedDungeonConfig(ConfigFile newConfigFile, string newCategory, int sortingPriority) : base(newConfigFile, newCategory, sortingPriority) { }
 
         public void BindConfigs(ExtendedDungeonFlow extendedDungeonFlow)
         {
@@ -128,7 +126,7 @@ namespace LethalLevelLoader.Tools
             {
                 enableContentConfiguration = BindValue("Enable Content Configuration", "Enable This To Utilise Any Of The Configuration Options Below.", false);
 
-                subCatagory = "General Settings - ";
+                subCategory = "General Settings - ";
                 enableDynamicDungeonSizeRestriction = BindValue("Enable Dynamic Dungeon Size Restriction", "Enable this to allow the following three settings to function.", extendedDungeonFlow.enableDynamicDungeonSizeRestriction);
                 minimumDungeonSizeMultiplier = BindValue("Minimum Dungeon Size Multiplier", "If The Level's Dungeon Size Multiplier Is Below This Value, The Size Multiplier Will Be Restricted Based On The RestrictDungeonSizeScaler Setting", extendedDungeonFlow.dungeonSizeMin);
                 maximumDungeonSizeMultiplier = BindValue("Maximum Dungeon Size Multiplier", "If The Level's Dungeon Size Multiplier Is Above This Value, The Size Multiplier Will Be Restricted Based On The RestrictDungeonSizeScaler Setting", extendedDungeonFlow.dungeonSizeMax);
@@ -141,7 +139,7 @@ namespace LethalLevelLoader.Tools
                 restrictDungeonSizeScaler = BindValue("Restrict Dungeon Size Scaler", description, extendedDungeonFlow.dungeonSizeLerpPercentage);
 
                 // ----- Getting -----
-                subCatagory = "Dungeon Injection Settings - ";
+                subCategory = "Dungeon Injection Settings - ";
                 manualModNames = BindValue("Manual Mod Names List", "Add this Dungeon to any Level's randomisaton pool in a specific mod based on matching Mod Names. (Minimum: 0, Maximum: 9999)", "Lethal Company:300, MoreMoonsMod: 100");
                 manualLevelNames = BindValue("Manual Level Names List", "Add this Dungeon to a Level's randomisaton pool based on matching Level Names. (Minimum: 0, Maximum: 9999)", "Titan:300,vowLevel:40,220. Assurance: 41, Egypt");
 
@@ -215,7 +213,7 @@ namespace LethalLevelLoader.Tools
 
         public ConfigEntry<bool> disabledWarning;
 
-        public ExtendedLevelConfig(ConfigFile newConfigFile, string newCatagory, int sortingPriority) : base(newConfigFile, newCatagory, sortingPriority) { }
+        public ExtendedLevelConfig(ConfigFile newConfigFile, string newCategory, int sortingPriority) : base(newConfigFile, newCategory, sortingPriority) { }
 
         public void BindConfigs(ExtendedLevel extendedLevel)
         {
@@ -226,7 +224,7 @@ namespace LethalLevelLoader.Tools
 
                 enableContentConfiguration = BindValue("Enable Content Configuration", "Enable This To Utilise Any Of The Configuration Options Below.", false);
 
-                subCatagory = "General Settings - ";
+                subCategory = "General Settings - ";
 
                 routePrice = BindValue("Planet Route Price", "Override The Route Price For This Level.", extendedLevel.RoutePrice);
                 daySpeedMultiplier = BindValue("Day Speed Multiplier", "Override The Day Speed Multiplier For This Level.", selectableLevel.DaySpeedMultiplier);
@@ -235,7 +233,7 @@ namespace LethalLevelLoader.Tools
                 isLevelHidden = BindValue("Is Level Hidden In Terminal", "Override If The Level Is Listed In The Moons Catalogue", extendedLevel.isHidden);
                 isLevelRegistered = BindValue("Is Level Registered In Terminal", "Override If The Level Is Registered In The Terminal. Use This To Disable Specific Levels (Only Works For Custom Levels)", true);
 
-                subCatagory = "Scrap Settings - ";
+                subCategory = "Scrap Settings - ";
 
                 minScrapItemSpawns = BindValue("Minimum Scrap Item Spawns", "Override How Many Item's Will Spawn In This Level.", selectableLevel.minScrap);
                 maxScrapItemSpawns = BindValue("Maximum Scrap Item Spawns", "Override How Many Item's Can Spawn In This Level.", selectableLevel.maxScrap);
@@ -243,7 +241,7 @@ namespace LethalLevelLoader.Tools
                 maxTotalScrapValue = BindValue("Maximum Total Scrap Value", "Override How Much Total Value The Spawned Scrap Could Amount To In This Level.", selectableLevel.maxTotalScrapValue);
                 scrapOverrides = BindValue("Scrap Spawning List", "Add To Or Override The Spawnable Scrap Pool. (Minimum: 0, Maximum: 100)", SpawnableItemsWithRaritiesToString(selectableLevel.spawnableScrap));
 
-                subCatagory = "Enemy Settings - ";
+                subCategory = "Enemy Settings - ";
 
                 maxInsideEnemyPowerCount = BindValue("Maximum Inside Enemy Power Count", "Override The Maximum Power Used To Spawn Enemies Inside The Dungeon.", selectableLevel.maxEnemyPowerCount);
                 maxOutsideDaytimeEnemyPowerCount = BindValue("Maximum Outside, Daytime Enemy Power Count", "Override The Maximum Power Used To Spawn Enemies Outside During The Day.", selectableLevel.maxDaytimeEnemyPowerCount);
@@ -332,26 +330,26 @@ namespace LethalLevelLoader.Tools
     public class ConfigTemplate
     {
         public ConfigFile configFile;
-        public string subCatagory = string.Empty;
+        public string subCategory = string.Empty;
         public int sortingPriority = 0;
 
-        private string _catagory = string.Empty;
-        public string Catagory
+        private string _category = string.Empty;
+        public string Category
         {
-            get { return (GetSortingSpaces() + ConfigLoader.spacer + " " + _catagory + " " + ConfigLoader.spacer); }
-            set { _catagory = value; }
+            get { return (GetSortingSpaces() + _category); }
+            set { _category = value; }
         }
 
-        public ConfigTemplate(ConfigFile newConfigFile, string newCatagory, int newSortingPriority)
+        public ConfigTemplate(ConfigFile newConfigFile, string newCategory, int newSortingPriority)
         {
             configFile = newConfigFile;
-            Catagory = newCatagory;
+            Category = newCategory;
             sortingPriority = newSortingPriority;
         }
 
         public ConfigEntry<T> BindValue<T>(string configTitle, string configDescription, T genericValue)
         {
-            return (configFile.Bind(Catagory, subCatagory + configTitle, genericValue, configDescription));
+            return (configFile.Bind(Category, subCategory + configTitle, genericValue, configDescription));
         }
 
         public string GetSortingSpaces()
