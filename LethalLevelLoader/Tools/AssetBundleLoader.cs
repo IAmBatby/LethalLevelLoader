@@ -135,13 +135,13 @@ namespace LethalLevelLoader
         {
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
-            FileStream fileStream = new FileStream(Path.Combine(Application.streamingAssetsPath, bundleFile), FileMode.Open, FileAccess.Read);
+            //FileStream fileStream = new FileStream(Path.Combine(Application.streamingAssetsPath, bundleFile), FileMode.Open, FileAccess.Read);
             AssetBundleCreateRequest newBundleRequest = AssetBundle.LoadFromFileAsync(Path.Combine(Application.streamingAssetsPath, bundleFile));
             yield return newBundleRequest;
 
             AssetBundle newBundle = newBundleRequest.assetBundle;
 
-            yield return new WaitUntil(() => newBundle != null);
+            //yield return new WaitUntil(() => newBundle != null);
 
             if (newBundle != null)
             {
@@ -181,7 +181,7 @@ namespace LethalLevelLoader
                 
             }
 
-            fileStream.Close();
+            //fileStream.Close();
             stopWatch.Stop();
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(stopWatch.ElapsedMilliseconds);
             string elapsedSeconds = string.Format("{0:D2}", timeSpan.Seconds);
@@ -404,7 +404,7 @@ namespace LethalLevelLoader
                 if (assetBundle != null && assetBundle.isStreamedSceneAssetBundle == false)
                 {
                     DebugHelper.Log("Unloading: " + assetBundle.name);
-                    assetBundle.Unload(false);
+                    //assetBundle.Unload(false);
                 }
         }
 

@@ -25,7 +25,7 @@ namespace LethalLevelLoader
 
         public static void Log(string log, DebugType debugType = DebugType.IAmBatby)
         {
-            if ((int)Settings.debugType >= (int)debugType)
+            if (!string.IsNullOrEmpty(log) && (int)Settings.debugType >= (int)debugType)
             {
                 string logString = log;
                 Plugin.logger.LogInfo(logString);
@@ -34,7 +34,7 @@ namespace LethalLevelLoader
 
         public static void LogWarning(string log, DebugType debugType = DebugType.IAmBatby)
         {
-            if ((int)Settings.debugType >= (int)debugType)
+            if (!string.IsNullOrEmpty(log) && (int)Settings.debugType >= (int)debugType)
             {
                 string logString = log;
                 Plugin.logger.LogWarning(logString);
@@ -43,7 +43,7 @@ namespace LethalLevelLoader
 
         public static void LogError(string log, DebugType debugType = DebugType.IAmBatby)
         {
-            if ((int)Settings.debugType >= (int)debugType)
+            if (!string.IsNullOrEmpty(log) && (int)Settings.debugType >= (int)debugType)
             {
                 string logString = log;
                 Plugin.logger.LogError(logString);
@@ -52,7 +52,7 @@ namespace LethalLevelLoader
 
         public static void LogError(Exception exception, DebugType debugType = DebugType.IAmBatby)
         {
-            if ((int)Settings.debugType >= (int)debugType)
+            if (exception != null && (int)Settings.debugType >= (int)debugType)
             {
                 Plugin.logger.LogError(exception);
             }

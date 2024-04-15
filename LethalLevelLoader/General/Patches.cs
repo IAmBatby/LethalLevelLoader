@@ -11,6 +11,7 @@ using System.Reflection.Emit;
 using System.Text;
 using TMPro;
 using Unity.Netcode;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Device;
@@ -49,13 +50,6 @@ namespace LethalLevelLoader
 
 
                 ContentTagParser.ImportVanillaContentTags();
-
-
-                foreach (GameObject gameObject in UnityEngine.Object.FindObjectsOfType<GameObject>(true))
-                    DebugHelper.Log("GameObject Found: " + gameObject.name);
-
-                foreach (MonoBehaviour monoBehaviour in UnityEngine.Object.FindObjectsOfType<MonoBehaviour>(true))
-                    DebugHelper.Log("MonoBheaviour Found: " + monoBehaviour.gameObject.name + " - " + monoBehaviour.GetType().Name);
             }
         }
 
@@ -322,22 +316,24 @@ namespace LethalLevelLoader
             return (true);
         }
 
+        public static bool hasInitiallyChangedLevel;
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(StartOfRound), "ChangeLevel")]
         [HarmonyPrefix]
         public static bool StartOfRoundChangeLevel_Prefix(ref int levelID)
         {
             //Because Level ID's can change between modpack adjustments and such, we save the name of the level instead and find and load that up instead of the saved ID the basegame uses.
-            if (TimeOfDay.currentLevel == null && !string.IsNullOrEmpty(SaveManager.currentSaveFile.CurrentLevelName))
+            if (hasInitiallyChangedLevel == false && !string.IsNullOrEmpty(SaveManager.currentSaveFile.CurrentLevelName))
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                     if (extendedLevel.selectableLevel.name == SaveManager.currentSaveFile.CurrentLevelName)
                     {
                         DebugHelper.Log("Loading Previously Saved SelectableLevel: " + extendedLevel.selectableLevel.PlanetName);
                         levelID = StartOfRound.levels.ToList().IndexOf(extendedLevel.selectableLevel);
+                        hasInitiallyChangedLevel = true;
                         return (true);
                     }
             //If we can't find the previous current level, that probably means the game is going to try and use an ID bigger than the current array, or reference the wrong level, so we reset it back to experimentation here.
-            if (levelID >= StartOfRound.levels.Length || levelID > OriginalContent.SelectableLevels.Count)
+            if (hasInitiallyChangedLevel == false && (levelID >= StartOfRound.levels.Length || levelID > OriginalContent.SelectableLevels.Count))
                 levelID = 0;
 
             return (true);
@@ -440,15 +436,6 @@ namespace LethalLevelLoader
                     ContentRestorer.RestoreAudioAssetReferencesInParent(rootObject);
                 }
 
-        }
-
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartOfRound), "ChangeLevel")]
-        [HarmonyPostfix]
-        internal static void StartOfRoundChangeLevel_Postfix(ref int levelID)
-        {
-            SaveManager.currentSaveFile.CurrentLevelName = LevelManager.CurrentExtendedLevel.selectableLevel.name;
-            SaveManager.currentSaveFile.Save();
         }
 
         [HarmonyPriority(harmonyPriority)]

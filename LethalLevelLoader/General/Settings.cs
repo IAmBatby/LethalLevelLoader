@@ -16,7 +16,7 @@ namespace LethalLevelLoader
         public static SortInfoType levelPreviewSortType = SortInfoType.None;
         public static FilterInfoType levelPreviewFilterType = FilterInfoType.None;
         public static SimulateInfoType levelSimulateInfoType = SimulateInfoType.Percentage;
-        public static DebugType debugType = DebugType.User;
+        public static DebugType debugType = DebugType.All;
         public static bool allDungeonFlowsRequireMatching = false;
         public static int moonsCatalogueSplitCount = 3;
 

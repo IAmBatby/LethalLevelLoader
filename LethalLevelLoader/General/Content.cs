@@ -179,6 +179,11 @@ namespace LethalLevelLoader
 
         public static void RegisterExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
         {
+            if (string.IsNullOrEmpty(extendedDungeonFlow.name))
+            {
+                DebugHelper.LogWarning("Tried to register ExtendedDungeonFlow with missing name! Setting to DungeonFlow name for safety!");
+                extendedDungeonFlow.name = extendedDungeonFlow.dungeonFlow.name;
+            }
             AssetBundleLoader.RegisterNewExtendedContent(extendedDungeonFlow, extendedDungeonFlow.name);
         }
 
