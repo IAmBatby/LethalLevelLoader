@@ -27,7 +27,7 @@ namespace LethalLevelLoader
                             alreadyInjectedItem = spawnableItem;
 
                     int returnRarity = 0;
-                    int levelRarity = extendedItem.levelMatchingProperties.GetDynamicRarity(extendedLevel);
+                    int levelRarity = extendedItem.LevelMatchingProperties.GetDynamicRarity(extendedLevel);
                     //int dungeonRarity
                     returnRarity = levelRarity;
                     if (alreadyInjectedItem != null)

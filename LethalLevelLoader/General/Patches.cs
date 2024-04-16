@@ -244,10 +244,12 @@ namespace LethalLevelLoader
             DungeonManager.PatchVanillaDungeonLists();
 
             //Patch The Basegame References To EnemyTypes's To Include Enabled Custom EnemyTypes.
-            EnemyManager.UpdateEnemyIDs();
+            EnemyManager.UpdateEnemyIDs(); //Might only need to do once?
 
             foreach (ExtendedEnemyType extendedEnemyType in PatchedContent.CustomExtendedEnemyTypes)
-                TerminalManager.CreateEnemyTypeTerminalData(extendedEnemyType);
+                TerminalManager.CreateEnemyTypeTerminalData(extendedEnemyType); //Might only need to do once?
+
+            EnemyManager.AddCustomEnemyTypesToTestAllEnemiesLevel(); //Might only need to do once?
 
             DebugStopwatch.StartStopWatch("ExtendedItem Injection");
 
@@ -349,6 +351,7 @@ namespace LethalLevelLoader
             {
                 DebugHelper.Log("Saving Current SelectableLevel: " + RoundManager.currentLevel.PlanetName);
                 SaveManager.SaveCurrentSelectableLevel(RoundManager.currentLevel);
+                //LevelLoader.RefreshShipAnimatorClips(LevelManager.CurrentExtendedLevel);
             }
         }
 
@@ -443,7 +446,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void StartOfRoundStartGame_Prefix()
         {
-            LevelLoader.RefreshShipAnimatorClips(LevelManager.CurrentExtendedLevel);
+            //LevelLoader.RefreshShipAnimatorClips(LevelManager.CurrentExtendedLevel);
         }
 
         [HarmonyPriority(harmonyPriority)]

@@ -37,10 +37,15 @@ namespace LethalLevelLoader
                         alreadyInjectedDaytimeEnemy = spawnableEnemyWithRarity;
 
 
-                int insideLevelRarity = extendedEnemyType.insideLevelMatchingProperties.GetDynamicRarity(extendedLevel);
+                int insideLevelRarity = extendedEnemyType.InsideLevelMatchingProperties.GetDynamicRarity(extendedLevel);
                 //int insideDungeonRarity = extendedEnemyType.insideDungeonMatchingProperties.GetDynamicRarity(extendedLevel);
-                int outsideLevelRarity = extendedEnemyType.outsideLevelMatchingProperties.GetDynamicRarity(extendedLevel);
-                int daytimeLevelRarity = extendedEnemyType.daytimeLevelMatchingProperties.GetDynamicRarity(extendedLevel);
+                int outsideLevelRarity = extendedEnemyType.OutsideLevelMatchingProperties.GetDynamicRarity(extendedLevel);
+                int daytimeLevelRarity = extendedEnemyType.DaytimeLevelMatchingProperties.GetDynamicRarity(extendedLevel);
+
+                if (outsideLevelRarity > 0)
+                    DebugHelper.Log("Custom ExtendedEnemyType: " + extendedEnemyType.EnemyDisplayName + " Has: " + outsideLevelRarity + " OutsideLevelRarity On Moon: " + extendedLevel.NumberlessPlanetName);
+                if (daytimeLevelRarity> 0)
+                    DebugHelper.Log("Custom ExtendedEnemyType: " + extendedEnemyType.EnemyDisplayName + " Has: " + daytimeLevelRarity + " DaytimeLevelRarity On Moon: " + extendedLevel.NumberlessPlanetName);
 
                 if (TryInjectEnemyIntoPool(extendedLevel.selectableLevel.Enemies, extendedEnemyType, insideLevelRarity, out SpawnableEnemyWithRarity spawnableInsideEnemy) == false)
                     extendedLevel.selectableLevel.Enemies.Remove(spawnableInsideEnemy);
@@ -55,7 +60,7 @@ namespace LethalLevelLoader
         {
             spawnableEnemyWithRarity = null;
             foreach (SpawnableEnemyWithRarity currentSpawnableEnemyWithRarity in enemyPool)
-                if (currentSpawnableEnemyWithRarity.enemyType == extendedEnemy)
+                if (currentSpawnableEnemyWithRarity.enemyType == extendedEnemy.EnemyType)
                     spawnableEnemyWithRarity = currentSpawnableEnemyWithRarity;
 
             if (spawnableEnemyWithRarity != null)
@@ -69,7 +74,10 @@ namespace LethalLevelLoader
                 newSpawnableEnemy.enemyType = extendedEnemy.EnemyType;
                 newSpawnableEnemy.rarity = newRarity;
                 spawnableEnemyWithRarity = newSpawnableEnemy;
+                enemyPool.Add(newSpawnableEnemy);
             }
+
+
             if (spawnableEnemyWithRarity.rarity == 0)
                 return (false);
             else
@@ -105,6 +113,22 @@ namespace LethalLevelLoader
                     DebugHelper.Log("Setting Custom EnemyType: " + extendedEnemyType.EnemyType.enemyName + " ID To: " + (highestVanillaEnemyScanNodeCreatureID + counter));
                 }
                 counter++;
+            }
+        }
+
+        internal static void AddCustomEnemyTypesToTestAllEnemiesLevel()
+        {
+            QuickMenuManager quickMenuManager = UnityEngine.Object.FindAnyObjectByType<QuickMenuManager>();
+
+            if (quickMenuManager != null)
+            {
+                foreach (ExtendedEnemyType customEnemyType in PatchedContent.CustomExtendedEnemyTypes)
+                {
+                    SpawnableEnemyWithRarity spawnableEnemyWithRarity = new SpawnableEnemyWithRarity();
+                    spawnableEnemyWithRarity.enemyType = customEnemyType.EnemyType;
+                    spawnableEnemyWithRarity.rarity = 300;
+                    quickMenuManager.testAllEnemiesLevel.Enemies.Add(spawnableEnemyWithRarity);
+                }
             }
         }
     }

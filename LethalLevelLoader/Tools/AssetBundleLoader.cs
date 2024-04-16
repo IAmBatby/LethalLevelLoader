@@ -497,7 +497,7 @@ namespace LethalLevelLoader
             foreach (Item scrapItem in OriginalContent.Items)
             {
                 ExtendedItem extendedVanillaItem = ExtendedItem.Create(scrapItem, PatchedContent.VanillaMod, ContentType.Vanilla);
-                extendedVanillaItem.isBuyableItem = false;
+                extendedVanillaItem.IsBuyableItem = false;
                 PatchedContent.ExtendedItems.Add(extendedVanillaItem);
             }
 
@@ -507,7 +507,7 @@ namespace LethalLevelLoader
             foreach (Item item in terminal.buyableItemsList)
             {
                 ExtendedItem extendedVanillaItem = ExtendedItem.Create(item, PatchedContent.VanillaMod, ContentType.Vanilla);
-                extendedVanillaItem.isBuyableItem = true;
+                extendedVanillaItem.IsBuyableItem = true;
 
                 foreach (CompatibleNoun compatibleNoun in TerminalManager.buyKeyword.compatibleNouns)
                     if (compatibleNoun.result.buyItemIndex == counter)
@@ -535,11 +535,11 @@ namespace LethalLevelLoader
                     newExtendedEnemyType.ScanNodeProperties = enemyScanNode;
                     newExtendedEnemyType.EnemyID = enemyScanNode.creatureScanID;
                     newExtendedEnemyType.EnemyInfoNode = Patches.Terminal.enemyFiles[newExtendedEnemyType.EnemyID];
-                    newExtendedEnemyType.enemyDisplayName = enemyScanNode.headerText;
+                    newExtendedEnemyType.EnemyDisplayName = enemyScanNode.headerText;
                     DebugHelper.Log("Resource Find EnemyAI: " + newExtendedEnemyType.EnemyType.enemyPrefab.gameObject.name + " | " + newExtendedEnemyType.EnemyType.enemyPrefab.gameObject.GetInstanceID() + " | " + newExtendedEnemyType.EnemyType.enemyName + " | " + enemyScanNode.creatureScanID);
                 }
                 else
-                    newExtendedEnemyType.enemyDisplayName = enemyType.enemyName;
+                    newExtendedEnemyType.EnemyDisplayName = enemyType.enemyName;
             }
         }
 

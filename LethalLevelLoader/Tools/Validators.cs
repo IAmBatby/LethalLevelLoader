@@ -11,101 +11,111 @@ namespace LethalLevelLoader
     {
         public static bool ValidateExtendedContent(ExtendedContent extendedContent)
         {
+            (bool, string) result = (false, string.Empty);
+
             if (extendedContent is ExtendedLevel extendedLevel)
-                return (ValidateExtendedContent(extendedLevel));
+                result = ValidateExtendedContent(extendedLevel);
             else if (extendedContent is ExtendedDungeonFlow extendedDungeonFlow)
-                return (ValidateExtendedContent(extendedDungeonFlow));
+                result = ValidateExtendedContent(extendedDungeonFlow);
             else if (extendedContent is ExtendedItem extendedItem)
-                return (ValidateExtendedContent(extendedItem));
+                result = ValidateExtendedContent(extendedItem);
             else if (extendedContent is ExtendedEnemyType extendedEnemyType)
-                return (ValidateExtendedContent(extendedEnemyType));
+                result = ValidateExtendedContent(extendedEnemyType);
             else if (extendedContent is ExtendedFootstepSurface extendedFootstepSurface)
-                return (ValidateExtendedContent(extendedFootstepSurface));
-            return (false);
+                result = ValidateExtendedContent(extendedFootstepSurface);
+
+            if (result.Item1 == false)
+                DebugHelper.Log(result.Item2);
+
+            return (result.Item1);
         }
         
-        public static bool ValidateExtendedContent(ExtendedItem extendedItem)
+        public static (bool result, string log) ValidateExtendedContent(ExtendedItem extendedItem)
         {
-            bool returnBool = true;
-
             if (extendedItem == null)
-                returnBool = false;
+                return (false, "ExtendedItem Was Null");
             else if (extendedItem.Item == null)
-                returnBool = false;
+                return (false, "Item Was Null");
             else if (extendedItem.Item.spawnPrefab == null)
-                returnBool = false;
-
-            return (returnBool);
+                return (false, "SpawnPrefab Was Null");
+            else
+                return (true, string.Empty);
         }
 
-        public static bool ValidateExtendedContent(ExtendedLevel extendedLevel)
+        public static (bool result, string log) ValidateExtendedContent(ExtendedLevel extendedLevel)
         {
-            bool returnBool = true;
-
             if (extendedLevel == null)
-                returnBool = false;
+                return ((false, "ExtendedLevel Was Null"));
             else if (extendedLevel.selectableLevel == null)
-                returnBool = false;
+                return ((false, "SelectableLevel Was Null"));
             else if (string.IsNullOrEmpty(extendedLevel.selectableLevel.sceneName))
-                returnBool = false;
+                return ((false, "SelectableLevel SceneName Was Null Or Empty"));
             else if (extendedLevel.selectableLevel.planetPrefab == null)
-                returnBool = false;
+                return ((false, "SelectableLevel PlanetPrefab Was Null"));
             else if (extendedLevel.selectableLevel.planetPrefab.GetComponent<Animator>() == false)
-                returnBool = false;
+                return ((false, "SelectableLevel PlanetPrefab Animator Was Null"));
             else if (extendedLevel.selectableLevel.planetPrefab.GetComponent<Animator>().runtimeAnimatorController == false)
-                returnBool = false;
-
-            return (returnBool);
+                return ((false, "SelectableLevel PlanetPrefab Animator AnimatorController Was Null"));
+            else
+                return (true, string.Empty);
         }
 
-        public static bool ValidateExtendedContent(ExtendedDungeonFlow extendedDungeonFlow)
+        public static (bool result, string log) ValidateExtendedContent(ExtendedDungeonFlow extendedDungeonFlow)
         {
-            return (true);
+            return (true, string.Empty);
         }
 
-        public static bool ValidateExtendedContent(ExtendedEnemyType extendedEnemyType)
+        public static (bool result, string log) ValidateExtendedContent(ExtendedEnemyType extendedEnemyType)
         {
             if (extendedEnemyType == null)
-                return (false);
+                return ((false, "ExtendedEnemyType Was Null"));
             if (extendedEnemyType.EnemyType == null)
-                return (false);
+                return ((false, "EnemyType Was Null"));
             if (extendedEnemyType.EnemyType.enemyPrefab == null)
-                return (false);
+                return ((false, "EnemyPrefab Was Null"));
             if (extendedEnemyType.EnemyType.enemyPrefab.GetComponent<NetworkObject>() == false)
-                return (false);
+                return ((false, "EnemyPrefab Did Not Contain A NetworkObject"));
             EnemyAI enemyAI = extendedEnemyType.EnemyType.enemyPrefab.GetComponent<EnemyAI>();
             if (enemyAI == null)
                 enemyAI = extendedEnemyType.EnemyType.enemyPrefab.GetComponentInChildren<EnemyAI>();
             if (enemyAI == null)
-                return (false);
+                return ((false, "EnemyPrefab Did Not Contain A Component Deriving From EnemyAI"));
             if (enemyAI.enemyType == null)
-                return (false);
-            
-            return (true);
+                return ((false, "EnemyAI.enemyType Was Null"));
+            if (enemyAI.enemyType != extendedEnemyType.EnemyType)
+                return ((false, "EnemyAI.enemyType Did Not Match ExtendedEnemyType.EnemyType"));
+
+            return (true, string.Empty);
         }
 
-        public static bool ValidateExtendedContent(ExtendedWeatherEffect extendedWeatherEffect)
+        public static (bool result, string log) ValidateExtendedContent(ExtendedWeatherEffect extendedWeatherEffect)
         {
-            return (true);
+            return (true, string.Empty);
         }
 
-        public static bool ValidateExtendedContent(ExtendedFootstepSurface extendedFootstepSurface)
+        public static (bool result, string log) ValidateExtendedContent(ExtendedFootstepSurface extendedFootstepSurface)
         {
-            return (true);
+            return (true, string.Empty);
         }
 
-        public static bool ValidateExtendedContent(ExtendedStoryLog extendedStoryLog)
+        public static (bool result, string log) ValidateExtendedContent(ExtendedStoryLog extendedStoryLog)
         {
             if (string.IsNullOrEmpty(extendedStoryLog.sceneName))
-                return (false);
+                return (false, "StoryLog SceneName Was Null Or Empty");
             if (string.IsNullOrEmpty(extendedStoryLog.terminalKeywordNoun))
-                return (false);
+                return (false, "StoryLog TerminalKeywordNoun Was Null Or Empty");
             if (string.IsNullOrEmpty(extendedStoryLog.storyLogTitle))
-                return (false);
+                return (false, "StoryLog Title Was Null Or Empty");
             if (string.IsNullOrEmpty(extendedStoryLog.storyLogDescription))
-                return (false);
+                return (false, "StoryLog Description Was Null Or Empty");
 
-            return (true);
+            return (true, string.Empty);
+        }
+
+        public static bool ReturnWithReason(bool returnBool, ref string returnReason, string reason)
+        {
+            returnReason = reason;
+            return (returnBool);
         }
     }
 }

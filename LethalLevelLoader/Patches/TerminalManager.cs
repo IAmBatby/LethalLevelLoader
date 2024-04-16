@@ -596,12 +596,12 @@ namespace LethalLevelLoader
             {
                 terminalNodeBuy = CreateNewTerminalNode();
                 terminalNodeBuy.name = extendedItem.Item.itemName.StripSpecialCharacters().Sanitized() + "Buy";
-                if (extendedItem.overrideBuyNodeDescription != string.Empty)
-                    terminalNodeBuy.displayText = extendedItem.overrideBuyNodeDescription;
+                if (extendedItem.OverrideBuyNodeDescription != string.Empty)
+                    terminalNodeBuy.displayText = extendedItem.OverrideBuyNodeDescription;
                 else
                 {
-                    if (!string.IsNullOrEmpty(extendedItem.pluralisedItemName))
-                        terminalNodeBuy.displayText = "You have requested to order " + extendedItem.pluralisedItemName + ". Amount: [variableAmount].";
+                    if (!string.IsNullOrEmpty(extendedItem.PluralisedItemName))
+                        terminalNodeBuy.displayText = "You have requested to order " + extendedItem.PluralisedItemName + ". Amount: [variableAmount].";
                     else
                         terminalNodeBuy.displayText = "You have requested to order " + extendedItem.Item.itemName + ". Amount: [variableAmount].";
                     terminalNodeBuy.displayText += "\n Total cost of items: [totalCost].";
@@ -623,12 +623,12 @@ namespace LethalLevelLoader
             {
                 terminalNodeBuyConfirm = CreateNewTerminalNode();
                 terminalNodeBuyConfirm.name = extendedItem.Item.itemName.StripSpecialCharacters().Sanitized() + "BuyConfirm";
-                if (extendedItem.overrideBuyConfirmNodeDescription != string.Empty)
-                    terminalNodeBuyConfirm.displayText = extendedItem.overrideBuyConfirmNodeDescription;
+                if (extendedItem.OverrideBuyConfirmNodeDescription != string.Empty)
+                    terminalNodeBuyConfirm.displayText = extendedItem.OverrideBuyConfirmNodeDescription;
                 else
                 {
-                    if (!string.IsNullOrEmpty(extendedItem.pluralisedItemName))
-                        terminalNodeBuyConfirm.displayText = "Ordered [variableAmount] " + extendedItem.pluralisedItemName + ". Your new balance is";
+                    if (!string.IsNullOrEmpty(extendedItem.PluralisedItemName))
+                        terminalNodeBuyConfirm.displayText = "Ordered [variableAmount] " + extendedItem.PluralisedItemName + ". Your new balance is";
                     else
                         terminalNodeBuyConfirm.displayText = "Ordered [variableAmount] " + extendedItem.Item.itemName + ". Your new balance is";
                     terminalNodeBuyConfirm.displayText += "[playerCredits]";
@@ -642,7 +642,7 @@ namespace LethalLevelLoader
 
             //Terminal Info Node
             TerminalNode terminalNodeInfo = null;
-            if (!string.IsNullOrEmpty(extendedItem.overrideInfoNodeDescription))
+            if (!string.IsNullOrEmpty(extendedItem.OverrideInfoNodeDescription))
             {
                 if (extendedItem.BuyInfoNode != null)
                     terminalNodeInfo = extendedItem.BuyInfoNode;
@@ -652,7 +652,7 @@ namespace LethalLevelLoader
                     terminalNodeInfo.name = extendedItem.Item.itemName.StripSpecialCharacters().Sanitized() + "Info";
                     terminalNodeInfo.clearPreviousText = true;
                     terminalNodeInfo.maxCharactersToType = 25;
-                    terminalNodeInfo.displayText = "\n" + extendedItem.overrideInfoNodeDescription;
+                    terminalNodeInfo.displayText = "\n" + extendedItem.OverrideInfoNodeDescription;
                 }
             }
 
@@ -675,16 +675,16 @@ namespace LethalLevelLoader
         internal static void CreateEnemyTypeTerminalData(ExtendedEnemyType extendedEnemyType)
         {
             TerminalKeyword newEnemyInfoKeyword = CreateNewTerminalKeyword();
-            newEnemyInfoKeyword.word = extendedEnemyType.enemyDisplayName.ToLower();
+            newEnemyInfoKeyword.word = extendedEnemyType.EnemyDisplayName.ToLower();
 
             TerminalNode newEnemyInfoNode = CreateNewTerminalNode();
-            newEnemyInfoNode.displayText = extendedEnemyType.infoNodeDescription;
+            newEnemyInfoNode.displayText = extendedEnemyType.InfoNodeDescription;
             newEnemyInfoNode.creatureFileID = extendedEnemyType.EnemyID;
-            newEnemyInfoNode.creatureName = extendedEnemyType.enemyDisplayName;
+            newEnemyInfoNode.creatureName = extendedEnemyType.EnemyDisplayName;
 
-            if (extendedEnemyType.infoNodeVideoClip != null)
+            if (extendedEnemyType.InfoNodeVideoClip != null)
             {
-                newEnemyInfoNode.displayVideo = extendedEnemyType.infoNodeVideoClip;
+                newEnemyInfoNode.displayVideo = extendedEnemyType.InfoNodeVideoClip;
                 newEnemyInfoNode.loadImageSlowly = true;
             }
 

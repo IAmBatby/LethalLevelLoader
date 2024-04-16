@@ -126,8 +126,7 @@ namespace LethalLevelLoader
 
         internal void RegisterExtendedContent(ExtendedLevel extendedLevel)
         {
-            if (Validators.ValidateExtendedContent(extendedLevel) == false)
-                ThrowInvalidContentException(extendedLevel);
+            TryThrowInvalidContentException(extendedLevel, Validators.ValidateExtendedContent(extendedLevel));
 
             ExtendedLevels.Add(extendedLevel);
             extendedLevel.ContentTags.Add(ContentTag.Create("Custom"));
@@ -136,8 +135,7 @@ namespace LethalLevelLoader
 
         internal void RegisterExtendedContent(ExtendedDungeonFlow extendedDungeonFlow)
         {
-            if (Validators.ValidateExtendedContent(extendedDungeonFlow) == false)
-                ThrowInvalidContentException(extendedDungeonFlow);
+            TryThrowInvalidContentException(extendedDungeonFlow, Validators.ValidateExtendedContent(extendedDungeonFlow));
 
             ExtendedDungeonFlows.Add(extendedDungeonFlow);
             extendedDungeonFlow.ContentTags.Add(ContentTag.Create("Custom"));
@@ -146,8 +144,7 @@ namespace LethalLevelLoader
 
         internal void RegisterExtendedContent(ExtendedItem extendedItem)
         {
-            if (Validators.ValidateExtendedContent(extendedItem) == false)
-                ThrowInvalidContentException(extendedItem);
+            TryThrowInvalidContentException(extendedItem, Validators.ValidateExtendedContent(extendedItem));
 
             ExtendedItems.Add(extendedItem);
             extendedItem.ContentTags.Add(ContentTag.Create("Custom"));
@@ -156,8 +153,7 @@ namespace LethalLevelLoader
 
         internal void RegisterExtendedContent(ExtendedEnemyType extendedEnemyType)
         {
-            if (Validators.ValidateExtendedContent(extendedEnemyType) == false)
-                ThrowInvalidContentException(extendedEnemyType);
+            TryThrowInvalidContentException(extendedEnemyType, Validators.ValidateExtendedContent(extendedEnemyType));
 
             ExtendedEnemyTypes.Add(extendedEnemyType);
             extendedEnemyType.ContentTags.Add(ContentTag.Create("Custom"));
@@ -166,8 +162,7 @@ namespace LethalLevelLoader
 
         internal void RegisterExtendedContent(ExtendedWeatherEffect extendedWeatherEffect)
         {
-            if (Validators.ValidateExtendedContent(extendedWeatherEffect) == false)
-                ThrowInvalidContentException(extendedWeatherEffect);
+            TryThrowInvalidContentException(extendedWeatherEffect, Validators.ValidateExtendedContent(extendedWeatherEffect));
 
             ExtendedWeatherEffects.Add(extendedWeatherEffect);
             extendedWeatherEffect.ContentTags.Add(ContentTag.Create("Custom"));
@@ -176,8 +171,7 @@ namespace LethalLevelLoader
 
         internal void RegisterExtendedContent(ExtendedFootstepSurface extendedFootstepSurface)
         {
-            if (Validators.ValidateExtendedContent(extendedFootstepSurface) == false)
-                ThrowInvalidContentException(extendedFootstepSurface);
+            TryThrowInvalidContentException(extendedFootstepSurface, Validators.ValidateExtendedContent(extendedFootstepSurface));
 
             ExtendedFootstepSurfaces.Add(extendedFootstepSurface);
             extendedFootstepSurface.ContentTags.Add(ContentTag.Create("Custom"));
@@ -186,20 +180,22 @@ namespace LethalLevelLoader
 
         internal void RegisterExtendedContent(ExtendedStoryLog extendedStoryLog)
         {
-            if (Validators.ValidateExtendedContent(extendedStoryLog) == false)
-                ThrowInvalidContentException(extendedStoryLog);
+            TryThrowInvalidContentException(extendedStoryLog, Validators.ValidateExtendedContent(extendedStoryLog));
 
             ExtendedStoryLogs.Add(extendedStoryLog);
             extendedStoryLog.ContentTags.Add(ContentTag.Create("Custom"));
             extendedStoryLog.ExtendedMod = this;
         }
 
-        internal void ThrowInvalidContentException(ExtendedContent extendedContent)
+        internal void TryThrowInvalidContentException(ExtendedContent extendedContent, (bool,string) result)
         {
-            if (extendedContent == null)
-                throw new ArgumentNullException(nameof(extendedContent), "Null ExtendedContent Could Not Be Registered To ExtendedMod: " + ModName + " Due To Failed Validation Check!");
-            
-            throw new ArgumentException(nameof(extendedContent), extendedContent.name + " (" + extendedContent.GetType().Name + ") " + " Could Not Be Registered To ExtendedMod: " + ModName + " Due To Failed Validation Check!");
+            if (result.Item1 == false)
+            {
+                if (extendedContent == null)
+                    throw new ArgumentNullException(nameof(extendedContent), "Null ExtendedContent Could Not Be Registered To ExtendedMod: " + ModName + " Due To Failed Validation Check! " + result.Item2);
+
+                throw new ArgumentException(nameof(extendedContent), extendedContent.name + " (" + extendedContent.GetType().Name + ") " + " Could Not Be Registered To ExtendedMod: " + ModName + " Due To Failed Validation Check! " + result.Item2);
+            }
         }
 
         internal void UnregisterExtendedContent(ExtendedContent currentExtendedContent)

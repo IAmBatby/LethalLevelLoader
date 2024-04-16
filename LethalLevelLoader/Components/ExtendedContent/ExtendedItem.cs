@@ -8,9 +8,16 @@ namespace LethalLevelLoader
     [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedItem")]
     public class ExtendedItem : ExtendedContent
     {
-        public Item Item;
-        [SerializeField] internal string pluralisedItemName = string.Empty;
-        [SerializeField] internal bool isBuyableItem;
+        [field: SerializeField] public Item Item { get; set; }
+        [field: SerializeField] public string PluralisedItemName { get; set; } = string.Empty;
+        [field: SerializeField] public bool IsBuyableItem { get; set; }
+
+        [field: SerializeField] public LevelMatchingProperties LevelMatchingProperties { get; set; }
+        [field: SerializeField] public DungeonMatchingProperties DungeonMatchingProperties { get; set; }
+
+        [field: SerializeField] public string OverrideInfoNodeDescription { get; set; } = string.Empty;
+        [field: SerializeField] public string OverrideBuyNodeDescription { get; set; } = string.Empty;
+        [field: SerializeField] public string OverrideBuyConfirmNodeDescription { get; set; } = string.Empty;
 
         public TerminalNode BuyNode { get; internal set; }
         public TerminalNode BuyConfirmNode { get; internal set; }
@@ -45,16 +52,6 @@ namespace LethalLevelLoader
             }
         }
 
-        [Space(10)]
-        [Header("Dynamic Item Injections Settings")]
-        [SerializeField] internal LevelMatchingProperties levelMatchingProperties;
-        [SerializeField] internal DungeonMatchingProperties dungeonMatchingProperties;
-
-        [Header("Terminal Override Settings")]
-        [SerializeField][TextArea(2, 20)] public string overrideInfoNodeDescription = string.Empty;
-        [SerializeField][TextArea(2, 20)] public string overrideBuyNodeDescription = string.Empty;
-        [SerializeField][TextArea(2, 20)] public string overrideBuyConfirmNodeDescription = string.Empty;
-
         public static ExtendedItem Create(Item newItem, ExtendedMod extendedMod, ContentType contentType)
         {
             ExtendedItem extendedItem = ScriptableObject.CreateInstance<ExtendedItem>();
@@ -70,28 +67,28 @@ namespace LethalLevelLoader
 
         public void Initialize()
         {
-            DebugHelper.Log("Initializing Custom Item: " + Item.itemName + ". Is Buyable: " + isBuyableItem + ". Is Scrap: " + Item.isScrap);
+            DebugHelper.Log("Initializing Custom Item: " + Item.itemName + ". Is Buyable: " + IsBuyableItem + ". Is Scrap: " + Item.isScrap);
 
             TryCreateMatchingProperties();
 
             Patches.StartOfRound.allItemsList.itemsList.Add(Item);
-            if (isBuyableItem)
+            if (IsBuyableItem)
                 TerminalManager.CreateItemTerminalData(this);
         }
 
         internal override void TryCreateMatchingProperties()
         {
-            if (levelMatchingProperties == null)
-                levelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
-            if (dungeonMatchingProperties == null)
-                dungeonMatchingProperties = ScriptableObject.CreateInstance<DungeonMatchingProperties>();
+            if (LevelMatchingProperties == null)
+                LevelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
+            if (DungeonMatchingProperties == null)
+                DungeonMatchingProperties = ScriptableObject.CreateInstance<DungeonMatchingProperties>();
         }
 
         public void SetLevelMatchingProperties(LevelMatchingProperties newLevelMatchingProperties)
         {
             if (Plugin.Instance != null)
                 Debug.LogError("SetLevelMatchingProperties() Should Only Be Used In Editor!");
-            levelMatchingProperties = newLevelMatchingProperties;
+            LevelMatchingProperties = newLevelMatchingProperties;
         }
     }
 }

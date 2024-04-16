@@ -67,11 +67,31 @@ namespace LethalLevelLoader
 
         internal static void InitalizeShipAnimatorOverrideController()
         {
-            AnimatorOverrideController overrideController = new AnimatorOverrideController(Patches.StartOfRound.shipAnimator.runtimeAnimatorController);
-            Patches.StartOfRound.shipAnimator.runtimeAnimatorController = overrideController;
+            Animator shipAnimator = Patches.StartOfRound.shipAnimator;
+
+            List<GameObject> childObjects = new List<GameObject>();
+            foreach (Transform child in shipAnimator.GetComponentsInChildren<Transform>(includeInactive: true))
+                if (!childObjects.Contains(child.gameObject))
+                    childObjects.Add(child.gameObject);
+
+            foreach (GameObject gameObject in childObjects)
+                DebugHelper.Log("Original - ShipAnimator Child: " + gameObject.name + " (" + gameObject.activeSelf + ")");
+
+            AnimatorOverrideController overrideController = new AnimatorOverrideController(shipAnimator.runtimeAnimatorController);
             LevelLoader.shipAnimatorOverrideController = overrideController;
             LevelLoader.defaultShipFlyToMoonClip = overrideController["HangarShipLandB"];
             LevelLoader.defaultShipFlyFromMoonClip = overrideController["ShipLeave"];
+
+            foreach (AnimationClip animationClip in shipAnimator.runtimeAnimatorController.animationClips)
+                overrideController[animationClip.name] = animationClip;
+
+            shipAnimator.runtimeAnimatorController = overrideController;
+            //shipAnimator.Play("Base Layer.ShipIdle", layer: 0, normalizedTime: 1.0f);
+
+            foreach (GameObject gameObject in childObjects)
+                DebugHelper.Log("Override - ShipAnimator Child: " + gameObject.name + " (" + gameObject.activeSelf + ")");
+
+            //shipAnimator.enabled = false;
         }
 
         public static bool TryGetExtendedLevel(SelectableLevel selectableLevel, out ExtendedLevel returnExtendedLevel, ContentType levelType = ContentType.Any)

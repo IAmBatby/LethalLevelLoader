@@ -10,22 +10,19 @@ namespace LethalLevelLoader
     [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedEnemyType")]
     public class ExtendedEnemyType : ExtendedContent
     {
-        public EnemyType EnemyType; //should change to property
+        [field: SerializeField] public EnemyType EnemyType { get; set; }
+        [field: SerializeField] public string EnemyDisplayName { get; set; }
+
+        [field: SerializeField] public LevelMatchingProperties InsideLevelMatchingProperties { get; set; }
+        [field: SerializeField] public DungeonMatchingProperties InsideDungeonMatchingProperties { get; set; }
+        [field: SerializeField] public LevelMatchingProperties OutsideLevelMatchingProperties { get; set; }
+        [field: SerializeField] public LevelMatchingProperties DaytimeLevelMatchingProperties { get; set; }
+
+        [field: SerializeField] public string InfoNodeDescription { get; set; } = string.Empty;
+        [field: SerializeField] public VideoClip InfoNodeVideoClip { get; set; }
+
         public ScanNodeProperties ScanNodeProperties { get; internal set; }
-        public int EnemyID { get; set; }
-        [SerializeField] internal string enemyDisplayName;
-
-        [Space(10)]
-        [Header("Dynamic Enemy Injections Settings")]
-        [SerializeField] internal LevelMatchingProperties insideLevelMatchingProperties;
-        [SerializeField] internal DungeonMatchingProperties insideDungeonMatchingProperties;
-        [Space(5)]
-        [SerializeField] internal LevelMatchingProperties outsideLevelMatchingProperties;
-        [SerializeField] internal LevelMatchingProperties daytimeLevelMatchingProperties;
-
-        [SerializeField][TextArea(2, 20)] internal string infoNodeDescription = string.Empty;
-        [SerializeField] internal VideoClip infoNodeVideoClip;
-
+        public int EnemyID { get; internal set; }
         public TerminalNode EnemyInfoNode { get; internal set; }
 
         public static ExtendedEnemyType Create(EnemyType enemyType, ExtendedMod extendedMod, ContentType contentType)
@@ -50,14 +47,14 @@ namespace LethalLevelLoader
 
         internal override void TryCreateMatchingProperties()
         {
-            if (insideLevelMatchingProperties == null)
-                insideLevelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
-            if (insideDungeonMatchingProperties == null)
-                insideDungeonMatchingProperties = ScriptableObject.CreateInstance<DungeonMatchingProperties>();
-            if (outsideLevelMatchingProperties == null)
-                outsideLevelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
-            if (daytimeLevelMatchingProperties == null)
-                daytimeLevelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
+            if (InsideLevelMatchingProperties == null)
+                InsideLevelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
+            if (InsideDungeonMatchingProperties == null)
+                InsideDungeonMatchingProperties = ScriptableObject.CreateInstance<DungeonMatchingProperties>();
+            if (OutsideLevelMatchingProperties == null)
+                OutsideLevelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
+            if (DaytimeLevelMatchingProperties == null)
+                DaytimeLevelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
         }
     }
 }
