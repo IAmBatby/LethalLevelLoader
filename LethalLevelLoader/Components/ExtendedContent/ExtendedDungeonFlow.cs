@@ -11,56 +11,51 @@ using static LethalLevelLoader.DungeonEvents;
 
 namespace LethalLevelLoader
 {
-    [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedDungeonFlow")]
+    [CreateAssetMenu(fileName = "ExtendedDungeonFlow", menuName = "Lethal Level Loader/Extended Content/ExtendedDungeonFlow", order = 21)]
     public class ExtendedDungeonFlow : ExtendedContent
     {
-        [Header("Extended DungeonFlow Settings")]
-        /*Obsolete*/ public string contentSourceName = string.Empty;
+        [field: Header("General Settings")]
         [field: SerializeField] public string DungeonName{ get { return dungeonDisplayName; } set { dungeonDisplayName = value; } }
-        [HideInInspector] public string dungeonDisplayName = string.Empty;
-        [Space(5)] public DungeonFlow dungeonFlow;
-        [Space(5)] public float mapTileSize = 1f;
-        [Space(5)] public AudioClip dungeonFirstTimeAudio;
+        [field: SerializeField] public float MapTileSize = 1f;
 
-        [Space(10)]
-        [Header("Dynamic DungeonFlow Injections Settings")]
-        public LevelMatchingProperties levelMatchingProperties;
+        [field: Space(5)]
+        [field: Header("Dynamic Injection Matching Settings")]
+        [field: SerializeField] public LevelMatchingProperties LevelMatchingProperties { get; set; }
 
-        [Space(10)] [Header("Dynamic Dungeon Size Multiplier Lerp Settings")]
+        [field: Space(5)]
+        [field: Header("Extended Feature Settings")]
+
+        [field: SerializeField] public GameObject OverrideKeyPrefab { get; set; }
+        [field: SerializeField] public List<SpawnableMapObject> SpawnableMapObjects { get; set; } = new List<SpawnableMapObject>();
+        [field: SerializeField] public List<GlobalPropCountOverride> GlobalPropCountOverridesList { get; set; } = new List<GlobalPropCountOverride>();
+
+        [field: Space(5)]
+
         public bool enableDynamicDungeonSizeRestriction = false;
         public float dungeonSizeMin = 1;
         public float dungeonSizeMax = 1;
         [Range(0, 1)] public float dungeonSizeLerpPercentage = 1;
 
-
-        [Space(10)] [Header("Dynamic DungeonFlow Modification Settings")]
-        public GameObject overrideKeyPrefab;
-        public List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>();
-        public List<GlobalPropCountOverride> globalPropCountOverridesList = new List<GlobalPropCountOverride>();
-
         [Space(10)] [Header("Misc. Settings")]
         [SerializeField] internal bool generateAutomaticConfigurationOptions = true;
 
-        // HideInInspector
-        [HideInInspector] public int DungeonID { get; internal set; }
-
-        [HideInInspector] public bool IsCurrentDungeon => (DungeonManager.CurrentExtendedDungeonFlow == this);
-
-        [HideInInspector] public DungeonEvents dungeonEvents = new DungeonEvents();
-
-        /*Obsolete*/
+        [Space(25)]
+        [Header("Obsolete (Legacy Fields, Will Be Removed In The Future)")]
+        public AudioClip dungeonFirstTimeAudio;
+        public DungeonFlow dungeonFlow;
+        public string dungeonDisplayName = string.Empty;
+        public string contentSourceName = string.Empty;
         public List<StringWithRarity> dynamicLevelTagsList = new List<StringWithRarity>();
-        /*Obsolete*/
         public List<Vector2WithRarity> dynamicRoutePricesList = new List<Vector2WithRarity>();
-        /*Obsolete*/
         public List<StringWithRarity> dynamicCurrentWeatherList = new List<StringWithRarity>();
-        /*Obsolete*/
         public List<StringWithRarity> manualPlanetNameReferenceList = new List<StringWithRarity>();
-        /*Obsolete*/
         public List<StringWithRarity> manualContentSourceNameReferenceList = new List<StringWithRarity>();
-
-        /*Obsolete*/
         [HideInInspector] public int dungeonDefaultRarity;
+
+        // HideInInspector
+        public int DungeonID { get; internal set; }
+        public bool IsCurrentDungeon => (DungeonManager.CurrentExtendedDungeonFlow == this);
+        [HideInInspector] public DungeonEvents dungeonEvents = new DungeonEvents();
 
         internal static ExtendedDungeonFlow Create(DungeonFlow newDungeonFlow, AudioClip newFirstTimeDungeonAudio)
         {
@@ -68,7 +63,7 @@ namespace LethalLevelLoader
             newExtendedDungeonFlow.dungeonFlow = newDungeonFlow;
             newExtendedDungeonFlow.dungeonFirstTimeAudio = newFirstTimeDungeonAudio;
 
-            if (newExtendedDungeonFlow.levelMatchingProperties == null)
+            if (newExtendedDungeonFlow.LevelMatchingProperties == null)
                 newExtendedDungeonFlow.TryCreateMatchingProperties();
             return (newExtendedDungeonFlow);
         }
@@ -81,7 +76,7 @@ namespace LethalLevelLoader
                 DungeonName = dungeonFlow.name;
 
             name = dungeonFlow.name.Replace("Flow", "") + "ExtendedDungeonFlow";
-            if (levelMatchingProperties == null)
+            if (LevelMatchingProperties == null)
                 TryCreateMatchingProperties();
 
             if (dungeonFirstTimeAudio == null)
@@ -90,8 +85,8 @@ namespace LethalLevelLoader
                 dungeonFirstTimeAudio = Patches.RoundManager.firstTimeDungeonAudios[0];
             }
 
-            if (overrideKeyPrefab == null)
-                overrideKeyPrefab = DungeonLoader.defaultKeyPrefab;
+            if (OverrideKeyPrefab == null)
+                OverrideKeyPrefab = DungeonLoader.defaultKeyPrefab;
         }
 
         private void GetDungeonFlowID()
@@ -106,13 +101,13 @@ namespace LethalLevelLoader
 
         internal override void TryCreateMatchingProperties()
         {
-            levelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
-            levelMatchingProperties.name = name + "MatchingProperties";
-            levelMatchingProperties.levelTags = new List<StringWithRarity>(dynamicLevelTagsList);
-            levelMatchingProperties.modNames = new List<StringWithRarity>(manualContentSourceNameReferenceList);
-            levelMatchingProperties.planetNames = new List<StringWithRarity>(manualPlanetNameReferenceList);
-            levelMatchingProperties.currentRoutePrice = new List<Vector2WithRarity>(dynamicRoutePricesList);
-            levelMatchingProperties.currentWeather = new List<StringWithRarity>(dynamicCurrentWeatherList);
+            LevelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
+            LevelMatchingProperties.name = name + "MatchingProperties";
+            LevelMatchingProperties.levelTags = new List<StringWithRarity>(dynamicLevelTagsList);
+            LevelMatchingProperties.modNames = new List<StringWithRarity>(manualContentSourceNameReferenceList);
+            LevelMatchingProperties.planetNames = new List<StringWithRarity>(manualPlanetNameReferenceList);
+            LevelMatchingProperties.currentRoutePrice = new List<Vector2WithRarity>(dynamicRoutePricesList);
+            LevelMatchingProperties.currentWeather = new List<StringWithRarity>(dynamicCurrentWeatherList);
         }
     }
 

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    [CreateAssetMenu(menuName = "LethalLevelLoader/Level Matching Properties")]
+    [CreateAssetMenu(fileName = "LevelMatchingProperties", menuName = "Lethal Level Loader/Utility/LevelMatchingProperties", order = 12)]
     public class LevelMatchingProperties : MatchingProperties
     {
         [Space(5)] public List<StringWithRarity> levelTags = new List<StringWithRarity>();
@@ -28,10 +28,26 @@ namespace LethalLevelLoader
                 DebugHelper.Log("Raised Rarity Due To Matching Planet Name!");
             if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingWithinRanges(extendedLevel.RoutePrice, currentRoutePrice)))
                 DebugHelper.Log("Raised Rarity Due To Matching Route Price!");
-            if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.selectableLevel.currentWeather.ToString(), currentWeather)))
+            if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.SelectableLevel.currentWeather.ToString(), currentWeather)))
                 DebugHelper.Log("Raised Rarity Due To Matching Current Weather!");
 
             return (returnRarity);
+        }
+
+        public void ApplyValues(List<StringWithRarity> newModNames = null, List<StringWithRarity> newAuthorNames = null, List<StringWithRarity> newLevelTags = null, List<Vector2WithRarity> newRoutePrices = null, List<StringWithRarity> newCurrentWeathers = null, List<StringWithRarity> newPlanetNames = null)
+        {
+            if (newModNames != null && newModNames.Count != 0)
+                modNames = new List<StringWithRarity>(newModNames);
+            if (newAuthorNames != null && newAuthorNames.Count != 0)
+                authorNames = new List<StringWithRarity>(newAuthorNames);
+            if (newLevelTags != null && newLevelTags.Count != 0)
+                levelTags = new List<StringWithRarity>(newLevelTags);
+            if (newRoutePrices != null && newRoutePrices.Count != 0)
+                currentRoutePrice = new List<Vector2WithRarity>(newRoutePrices);
+            if (newCurrentWeathers != null && newCurrentWeathers.Count != 0)
+                currentWeather = new List<StringWithRarity>(newCurrentWeathers);
+            if (newPlanetNames != null && newPlanetNames.Count != 0)
+                planetNames = new List<StringWithRarity>(newPlanetNames);
         }
     }
 }

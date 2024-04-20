@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedStoryLog")]
+    [CreateAssetMenu(fileName = "ExtendedStoryLog", menuName = "Lethal Level Loader/Extended Content/ExtendedStoryLog", order = 26)]
     public class ExtendedStoryLog : ExtendedContent
     {
         public string sceneName = string.Empty;

@@ -15,21 +15,21 @@ namespace LethalLevelLoader
 
         public static void PopulateVanillaExtendedWeatherEffectsDictionary()
         {
-            foreach (ExtendedWeatherEffect extendedWeatherEffect in PatchedContent.VanillaExtendedWeatherEffects.OrderBy(w => (int)w.baseWeatherType))
-                    vanillaExtendedWeatherEffectsDictionary.Add(extendedWeatherEffect.baseWeatherType, extendedWeatherEffect);
+            foreach (ExtendedWeatherEffect extendedWeatherEffect in PatchedContent.VanillaExtendedWeatherEffects.OrderBy(w => (int)w.BaseWeatherType))
+                    vanillaExtendedWeatherEffectsDictionary.Add(extendedWeatherEffect.BaseWeatherType, extendedWeatherEffect);
         }
 
         public static void PopulateExtendedLevelEnabledExtendedWeatherEffects()
         {
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
             {
-                if (extendedLevel.selectableLevel.randomWeathers != null)
-                    foreach (RandomWeatherWithVariables randomWeatherWithVariables in extendedLevel.selectableLevel.randomWeathers)
+                if (extendedLevel.SelectableLevel.randomWeathers != null)
+                    foreach (RandomWeatherWithVariables randomWeatherWithVariables in extendedLevel.SelectableLevel.randomWeathers)
                         if (vanillaExtendedWeatherEffectsDictionary.TryGetValue(randomWeatherWithVariables.weatherType, out ExtendedWeatherEffect extendedWeatherEffect))
-                            extendedLevel.enabledExtendedWeatherEffects.Add(extendedWeatherEffect);
+                            extendedLevel.EnabledExtendedWeatherEffects.Add(extendedWeatherEffect);
 
                 foreach (ExtendedWeatherEffect customExtendedWeatherEffect in PatchedContent.CustomExtendedWeatherEffects)
-                    extendedLevel.enabledExtendedWeatherEffects.Add(customExtendedWeatherEffect);
+                    extendedLevel.EnabledExtendedWeatherEffects.Add(customExtendedWeatherEffect);
             }
         }
 
@@ -40,14 +40,14 @@ namespace LethalLevelLoader
 
             foreach (ExtendedLevel extendedLevel in extendedLevels)
             {
-                if (extendedLevel.selectableLevel.overrideWeather == false)
+                if (extendedLevel.SelectableLevel.overrideWeather == false)
                 {
-                    extendedLevel.currentExtendedWeatherEffect = null;
-                    extendedLevel.selectableLevel.currentWeather = LevelWeatherType.None;
+                    extendedLevel.CurrentExtendedWeatherEffect = null;
+                    extendedLevel.SelectableLevel.currentWeather = LevelWeatherType.None;
                 }
                 else
                 {
-                    extendedLevel.selectableLevel.currentWeather = extendedLevel.selectableLevel.overrideWeatherType;
+                    extendedLevel.SelectableLevel.currentWeather = extendedLevel.SelectableLevel.overrideWeatherType;
                 }
             }
 
@@ -61,8 +61,8 @@ namespace LethalLevelLoader
             for (int j = 0; j < randomWeatherEffectToggleAttempts; j++)
             {
                 ExtendedLevel extendedLevel = extendedLevels[random.Next(0, extendedLevels.Count)];
-                if (extendedLevel.selectableLevel.randomWeathers != null && extendedLevel.selectableLevel.randomWeathers.Length != 0)
-                    extendedLevel.selectableLevel.currentWeather = extendedLevel.selectableLevel.randomWeathers[random.Next(0, extendedLevel.selectableLevel.randomWeathers.Length)].weatherType;
+                if (extendedLevel.SelectableLevel.randomWeathers != null && extendedLevel.SelectableLevel.randomWeathers.Length != 0)
+                    extendedLevel.SelectableLevel.currentWeather = extendedLevel.SelectableLevel.randomWeathers[random.Next(0, extendedLevel.SelectableLevel.randomWeathers.Length)].weatherType;
                 extendedLevels.Remove(extendedLevel);
 
             }
@@ -75,10 +75,10 @@ namespace LethalLevelLoader
 
             foreach (ExtendedLevel extendedLevel in extendedLevels)
             {
-                extendedLevel.currentExtendedWeatherEffect = null;
-                if (extendedLevel.selectableLevel.overrideWeather != false)
-                    if (vanillaExtendedWeatherEffectsDictionary.TryGetValue(extendedLevel.selectableLevel.overrideWeatherType, out ExtendedWeatherEffect extendedWeatherEffect))
-                        extendedLevel.currentExtendedWeatherEffect = extendedWeatherEffect;
+                extendedLevel.CurrentExtendedWeatherEffect = null;
+                if (extendedLevel.SelectableLevel.overrideWeather != false)
+                    if (vanillaExtendedWeatherEffectsDictionary.TryGetValue(extendedLevel.SelectableLevel.overrideWeatherType, out ExtendedWeatherEffect extendedWeatherEffect))
+                        extendedLevel.CurrentExtendedWeatherEffect = extendedWeatherEffect;
             }
 
             Random random = new Random(startOfRound.randomMapSeed + 31);
@@ -91,16 +91,16 @@ namespace LethalLevelLoader
             for (int j = 0; j < randomWeatherEffectToggleAttempts; j++)
             {
                 ExtendedLevel extendedLevel = extendedLevels[random.Next(0, extendedLevels.Count)];
-                extendedLevel.currentExtendedWeatherEffect = extendedLevel.enabledExtendedWeatherEffects[random.Next(0, extendedLevel.enabledExtendedWeatherEffects.Count)];
+                extendedLevel.CurrentExtendedWeatherEffect = extendedLevel.EnabledExtendedWeatherEffects[random.Next(0, extendedLevel.EnabledExtendedWeatherEffects.Count)];
                 extendedLevels.Remove(extendedLevel);
             }
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
             {
-                if (extendedLevel.currentExtendedWeatherEffect == null)
-                    extendedLevel.selectableLevel.currentWeather = LevelWeatherType.None;
-                else if (extendedLevel.currentExtendedWeatherEffect.contentType == ContentType.Vanilla)
-                    extendedLevel.selectableLevel.currentWeather = extendedLevel.currentExtendedWeatherEffect.baseWeatherType;
+                if (extendedLevel.CurrentExtendedWeatherEffect == null)
+                    extendedLevel.SelectableLevel.currentWeather = LevelWeatherType.None;
+                else if (extendedLevel.CurrentExtendedWeatherEffect.contentType == ContentType.Vanilla)
+                    extendedLevel.SelectableLevel.currentWeather = extendedLevel.CurrentExtendedWeatherEffect.BaseWeatherType;
             }
         }
 
@@ -108,7 +108,7 @@ namespace LethalLevelLoader
         {
             foreach (ExtendedWeatherEffect extendedWeatherEffect in PatchedContent.ExtendedWeatherEffects)
                 if (extendedWeatherEffect.contentType == ContentType.Vanilla)
-                    if (extendedWeatherEffect.baseWeatherType == levelWeatherType)
+                    if (extendedWeatherEffect.BaseWeatherType == levelWeatherType)
                         return (extendedWeatherEffect);
 
             return (null);

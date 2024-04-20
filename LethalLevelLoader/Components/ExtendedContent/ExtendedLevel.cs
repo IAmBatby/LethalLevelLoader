@@ -9,40 +9,55 @@ public enum ContentType { Vanilla, Custom, Any } //Any & All included for built 
 
 namespace LethalLevelLoader
 {
-    [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedLevel")]
+    [CreateAssetMenu(fileName = "ExtendedLevel", menuName = "Lethal Level Loader/Extended Content/ExtendedLevel", order = 20)]
     public class ExtendedLevel : ExtendedContent
     {
-        [Header("General Settings")]
-        /*Obsolete*/ [Space(5)] public string contentSourceName = string.Empty; //Levels from AssetBundles will have this as their Assembly Name.
-        [Space(5)] public SelectableLevel selectableLevel;
+        [field: Header("General Settings")]
+        [field: SerializeField] public SelectableLevel SelectableLevel { get { return (selectableLevel); } set { selectableLevel = value; } }
         [Space(5)] [SerializeField] private int routePrice = 0;
 
-        [Header("Extended Features Settings")]
-        [Space(5)] public bool isHidden = false;
-        [Space(5)] public bool isLocked = false;
-        [Space(5)] public string lockedNodeText = string.Empty;
-        [Space(5)] public bool overrideDynamicRiskLevelAssignment = false;
-        [Space(5)] public GameObject overrideQuicksandPrefab;
-        [Space(5)] public AnimationClip ShipFlyToMoonClip;
-        [Space(5)] public AnimationClip ShipFlyFromMoonClip;
-        [field: SerializeField] public List<StringWithRarity> SceneSelections { get; internal set; } = new List<StringWithRarity>();
+        [field: Header("Extended Feature Settings")]
+        [field: SerializeField] public bool OverrideDynamicRiskLevelAssignment { get; set; } = false;
 
-        [Space(10)]
-        [Header("Dynamic DungeonFlow Injections Settings")]
-        /*Obsolete*/ [Space(5)] public List<string> levelTags = new List<string>();
+        [field: Space(5)]
 
-        [Space(10)]
-        [Header("Terminal Override Settings")]
-        [SerializeField][TextArea(2, 20)] internal string overrideInfoNodeDescription = string.Empty;
-        [SerializeField][TextArea(2, 20)] internal string overrideRouteNodeDescription = string.Empty;
-        [SerializeField][TextArea(2, 20)] internal string overrideRouteConfirmNodeDescription = string.Empty;
+        [field: SerializeField] public GameObject OverrideQuicksandPrefab { get; set; }
+
+        [field: Space(5)]
+
+        [field: SerializeField] public bool IsRouteHidden { get; set; } = false;
+        [field: SerializeField] public bool IsRouteLocked { get; set; } = false;
+        [field: SerializeField] public string LockedRouteNodeText = string.Empty;
+
+        [field: Space(5)]
+
+        [field: SerializeField] public AnimationClip ShipFlyToMoonClip { get; set; }
+        [field: SerializeField] public AnimationClip ShipFlyFromMoonClip { get; set; }
+
+        [field: Space(5)]
+
+        [field: SerializeField] public List<StringWithRarity> SceneSelections { get; set; } = new List<StringWithRarity>();
+
+        [field: Space(5)]
+        [field: Header("Terminal Route Override Settings")]
+
+        [field: SerializeField] [field: TextArea(2, 20)] public string OverrideInfoNodeDescription { get; set; } = string.Empty;
+        [field: SerializeField] [field: TextArea(2, 20)] public string OverrideRouteNodeDescription { get; set; } = string.Empty;
+        [field: SerializeField] [field: TextArea(2, 20)] public string OverrideRouteConfirmNodeDescription { get; set; } = string.Empty;
 
         [Space(10)]
         [Header("Misc. Settings")]
         [Space(5)] public bool generateAutomaticConfigurationOptions = true;
 
+        [Space(25)]
+        [Header("Obsolete (Legacy Fields, Will Be Removed In The Future)")]
+        /*Obsolete*/ public SelectableLevel selectableLevel;
+        /*Obsolete*/ [Space(5)] public string contentSourceName = string.Empty; //Levels from AssetBundles will have this as their Assembly Name.
+        /*Obsolete*/ [Space(5)] public List<string> levelTags = new List<string>();
+
         //Runtime Stuff
 
+        [field: SerializeField]
         public int RoutePrice
         {
             get
@@ -72,10 +87,10 @@ namespace LethalLevelLoader
             }
         }
 
-        public string NumberlessPlanetName => GetNumberlessPlanetName(selectableLevel);
+        public string NumberlessPlanetName => GetNumberlessPlanetName(SelectableLevel);
         public int CalculatedDifficultyRating => LevelManager.CalculateExtendedLevelDifficultyRating(this);
         public bool IsCurrentLevel => LevelManager.CurrentExtendedLevel == this;
-        public bool IsLevelLoaded => SceneManager.GetSceneByName(selectableLevel.sceneName).isLoaded;
+        public bool IsLevelLoaded => SceneManager.GetSceneByName(SelectableLevel.sceneName).isLoaded;
 
         [HideInInspector] public LevelEvents LevelEvents { get; internal set; } = new LevelEvents();
 
@@ -84,13 +99,13 @@ namespace LethalLevelLoader
         public TerminalNode InfoNode { get; internal set; }
 
         //Dunno about these yet
-        public List<ExtendedWeatherEffect> enabledExtendedWeatherEffects = new List<ExtendedWeatherEffect>();
-        public ExtendedWeatherEffect currentExtendedWeatherEffect;
+        public List<ExtendedWeatherEffect> EnabledExtendedWeatherEffects { get; set; } = new List<ExtendedWeatherEffect>();
+        public ExtendedWeatherEffect CurrentExtendedWeatherEffect { get; set; }
 
         internal static ExtendedLevel Create(SelectableLevel newSelectableLevel)
         {
             ExtendedLevel newExtendedLevel = ScriptableObject.CreateInstance<ExtendedLevel>();
-            newExtendedLevel.selectableLevel = newSelectableLevel;
+            newExtendedLevel.SelectableLevel = newSelectableLevel;
 
             return (newExtendedLevel);
         }
@@ -99,19 +114,19 @@ namespace LethalLevelLoader
             bool mainSceneRegistered = false;
 
             foreach (StringWithRarity sceneSelection in SceneSelections)
-                if (sceneSelection.Name == selectableLevel.sceneName)
+                if (sceneSelection.Name == SelectableLevel.sceneName)
                     mainSceneRegistered = true;
 
             if (mainSceneRegistered == false)
             {
-                StringWithRarity newSceneSelection = new StringWithRarity(selectableLevel.sceneName, 300);
+                StringWithRarity newSceneSelection = new StringWithRarity(SelectableLevel.sceneName, 300);
                 SceneSelections.Add(newSceneSelection);
             }
 
             foreach (StringWithRarity sceneSelection in new List<StringWithRarity>(SceneSelections))
                 if (!PatchedContent.AllLevelSceneNames.Contains(sceneSelection.Name))
                 {
-                    DebugHelper.LogWarning("Removing SceneSelection From: " + selectableLevel.PlanetName + " As SceneName: " + sceneSelection.Name + " Is Not Loaded!");
+                    DebugHelper.LogWarning("Removing SceneSelection From: " + SelectableLevel.PlanetName + " As SceneName: " + sceneSelection.Name + " Is Not Loaded!");
                     SceneSelections.Remove(sceneSelection);
                 }
 
@@ -120,13 +135,13 @@ namespace LethalLevelLoader
             if (ShipFlyFromMoonClip == null)
                 ShipFlyFromMoonClip = LevelLoader.defaultShipFlyFromMoonClip;
 
-            if (overrideQuicksandPrefab == null)
-                overrideQuicksandPrefab = LevelLoader.defaultQuicksandPrefab;
+            if (OverrideQuicksandPrefab == null)
+                OverrideQuicksandPrefab = LevelLoader.defaultQuicksandPrefab;
 
             if (ContentType == ContentType.Custom)
             {
                 name = NumberlessPlanetName.StripSpecialCharacters() + "ExtendedLevel";
-                selectableLevel.name = NumberlessPlanetName.StripSpecialCharacters() + "Level";
+                SelectableLevel.name = NumberlessPlanetName.StripSpecialCharacters() + "Level";
                 if (generateTerminalAssets == true) //Needs to be after levelID setting above.
                 {
                     //DebugHelper.Log("Generating Terminal Assets For: " + NumberlessPlanetName);
@@ -157,26 +172,26 @@ namespace LethalLevelLoader
         {
             if (ContentType == ContentType.Custom)
             {
-                selectableLevel.levelID = PatchedContent.ExtendedLevels.IndexOf(this);
+                SelectableLevel.levelID = PatchedContent.ExtendedLevels.IndexOf(this);
                 if (RouteNode != null)
-                    RouteNode.displayPlanetInfo = selectableLevel.levelID;
+                    RouteNode.displayPlanetInfo = SelectableLevel.levelID;
                 if (RouteConfirmNode != null)
-                    RouteConfirmNode.buyRerouteToMoon = selectableLevel.levelID;
+                    RouteConfirmNode.buyRerouteToMoon = SelectableLevel.levelID;
             }
         }
 
         internal void SetExtendedDungeonFlowMatches()
         {
-            foreach (IntWithRarity intWithRarity in selectableLevel.dungeonFlowTypes)
+            foreach (IntWithRarity intWithRarity in SelectableLevel.dungeonFlowTypes)
                 if (DungeonManager.TryGetExtendedDungeonFlow(Patches.RoundManager.dungeonFlowTypes[intWithRarity.id].dungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
-                    extendedDungeonFlow.levelMatchingProperties.planetNames.Add(new StringWithRarity(NumberlessPlanetName, intWithRarity.rarity));
+                    extendedDungeonFlow.LevelMatchingProperties.planetNames.Add(new StringWithRarity(NumberlessPlanetName, intWithRarity.rarity));
 
 
-            if (selectableLevel.sceneName == "Level4March")
+            if (SelectableLevel.sceneName == "Level4March")
                 foreach (IndoorMapType indoorMapType in Patches.RoundManager.dungeonFlowTypes)
                     if (indoorMapType.dungeonFlow.name == "Level1Flow3Exits")
                         if (DungeonManager.TryGetExtendedDungeonFlow(indoorMapType.dungeonFlow, out ExtendedDungeonFlow marchDungeonFlow))
-                            marchDungeonFlow.levelMatchingProperties.planetNames.Add(new StringWithRarity(NumberlessPlanetName, 300));
+                            marchDungeonFlow.LevelMatchingProperties.planetNames.Add(new StringWithRarity(NumberlessPlanetName, 300));
         }
 
         public void ForceSetRoutePrice(int newValue)

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    [CreateAssetMenu(menuName = "LethalLevelLoader/ContentTag")]
+    [CreateAssetMenu(fileName = "ContentTag", menuName = "Lethal Level Loader/Utility/ContentTag", order = 11)]
     public class ContentTag : ScriptableObject
     {
         public string contentTagName;

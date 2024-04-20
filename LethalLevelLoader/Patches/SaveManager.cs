@@ -15,9 +15,12 @@ namespace LethalLevelLoader
 
         internal static void InitializeSave()
         {
-            currentSaveFile = new LLLSaveFile("LLLSaveFile1");
+            if (GameNetworkManager.Instance.currentSaveFileName.Contains("LC"))
+                currentSaveFile = new LLLSaveFile(GameNetworkManager.Instance.currentSaveFileName.Replace("LC", "LLL"));
+            else
+                currentSaveFile = new LLLSaveFile("LLLSaveFile");
             currentSaveFile.Load();
-            DebugHelper.Log("Initialized LLL Save File, Current Level Was: " + currentSaveFile.CurrentLevelName);
+            DebugHelper.Log("Initialized LLL Save File, Current Level Was: " + currentSaveFile.CurrentLevelName + ", Current Vanilla Save Is: " + GameNetworkManager.Instance.currentSaveFileName);
 
             if (currentSaveFile.customItemDictionary == null)
                 currentSaveFile.customItemDictionary = new Dictionary<string, string>();

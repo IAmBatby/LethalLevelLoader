@@ -49,10 +49,10 @@ namespace LethalLevelLoader.Tools
         internal static void RestoreVanillaLevelAssetReferences(ExtendedLevel extendedLevel)
         {
             DebugHelper.Log("#1");
-            foreach (SpawnableItemWithRarity spawnableItem in new List<SpawnableItemWithRarity>(extendedLevel.selectableLevel.spawnableScrap))
+            foreach (SpawnableItemWithRarity spawnableItem in new List<SpawnableItemWithRarity>(extendedLevel.SelectableLevel.spawnableScrap))
             {
                 if (spawnableItem.spawnableItem == null)
-                    extendedLevel.selectableLevel.spawnableScrap.Remove(spawnableItem);
+                    extendedLevel.SelectableLevel.spawnableScrap.Remove(spawnableItem);
                 else
                     foreach (Item vanillaItem in OriginalContent.Items)
                         if (spawnableItem.spawnableItem.name == vanillaItem.name)
@@ -61,26 +61,26 @@ namespace LethalLevelLoader.Tools
 
             DebugHelper.Log("#2");
             foreach (EnemyType vanillaEnemyType in OriginalContent.Enemies)
-                foreach (SpawnableEnemyWithRarity enemyRarityPair in extendedLevel.selectableLevel.Enemies.Concat(extendedLevel.selectableLevel.DaytimeEnemies).Concat(extendedLevel.selectableLevel.OutsideEnemies))
+                foreach (SpawnableEnemyWithRarity enemyRarityPair in extendedLevel.SelectableLevel.Enemies.Concat(extendedLevel.SelectableLevel.DaytimeEnemies).Concat(extendedLevel.SelectableLevel.OutsideEnemies))
                     if (enemyRarityPair.enemyType != null && enemyRarityPair.enemyType.enemyName == vanillaEnemyType.enemyName)
                         enemyRarityPair.enemyType = RestoreAsset(enemyRarityPair.enemyType, vanillaEnemyType, debugAction: true);
 
             DebugHelper.Log("#3");
-            foreach (SpawnableMapObject spawnableMapObject in extendedLevel.selectableLevel.spawnableMapObjects)
+            foreach (SpawnableMapObject spawnableMapObject in extendedLevel.SelectableLevel.spawnableMapObjects)
                 foreach (GameObject vanillaSpawnableMapObject in OriginalContent.SpawnableMapObjects)
                     if (spawnableMapObject.prefabToSpawn != null && spawnableMapObject.prefabToSpawn.name == vanillaSpawnableMapObject.name)
                         spawnableMapObject.prefabToSpawn = RestoreAsset(spawnableMapObject.prefabToSpawn, vanillaSpawnableMapObject, debugAction: true);
 
             DebugHelper.Log("#4");
-            foreach (SpawnableOutsideObjectWithRarity spawnableOutsideObject in extendedLevel.selectableLevel.spawnableOutsideObjects)
+            foreach (SpawnableOutsideObjectWithRarity spawnableOutsideObject in extendedLevel.SelectableLevel.spawnableOutsideObjects)
                 foreach (SpawnableOutsideObject vanillaSpawnableOutsideObject in OriginalContent.SpawnableOutsideObjects)
                     if (spawnableOutsideObject.spawnableObject != null && spawnableOutsideObject.spawnableObject.name == vanillaSpawnableOutsideObject.name)
                         spawnableOutsideObject.spawnableObject = RestoreAsset(spawnableOutsideObject.spawnableObject, vanillaSpawnableOutsideObject, debugAction: true);
 
             DebugHelper.Log("#5");
             foreach (LevelAmbienceLibrary vanillaAmbienceLibrary in OriginalContent.LevelAmbienceLibraries)
-                if (extendedLevel.selectableLevel.levelAmbienceClips != null && extendedLevel.selectableLevel.levelAmbienceClips.name == vanillaAmbienceLibrary.name)
-                    extendedLevel.selectableLevel.levelAmbienceClips = RestoreAsset(extendedLevel.selectableLevel.levelAmbienceClips, vanillaAmbienceLibrary, debugAction: true);
+                if (extendedLevel.SelectableLevel.levelAmbienceClips != null && extendedLevel.SelectableLevel.levelAmbienceClips.name == vanillaAmbienceLibrary.name)
+                    extendedLevel.SelectableLevel.levelAmbienceClips = RestoreAsset(extendedLevel.SelectableLevel.levelAmbienceClips, vanillaAmbienceLibrary, debugAction: true);
         }
 
         internal static void RestoreAudioAssetReferencesInParent(GameObject parent)

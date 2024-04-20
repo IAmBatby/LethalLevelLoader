@@ -36,13 +36,13 @@ namespace LethalLevelLoader.Tools
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.VanillaExtendedLevels)
             {
-                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(newConfigFile, "Vanilla Level:  " + extendedLevel.selectableLevel.PlanetName.StripSpecialCharacters(), 6);
+                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(newConfigFile, "Vanilla Level:  " + extendedLevel.SelectableLevel.PlanetName.StripSpecialCharacters(), 6);
                 newConfig.BindConfigs(extendedLevel);
             }
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
             {
-                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(newConfigFile, "Custom Level:  " + extendedLevel.selectableLevel.PlanetName.StripSpecialCharacters(), 8);
+                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(newConfigFile, "Custom Level:  " + extendedLevel.SelectableLevel.PlanetName.StripSpecialCharacters(), 8);
                 newConfig.BindConfigs(extendedLevel);
             }
 
@@ -158,11 +158,11 @@ namespace LethalLevelLoader.Tools
                     extendedDungeonFlow.dungeonSizeMax = maximumDungeonSizeMultiplier.Value;
                     extendedDungeonFlow.dungeonSizeLerpPercentage = restrictDungeonSizeScaler.Value;
 
-                    extendedDungeonFlow.levelMatchingProperties.modNames = ConfigHelper.ConvertToStringWithRarityList(manualModNames.Value, new Vector2(0, 9999));
-                    extendedDungeonFlow.levelMatchingProperties.planetNames = ConfigHelper.ConvertToStringWithRarityList(manualLevelNames.Value, new Vector2(0, 9999));
+                    extendedDungeonFlow.LevelMatchingProperties.modNames = ConfigHelper.ConvertToStringWithRarityList(manualModNames.Value, new Vector2(0, 9999));
+                    extendedDungeonFlow.LevelMatchingProperties.planetNames = ConfigHelper.ConvertToStringWithRarityList(manualLevelNames.Value, new Vector2(0, 9999));
 
-                    extendedDungeonFlow.levelMatchingProperties.currentRoutePrice = ConfigHelper.ConvertToVector2WithRarityList(dynamicRoutePrices.Value, new Vector2(0, 9999));
-                    extendedDungeonFlow.levelMatchingProperties.levelTags = ConfigHelper.ConvertToStringWithRarityList(dynamicLevelTags.Value, new Vector2(0, 9999));
+                    extendedDungeonFlow.LevelMatchingProperties.currentRoutePrice = ConfigHelper.ConvertToVector2WithRarityList(dynamicRoutePrices.Value, new Vector2(0, 9999));
+                    extendedDungeonFlow.LevelMatchingProperties.levelTags = ConfigHelper.ConvertToStringWithRarityList(dynamicLevelTags.Value, new Vector2(0, 9999));
 
                     foreach (StringWithRarity stringWithRarity in ConfigHelper.ConvertToStringWithRarityList(dynamicLevelTags.Value, new Vector2(0, 9999)))
                         DebugHelper.Log(stringWithRarity.Name + " | " + stringWithRarity.Rarity);
@@ -217,7 +217,7 @@ namespace LethalLevelLoader.Tools
 
         public void BindConfigs(ExtendedLevel extendedLevel)
         {
-            SelectableLevel selectableLevel = extendedLevel.selectableLevel;
+            SelectableLevel selectableLevel = extendedLevel.SelectableLevel;
             if (extendedLevel.generateAutomaticConfigurationOptions == true)
             {
                 // ----- Getting ----- //
@@ -230,7 +230,7 @@ namespace LethalLevelLoader.Tools
                 daySpeedMultiplier = BindValue("Day Speed Multiplier", "Override The Day Speed Multiplier For This Level.", selectableLevel.DaySpeedMultiplier);
                 doesPlanetHaveTime = BindValue("Does Planet Have Time", "Override If Time Passes In This Level.", selectableLevel.planetHasTime);
 
-                isLevelHidden = BindValue("Is Level Hidden In Terminal", "Override If The Level Is Listed In The Moons Catalogue", extendedLevel.isHidden);
+                isLevelHidden = BindValue("Is Level Hidden In Terminal", "Override If The Level Is Listed In The Moons Catalogue", extendedLevel.IsRouteHidden);
                 isLevelRegistered = BindValue("Is Level Registered In Terminal", "Override If The Level Is Registered In The Terminal. Use This To Disable Specific Levels (Only Works For Custom Levels)", true);
 
                 subCategory = "Scrap Settings - ";
@@ -259,7 +259,7 @@ namespace LethalLevelLoader.Tools
                     extendedLevel.RoutePrice = routePrice.Value;
                     selectableLevel.DaySpeedMultiplier = daySpeedMultiplier.Value;
                     selectableLevel.planetHasTime = doesPlanetHaveTime.Value;
-                    extendedLevel.isHidden = isLevelHidden.Value;
+                    extendedLevel.IsRouteHidden = isLevelHidden.Value;
                     if (isLevelRegistered.Value == false)
                         foreach (CompatibleNoun compatibleNoun in new List<CompatibleNoun>(TerminalManager.routeKeyword.compatibleNouns))
                             if (compatibleNoun.result == extendedLevel.RouteNode)

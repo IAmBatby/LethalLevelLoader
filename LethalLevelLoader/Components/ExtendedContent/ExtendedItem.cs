@@ -5,15 +5,23 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedItem")]
+    [CreateAssetMenu(fileName = "ExtendedItem", menuName = "Lethal Level Loader/Extended Content/ExtendedItem", order = 23)]
     public class ExtendedItem : ExtendedContent
     {
+        [field: Header("General Settings")]
+
         [field: SerializeField] public Item Item { get; set; }
         [field: SerializeField] public string PluralisedItemName { get; set; } = string.Empty;
         [field: SerializeField] public bool IsBuyableItem { get; set; }
 
+        [field: Space(5)]
+        [field: Header("Dynamic Injection Matching Settings")]
+
         [field: SerializeField] public LevelMatchingProperties LevelMatchingProperties { get; set; }
         [field: SerializeField] public DungeonMatchingProperties DungeonMatchingProperties { get; set; }
+
+        [field: Space(5)]
+        [field: Header("Terminal Store & Info Override Settings")]
 
         [field: SerializeField] public string OverrideInfoNodeDescription { get; set; } = string.Empty;
         [field: SerializeField] public string OverrideBuyNodeDescription { get; set; } = string.Empty;

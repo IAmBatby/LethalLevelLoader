@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    [CreateAssetMenu(menuName = "LethalLevelLoader/Dungeon Matching Properties")]
+    [CreateAssetMenu(fileName = "DungeonMatchingProperties", menuName = "Lethal Level Loader/Utility/DungeonMatchingProperties", order = 13)]
     public class DungeonMatchingProperties : MatchingProperties
     {
         [Space(5)] public List<StringWithRarity> dungeonTags = new List<StringWithRarity>();
@@ -26,6 +26,19 @@ namespace LethalLevelLoader
                 DebugHelper.Log("Raised Rarity Due To Matching Dungeon Name!");
 
             return (returnRarity);
+        }
+
+
+        public void ApplyValues(List<StringWithRarity> newModNames = null, List<StringWithRarity> newAuthorNames = null, List<StringWithRarity> newDungeonTags = null, List<StringWithRarity> newDungeonNames = null)
+        {
+            if (newModNames != null && newModNames.Count != 0)
+                modNames = new List<StringWithRarity>(newModNames);
+            if (newAuthorNames != null && newAuthorNames.Count != 0)
+                authorNames = new List<StringWithRarity>(newAuthorNames);
+            if (newDungeonTags != null && newDungeonTags.Count != 0)
+                dungeonTags = new List<StringWithRarity>(newDungeonTags);
+            if (newDungeonNames != null && newDungeonNames.Count != 0)
+                dungeonNames = new List<StringWithRarity>(newDungeonNames);
         }
     }
 }

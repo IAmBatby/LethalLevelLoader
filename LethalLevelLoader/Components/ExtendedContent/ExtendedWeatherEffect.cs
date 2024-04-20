@@ -6,43 +6,40 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedWeatherEffect")]
+    [CreateAssetMenu(fileName = "ExtendedWeatherEffect", menuName = "Lethal Level Loader/Extended Content/ExtendedWeatherEffect", order = 25)]
     public class ExtendedWeatherEffect : ExtendedContent
     {
-        public LevelWeatherType baseWeatherType;
+        [field: Header("General Settings")]
+
+        [field: SerializeField] public LevelWeatherType BaseWeatherType { get; set; } = LevelWeatherType.None;
+        [field: SerializeField] public string WeatherDisplayName { get; set; } = string.Empty;
+
+        [field: SerializeField] public GameObject WorldObject { get; set; }
+        [field: SerializeField] public GameObject GlobalObject { get; set; }
 
         public ContentType contentType;
-
-        public string contentSourceName;
-
-        public string weatherDisplayName;
-
-        public GameObject worldObject;
-        public GameObject globalObject;
 
         //public bool lerpPosition;
         //public bool sunAnimatorBool;
         //public bool transitioning;
         //public bool effectEnabled;
 
-        internal static ExtendedWeatherEffect Create(LevelWeatherType levelWeatherType, WeatherEffect weatherEffect, string weatherDisplayName, string contentSourceName, ContentType newContentType)
+        internal static ExtendedWeatherEffect Create(LevelWeatherType levelWeatherType, WeatherEffect weatherEffect, string weatherDisplayName, ContentType newContentType)
         {
-            return (ExtendedWeatherEffect.Create(levelWeatherType, weatherEffect.effectObject, weatherEffect.effectPermanentObject, weatherDisplayName, contentSourceName, newContentType));
+            return (ExtendedWeatherEffect.Create(levelWeatherType, weatherEffect.effectObject, weatherEffect.effectPermanentObject, weatherDisplayName, newContentType));
         }
 
-        internal static ExtendedWeatherEffect Create(LevelWeatherType levelWeatherType, GameObject worldObject, GameObject globalObject, string newWeatherDisplayName, string newContentSourceName, ContentType newContentType)
+        internal static ExtendedWeatherEffect Create(LevelWeatherType levelWeatherType, GameObject worldObject, GameObject globalObject, string newWeatherDisplayName, ContentType newContentType)
         {
             ExtendedWeatherEffect newExtendedWeatherEffect = ScriptableObject.CreateInstance<ExtendedWeatherEffect>();
 
-            newExtendedWeatherEffect.weatherDisplayName = newWeatherDisplayName;
-            newExtendedWeatherEffect.contentSourceName = newContentSourceName;
+            newExtendedWeatherEffect.WeatherDisplayName = newWeatherDisplayName;
 
-            newExtendedWeatherEffect.name = newExtendedWeatherEffect.weatherDisplayName + "ExtendedWeatherEffect";
+            newExtendedWeatherEffect.name = newExtendedWeatherEffect.WeatherDisplayName + "ExtendedWeatherEffect";
 
-            newExtendedWeatherEffect.baseWeatherType = levelWeatherType;
-            newExtendedWeatherEffect.contentType = newContentType;
-            newExtendedWeatherEffect.worldObject = worldObject;
-            newExtendedWeatherEffect.globalObject = globalObject;
+            newExtendedWeatherEffect.BaseWeatherType = levelWeatherType;
+            newExtendedWeatherEffect.WorldObject = worldObject;
+            newExtendedWeatherEffect.GlobalObject = globalObject;
 
             return (newExtendedWeatherEffect);
         }

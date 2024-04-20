@@ -152,7 +152,7 @@ namespace LethalLevelLoader
                 {
                     ExtendedMod[] extendedMods = newBundle.LoadAllAssets<ExtendedMod>();
                     DebugHelper.Log("Registering First Found ExtendedMod");
-                    if (extendedMods.Length > 0)
+                    if (extendedMods != null && extendedMods.Length > 0 && extendedMods[0] != null)
                         RegisterExtendedMod(extendedMods[0]);
                     else
                     {
@@ -183,11 +183,14 @@ namespace LethalLevelLoader
 
             //fileStream.Close();
             stopWatch.Stop();
-            TimeSpan timeSpan = TimeSpan.FromMilliseconds(stopWatch.ElapsedMilliseconds);
-            string elapsedSeconds = string.Format("{0:D2}", timeSpan.Seconds);
-            string elapsedMilliseconds = string.Format("{0:D1}", timeSpan.Milliseconds);
-            elapsedMilliseconds = new string(new char[] { elapsedMilliseconds[0], elapsedMilliseconds[1] });
-            assetBundleLoadTimes.Add(bundleFile.Substring(bundleFile.LastIndexOf("\\") + 1), elapsedSeconds + "." + elapsedMilliseconds + " Seconds. (" + stopWatch.ElapsedMilliseconds + "ms)");
+            try
+            {
+                assetBundleLoadTimes.Add(bundleFile.Substring(bundleFile.LastIndexOf("\\") + 1), $"{stopWatch.Elapsed.TotalSeconds:0.##} Seconds. ({stopWatch.ElapsedMilliseconds}ms)");
+            }
+            catch (Exception ex)
+            {
+                DebugHelper.LogError(ex);
+            }
         }
 
         internal static void RegisterExtendedMod(ExtendedMod extendedMod)
@@ -310,6 +313,12 @@ namespace LethalLevelLoader
         //This Function is used to Register new ExtendedConte to LethalLevelLoader, assiging content to it's relevant ExtendedMod or creating a new ExtendedMod if neccasary.
         internal static void RegisterNewExtendedContent(ExtendedContent extendedContent, string fallbackName)
         {
+            if (extendedContent == null)
+            {
+                DebugHelper.LogError("Failed to register new ExtendedContent as it was null!");
+                return;
+            }
+
             ExtendedMod extendedMod = null;
             if (extendedContent is ExtendedLevel extendedLevel)
             {
@@ -333,9 +342,9 @@ namespace LethalLevelLoader
             }
             else if (extendedContent is ExtendedWeatherEffect extendedWeatherEffect)
             {
-                if (extendedWeatherEffect.contentSourceName == string.Empty)
-                    extendedWeatherEffect.contentSourceName = fallbackName;
-                extendedMod = GetOrCreateExtendedMod(extendedWeatherEffect.contentSourceName);
+                //if (extendedWeatherEffect.contentSourceName == string.Empty)
+                    //extendedWeatherEffect.contentSourceName = fallbackName;
+                //extendedMod = GetOrCreateExtendedMod(extendedWeatherEffect.contentSourceName);
             }
 
             if (extendedMod != null)
@@ -376,13 +385,13 @@ namespace LethalLevelLoader
                 foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(extendedMod.ExtendedLevels))
                 {
                     foundExtendedLevelScene = false;
-                    string debugString = "Could Not Find Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ", Unregistering Early. \nSelectable Scene Name Is: " + extendedLevel.selectableLevel.sceneName + ". Scenes Found In Bundles Are: " + "\n";
+                    string debugString = "Could Not Find Scene File For ExtendedLevel: " + extendedLevel.SelectableLevel.name + ", Unregistering Early. \nSelectable Scene Name Is: " + extendedLevel.SelectableLevel.sceneName + ". Scenes Found In Bundles Are: " + "\n";
                     foreach (KeyValuePair<string, AssetBundle> assetBundle in assetBundles)
                         if (assetBundle.Value != null && assetBundle.Value.isStreamedSceneAssetBundle)
                             foreach (string scenePath in assetBundle.Value.GetAllScenePaths())
                             {
                                 debugString += ", " + GetSceneName(scenePath);
-                                if (GetSceneName(scenePath) == extendedLevel.selectableLevel.sceneName)
+                                if (GetSceneName(scenePath) == extendedLevel.SelectableLevel.sceneName)
                                 {
                                     //DebugHelper.Log("Found Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ". Scene Path Is: " + scenePath);
                                     foundExtendedLevelScene = true;
@@ -471,7 +480,7 @@ namespace LethalLevelLoader
                         extendedLevel.RoutePrice = compatibleRouteNoun.result.itemCost;
                         break;
                     }
-                PatchedContent.AllLevelSceneNames.Add(extendedLevel.selectableLevel.sceneName);
+                PatchedContent.AllLevelSceneNames.Add(extendedLevel.SelectableLevel.sceneName);
 
                 extendedLevel.Initialize("Lethal Company", generateTerminalAssets: false);
                 extendedLevel.name = extendedLevel.NumberlessPlanetName + "ExtendedLevel";
@@ -549,9 +558,9 @@ namespace LethalLevelLoader
             {
                 ExtendedWeatherEffect newExtendedWeatherEffect;
                 if (levelWeatherType != LevelWeatherType.None)
-                    newExtendedWeatherEffect = ExtendedWeatherEffect.Create(levelWeatherType, timeOfDay.effects[(int)levelWeatherType], levelWeatherType.ToString(), "Lethal Company", ContentType.Vanilla);
+                    newExtendedWeatherEffect = ExtendedWeatherEffect.Create(levelWeatherType, timeOfDay.effects[(int)levelWeatherType], levelWeatherType.ToString(), ContentType.Vanilla);
                 else
-                    newExtendedWeatherEffect = ExtendedWeatherEffect.Create(levelWeatherType, null, null, levelWeatherType.ToString(), "Lethal Company", ContentType.Vanilla);
+                    newExtendedWeatherEffect = ExtendedWeatherEffect.Create(levelWeatherType, null, null, levelWeatherType.ToString(), ContentType.Vanilla);
                 
                 PatchedContent.ExtendedWeatherEffects.Add(newExtendedWeatherEffect);
                 PatchedContent.VanillaMod.ExtendedWeatherEffects.Add(newExtendedWeatherEffect);
@@ -644,15 +653,15 @@ namespace LethalLevelLoader
 
         internal static void SetVanillaLevelTags(ExtendedLevel vanillaLevel)
         {
-            foreach (IntWithRarity intWithRarity in vanillaLevel.selectableLevel.dungeonFlowTypes)
+            foreach (IntWithRarity intWithRarity in vanillaLevel.SelectableLevel.dungeonFlowTypes)
                 if (DungeonManager.TryGetExtendedDungeonFlow(Patches.RoundManager.dungeonFlowTypes[intWithRarity.id].dungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
-                    extendedDungeonFlow.levelMatchingProperties.planetNames.Add(new StringWithRarity(vanillaLevel.NumberlessPlanetName, intWithRarity.rarity));
+                    extendedDungeonFlow.LevelMatchingProperties.planetNames.Add(new StringWithRarity(vanillaLevel.NumberlessPlanetName, intWithRarity.rarity));
 
-            if (vanillaLevel.selectableLevel.sceneName == "Level4March")
+            if (vanillaLevel.SelectableLevel.sceneName == "Level4March")
                 foreach (IndoorMapType indoorMapType in Patches.RoundManager.dungeonFlowTypes)
                     if (indoorMapType.dungeonFlow.name == "Level1Flow3Exits")
                         if (DungeonManager.TryGetExtendedDungeonFlow(indoorMapType.dungeonFlow, out ExtendedDungeonFlow marchDungeonFlow))
-                            marchDungeonFlow.levelMatchingProperties.planetNames.Add(new StringWithRarity(vanillaLevel.NumberlessPlanetName, 300));
+                            marchDungeonFlow.LevelMatchingProperties.planetNames.Add(new StringWithRarity(vanillaLevel.NumberlessPlanetName, 300));
         }
 
         internal static string GetSceneName(string scenePath)

@@ -13,6 +13,7 @@ using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 using Random = System.Random;
+using Log = UnityEngine.Debug;
 
 namespace LethalLevelLoader
 {
@@ -28,7 +29,10 @@ namespace LethalLevelLoader
             if (!string.IsNullOrEmpty(log) && (int)Settings.debugType >= (int)debugType)
             {
                 string logString = log;
-                Plugin.logger.LogInfo(logString);
+                if (Plugin.logger != null)
+                    Plugin.logger.LogInfo(logString);
+                else
+                    UnityEngine.Debug.Log("LethalLevelLoader Fallback Logger: " + logString);
             }
         }
 
@@ -37,7 +41,10 @@ namespace LethalLevelLoader
             if (!string.IsNullOrEmpty(log) && (int)Settings.debugType >= (int)debugType)
             {
                 string logString = log;
-                Plugin.logger.LogWarning(logString);
+                if (Plugin.logger != null)
+                    Plugin.logger.LogWarning(logString);
+                else
+                    UnityEngine.Debug.LogWarning("LethalLevelLoader Fallback Logger: " + logString);
             }
         }
 
@@ -46,7 +53,10 @@ namespace LethalLevelLoader
             if (!string.IsNullOrEmpty(log) && (int)Settings.debugType >= (int)debugType)
             {
                 string logString = log;
-                Plugin.logger.LogError(logString);
+                if (Plugin.logger != null)
+                    Plugin.logger.LogError(logString);
+                else
+                    UnityEngine.Debug.LogError("LethalLevelLoader Fallback Logger: " + logString);
             }
         }
 
@@ -54,7 +64,10 @@ namespace LethalLevelLoader
         {
             if (exception != null && (int)Settings.debugType >= (int)debugType)
             {
-                Plugin.logger.LogError(exception);
+                if (Plugin.logger != null)
+                    Plugin.logger.LogError(exception);
+                else
+                    UnityEngine.Debug.LogError("LethalLevelLoader Fallback Logger: " + exception);
             }
         }
 
@@ -132,7 +145,7 @@ namespace LethalLevelLoader
             string logString = "All Levels List: " + "\n" + "\n";
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                logString += extendedLevel.selectableLevel.PlanetName + " (" + extendedLevel.selectableLevel.levelID + ") " + "\n";
+                logString += extendedLevel.SelectableLevel.PlanetName + " (" + extendedLevel.SelectableLevel.levelID + ") " + "\n";
 
             Log(logString + "\n");
         }
@@ -142,7 +155,7 @@ namespace LethalLevelLoader
             string logString = "Vanilla Levels List: " + "\n" + "\n";
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.VanillaExtendedLevels)
-                logString += extendedLevel.selectableLevel.PlanetName + " (" + extendedLevel.selectableLevel.levelID + ") " + "\n";
+                logString += extendedLevel.SelectableLevel.PlanetName + " (" + extendedLevel.SelectableLevel.levelID + ") " + "\n";
 
             Log(logString + "\n");
         }
@@ -152,7 +165,7 @@ namespace LethalLevelLoader
             string logString = "Custom Levels List: " + "\n" + "\n";
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
-                logString += extendedLevel.selectableLevel.PlanetName + " (" + extendedLevel.selectableLevel.levelID + ") " + "\n";
+                logString += extendedLevel.SelectableLevel.PlanetName + " (" + extendedLevel.SelectableLevel.levelID + ") " + "\n";
 
             Log(logString + "\n");
         }
@@ -204,17 +217,17 @@ namespace LethalLevelLoader
 
             logString += "Inside Enemies" + "\n" + "\n";
 
-            foreach (SpawnableEnemyWithRarity spawnableEnemy in extendedLevel.selectableLevel.Enemies)
+            foreach (SpawnableEnemyWithRarity spawnableEnemy in extendedLevel.SelectableLevel.Enemies)
                 logString += "Enemy Type: " + spawnableEnemy.enemyType.enemyName + " , Rarity: " + spawnableEnemy.rarity + " , Prefab Status: " + (spawnableEnemy.enemyType.enemyPrefab != null) + "\n";
 
             logString += "Outside Enemies (Nighttime)" + "\n" + "\n";
 
-            foreach (SpawnableEnemyWithRarity spawnableEnemy in extendedLevel.selectableLevel.OutsideEnemies)
+            foreach (SpawnableEnemyWithRarity spawnableEnemy in extendedLevel.SelectableLevel.OutsideEnemies)
                 logString += "Enemy Type: " + spawnableEnemy.enemyType.enemyName + " , Rarity: " + spawnableEnemy.rarity + " , Prefab Status: " + (spawnableEnemy.enemyType.enemyPrefab != null) + "\n";
 
             logString += "Outside Enemies (daytime)" + "\n" + "\n";
 
-            foreach (SpawnableEnemyWithRarity spawnableEnemy in extendedLevel.selectableLevel.DaytimeEnemies)
+            foreach (SpawnableEnemyWithRarity spawnableEnemy in extendedLevel.SelectableLevel.DaytimeEnemies)
                 logString += "Enemy Type: " + spawnableEnemy.enemyType.enemyName + " , Rarity: " + spawnableEnemy.rarity + " , Prefab Status: " + (spawnableEnemy.enemyType.enemyPrefab != null) + "\n";
 
 
@@ -506,7 +519,7 @@ namespace LethalLevelLoader
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                     if (extendedLevel.NumberlessPlanetName.ToLower().Contains(pair.Name.ToLower()) || pair.Name.ToLower().Contains(extendedLevel.NumberlessPlanetName.ToLower()))
                     {
-                        debugString += " | Found Loaded ExtendedLevel: " + extendedLevel.selectableLevel.PlanetName + " From Parsed String: " + pair.Name + "\n";
+                        debugString += " | Found Loaded ExtendedLevel: " + extendedLevel.SelectableLevel.PlanetName + " From Parsed String: " + pair.Name + "\n";
                         foundMatchingLevel = true;
                     }
                 if (foundMatchingLevel == false)
@@ -580,12 +593,12 @@ namespace LethalLevelLoader
 
         public static void DebugSpawnScrap(ExtendedLevel extendedLevel)
         {
-            foreach (SpawnableItemWithRarity scrap in extendedLevel.selectableLevel.spawnableScrap)
+            foreach (SpawnableItemWithRarity scrap in extendedLevel.SelectableLevel.spawnableScrap)
             {
                 if (scrap.spawnableItem.spawnPrefab != null)
-                    DebugHelper.Log(extendedLevel.selectableLevel.spawnableScrap.IndexOf(scrap) + " - " + scrap.spawnableItem.name + scrap.spawnableItem.spawnPrefab.name);
+                    DebugHelper.Log(extendedLevel.SelectableLevel.spawnableScrap.IndexOf(scrap) + " - " + scrap.spawnableItem.name + scrap.spawnableItem.spawnPrefab.name);
                 else
-                    DebugHelper.Log(extendedLevel.selectableLevel.spawnableScrap.IndexOf(scrap) + " - " + scrap.spawnableItem.name + "(Null)");
+                    DebugHelper.Log(extendedLevel.SelectableLevel.spawnableScrap.IndexOf(scrap) + " - " + scrap.spawnableItem.name + "(Null)");
             }
         }
 

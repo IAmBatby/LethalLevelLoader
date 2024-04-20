@@ -96,10 +96,10 @@ namespace LethalLevelLoader
                 intWithRarity.Add(dungeonFlowIds[dungeonFlowNames[i].SomeText], rarities[i]);
                 dungeonFlowsList.Add(intWithRarity);
             }
-            cachedDungeonFlowsList = new List<IntWithRarity>(LevelManager.CurrentExtendedLevel.selectableLevel.dungeonFlowTypes.ToList());
-            LevelManager.CurrentExtendedLevel.selectableLevel.dungeonFlowTypes = dungeonFlowsList.ToArray();
+            cachedDungeonFlowsList = new List<IntWithRarity>(LevelManager.CurrentExtendedLevel.SelectableLevel.dungeonFlowTypes.ToList());
+            LevelManager.CurrentExtendedLevel.SelectableLevel.dungeonFlowTypes = dungeonFlowsList.ToArray();
             Patches.RoundManager.GenerateNewFloor();
-            LevelManager.CurrentExtendedLevel.selectableLevel.dungeonFlowTypes = cachedDungeonFlowsList.ToArray();
+            LevelManager.CurrentExtendedLevel.SelectableLevel.dungeonFlowTypes = cachedDungeonFlowsList.ToArray();
         }
 
         [ServerRpc]

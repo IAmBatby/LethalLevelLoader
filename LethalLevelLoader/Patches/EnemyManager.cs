@@ -26,13 +26,13 @@ namespace LethalLevelLoader
                 SpawnableEnemyWithRarity alreadyInjectedOutsideEnemy = null;
                 SpawnableEnemyWithRarity alreadyInjectedDaytimeEnemy = null;
 
-                foreach (SpawnableEnemyWithRarity spawnableEnemyWithRarity in extendedLevel.selectableLevel.Enemies)
+                foreach (SpawnableEnemyWithRarity spawnableEnemyWithRarity in extendedLevel.SelectableLevel.Enemies)
                     if (spawnableEnemyWithRarity.enemyType == extendedEnemyType)
                         alreadyInjectedInsideEnemy = spawnableEnemyWithRarity;
-                foreach (SpawnableEnemyWithRarity spawnableEnemyWithRarity in extendedLevel.selectableLevel.OutsideEnemies)
+                foreach (SpawnableEnemyWithRarity spawnableEnemyWithRarity in extendedLevel.SelectableLevel.OutsideEnemies)
                     if (spawnableEnemyWithRarity.enemyType == extendedEnemyType)
                         alreadyInjectedOutsideEnemy = spawnableEnemyWithRarity;
-                foreach (SpawnableEnemyWithRarity spawnableEnemyWithRarity in extendedLevel.selectableLevel.DaytimeEnemies)
+                foreach (SpawnableEnemyWithRarity spawnableEnemyWithRarity in extendedLevel.SelectableLevel.DaytimeEnemies)
                     if (spawnableEnemyWithRarity.enemyType == extendedEnemyType)
                         alreadyInjectedDaytimeEnemy = spawnableEnemyWithRarity;
 
@@ -47,12 +47,12 @@ namespace LethalLevelLoader
                 if (daytimeLevelRarity> 0)
                     DebugHelper.Log("Custom ExtendedEnemyType: " + extendedEnemyType.EnemyDisplayName + " Has: " + daytimeLevelRarity + " DaytimeLevelRarity On Moon: " + extendedLevel.NumberlessPlanetName);
 
-                if (TryInjectEnemyIntoPool(extendedLevel.selectableLevel.Enemies, extendedEnemyType, insideLevelRarity, out SpawnableEnemyWithRarity spawnableInsideEnemy) == false)
-                    extendedLevel.selectableLevel.Enemies.Remove(spawnableInsideEnemy);
-                if (TryInjectEnemyIntoPool(extendedLevel.selectableLevel.OutsideEnemies, extendedEnemyType, outsideLevelRarity, out SpawnableEnemyWithRarity spawnableOutsideEnemy) == false)
-                    extendedLevel.selectableLevel.OutsideEnemies.Remove(spawnableOutsideEnemy);
-                if (TryInjectEnemyIntoPool(extendedLevel.selectableLevel.DaytimeEnemies, extendedEnemyType, daytimeLevelRarity, out SpawnableEnemyWithRarity spawnableDaytimeEnemy) == false)
-                    extendedLevel.selectableLevel.DaytimeEnemies.Remove(spawnableDaytimeEnemy);
+                if (TryInjectEnemyIntoPool(extendedLevel.SelectableLevel.Enemies, extendedEnemyType, insideLevelRarity, out SpawnableEnemyWithRarity spawnableInsideEnemy) == false)
+                    extendedLevel.SelectableLevel.Enemies.Remove(spawnableInsideEnemy);
+                if (TryInjectEnemyIntoPool(extendedLevel.SelectableLevel.OutsideEnemies, extendedEnemyType, outsideLevelRarity, out SpawnableEnemyWithRarity spawnableOutsideEnemy) == false)
+                    extendedLevel.SelectableLevel.OutsideEnemies.Remove(spawnableOutsideEnemy);
+                if (TryInjectEnemyIntoPool(extendedLevel.SelectableLevel.DaytimeEnemies, extendedEnemyType, daytimeLevelRarity, out SpawnableEnemyWithRarity spawnableDaytimeEnemy) == false)
+                    extendedLevel.SelectableLevel.DaytimeEnemies.Remove(spawnableDaytimeEnemy);
             }
         }
 

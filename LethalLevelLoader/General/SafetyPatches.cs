@@ -46,7 +46,7 @@ namespace LethalLevelLoader
                 return (false);
             }
 
-            List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.selectableLevel.spawnableMapObjects);
+            List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects);
 
             List<GameObject> uniqueMapObjectSpawnablePrefabs = new List<GameObject>();
             foreach (RandomMapObject randomMapObject in array)
@@ -55,7 +55,7 @@ namespace LethalLevelLoader
                         uniqueMapObjectSpawnablePrefabs.Add(spawnablePrefab);
 
             List<GameObject> orphanMapObjectSpawnablePrefabs = new List<GameObject>(uniqueMapObjectSpawnablePrefabs);
-            foreach (SpawnableMapObject spawnableMapObject in LevelManager.CurrentExtendedLevel.selectableLevel.spawnableMapObjects)
+            foreach (SpawnableMapObject spawnableMapObject in LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects)
                 if (spawnableMapObject.prefabToSpawn != null && orphanMapObjectSpawnablePrefabs.Contains(spawnableMapObject.prefabToSpawn))
                     orphanMapObjectSpawnablePrefabs.Remove(spawnableMapObject.prefabToSpawn);
 
@@ -69,7 +69,7 @@ namespace LethalLevelLoader
                 spawnableMapObjects.Add(spawnableMapObject);
                 tempoarySpawnableMapObjectList.Add(spawnableMapObject);
             }
-            LevelManager.CurrentExtendedLevel.selectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
+            LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
 
             return (true);
         }
@@ -79,10 +79,10 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         internal static void RoundManagerSpawnMapObjects_Postfix()
         {
-            List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.selectableLevel.spawnableMapObjects);
+            List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects);
             foreach (SpawnableMapObject spawnableMapObject in tempoarySpawnableMapObjectList)
                 spawnableMapObjects.Remove(spawnableMapObject);
-            LevelManager.CurrentExtendedLevel.selectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
+            LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
             tempoarySpawnableMapObjectList.Clear();
         }
 
@@ -93,16 +93,16 @@ namespace LethalLevelLoader
         internal static bool RoundManagerSpawnScrapInLevel_Prefix()
         {
             List<SpawnableItemWithRarity> invalidSpawnableItemWithRarity = new List<SpawnableItemWithRarity>();
-            foreach (SpawnableItemWithRarity spawnableScrap in LevelManager.CurrentExtendedLevel.selectableLevel.spawnableScrap)
+            foreach (SpawnableItemWithRarity spawnableScrap in LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap)
                 if (spawnableScrap.spawnableItem == null || spawnableScrap.rarity == 0)
                     invalidSpawnableItemWithRarity.Add(spawnableScrap);
 
             if (invalidSpawnableItemWithRarity.Count != 0)
                 DebugHelper.LogError("Removed: " + invalidSpawnableItemWithRarity.Count + " SpawnableItemWithRarities From CurrentLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Due To Invalid Properties To Prevent Errors.");
             foreach (SpawnableItemWithRarity invalidItem in invalidSpawnableItemWithRarity)
-                LevelManager.CurrentExtendedLevel.selectableLevel.spawnableScrap.Remove(invalidItem);
+                LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap.Remove(invalidItem);
 
-            if (LevelManager.CurrentExtendedLevel.selectableLevel.spawnableScrap.Count == 0)
+            if (LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap.Count == 0)
             {
                 DebugHelper.LogError("Current ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Requested 0 SpawnableScrap, Returning Early To Prevent Errors");
                 return (false);

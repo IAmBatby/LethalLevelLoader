@@ -46,15 +46,15 @@ namespace LethalLevelLoader
         {
             if (extendedLevel == null)
                 return ((false, "ExtendedLevel Was Null"));
-            else if (extendedLevel.selectableLevel == null)
+            else if (extendedLevel.SelectableLevel == null)
                 return ((false, "SelectableLevel Was Null"));
-            else if (string.IsNullOrEmpty(extendedLevel.selectableLevel.sceneName))
+            else if (string.IsNullOrEmpty(extendedLevel.SelectableLevel.sceneName))
                 return ((false, "SelectableLevel SceneName Was Null Or Empty"));
-            else if (extendedLevel.selectableLevel.planetPrefab == null)
+            else if (extendedLevel.SelectableLevel.planetPrefab == null)
                 return ((false, "SelectableLevel PlanetPrefab Was Null"));
-            else if (extendedLevel.selectableLevel.planetPrefab.GetComponent<Animator>() == false)
+            else if (extendedLevel.SelectableLevel.planetPrefab.GetComponent<Animator>() == null)
                 return ((false, "SelectableLevel PlanetPrefab Animator Was Null"));
-            else if (extendedLevel.selectableLevel.planetPrefab.GetComponent<Animator>().runtimeAnimatorController == false)
+            else if (extendedLevel.SelectableLevel.planetPrefab.GetComponent<Animator>().runtimeAnimatorController == null)
                 return ((false, "SelectableLevel PlanetPrefab Animator AnimatorController Was Null"));
             else
                 return (true, string.Empty);
@@ -110,12 +110,6 @@ namespace LethalLevelLoader
                 return (false, "StoryLog Description Was Null Or Empty");
 
             return (true, string.Empty);
-        }
-
-        public static bool ReturnWithReason(bool returnBool, ref string returnReason, string reason)
-        {
-            returnReason = reason;
-            return (returnBool);
         }
     }
 }

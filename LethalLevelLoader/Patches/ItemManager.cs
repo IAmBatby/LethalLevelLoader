@@ -22,7 +22,7 @@ namespace LethalLevelLoader
                 {
                     string debugString = string.Empty;
                     SpawnableItemWithRarity alreadyInjectedItem = null;
-                    foreach (SpawnableItemWithRarity spawnableItem in extendedLevel.selectableLevel.spawnableScrap)
+                    foreach (SpawnableItemWithRarity spawnableItem in extendedLevel.SelectableLevel.spawnableScrap)
                         if (spawnableItem.spawnableItem == extendedItem)
                             alreadyInjectedItem = spawnableItem;
 
@@ -39,7 +39,7 @@ namespace LethalLevelLoader
                         }
                         else
                         {
-                            extendedLevel.selectableLevel.spawnableScrap.Remove(alreadyInjectedItem);
+                            extendedLevel.SelectableLevel.spawnableScrap.Remove(alreadyInjectedItem);
                             debugString = "Removed " + extendedItem.Item.itemName + " From Planet: " + extendedLevel.NumberlessPlanetName;
                         }
  
@@ -49,7 +49,7 @@ namespace LethalLevelLoader
                         SpawnableItemWithRarity newSpawnableItem = new SpawnableItemWithRarity();
                         newSpawnableItem.spawnableItem = extendedItem.Item;
                         newSpawnableItem.rarity = returnRarity;
-                        extendedLevel.selectableLevel.spawnableScrap.Add(newSpawnableItem);
+                        extendedLevel.SelectableLevel.spawnableScrap.Add(newSpawnableItem);
                         debugString = "Added " + extendedItem.Item.itemName + " To Planet: " + extendedLevel.NumberlessPlanetName + " With A Rarity Of: " + returnRarity;
                     }
                     if (debugResults == true)

@@ -49,7 +49,7 @@ namespace LethalLevelLoader
             {
                 List<SelectableLevel> list = new List<SelectableLevel>();
                 foreach (ExtendedLevel level in ExtendedLevels)
-                    list.Add(level.selectableLevel);
+                    list.Add(level.SelectableLevel);
                 return (list);
             }
        
@@ -64,7 +64,7 @@ namespace LethalLevelLoader
                     list.Add(selectableLevel);
                 foreach (ExtendedLevel level in ExtendedLevels)
                     if (level.ContentType == ContentType.Custom)
-                        list.Add(level.selectableLevel);
+                        list.Add(level.SelectableLevel);
                 return (list);
             }
         }
@@ -194,7 +194,8 @@ namespace LethalLevelLoader
 
         public static void RegisterExtendedMod(ExtendedMod extendedMod)
         {
-
+            DebugHelper.Log("Registering ExtendedMod: " + extendedMod.ModName + " Manually.");
+            AssetBundleLoader.RegisterExtendedMod(extendedMod);
         }
 
         internal static void SortExtendedMods()

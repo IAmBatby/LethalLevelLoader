@@ -42,10 +42,20 @@ namespace LethalLevelLoader
 
         internal static string currentTagFilter;
 
+        internal static float defaultTerminalFontSize;
+
         internal static TerminalKeyword lastParsedVerbKeyword;
 
         public delegate string PreviewInfoText(ExtendedLevel extendedLevel, PreviewInfoType infoType);
         public static event PreviewInfoText onBeforePreviewInfoTextAdded;
+
+        //internal static Dictionary<TerminalNode, Action<TerminalNode, TerminalNode>> terminalNodeRegisteredEventDictionary = new Dictionary<TerminalNode, Action<TerminalNode, TerminalNode>>();
+
+        internal enum LoadNodeActionType { Before,  After }
+        internal delegate bool LoadNodeAction(TerminalNode currentNode, TerminalNode loadNode);
+
+        internal static Dictionary<TerminalNode, LoadNodeAction> onBeforeLoadNewNodeRegisteredEventsDictionary = new Dictionary<TerminalNode, LoadNodeAction>();
+        internal static Dictionary<TerminalNode, LoadNodeAction> onLoadNewNodeRegisteredEventsDictionary = new Dictionary<TerminalNode, LoadNodeAction>();
 
         ////////// Setting Data //////////
 
@@ -61,6 +71,8 @@ namespace LethalLevelLoader
             cancelRouteNode = routeKeyword.compatibleNouns[0].result.terminalOptions[0].result;
             cancelPurchaseNode = buyKeyword.compatibleNouns[0].result.terminalOptions[1].result;
 
+            defaultTerminalFontSize = Terminal.screenText.textComponent.fontSize;
+
             lockedNode = CreateNewTerminalNode();
             lockedNode.name = "lockedLevelNode";
             lockedNode.clearPreviousText = true;
@@ -68,10 +80,10 @@ namespace LethalLevelLoader
 
         internal static void SwapRouteNodeToLockedNode(ExtendedLevel extendedLevel, ref TerminalNode terminalNode)
         {
-            if (extendedLevel.lockedNodeText != string.Empty)
-                lockedNode.displayText = extendedLevel.lockedNodeText;
+            if (extendedLevel.LockedRouteNodeText != string.Empty)
+                lockedNode.displayText = extendedLevel.LockedRouteNodeText;
             else
-                lockedNode.displayText = "Route to " + extendedLevel.selectableLevel.PlanetName + " is currently locked.";
+                lockedNode.displayText = "Route to " + extendedLevel.SelectableLevel.PlanetName + " is currently locked.";
 
             terminalNode = lockedNode;
         }
@@ -85,7 +97,7 @@ namespace LethalLevelLoader
             FilterMoonsCataloguePage(currentMoonsCataloguePage);
         }
 
-        internal static void SetSimulationResultsText(TerminalNode node)
+        internal static bool SetSimulationResultsText(TerminalNode currentNode, TerminalNode node)
         {
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                 if (node.terminalEvent.StripSpecialCharacters().Sanitized().ToLower().Contains(extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized().ToLower()))
@@ -94,11 +106,38 @@ namespace LethalLevelLoader
                     node.clearPreviousText = true;
                     node.isConfirmationNode = true;
                 }
+
+            return (true);
+        }
+
+        internal static bool OnBeforeLoadNewNode(TerminalNode node)
+        {
+            if (onBeforeLoadNewNodeRegisteredEventsDictionary.TryGetValue(node, out LoadNodeAction pair))
+            {
+                DebugHelper.Log("Running OnBeforeLoadNewNode Event For: " + node.name + ", CurrentNode Is: " + Terminal.currentNode);
+                return (pair.Invoke(Terminal.currentNode, node));
+            }
+            else
+            {
+                DebugHelper.Log("Could Not Find Registered Event For: " + node.name);
+                return (true);
+            }
+        }
+
+        internal static void OnLoadNewNode(TerminalNode node)
+        {
+            if (onLoadNewNodeRegisteredEventsDictionary.TryGetValue(node, out LoadNodeAction pair))
+            {
+                DebugHelper.Log("Running OnLoadNewNode Event For: " + node.name + ", CurrentNode Is: " + Terminal.currentNode);
+                pair.Invoke(Terminal.currentNode, node);
+            }
+            else
+                DebugHelper.Log("Could Not Find Registered Event For: " + node.name);
         }
 
         internal static bool RunLethalLevelLoaderTerminalEvents(TerminalNode node)
         {
-            if (node != null && string.IsNullOrEmpty(node.terminalEvent) == false)
+            /*if (node != null && string.IsNullOrEmpty(node.terminalEvent) == false)
             {
                 //DebugHelper.Log("Running LLL Terminal Event: " + node.terminalEvent + "| EnumValue: " + GetTerminalEventEnum(node.terminalEvent) + " | StringValue: " + GetTerminalEventString(node.terminalEvent));
                 if (node.name.Contains("preview") && Enum.TryParse(typeof(PreviewInfoType), GetTerminalEventEnum(node.terminalEvent), out object previewEnumValue))
@@ -118,8 +157,46 @@ namespace LethalLevelLoader
                 Terminal.currentText = Terminal.TextPostProcess("\n" + "\n" + "\n" + GetMoonsTerminalText(), Terminal.currentNode);
 
                 return (false);
-            }
+            }*/
             return (true);
+        }
+
+        internal static bool TryRefreshMoonsCataloguePage(TerminalNode currentNode, TerminalNode loadNode)
+        {
+            if (currentNode == moonsKeyword.specialKeywordResult)
+                return (RefreshMoonsCataloguePage(currentNode, loadNode));
+            else
+                return (true);
+        }
+
+        internal static bool RefreshMoonsCataloguePage(TerminalNode currentNode, TerminalNode loadNode)
+        {
+            //DebugHelper.Log("Running LLL Terminal Event: " + node.terminalEvent + "| EnumValue: " + GetTerminalEventEnum(node.terminalEvent) + " | StringValue: " + GetTerminalEventString(node.terminalEvent));
+            if (loadNode.name.Contains("preview") && Enum.TryParse(typeof(PreviewInfoType), GetTerminalEventEnum(loadNode.terminalEvent), out object previewEnumValue))
+                Settings.levelPreviewInfoType = (PreviewInfoType)previewEnumValue;
+            else if (loadNode.name.Contains("sort") && Enum.TryParse(typeof(SortInfoType), GetTerminalEventEnum(loadNode.terminalEvent), out object sortEnumValue))
+                Settings.levelPreviewSortType = (SortInfoType)sortEnumValue;
+            else if (loadNode.name.Contains("filter") && Enum.TryParse(typeof(FilterInfoType), GetTerminalEventEnum(loadNode.terminalEvent), out object filterEnumValue))
+            {
+                Settings.levelPreviewFilterType = (FilterInfoType)filterEnumValue;
+                currentTagFilter = GetTerminalEventString(loadNode.terminalEvent);
+                DebugHelper.Log("Tag EventString: " + GetTerminalEventString(loadNode.terminalEvent));
+            }
+
+            RefreshExtendedLevelGroups();
+
+            Terminal.modifyingText = true;
+            Terminal.screenText.interactable = true;
+
+
+            Terminal.screenText.text = Terminal.TextPostProcess("\n" + "\n" + "\n" + GetMoonsTerminalText(), Terminal.currentNode);
+            Terminal.screenText.textComponent.fontSize = defaultTerminalFontSize - (0.1f * (currentMoonsCataloguePage.ExtendedLevels.Count - OriginalContent.MoonsCatalogue.Count));
+            Terminal.currentText = Terminal.TextPostProcess("\n" + "\n" + "\n" + GetMoonsTerminalText(), Terminal.currentNode);
+
+            Terminal.textAdded = 0;
+
+            Terminal.currentNode = moonsKeyword.specialKeywordResult;
+            return (false);
         }
 
         internal static void FilterMoonsCataloguePage(MoonsCataloguePage moonsCataloguePage)
@@ -129,7 +206,7 @@ namespace LethalLevelLoader
             foreach (ExtendedLevelGroup extendedLevelGroup in moonsCataloguePage.ExtendedLevelGroups)
                 foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(extendedLevelGroup.extendedLevelsList))
                 {
-                    bool removeExtendedLevel = extendedLevel.isHidden;
+                    bool removeExtendedLevel = extendedLevel.IsRouteHidden;
 
                     if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Price))
                         removeExtendedLevel = (extendedLevel.RoutePrice > Terminal.groupCredits);
@@ -163,6 +240,23 @@ namespace LethalLevelLoader
         {
 
 
+        }
+
+        internal static void AddTerminalNodeEventListener(TerminalNode node, LoadNodeAction action, LoadNodeActionType loadNodeActionType)
+        {
+            if (node != null && action != null)
+            {
+                if (loadNodeActionType == LoadNodeActionType.Before && !onBeforeLoadNewNodeRegisteredEventsDictionary.ContainsKey(node))
+                {
+                    onBeforeLoadNewNodeRegisteredEventsDictionary.Add(node, action);
+                    DebugHelper.Log("Successfully Registered OnBeforeLoadNode Action: " + action.Method.Name + " To TerminalNode: " + node.name);
+                }
+                else if (loadNodeActionType == LoadNodeActionType.After && !onLoadNewNodeRegisteredEventsDictionary.ContainsKey(node))
+                {
+                    onLoadNewNodeRegisteredEventsDictionary.Add(node, action);
+                    DebugHelper.Log("Successfully Registered OnLoadNode Action: " + action.Method.Name + " To TerminalNode: " + node.name);
+                }
+            }
         }
 
         ////////// Getting Data //////////
@@ -236,16 +330,16 @@ namespace LethalLevelLoader
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Price))
                 levelPreviewInfo = offset + "($" + extendedLevel.RoutePrice + ")";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Difficulty))
-                levelPreviewInfo = offset + "(" + extendedLevel.selectableLevel.riskLevel + ")";
+                levelPreviewInfo = offset + "(" + extendedLevel.SelectableLevel.riskLevel + ")";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.History))
                 levelPreviewInfo = offset + GetHistoryConditions(extendedLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.All))
-                levelPreviewInfo = offset + "(" + extendedLevel.selectableLevel.riskLevel + ") " + "($" + extendedLevel.RoutePrice + ") " + GetWeatherConditions(extendedLevel);
+                levelPreviewInfo = offset + "(" + extendedLevel.SelectableLevel.riskLevel + ") " + "($" + extendedLevel.RoutePrice + ") " + GetWeatherConditions(extendedLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Vanilla))
                 levelPreviewInfo = offset + "[planetTime]";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Override))
                 levelPreviewInfo = offset + Settings.GetOverridePreviewInfo(extendedLevel);
-            if (extendedLevel.isLocked == true)
+            if (extendedLevel.IsRouteLocked == true)
                 levelPreviewInfo += " (Locked)";
 
             string overridePreviewInfo = onBeforePreviewInfoTextAdded?.Invoke(extendedLevel, Settings.levelPreviewInfoType);
@@ -261,7 +355,7 @@ namespace LethalLevelLoader
             string returnString = string.Empty;
             /*if (extendedLevel.currentExtendedWeatherEffect != null)
                 returnString = "(" + extendedLevel.currentExtendedWeatherEffect.weatherDisplayName + ")";*/
-            returnString = "(" + extendedLevel.selectableLevel.currentWeather.ToString() + ")";
+            returnString = "(" + extendedLevel.SelectableLevel.currentWeather.ToString() + ")";
             return (returnString);
         }
 
@@ -304,7 +398,7 @@ namespace LethalLevelLoader
         internal static string GetSimulationResultsText(ExtendedLevel extendedLevel)
         {
             List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = new List<ExtendedDungeonFlowWithRarity>(DungeonManager.GetValidExtendedDungeonFlows(extendedLevel, false).OrderBy(o => -(o.rarity)).ToList());
-            string overrideString = "Simulating arrival to " + extendedLevel.selectableLevel.PlanetName + "\nAnalyzing potential remnants found on surface. \nListing generated probabilities below.\n____________________________ \n\nPOSSIBLE STRUCTURES: \n";
+            string overrideString = "Simulating arrival to " + extendedLevel.SelectableLevel.PlanetName + "\nAnalyzing potential remnants found on surface. \nListing generated probabilities below.\n____________________________ \n\nPOSSIBLE STRUCTURES: \n";
             int totalRarityPool = 0;
             foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowResult in availableExtendedFlowsList)
                 totalRarityPool += extendedDungeonFlowResult.rarity;
@@ -455,6 +549,16 @@ namespace LethalLevelLoader
             RefreshExtendedLevelGroups();
         }
 
+        internal static bool DebugCustomRouteNodes(TerminalNode currentNode, TerminalNode loadNode)
+        {
+            if (currentNode != null)
+                DebugHelper.Log("Debug Custom Route Node! CurretNode Is: " + currentNode.name + ", LoadNode Is: " + loadNode.name);
+            else
+                DebugHelper.Log("Debug Custom Route Node! CurretNode Is: Null! , LoadNode Is: " + loadNode.name);
+
+            return (true);
+        }
+
         internal static void CreateLevelTerminalData(ExtendedLevel extendedLevel, int routePrice)
         {
             //Terminal Route Keyword
@@ -471,20 +575,19 @@ namespace LethalLevelLoader
             {
                 terminalNodeRoute = CreateNewTerminalNode();
                 terminalNodeRoute.name = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized() + "Route";
-                if (extendedLevel.overrideRouteNodeDescription != string.Empty)
-                    terminalNodeRoute.displayText = extendedLevel.overrideRouteNodeDescription;
+                if (extendedLevel.OverrideRouteNodeDescription != string.Empty)
+                    terminalNodeRoute.displayText = extendedLevel.OverrideRouteNodeDescription;
                 else
                 {
-                    terminalNodeRoute.displayText = "The cost to route to " + extendedLevel.selectableLevel.PlanetName + " is [totalCost]. It is currently [currentPlanetTime] on this moon.";
+                    terminalNodeRoute.displayText = "The cost to route to " + extendedLevel.SelectableLevel.PlanetName + " is [totalCost]. It is currently [currentPlanetTime] on this moon.";
                     terminalNodeRoute.displayText += "\n" + "\n" + "Please CONFIRM or DENY." + "\n" + "\n";
                 }
                 terminalNodeRoute.clearPreviousText = true;
                 terminalNodeRoute.buyRerouteToMoon = -2;
-                terminalNodeRoute.displayPlanetInfo = extendedLevel.selectableLevel.levelID;
+                terminalNodeRoute.displayPlanetInfo = extendedLevel.SelectableLevel.levelID;
                 terminalNodeRoute.itemCost = routePrice;
                 terminalNodeRoute.overrideOptions = true;
             }
-
 
             //Terminal Route Confirm Node
             TerminalNode terminalNodeRouteConfirm;
@@ -494,12 +597,12 @@ namespace LethalLevelLoader
             {
                 terminalNodeRouteConfirm = CreateNewTerminalNode();
                 terminalNodeRouteConfirm.name = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized() + "RouteConfirm";
-                if (extendedLevel.overrideRouteConfirmNodeDescription != string.Empty)
-                    terminalNodeRouteConfirm.displayText = extendedLevel.overrideRouteConfirmNodeDescription;
+                if (extendedLevel.OverrideRouteConfirmNodeDescription != string.Empty)
+                    terminalNodeRouteConfirm.displayText = extendedLevel.OverrideRouteConfirmNodeDescription;
                 else
-                    terminalNodeRouteConfirm.displayText = "Routing autopilot to " + extendedLevel.selectableLevel.PlanetName + " Your new balance is [playerCredits]. \n\nPlease enjoy your flight.";
+                    terminalNodeRouteConfirm.displayText = "Routing autopilot to " + extendedLevel.SelectableLevel.PlanetName + " Your new balance is [playerCredits]. \n\nPlease enjoy your flight.";
                 terminalNodeRouteConfirm.clearPreviousText = true;
-                terminalNodeRouteConfirm.buyRerouteToMoon = extendedLevel.selectableLevel.levelID;
+                terminalNodeRouteConfirm.buyRerouteToMoon = extendedLevel.SelectableLevel.levelID;
                 terminalNodeRouteConfirm.itemCost = routePrice;
             }
 
@@ -514,14 +617,14 @@ namespace LethalLevelLoader
                 terminalNodeInfo.clearPreviousText = true;
                 terminalNodeInfo.maxCharactersToType = 35;
                 string infoString;
-                if (extendedLevel.overrideInfoNodeDescription != string.Empty)
-                    infoString = extendedLevel.overrideInfoNodeDescription;
+                if (extendedLevel.OverrideInfoNodeDescription != string.Empty)
+                    infoString = extendedLevel.OverrideInfoNodeDescription;
                 else
                 {
-                    infoString = extendedLevel.selectableLevel.PlanetName + "\n" + "----------------------" + "\n";
+                    infoString = extendedLevel.SelectableLevel.PlanetName + "\n" + "----------------------" + "\n";
                     List<string> selectableLevelLines = new List<string>();
 
-                    string inputString = extendedLevel.selectableLevel.LevelDescription;
+                    string inputString = extendedLevel.SelectableLevel.LevelDescription;
 
                     while (inputString.Contains("\n"))
                     {
@@ -702,9 +805,15 @@ namespace LethalLevelLoader
         internal static void CreateMoonsFilterTerminalAssets()
         {
             //Preview & Sort Keywords
-            CreateTerminalEventNodes("preview", new List<Enum>() { PreviewInfoType.Price, PreviewInfoType.Difficulty, PreviewInfoType.Weather, PreviewInfoType.History, PreviewInfoType.All, PreviewInfoType.None });
-            CreateTerminalEventNodes("sort", new List<Enum>() { SortInfoType.Price, SortInfoType.Difficulty, SortInfoType.None });
-            CreateTerminalEventNodes("filter", new List<Enum>() { FilterInfoType.Price, FilterInfoType.Weather, FilterInfoType.None });
+            foreach (TerminalNode previewNode in CreateTerminalEventNodes("preview", new List<Enum>() { PreviewInfoType.Price, PreviewInfoType.Difficulty, PreviewInfoType.Weather, PreviewInfoType.History, PreviewInfoType.All, PreviewInfoType.None }))
+                AddTerminalNodeEventListener(previewNode, TryRefreshMoonsCataloguePage, LoadNodeActionType.Before);
+
+            foreach (TerminalNode sortNode in CreateTerminalEventNodes("sort", new List<Enum>() { SortInfoType.Price, SortInfoType.Difficulty, SortInfoType.None }))
+                AddTerminalNodeEventListener(sortNode, TryRefreshMoonsCataloguePage, LoadNodeActionType.Before);
+
+            foreach (TerminalNode filterNode in CreateTerminalEventNodes("filter", new List<Enum>() { FilterInfoType.Price, FilterInfoType.Weather, FilterInfoType.None }))
+                AddTerminalNodeEventListener(filterNode, TryRefreshMoonsCataloguePage, LoadNodeActionType.Before);
+
             //Tag Keywords
             List<string> tagMoonWordsList = new List<string>();
             List<string> tagMoonTerminalEventsList = new List<string>();
@@ -719,26 +828,30 @@ namespace LethalLevelLoader
                 tagMoonTerminalEventsList.Add("Tag;" + levelTag);
             }
 
-            CreateTerminalEventNodes("filter", tagMoonWordsList, tagMoonTerminalEventsList, createNewVerbKeyword: false);
+            foreach (TerminalNode filterNode in CreateTerminalEventNodes("filter", tagMoonWordsList, tagMoonTerminalEventsList, createNewVerbKeyword: false))
+                AddTerminalNodeEventListener(filterNode, TryRefreshMoonsCataloguePage, LoadNodeActionType.Before);
 
             //Simulate Keywords
             List<string> simulateMoonsKeywords = new List<string>();
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                simulateMoonsKeywords.Add("simulate" + extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized());
+                simulateMoonsKeywords.Add(extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized());
 
-            CreateTerminalEventNodes("simulate", simulateMoonsKeywords);
+            foreach (TerminalNode simulateNode in CreateTerminalEventNodes("simulate", simulateMoonsKeywords))
+                AddTerminalNodeEventListener(simulateNode, SetSimulationResultsText, LoadNodeActionType.Before);
         }
 
-        internal static void CreateTerminalEventNodes(string newVerbKeywordWord, List<Enum> terminalEventEnumStrings)
+        internal static List<TerminalNode> CreateTerminalEventNodes(string newVerbKeywordWord, List<Enum> terminalEventEnumStrings)
         {
             List<string> convertedList = new List<string>();
             foreach (Enum enumValue in terminalEventEnumStrings)
                 convertedList.Add(enumValue.ToString());
-            CreateTerminalEventNodes(newVerbKeywordWord, convertedList);
+
+            return (CreateTerminalEventNodes(newVerbKeywordWord, convertedList));
         }
 
-        internal static void CreateTerminalEventNodes(string newVerbKeywordWord, List<string> nounWords, List<string> terminalEventStrings = null, bool createNewVerbKeyword = true)
+        internal static List<TerminalNode> CreateTerminalEventNodes(string newVerbKeywordWord, List<string> nounWords, List<string> terminalEventStrings = null, bool createNewVerbKeyword = true)
         {
+            List<TerminalNode> newTerminalNodes = new List<TerminalNode>();
             TerminalKeyword verbKeyword = null;
             if (createNewVerbKeyword == true)
                 verbKeyword = CreateNewTerminalKeyword();
@@ -754,10 +867,12 @@ namespace LethalLevelLoader
                 terminalEventStrings = nounWords;
 
             foreach (string newNode in nounWords)
-                    CreateTerminalEventNode(verbKeyword, newNode, terminalEventStrings[nounWords.IndexOf(newNode)]);
+                    newTerminalNodes.Add(CreateTerminalEventNode(verbKeyword, newNode, terminalEventStrings[nounWords.IndexOf(newNode)]));
+
+            return (newTerminalNodes);
         }
 
-        internal static void CreateTerminalEventNode(TerminalKeyword verbKeyword, string nounWord, string terminalEventString)
+        internal static TerminalNode CreateTerminalEventNode(TerminalKeyword verbKeyword, string nounWord, string terminalEventString)
         {
             //DebugHelper.Log("Creating New TerminalEvent Node! VerbKeyword Word Is: " + verbKeyword.word + " | nounWord Is: " + GetTerminalEventEnum(nounWord).ToLower() + " | TerminalEvent Text Is: " + terminalEventString);
             TerminalKeyword newKeyword = CreateNewTerminalKeyword();
@@ -770,6 +885,8 @@ namespace LethalLevelLoader
             newNode.name = verbKeyword.word + GetTerminalEventEnum(nounWord) + "Node";
 
             verbKeyword.AddCompatibleNoun(newKeyword, newNode);
+
+            return (newNode);
         }
 
         internal static TerminalKeyword CreateNewTerminalKeyword()

@@ -7,7 +7,7 @@ using UnityEngine;
 namespace LethalLevelLoader
 {
     public enum ModMergeSetting { MatchingAuthorName, MatchingModName, Disabled }
-    [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedMod")]
+    [CreateAssetMenu(fileName = "ExtendedMod", menuName = "Lethal Level Loader/ExtendedMod", order = 30)]
     public class ExtendedMod : ScriptableObject
     {
         [field: SerializeField] public string ModName { get; internal set; } = "Unspecified";
@@ -85,8 +85,8 @@ namespace LethalLevelLoader
             newExtendedMod.name = modName.SkipToLetters().RemoveWhitespace() + "Mod";
             newExtendedMod.AuthorName = authorName;
 
-            //foreach (ExtendedContent extendedContent in extendedContents)
-                //newExtendedMod.RegisterExtendedContent(extendedContent);
+            foreach (ExtendedContent extendedContent in extendedContents)
+                newExtendedMod.RegisterExtendedContent(extendedContent);
 
             if (Plugin.Instance != null)
                 DebugHelper.Log("Created New ExtendedMod: " + newExtendedMod.ModName + " by " + authorName);

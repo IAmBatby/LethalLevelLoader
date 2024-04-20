@@ -188,7 +188,7 @@ namespace LethalLevelLoader
                 //Some Debugging.
                 string debugString = "LethalLevelLoader Loaded The Following ExtendedLevels:" + "\n";
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                    debugString += (PatchedContent.ExtendedLevels.IndexOf(extendedLevel) + 1) + ". " + extendedLevel.selectableLevel.PlanetName + " (" + extendedLevel.ContentType + ")" + "\n";
+                    debugString += (PatchedContent.ExtendedLevels.IndexOf(extendedLevel) + 1) + ". " + extendedLevel.SelectableLevel.PlanetName + " (" + extendedLevel.ContentType + ")" + "\n";
                 DebugHelper.Log(debugString);
 
                 debugString = "LethalLevelLoader Loaded The Following ExtendedDungeonFlows:" + "\n";
@@ -273,6 +273,8 @@ namespace LethalLevelLoader
 
                 //Create Terminal Data For Custom StoryLog's And Patch Basegame References To StoryLog's To Include Custom StoryLogs.
                 TerminalManager.CreateTerminalDataForAllExtendedStoryLogs();
+
+                TerminalManager.AddTerminalNodeEventListener(TerminalManager.moonsKeyword.specialKeywordResult, TerminalManager.RefreshMoonsCataloguePage, TerminalManager.LoadNodeActionType.After);
             }
 
             //We Might Not Need This Now
@@ -327,10 +329,10 @@ namespace LethalLevelLoader
             //Because Level ID's can change between modpack adjustments and such, we save the name of the level instead and find and load that up instead of the saved ID the basegame uses.
             if (hasInitiallyChangedLevel == false && !string.IsNullOrEmpty(SaveManager.currentSaveFile.CurrentLevelName))
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                    if (extendedLevel.selectableLevel.name == SaveManager.currentSaveFile.CurrentLevelName)
+                    if (extendedLevel.SelectableLevel.name == SaveManager.currentSaveFile.CurrentLevelName)
                     {
-                        DebugHelper.Log("Loading Previously Saved SelectableLevel: " + extendedLevel.selectableLevel.PlanetName);
-                        levelID = StartOfRound.levels.ToList().IndexOf(extendedLevel.selectableLevel);
+                        DebugHelper.Log("Loading Previously Saved SelectableLevel: " + extendedLevel.SelectableLevel.PlanetName);
+                        levelID = StartOfRound.levels.ToList().IndexOf(extendedLevel.SelectableLevel);
                         hasInitiallyChangedLevel = true;
                         return (true);
                     }
@@ -386,38 +388,42 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static bool TerminalRunTerminalEvents_Prefix(Terminal __instance, TerminalNode node)
         {
+            /*
+            bool returnBool = true;
             if (node.terminalEvent.Contains("simulate"))
             {
                 ranLethalLevelLoaderTerminalEvent = false;
-                TerminalManager.SetSimulationResultsText(node);
-                return (true);
+                //TerminalManager.SetSimulationResultsText(node);
+                returnBool = true;
             }
             else if (__instance.currentNode != TerminalManager.moonsKeyword.specialKeywordResult)
             {
                 ranLethalLevelLoaderTerminalEvent = false;
-                return (true);
+                returnBool = true;
             }
             else
             {
                 ranLethalLevelLoaderTerminalEvent = !TerminalManager.RunLethalLevelLoaderTerminalEvents(node);
-                return (!ranLethalLevelLoaderTerminalEvent);
+                returnBool = !ranLethalLevelLoaderTerminalEvent;
             }
+
+            returnBool = TerminalManager.OnBeforeLoadNewNode(node);
+
+            return (returnBool);*/
+
+            return (TerminalManager.OnBeforeLoadNewNode(node));
         }
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(Terminal), "LoadNewNode")]
         [HarmonyPrefix]
-        internal static void TerminalLoadNewNode_Prefix(Terminal __instance, ref TerminalNode node)
+        internal static bool TerminalLoadNewNode_Prefix(Terminal __instance, ref TerminalNode node)
         {
-            if (node == TerminalManager.moonsKeyword.specialKeywordResult)
-            {
-                TerminalManager.RefreshExtendedLevelGroups();
-                node.displayText = TerminalManager.GetMoonsTerminalText();
-            }
-            else if (__instance.currentNode == TerminalManager.moonsKeyword.specialKeywordResult)
-                foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                    if (extendedLevel.RouteNode == node && extendedLevel.isLocked == true)
-                        TerminalManager.SwapRouteNodeToLockedNode(extendedLevel, ref node);
+            Terminal.screenText.textComponent.fontSize = TerminalManager.defaultTerminalFontSize;
+            return (TerminalManager.OnBeforeLoadNewNode(node));
+                /*foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
+                    if (extendedLevel.RouteNode == node && extendedLevel.IsRouteLocked == true)
+                        TerminalManager.SwapRouteNodeToLockedNode(extendedLevel, ref node);*/
         }
 
         [HarmonyPriority(harmonyPriority)]
@@ -425,15 +431,16 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         internal static void TerminalLoadNewNode_Postfix(Terminal __instance, ref TerminalNode node)
         {
-            if (ranLethalLevelLoaderTerminalEvent == true)
-                __instance.currentNode = TerminalManager.moonsKeyword.specialKeywordResult;
+            TerminalManager.OnLoadNewNode(node);
+            //if (ranLethalLevelLoaderTerminalEvent == true)
+                //__instance.currentNode = TerminalManager.moonsKeyword.specialKeywordResult;
         }
 
         //Called via SceneManager event.
         internal static void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
             if (LevelManager.CurrentExtendedLevel != null && LevelManager.CurrentExtendedLevel.IsLevelLoaded)
-                foreach (GameObject rootObject in SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.selectableLevel.sceneName).GetRootGameObjects())
+                foreach (GameObject rootObject in SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.SelectableLevel.sceneName).GetRootGameObjects())
                 {
                     LevelLoader.UpdateStoryLogs(LevelManager.CurrentExtendedLevel, rootObject);
                     ContentRestorer.RestoreAudioAssetReferencesInParent(rootObject);
@@ -456,7 +463,7 @@ namespace LethalLevelLoader
         {
             if (LevelManager.CurrentExtendedLevel == null) return;
             
-            if (LevelManager.CurrentExtendedLevel.selectableLevel.sceneName == sceneName)
+            if (LevelManager.CurrentExtendedLevel.SelectableLevel.sceneName == sceneName)
             {
                 sceneName = string.Empty;
 
@@ -549,7 +556,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void RoundManagerSetLockedDoors_Prefix()
         {
-            RoundManager.keyPrefab = DungeonManager.CurrentExtendedDungeonFlow.overrideKeyPrefab;
+            RoundManager.keyPrefab = DungeonManager.CurrentExtendedDungeonFlow.OverrideKeyPrefab;
         }
 
         [HarmonyPriority(harmonyPriority)]
@@ -557,7 +564,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void RoundManagerSpawnOutsideHazards_Prefix()
         {
-            RoundManager.quicksandPrefab = LevelManager.CurrentExtendedLevel.overrideQuicksandPrefab;
+            RoundManager.quicksandPrefab = LevelManager.CurrentExtendedLevel.OverrideQuicksandPrefab;
         }
 
 
@@ -584,13 +591,13 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void RoundManagerSpawnMapObjects_Prefix()
         {
-            List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.selectableLevel.spawnableMapObjects);
-            foreach (SpawnableMapObject newRandomMapObject in DungeonManager.CurrentExtendedDungeonFlow.spawnableMapObjects)
+            List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects);
+            foreach (SpawnableMapObject newRandomMapObject in DungeonManager.CurrentExtendedDungeonFlow.SpawnableMapObjects)
             {
                 spawnableMapObjects.Add(newRandomMapObject);
                 tempoarySpawnableMapObjectList.Add(newRandomMapObject);
             }
-            LevelManager.CurrentExtendedLevel.selectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
+            LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
         }
 
         [HarmonyPriority(harmonyPriority)]
@@ -598,10 +605,10 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         internal static void RoundManagerSpawnMapObjects_Postfix()
         {
-            List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.selectableLevel.spawnableMapObjects);
+            List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects);
             foreach (SpawnableMapObject spawnableMapObject in tempoarySpawnableMapObjectList)
                 spawnableMapObjects.Remove(spawnableMapObject);
-            LevelManager.CurrentExtendedLevel.selectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
+            LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
             tempoarySpawnableMapObjectList.Clear();
         }
 

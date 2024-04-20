@@ -7,18 +7,27 @@ using UnityEngine.Video;
 
 namespace LethalLevelLoader
 {
-    [CreateAssetMenu(menuName = "LethalLevelLoader/ExtendedEnemyType")]
+    [CreateAssetMenu(fileName = "ExtendedEnemyType", menuName = "Lethal Level Loader/Extended Content/ExtendedEnemyType", order = 24)]
     public class ExtendedEnemyType : ExtendedContent
     {
+        [field: Header("General Settings")]
+
         [field: SerializeField] public EnemyType EnemyType { get; set; }
         [field: SerializeField] public string EnemyDisplayName { get; set; }
 
-        [field: SerializeField] public LevelMatchingProperties InsideLevelMatchingProperties { get; set; }
-        [field: SerializeField] public DungeonMatchingProperties InsideDungeonMatchingProperties { get; set; }
+        [field: Space(5)]
+        [field: Header("Dynamic Injection Matching Settings")]
+
         [field: SerializeField] public LevelMatchingProperties OutsideLevelMatchingProperties { get; set; }
         [field: SerializeField] public LevelMatchingProperties DaytimeLevelMatchingProperties { get; set; }
 
-        [field: SerializeField] public string InfoNodeDescription { get; set; } = string.Empty;
+        [field: SerializeField] public LevelMatchingProperties InsideLevelMatchingProperties { get; set; }
+        [field: SerializeField] public DungeonMatchingProperties InsideDungeonMatchingProperties { get; set; }
+
+        [field: Space(5)]
+        [field: Header("Terminal Bestiary Override Settings")]
+
+        [field: SerializeField] [field: TextArea(2,20)] public string InfoNodeDescription { get; set; } = string.Empty;
         [field: SerializeField] public VideoClip InfoNodeVideoClip { get; set; }
 
         public ScanNodeProperties ScanNodeProperties { get; internal set; }

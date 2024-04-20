@@ -109,7 +109,7 @@ namespace LethalLevelLoader
                 extendedLevelsList = PatchedContent.VanillaExtendedLevels;
 
             foreach (ExtendedLevel extendedLevel in extendedLevelsList)
-                if (extendedLevel.selectableLevel == selectableLevel)
+                if (extendedLevel.SelectableLevel == selectableLevel)
                     returnExtendedLevel = extendedLevel;
 
             return (returnExtendedLevel != null);
@@ -120,7 +120,7 @@ namespace LethalLevelLoader
             ExtendedLevel returnExtendedLevel = null;
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                if (extendedLevel.selectableLevel == selectableLevel)
+                if (extendedLevel.SelectableLevel == selectableLevel)
                     returnExtendedLevel = extendedLevel;
 
             return (returnExtendedLevel);
@@ -195,13 +195,13 @@ namespace LethalLevelLoader
 
             foreach (ExtendedLevel vanillaLevel in PatchedContent.VanillaExtendedLevels)
             {
-                DebugHelper.Log("Risk Level Of " + vanillaLevel.NumberlessPlanetName + " Is: " + vanillaLevel.selectableLevel.riskLevel);
-                if (!vanillaLevel.selectableLevel.riskLevel.Contains("Safe") && !string.IsNullOrEmpty(vanillaLevel.selectableLevel.riskLevel))
+                DebugHelper.Log("Risk Level Of " + vanillaLevel.NumberlessPlanetName + " Is: " + vanillaLevel.SelectableLevel.riskLevel);
+                if (!vanillaLevel.SelectableLevel.riskLevel.Contains("Safe") && !string.IsNullOrEmpty(vanillaLevel.SelectableLevel.riskLevel))
                 {
-                    if (vanillaRiskLevelDictionary.TryGetValue(vanillaLevel.selectableLevel.riskLevel, out List<int> dynamicDifficultyRatingList))
+                    if (vanillaRiskLevelDictionary.TryGetValue(vanillaLevel.SelectableLevel.riskLevel, out List<int> dynamicDifficultyRatingList))
                         dynamicDifficultyRatingList.Add(vanillaLevel.CalculatedDifficultyRating);
                     else
-                        vanillaRiskLevelDictionary.Add(vanillaLevel.selectableLevel.riskLevel, new List<int>() { vanillaLevel.CalculatedDifficultyRating });
+                        vanillaRiskLevelDictionary.Add(vanillaLevel.SelectableLevel.riskLevel, new List<int>() { vanillaLevel.CalculatedDifficultyRating });
                 }
             }
 
@@ -284,7 +284,7 @@ namespace LethalLevelLoader
 
             foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
             {
-                if (customLevel.overrideDynamicRiskLevelAssignment == false)
+                if (customLevel.OverrideDynamicRiskLevelAssignment == false)
                 {
                     int customLevelCalculatedDifficultyRating = customLevel.CalculatedDifficultyRating;
                     int closestCalculatedRiskLevelRating = orderedCalculatedDifficultyList[0];
@@ -292,14 +292,14 @@ namespace LethalLevelLoader
                     closestCalculatedRiskLevelRating = orderedCalculatedDifficultyList.OrderBy(item => Math.Abs(customLevelCalculatedDifficultyRating - item)).First();
 
                     if (closestCalculatedRiskLevelRating != 0)
-                        customLevel.selectableLevel.riskLevel = assignmentRiskLevelDictionary[closestCalculatedRiskLevelRating];
+                        customLevel.SelectableLevel.riskLevel = assignmentRiskLevelDictionary[closestCalculatedRiskLevelRating];
                 }
             }
 
             List<ExtendedLevel> extendedLevelsOrdered = new List<ExtendedLevel>(PatchedContent.ExtendedLevels).OrderBy(o => o.CalculatedDifficultyRating).ToList();
 
             foreach (ExtendedLevel extendedLevel in extendedLevelsOrdered)
-                DebugHelper.Log(extendedLevel.NumberlessPlanetName + " (" + extendedLevel.selectableLevel.riskLevel + ") " + " (" + extendedLevel.CalculatedDifficultyRating + ")");
+                DebugHelper.Log(extendedLevel.NumberlessPlanetName + " (" + extendedLevel.SelectableLevel.riskLevel + ") " + " (" + extendedLevel.CalculatedDifficultyRating + ")");
         }
 
         public static void LogDayHistory()
@@ -342,15 +342,15 @@ namespace LethalLevelLoader
         public static int CalculateExtendedLevelDifficultyRating(ExtendedLevel extendedLevel, bool debugResults = false)
         {
             int returnRating = 0;
-            string debugString = "Calculated Difficulty Rating For ExtendedLevel: " + extendedLevel.NumberlessPlanetName + "(" + extendedLevel.selectableLevel.riskLevel + ")" + " ----- ";
+            string debugString = "Calculated Difficulty Rating For ExtendedLevel: " + extendedLevel.NumberlessPlanetName + "(" + extendedLevel.SelectableLevel.riskLevel + ")" + " ----- ";
 
             int baselineRouteValue = extendedLevel.RoutePrice;
-            baselineRouteValue += extendedLevel.selectableLevel.maxTotalScrapValue;
+            baselineRouteValue += extendedLevel.SelectableLevel.maxTotalScrapValue;
             returnRating += baselineRouteValue;
             debugString += "Baseline Route Value: " + baselineRouteValue + ", ";
 
             int scrapValue = 0;
-            foreach (SpawnableItemWithRarity spawnableScrap in extendedLevel.selectableLevel.spawnableScrap)
+            foreach (SpawnableItemWithRarity spawnableScrap in extendedLevel.SelectableLevel.spawnableScrap)
             {
                 if (spawnableScrap.spawnableItem != null)
                 {
@@ -364,13 +364,13 @@ namespace LethalLevelLoader
             returnRating += scrapValue;
             debugString += "Scrap Value: " + scrapValue + ", ";
 
-            int enemySpawnValue = (extendedLevel.selectableLevel.maxEnemyPowerCount + extendedLevel.selectableLevel.maxOutsideEnemyPowerCount + extendedLevel.selectableLevel.maxDaytimeEnemyPowerCount) * 15;
+            int enemySpawnValue = (extendedLevel.SelectableLevel.maxEnemyPowerCount + extendedLevel.SelectableLevel.maxOutsideEnemyPowerCount + extendedLevel.SelectableLevel.maxDaytimeEnemyPowerCount) * 15;
             enemySpawnValue = enemySpawnValue * 2;
             returnRating += enemySpawnValue;
             debugString += "Enemy Spawn Value: " + enemySpawnValue + ", ";
 
             float enemyValue = 0;
-            foreach (SpawnableEnemyWithRarity spawnableEnemy in extendedLevel.selectableLevel.Enemies.Concat(extendedLevel.selectableLevel.OutsideEnemies).Concat(extendedLevel.selectableLevel.DaytimeEnemies))
+            foreach (SpawnableEnemyWithRarity spawnableEnemy in extendedLevel.SelectableLevel.Enemies.Concat(extendedLevel.SelectableLevel.OutsideEnemies).Concat(extendedLevel.SelectableLevel.DaytimeEnemies))
             {
                 if (spawnableEnemy.rarity != 0 && spawnableEnemy.enemyType != null)
                     if ((spawnableEnemy.rarity / 10) != 0)
@@ -382,9 +382,9 @@ namespace LethalLevelLoader
             debugString += "Calculated Difficulty Value: " + returnRating + ", ";
 
             //returnRating = Mathf.RoundToInt(returnRating * Mathf.Lerp(1, extendedLevel.selectableLevel.factorySizeMultiplier, 0.25f));
-            returnRating += Mathf.RoundToInt(returnRating * (extendedLevel.selectableLevel.factorySizeMultiplier * 0.5f));
+            returnRating += Mathf.RoundToInt(returnRating * (extendedLevel.SelectableLevel.factorySizeMultiplier * 0.5f));
 
-            debugString += "Factory Size Multiplier: " + extendedLevel.selectableLevel.factorySizeMultiplier + ", ";
+            debugString += "Factory Size Multiplier: " + extendedLevel.SelectableLevel.factorySizeMultiplier + ", ";
 
             debugString += "Multiplied Calculated Difficulty Value: " + returnRating;
 

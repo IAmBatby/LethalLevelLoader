@@ -71,7 +71,6 @@ namespace LethalLevelLoader
             //UnityEngine.Object.FindFirstObjectByType<GameObject>()
         }
 
-
         internal static void CompleteSetup()
         {
             DebugHelper.Log("LethalLevelLoader Has Finished Initializing.");

@@ -100,9 +100,9 @@ namespace LethalLevelLoader
             {
                 foreach (ExtendedLevel extendedLevel in PatchedContent.VanillaMod.ExtendedLevels)
                 {
-                    if (extendedLevel.selectableLevel.name.RemoveWhitespace().StripSpecialCharacters().ToLower() == importedItemData.Key.RemoveWhitespace().StripSpecialCharacters().ToLower() || extendedLevel.NumberlessPlanetName.RemoveWhitespace().StripSpecialCharacters().ToLower() == importedItemData.Key.RemoveWhitespace().StripSpecialCharacters().ToLower())
+                    if (extendedLevel.SelectableLevel.name.RemoveWhitespace().StripSpecialCharacters().ToLower() == importedItemData.Key.RemoveWhitespace().StripSpecialCharacters().ToLower() || extendedLevel.NumberlessPlanetName.RemoveWhitespace().StripSpecialCharacters().ToLower() == importedItemData.Key.RemoveWhitespace().StripSpecialCharacters().ToLower())
                     {
-                        DebugHelper.Log("Applying CSV Tags For Imported Level #" + (counter + 1) + " / " + (importedLevelContentTagDictionary.Count - 1) + ": " + importedItemData.Key + " To SelectableLevel: " + extendedLevel.selectableLevel.PlanetName + "(" + extendedLevel.selectableLevel.name + ")");
+                        DebugHelper.Log("Applying CSV Tags For Imported Level #" + (counter + 1) + " / " + (importedLevelContentTagDictionary.Count - 1) + ": " + importedItemData.Key + " To SelectableLevel: " + extendedLevel.SelectableLevel.PlanetName + "(" + extendedLevel.SelectableLevel.name + ")");
                         extendedLevel.ContentTags = ContentTagManager.CreateNewContentTags(importedItemData.Value.Concat(new List<string>() { "Vanilla" }).ToList());
                         appliedIndexes.Add(counter);
                         break;
