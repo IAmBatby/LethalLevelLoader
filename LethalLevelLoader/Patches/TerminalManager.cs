@@ -51,8 +51,8 @@ namespace LethalLevelLoader
 
         //internal static Dictionary<TerminalNode, Action<TerminalNode, TerminalNode>> terminalNodeRegisteredEventDictionary = new Dictionary<TerminalNode, Action<TerminalNode, TerminalNode>>();
 
-        internal enum LoadNodeActionType { Before,  After }
-        internal delegate bool LoadNodeAction(TerminalNode currentNode, TerminalNode loadNode);
+        public enum LoadNodeActionType { Before,  After }
+        public delegate bool LoadNodeAction(TerminalNode currentNode, TerminalNode loadNode);
 
         internal static Dictionary<TerminalNode, LoadNodeAction> onBeforeLoadNewNodeRegisteredEventsDictionary = new Dictionary<TerminalNode, LoadNodeAction>();
         internal static Dictionary<TerminalNode, LoadNodeAction> onLoadNewNodeRegisteredEventsDictionary = new Dictionary<TerminalNode, LoadNodeAction>();
@@ -169,7 +169,7 @@ namespace LethalLevelLoader
                 return (true);
         }
 
-        internal static bool RefreshMoonsCataloguePage(TerminalNode currentNode, TerminalNode loadNode)
+        public static bool RefreshMoonsCataloguePage(TerminalNode currentNode, TerminalNode loadNode)
         {
             //DebugHelper.Log("Running LLL Terminal Event: " + node.terminalEvent + "| EnumValue: " + GetTerminalEventEnum(node.terminalEvent) + " | StringValue: " + GetTerminalEventString(node.terminalEvent));
             if (loadNode.name.Contains("preview") && Enum.TryParse(typeof(PreviewInfoType), GetTerminalEventEnum(loadNode.terminalEvent), out object previewEnumValue))
@@ -242,7 +242,7 @@ namespace LethalLevelLoader
 
         }
 
-        internal static void AddTerminalNodeEventListener(TerminalNode node, LoadNodeAction action, LoadNodeActionType loadNodeActionType)
+        public static void AddTerminalNodeEventListener(TerminalNode node, LoadNodeAction action, LoadNodeActionType loadNodeActionType)
         {
             if (node != null && action != null)
             {
@@ -319,7 +319,7 @@ namespace LethalLevelLoader
             return (returnString + "\n" + "____________________________" + "\n" + "PREVIEW: " + Settings.levelPreviewInfoType.ToString().ToUpper() + " | " + "SORT: " + Settings.levelPreviewSortType.ToString().ToUpper() + " | " + "FILTER: " + tagString + "\n");
         }
 
-        internal static string GetExtendedLevelPreviewInfo(ExtendedLevel extendedLevel)
+        public static string GetExtendedLevelPreviewInfo(ExtendedLevel extendedLevel)
         {
             string levelPreviewInfo = string.Empty;
             //string offset = GetOffsetExtendedLevelName(extendedLevel);
@@ -350,7 +350,7 @@ namespace LethalLevelLoader
         }
 
         //Just returns the level weather with a space and ().
-        internal static string GetWeatherConditions(ExtendedLevel extendedLevel)
+        public static string GetWeatherConditions(ExtendedLevel extendedLevel)
         {
             string returnString = string.Empty;
             /*if (extendedLevel.currentExtendedWeatherEffect != null)
@@ -359,7 +359,7 @@ namespace LethalLevelLoader
             return (returnString);
         }
 
-        internal static string GetHistoryConditions(ExtendedLevel extendedLevel)
+        public static string GetHistoryConditions(ExtendedLevel extendedLevel)
         {
             DayHistory dayHistory = null;
 
@@ -395,7 +395,7 @@ namespace LethalLevelLoader
         }
 
 
-        internal static string GetSimulationResultsText(ExtendedLevel extendedLevel)
+        public static string GetSimulationResultsText(ExtendedLevel extendedLevel)
         {
             List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = new List<ExtendedDungeonFlowWithRarity>(DungeonManager.GetValidExtendedDungeonFlows(extendedLevel, true).OrderBy(o => -(o.rarity)).ToList());
             string overrideString = "Simulating arrival to " + extendedLevel.SelectableLevel.PlanetName + "\nAnalyzing potential remnants found on surface. \nListing generated probabilities below.\n____________________________ \n\nPOSSIBLE STRUCTURES: \n";
@@ -408,7 +408,7 @@ namespace LethalLevelLoader
             return (overrideString);
         }
 
-        internal static string GetSimulationDataText(int rarity, int totalRarity)
+        public static string GetSimulationDataText(int rarity, int totalRarity)
         {
             string returnString = string.Empty;
             if (Settings.levelSimulateInfoType == SimulateInfoType.Percentage)
@@ -418,7 +418,7 @@ namespace LethalLevelLoader
             return (returnString);
         }
 
-        internal static string GetOffsetExtendedLevelName(ExtendedLevel extendedLevel)
+        public static string GetOffsetExtendedLevelName(ExtendedLevel extendedLevel)
         {
             int longestLevelName = 0;
             string returnString = string.Empty;

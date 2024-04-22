@@ -38,7 +38,7 @@ namespace LethalLevelLoader
             }
         }
 
-        internal static List<ExtendedDungeonFlowWithRarity> GetValidExtendedDungeonFlows(ExtendedLevel extendedLevel, bool debugResults)
+        public static List<ExtendedDungeonFlowWithRarity> GetValidExtendedDungeonFlows(ExtendedLevel extendedLevel, bool debugResults)
         {
             DebugStopwatch.StartStopWatch("Get Valid ExtendedDungeonFlows");
             List<ExtendedDungeonFlowWithRarity> returnExtendedDungeonFlowsList = new List<ExtendedDungeonFlowWithRarity>();
