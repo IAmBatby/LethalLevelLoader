@@ -112,6 +112,28 @@ namespace LethalLevelLoader
         }
 
         [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(TimeOfDay), "SetWeatherBasedOnVariables")]
+        [HarmonyPrefix]
+        internal static void TimeOfDaySetWeatherBasedOnVariables_Prefix(TimeOfDay __instance)
+        {
+            if (__instance.currentLevelWeather == LevelWeatherType.Foggy)
+            {
+                if ((int)__instance.currentWeatherVariable >= (int)__instance.currentWeatherVariable2)
+                {
+                    DebugHelper.LogError("TimeOfDay Foggy CurrentWeatherVariable (Int) Was Equal Or Higher Than CurrentWeatherVariable2 (Int). Resetting For Safetey!", DebugType.User);
+                    __instance.currentWeatherVariable = 3f;
+                    __instance.currentWeatherVariable2 = 10f;
+                }
+                else if ((int)__instance.currentWeatherVariable <= 0 || (int)__instance.currentWeatherVariable2 <= 0)
+                {
+                    DebugHelper.LogError("TimeOfDay Foggy CurrentWeatherVariable (Int) And/Or CurrentWeatherVariable2 (Int) Were 0. Resetting For Safetey!", DebugType.User);
+                    __instance.currentWeatherVariable = 3f;
+                    __instance.currentWeatherVariable2 = 10f;
+                }
+            }
+        }
+
+        [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(LethalLib.Modules.Dungeon), "RoundManager_Start")]
         [HarmonyPrefix]
         internal static bool Dungeon_Start_Prefix(On.RoundManager.orig_Start orig, RoundManager self)

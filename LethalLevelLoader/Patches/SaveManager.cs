@@ -177,10 +177,11 @@ namespace LethalLevelLoader
 
         internal static void SaveCurrentSelectableLevel(SelectableLevel selectableLevel)
         {
-            /*
+            if (Patches.StartOfRound.IsServer == false)
+                return;
             currentSaveFile.CurrentLevelName = selectableLevel.name;
             currentSaveFile.Save();
-            */
+            
         }
 
         internal static List<AllItemsListItemData> GetItemSaveData()

@@ -121,16 +121,19 @@ namespace LethalLevelLoader
             {
                 DebugHelper.LogWarning("ExtendedDungeonFlow.dungeonFlow is Obsolete and will be removed in following releases, Please use ExtendedDungeonFlow.DungeonFlow instead.", DebugType.Developer);
                 DungeonFlow = dungeonFlow;
+                dungeonFlow = null;
             }
             if (string.IsNullOrEmpty(DungeonName) && !string.IsNullOrEmpty(dungeonDisplayName))
             {
                 DebugHelper.LogWarning("ExtendedDungeonFlow.dungeonDisplayName is Obsolete and will be removed in following releases, Please use ExtendedDungeonFlow.DungeonName instead.", DebugType.Developer);
                 DungeonName = dungeonDisplayName;
+                dungeonDisplayName = string.Empty;
             }
             if (FirstTimeDungeonAudio == null &&  dungeonFirstTimeAudio != null)
             {
                 DebugHelper.LogWarning("ExtendedDungeonFlow.dungeonFirstTimeAudio is Obsolete and will be removed in following releases, Please use ExtendedDungeonFlow.FirstTimeDungeonAudio instead.", DebugType.Developer);
                 FirstTimeDungeonAudio = dungeonFirstTimeAudio;
+                dungeonFirstTimeAudio = null;
             }
             if (dungeonSizeLerpPercentage != 1f)
                 DebugHelper.LogWarning("ExtendedDungeonFlow.dungeonSizeLerpPercentage is Obsolete and will be removed in following releases, Please use ExtendedDungeonFlow.DynamicDungeonSizeLerpRate instead.", DebugType.Developer);

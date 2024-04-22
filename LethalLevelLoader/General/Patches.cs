@@ -289,9 +289,11 @@ namespace LethalLevelLoader
 
             DebugStopwatch.StartStopWatch("Initalize Save");
 
-            SaveManager.InitializeSave();
-
-            SaveManager.RefreshSaveItemInfo();
+            if (StartOfRound.IsServer)
+            {
+                SaveManager.InitializeSave();
+                SaveManager.RefreshSaveItemInfo();
+            }
 
             DebugStopwatch.StopStopWatch("Initalize Save");
             if (Plugin.IsSetupComplete == false)
@@ -332,7 +334,9 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         public static bool StartOfRoundChangeLevel_Prefix(ref int levelID)
         {
-            /*
+            if (StartOfRound.IsServer == false)
+                return (true);
+
             //Because Level ID's can change between modpack adjustments and such, we save the name of the level instead and find and load that up instead of the saved ID the basegame uses.
             if (hasInitiallyChangedLevel == false && !string.IsNullOrEmpty(SaveManager.currentSaveFile.CurrentLevelName))
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
@@ -350,7 +354,6 @@ namespace LethalLevelLoader
                 levelID = 0;
 
             hasInitiallyChangedLevel = true;
-            */
             return (true);
         }
 
@@ -360,14 +363,16 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         public static void StartOfRoundChangeLevel_Postfix(int levelID)
         {
-            /*
+            if (StartOfRound.IsServer == false)
+                return;
+
             if (RoundManager.currentLevel != null && SaveManager.currentSaveFile.CurrentLevelName != RoundManager.currentLevel.PlanetName)
             {
                 DebugHelper.Log("Saving Current SelectableLevel: " + RoundManager.currentLevel.PlanetName, DebugType.User);
                 SaveManager.SaveCurrentSelectableLevel(RoundManager.currentLevel);
                 //LevelLoader.RefreshShipAnimatorClips(LevelManager.CurrentExtendedLevel);
             }
-            */
+            
         }
 
         [HarmonyPriority(harmonyPriority)]
