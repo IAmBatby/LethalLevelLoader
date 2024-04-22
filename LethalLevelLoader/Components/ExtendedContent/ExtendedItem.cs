@@ -75,7 +75,7 @@ namespace LethalLevelLoader
 
         public void Initialize()
         {
-            DebugHelper.Log("Initializing Custom Item: " + Item.itemName + ". Is Buyable: " + IsBuyableItem + ". Is Scrap: " + Item.isScrap);
+            DebugHelper.Log("Initializing Custom Item: " + Item.itemName + ". Is Buyable: " + IsBuyableItem + ". Is Scrap: " + Item.isScrap, DebugType.Developer);
 
             TryCreateMatchingProperties();
 
@@ -87,9 +87,9 @@ namespace LethalLevelLoader
         internal override void TryCreateMatchingProperties()
         {
             if (LevelMatchingProperties == null)
-                LevelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
+                LevelMatchingProperties = LevelMatchingProperties.Create(this);
             if (DungeonMatchingProperties == null)
-                DungeonMatchingProperties = ScriptableObject.CreateInstance<DungeonMatchingProperties>();
+                DungeonMatchingProperties = DungeonMatchingProperties.Create(this);
         }
 
         public void SetLevelMatchingProperties(LevelMatchingProperties newLevelMatchingProperties)

@@ -25,7 +25,7 @@ namespace LethalLevelLoader
                 result = ValidateExtendedContent(extendedFootstepSurface);
 
             if (result.Item1 == false)
-                DebugHelper.Log(result.Item2);
+                DebugHelper.Log(result.Item2, DebugType.Developer);
 
             return (result.Item1);
         }

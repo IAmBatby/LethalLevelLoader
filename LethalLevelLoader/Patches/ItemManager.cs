@@ -53,13 +53,14 @@ namespace LethalLevelLoader
                         debugString = "Added " + extendedItem.Item.itemName + " To Planet: " + extendedLevel.NumberlessPlanetName + " With A Rarity Of: " + returnRarity;
                     }
                     if (debugResults == true)
-                        DebugHelper.Log(debugString);
+                        DebugHelper.Log(debugString, DebugType.Developer);
                 }
             }
         }
 
         internal static void GetExtendedItemPriceData()
         {
+            /*
             int highestPrice = 0;
             ExtendedItem highestExtendedItem = null;
 
@@ -126,12 +127,12 @@ namespace LethalLevelLoader
             DebugHelper.Log("Items That Fall Into The Low-Value Range Are: " + "\n" + lowBracket);
             DebugHelper.Log("Items That Fall Into The Average-Value Range Are: " + "\n" + middleBracket);
             DebugHelper.Log("Items That Fall Into The Valuable Range Are: " + "\n" + highBracket);
-
+            */
         }
 
         public static void GetExtendedItemWeightData()
         {
-            float highestWeight = 0;
+            /*float highestWeight = 0;
             ExtendedItem heaviestExtendedItem = null;
 
             float lowestWeight = 999999;
@@ -193,7 +194,7 @@ namespace LethalLevelLoader
             DebugHelper.Log("Items That Fall Into The Weightless Range Are: " + "\n" + freeBracket);
             DebugHelper.Log("Items That Fall Into The Light-Weight Range Are: " + "\n" + lowBracket);
             DebugHelper.Log("Items That Fall Into The Average-Weight Range Are: " + "\n" + middleBracket);
-            DebugHelper.Log("Items That Fall Into The Heavy-Weight Range Are: " + "\n" + highBracket);
+            DebugHelper.Log("Items That Fall Into The Heavy-Weight Range Are: " + "\n" + highBracket);*/
         }
 
         internal static int GetAverageScrapValue(ExtendedItem extendedItem)

@@ -35,14 +35,14 @@ namespace LethalLevelLoader
         {
             if (GameObject.FindGameObjectsWithTag("MapPropsContainer") == null)
             {
-                DebugHelper.LogError("ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Is Missing A \"MapPropsContainer\" Tagged GameObject. \nPreventing Spawning Of Interior RandomMapObjects To Prevent Gamebreaking Error!");
+                DebugHelper.LogError("ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Is Missing A \"MapPropsContainer\" Tagged GameObject. \nPreventing Spawning Of Interior RandomMapObjects To Prevent Gamebreaking Error!", DebugType.User);
                 return (false);
             }
 
             RandomMapObject[] array = UnityEngine.Object.FindObjectsOfType<RandomMapObject>();
             if (array.Length == 0)
             {
-                DebugHelper.LogError("ExtendedDungeonFlow: " + DungeonManager.CurrentExtendedDungeonFlow.DungeonName + " Spawned 0 RandomMapObjects. \nPreventing Spawning Of Interior RandomMapObjects To Prevent Gamebreaking Error!");
+                DebugHelper.LogError("ExtendedDungeonFlow: " + DungeonManager.CurrentExtendedDungeonFlow.DungeonName + " Spawned 0 RandomMapObjects. \nPreventing Spawning Of Interior RandomMapObjects To Prevent Gamebreaking Error!", DebugType.User);
                 return (false);
             }
 
@@ -61,7 +61,7 @@ namespace LethalLevelLoader
 
             foreach (GameObject orphanedMapObject in orphanMapObjectSpawnablePrefabs)
             {
-                DebugHelper.Log("ExtendedDungeonFlow: " + DungeonManager.CurrentExtendedDungeonFlow.DungeonName + " Spawned RandomMapObject Prefab: " + orphanedMapObject.name + " That Was Not Found In Current ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + ". Temporarily Injecting RandomMapObject Into Level!");
+                DebugHelper.Log("ExtendedDungeonFlow: " + DungeonManager.CurrentExtendedDungeonFlow.DungeonName + " Spawned RandomMapObject Prefab: " + orphanedMapObject.name + " That Was Not Found In Current ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + ". Temporarily Injecting RandomMapObject Into Level!", DebugType.Developer);
                 SpawnableMapObject spawnableMapObject = new SpawnableMapObject();
                 AnimationCurve curve = new AnimationCurve(new Keyframe(0, 0), new Keyframe(0, 0));
                 spawnableMapObject.prefabToSpawn = orphanedMapObject;
@@ -98,13 +98,13 @@ namespace LethalLevelLoader
                     invalidSpawnableItemWithRarity.Add(spawnableScrap);
 
             if (invalidSpawnableItemWithRarity.Count != 0)
-                DebugHelper.LogError("Removed: " + invalidSpawnableItemWithRarity.Count + " SpawnableItemWithRarities From CurrentLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Due To Invalid Properties To Prevent Errors.");
+                DebugHelper.LogError("Removed: " + invalidSpawnableItemWithRarity.Count + " SpawnableItemWithRarities From CurrentLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Due To Invalid Properties To Prevent Errors.", DebugType.User);
             foreach (SpawnableItemWithRarity invalidItem in invalidSpawnableItemWithRarity)
                 LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap.Remove(invalidItem);
 
             if (LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap.Count == 0)
             {
-                DebugHelper.LogError("Current ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Requested 0 SpawnableScrap, Returning Early To Prevent Errors");
+                DebugHelper.LogError("Current ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Requested 0 SpawnableScrap, Returning Early To Prevent Errors", DebugType.User);
                 return (false);
             }
 
@@ -116,7 +116,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static bool Dungeon_Start_Prefix(On.RoundManager.orig_Start orig, RoundManager self)
         {
-            DebugHelper.LogWarning("Disabling LethalLib Dungeon.RoundManager_Start() Function To Prevent Conflicts");
+            DebugHelper.LogWarning("Disabling LethalLib Dungeon.RoundManager_Start() Function To Prevent Conflicts", DebugType.User);
             orig(self);
             return (false);
         }
@@ -126,7 +126,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static bool Dungeon_GenerateNewFloor_Prefix(On.RoundManager.orig_GenerateNewFloor orig, RoundManager self)
         {
-            DebugHelper.LogWarning("Disabling LethalLib Dungeon.RoundManager_GenerateNewFloor() Function To Prevent Conflicts");
+            DebugHelper.LogWarning("Disabling LethalLib Dungeon.RoundManager_GenerateNewFloor() Function To Prevent Conflicts", DebugType.User);
             orig(self);
             return (false);
         }

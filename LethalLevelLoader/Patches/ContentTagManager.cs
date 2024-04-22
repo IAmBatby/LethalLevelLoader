@@ -47,7 +47,7 @@ namespace LethalLevelLoader
             foreach (KeyValuePair<string, List<ContentTag>> globalContentTagPair in contentTagDictionary)
                 debugString += "\nTag: " + globalContentTagPair.Key + ", Found Matching ContentTags: " + globalContentTagPair.Value.Count;
 
-            DebugHelper.Log(debugString);
+            DebugHelper.Log(debugString, DebugType.Developer);
         }
 
         internal static List<ContentTag> CreateNewContentTags(List<string> tags)

@@ -24,7 +24,7 @@ namespace LethalLevelLoader
         public static Dictionary<ExtendedLevel, ExtendedLevelLogReport> extendedLevelLogReports = new Dictionary<ExtendedLevel, ExtendedLevelLogReport>();
         public static Dictionary<ExtendedDungeonFlow, ExtendedLevelLogReport> extendedDungeonFlowLogReports = new Dictionary<ExtendedDungeonFlow, ExtendedLevelLogReport>();
 
-        public static void Log(string log, DebugType debugType = DebugType.IAmBatby)
+        public static void Log(string log, DebugType debugType)
         {
             if (!string.IsNullOrEmpty(log) && (int)Settings.debugType >= (int)debugType)
             {
@@ -36,7 +36,7 @@ namespace LethalLevelLoader
             }
         }
 
-        public static void LogWarning(string log, DebugType debugType = DebugType.IAmBatby)
+        public static void LogWarning(string log, DebugType debugType)
         {
             if (!string.IsNullOrEmpty(log) && (int)Settings.debugType >= (int)debugType)
             {
@@ -48,7 +48,7 @@ namespace LethalLevelLoader
             }
         }
 
-        public static void LogError(string log, DebugType debugType = DebugType.IAmBatby)
+        public static void LogError(string log, DebugType debugType)
         {
             if (!string.IsNullOrEmpty(log) && (int)Settings.debugType >= (int)debugType)
             {
@@ -60,7 +60,7 @@ namespace LethalLevelLoader
             }
         }
 
-        public static void LogError(Exception exception, DebugType debugType = DebugType.IAmBatby)
+        public static void LogError(Exception exception, DebugType debugType)
         {
             if (exception != null && (int)Settings.debugType >= (int)debugType)
             {
@@ -95,10 +95,10 @@ namespace LethalLevelLoader
                     logString += "DefaultVerb: " + terminalKeyword.defaultVerb.word + "\n";
                 else
                     logString += "Could not debug DefaultVerb as it was null!" + "\n";
-                Log(logString + "\n" + "\n");
+                Log(logString + "\n" + "\n", DebugType.Developer);
             }
             else
-                Log("Could not debug TerminalKeyword as it was null!");
+                Log("Could not debug TerminalKeyword as it was null!", DebugType.Developer);
         }
 
         public static void DebugTerminalNode(TerminalNode terminalNode)
@@ -116,7 +116,7 @@ namespace LethalLevelLoader
             foreach (CompatibleNoun compatibleNoun in terminalNode.terminalOptions)
                 logString += compatibleNoun.noun + " | " + compatibleNoun.result + "\n";
 
-            Log(logString + "\n" + "\n");
+            Log(logString + "\n" + "\n", DebugType.Developer);
         }
 
         public static void DebugInjectedLevels()
@@ -135,7 +135,7 @@ namespace LethalLevelLoader
                 logString += "Current Level Is: " + Patches.StartOfRound.currentLevel.PlanetName + " (" + Patches.StartOfRound.currentLevel.levelID + ") " + "\n";
             }
 
-            Log(logString + "\n" + "\n");
+            Log(logString + "\n" + "\n", DebugType.Developer);
         }
 
 
@@ -147,7 +147,7 @@ namespace LethalLevelLoader
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                 logString += extendedLevel.SelectableLevel.PlanetName + " (" + extendedLevel.SelectableLevel.levelID + ") " + "\n";
 
-            Log(logString + "\n");
+            Log(logString + "\n", DebugType.Developer);
         }
 
         public static void DebugVanillaLevels()
@@ -157,7 +157,7 @@ namespace LethalLevelLoader
             foreach (ExtendedLevel extendedLevel in PatchedContent.VanillaExtendedLevels)
                 logString += extendedLevel.SelectableLevel.PlanetName + " (" + extendedLevel.SelectableLevel.levelID + ") " + "\n";
 
-            Log(logString + "\n");
+            Log(logString + "\n", DebugType.Developer);
         }
 
         public static void DebugCustomLevels()
@@ -167,42 +167,42 @@ namespace LethalLevelLoader
             foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
                 logString += extendedLevel.SelectableLevel.PlanetName + " (" + extendedLevel.SelectableLevel.levelID + ") " + "\n";
 
-            Log(logString + "\n");
+            Log(logString + "\n", DebugType.Developer);
         }
 
         public static void DebugScrapedVanillaContent()
         {
-            Log("Obtained (" + OriginalContent.SelectableLevels.Count + " / 9) Vanilla SelectableLevel References");
+            Log("Obtained (" + OriginalContent.SelectableLevels.Count + " / 9) Vanilla SelectableLevel References", DebugType.Developer);
 
-            Log("Obtained (" + OriginalContent.DungeonFlows.Count + " / 4) Vanilla DungeonFlow References");
+            Log("Obtained (" + OriginalContent.DungeonFlows.Count + " / 4) Vanilla DungeonFlow References", DebugType.Developer);
 
-            Log("Obtained (" + OriginalContent.Items.Count + " / 68) Vanilla Item References");
+            Log("Obtained (" + OriginalContent.Items.Count + " / 68) Vanilla Item References", DebugType.Developer);
 
-            Log("Obtained (" + OriginalContent.ItemGroups.Count + " / 3) Vanilla Item Group References");
+            Log("Obtained (" + OriginalContent.ItemGroups.Count + " / 3) Vanilla Item Group References", DebugType.Developer);
 
-            Log("Obtained (" + OriginalContent.Enemies.Count + " / 20) Vanilla Enemy References");
+            Log("Obtained (" + OriginalContent.Enemies.Count + " / 20) Vanilla Enemy References", DebugType.Developer);
 
-            Log("Obtained (" + OriginalContent.SpawnableOutsideObjects.Count + " / 11) Vanilla Outside Object References");
+            Log("Obtained (" + OriginalContent.SpawnableOutsideObjects.Count + " / 11) Vanilla Outside Object References", DebugType.Developer);
 
-            Log("Obtained (" + OriginalContent.SpawnableMapObjects.Count + " / 2) Vanilla Inside Object References");
+            Log("Obtained (" + OriginalContent.SpawnableMapObjects.Count + " / 2) Vanilla Inside Object References", DebugType.Developer);
 
-            Log("Obtained (" + OriginalContent.AudioMixers.Count + " / 2) Vanilla Audio Mixer References");
+            Log("Obtained (" + OriginalContent.AudioMixers.Count + " / 2) Vanilla Audio Mixer References", DebugType.Developer);
 
-            Log("Obtained (" + OriginalContent.AudioMixerGroups.Count + " / 9) Vanilla Audio Mixing Group References");
+            Log("Obtained (" + OriginalContent.AudioMixerGroups.Count + " / 9) Vanilla Audio Mixing Group References", DebugType.Developer);
 
-            Log("Obtained (" + OriginalContent.AudioMixerSnapshots.Count + " / 6) Vanilla Audio Mixing Snapshot References");
+            Log("Obtained (" + OriginalContent.AudioMixerSnapshots.Count + " / 6) Vanilla Audio Mixing Snapshot References", DebugType.Developer);
 
-            Log("Obtained (" + OriginalContent.LevelAmbienceLibraries.Count + " / 3) Vanilla Ambience Library References");
+            Log("Obtained (" + OriginalContent.LevelAmbienceLibraries.Count + " / 3) Vanilla Ambience Library References", DebugType.Developer);
 
-            Log("Obtained (" + OriginalContent.ReverbPresets.Count + " / 8) Vanilla Reverb References");
+            Log("Obtained (" + OriginalContent.ReverbPresets.Count + " / 8) Vanilla Reverb References", DebugType.Developer);
 
-            Log("Obtained (" + OriginalContent.TerminalKeywords.Count + " / 121) Vanilla Terminal Keyword References");
+            Log("Obtained (" + OriginalContent.TerminalKeywords.Count + " / 121) Vanilla Terminal Keyword References", DebugType.Developer);
 
-            Log("Obtained (" + OriginalContent.TerminalNodes.Count + " / 186) Vanilla Terminal Node References");
+            Log("Obtained (" + OriginalContent.TerminalNodes.Count + " / 186) Vanilla Terminal Node References", DebugType.Developer);
 
             foreach (TerminalNode terminalNode in Resources.FindObjectsOfTypeAll(typeof(TerminalNode)))
                 if (!OriginalContent.TerminalNodes.Contains(terminalNode))
-                    Log("Missing Terminal Node: " + terminalNode.name);
+                    Log("Missing Terminal Node: " + terminalNode.name, DebugType.Developer);
         }
 
         public static void DebugAudioMixerGroups()
@@ -231,7 +231,7 @@ namespace LethalLevelLoader
                 logString += "Enemy Type: " + spawnableEnemy.enemyType.enemyName + " , Rarity: " + spawnableEnemy.rarity + " , Prefab Status: " + (spawnableEnemy.enemyType.enemyPrefab != null) + "\n";
 
 
-            Log(logString + "\n");
+            Log(logString + "\n", DebugType.Developer);
         }
 
         public static void DebugDungeonFlows(List<DungeonFlow> dungeonFlowList)
@@ -257,23 +257,23 @@ namespace LethalLevelLoader
             string debugString = "All ExtendedDungeons: " + "\n" + "\n";
 
             foreach (ExtendedDungeonFlow dungeonFlow in PatchedContent.ExtendedDungeonFlows)
-                debugString += dungeonFlow.dungeonFlow.name;
+                debugString += dungeonFlow.DungeonFlow.name;
 
-            Log(debugString);
+            Log(debugString, DebugType.Developer);
 
             debugString = "Vanilla ExtendedDungeons: " + "\n" + "\n";
 
             foreach (ExtendedDungeonFlow dungeonFlow in PatchedContent.VanillaExtendedDungeonFlows)
-                debugString += dungeonFlow.dungeonFlow.name;
+                debugString += dungeonFlow.DungeonFlow.name;
 
-            Log(debugString);
+            Log(debugString, DebugType.Developer);
 
             debugString = "Custom ExtendedDungeons: " + "\n" + "\n";
 
             foreach (ExtendedDungeonFlow dungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
-                debugString += dungeonFlow.dungeonFlow.name;
+                debugString += dungeonFlow.DungeonFlow.name;
 
-            Log(debugString);
+            Log(debugString, DebugType.Developer);
         }
 
         /*[HarmonyPatch(typeof(StartOfRound), "SetPlanetsWeather")]
@@ -351,7 +351,7 @@ namespace LethalLevelLoader
 
             debugString += "End Of SetPlanetWeather() Prefix." + "\n" + "\n";
 
-            DebugHelper.Log(debugString);
+            DebugHelper.Log(debugString, DebugType.Developer);
         }
 
         /*[HarmonyPatch(typeof(StartOfRound), "SetTimeAndPlanetToSavedSettings")]
@@ -468,25 +468,25 @@ namespace LethalLevelLoader
         public static void DebugExtendedDungeonFlowTiles(ExtendedDungeonFlow extendedDungeonFlow)
         {
             string debugString = "Logging All Tiles In DungeonFlow: " + extendedDungeonFlow.DungeonName + "\n";
-            foreach (Tile tile in extendedDungeonFlow.dungeonFlow.GetTiles())
+            foreach (Tile tile in extendedDungeonFlow.DungeonFlow.GetTiles())
                 debugString += tile.gameObject.name + "\n";
-            DebugHelper.Log(debugString);
+            DebugHelper.Log(debugString, DebugType.Developer);
         }
 
         public static void DebugExtendedDungeonSpawnSyncedObjects(ExtendedDungeonFlow extendedDungeonFlow)
         {
             string debugString = "Logging All SpawnSyncedObjects In DungeonFlow: " + extendedDungeonFlow.DungeonName + "\n";
-            foreach (SpawnSyncedObject spawnSyncedObject in extendedDungeonFlow.dungeonFlow.GetSpawnSyncedObjects())
+            foreach (SpawnSyncedObject spawnSyncedObject in extendedDungeonFlow.DungeonFlow.GetSpawnSyncedObjects())
                 debugString += spawnSyncedObject.gameObject.name + " | " + spawnSyncedObject.spawnPrefab.gameObject.name + "\n";
-            DebugHelper.Log(debugString);
+            DebugHelper.Log(debugString, DebugType.Developer);
         }
 
         public static void DebugExtendedDungeonFlowRandomMapObjects(ExtendedDungeonFlow extendedDungeonFlow)
         {
             string debugString = "Logging All RandomMapObjects In DungeonFlow: " + extendedDungeonFlow.DungeonName + "\n";
-            foreach (RandomMapObject randomMapObjectObject in extendedDungeonFlow.dungeonFlow.GetRandomMapObjects())
+            foreach (RandomMapObject randomMapObjectObject in extendedDungeonFlow.DungeonFlow.GetRandomMapObjects())
                 debugString += randomMapObjectObject.gameObject.name + " | " + randomMapObjectObject.spawnablePrefabs[0].gameObject.name + "\n";
-            DebugHelper.Log(debugString);
+            DebugHelper.Log(debugString, DebugType.Developer);
         }
 
         internal static void DebugMoonsCataloguePage(MoonsCataloguePage moonsCataloguePage)
@@ -500,7 +500,7 @@ namespace LethalLevelLoader
                     debugString += moonsCataloguePage.ExtendedLevelGroups.IndexOf(extendedLevelGroup) + " - " + extendedLevel.NumberlessPlanetName + "\n";
             }
 
-            Log(debugString);
+            Log(debugString, DebugType.Developer);
         }
 
         internal static void DebugStringToStringWithRarityListParser(string inputString)
@@ -526,7 +526,7 @@ namespace LethalLevelLoader
                     debugString += "\n";
             }
 
-            DebugHelper.Log(debugString);
+            DebugHelper.Log(debugString, DebugType.Developer);
         }
 
         internal static void DebugStringToVector2WithRarityListParser(string inputString)
@@ -542,7 +542,7 @@ namespace LethalLevelLoader
                 debugString += "Min: " + pair.Min + " , Max: " + pair.Max + " , Rarity: " + pair.Rarity + "\n";
             }
 
-            DebugHelper.Log(debugString);
+            DebugHelper.Log(debugString, DebugType.Developer);
         }
 
         internal static void DebugStringToSpawnableEnemiesWithRarityListParser(string inputString)
@@ -561,33 +561,33 @@ namespace LethalLevelLoader
                     debugString += "EnemyType Was Null, Skipping!" + "\n";
             }
 
-            DebugHelper.Log(debugString);
+            DebugHelper.Log(debugString, DebugType.Developer);
         }
 
         internal static void DebugAudioAssets()
         {
-            DebugHelper.Log("Debugging Vanilla Audio Assets");
+            DebugHelper.Log("Debugging Vanilla Audio Assets", DebugType.Developer);
 
             foreach (AudioMixer audioMixer in OriginalContent.AudioMixers)
-                DebugHelper.Log("Vanilla AudioMixer: " + audioMixer.name);
+                DebugHelper.Log("Vanilla AudioMixer: " + audioMixer.name, DebugType.Developer);
 
             foreach (AudioMixerGroup audioMixerGroup in OriginalContent.AudioMixerGroups)
-                DebugHelper.Log("Vanilla AudioMixerGroup: " + audioMixerGroup.name + " | " + audioMixerGroup.audioMixer.name);
+                DebugHelper.Log("Vanilla AudioMixerGroup: " + audioMixerGroup.name + " | " + audioMixerGroup.audioMixer.name, DebugType.Developer);
 
             foreach (AudioMixerSnapshot audioMixerSnapshot in OriginalContent.AudioMixerSnapshots)
-                DebugHelper.Log("Vanilla AudioMixerSnapshot: " + audioMixerSnapshot.name + " | " + audioMixerSnapshot.audioMixer.name);
+                DebugHelper.Log("Vanilla AudioMixerSnapshot: " + audioMixerSnapshot.name + " | " + audioMixerSnapshot.audioMixer.name, DebugType.Developer);
 
 
-            DebugHelper.Log("Debugging Custom Audio Assets");
+            DebugHelper.Log("Debugging Custom Audio Assets", DebugType.Developer);
 
             foreach (AudioMixer audioMixer in PatchedContent.AudioMixers)
-                DebugHelper.Log("Custom AudioMixer: " + audioMixer.name);
+                DebugHelper.Log("Custom AudioMixer: " + audioMixer.name, DebugType.Developer);
 
             foreach (AudioMixerGroup audioMixerGroup in PatchedContent.AudioMixerGroups)
-                DebugHelper.Log("Custom AudioMixerGroup: " + audioMixerGroup.name + " | " + audioMixerGroup.audioMixer.name);
+                DebugHelper.Log("Custom AudioMixerGroup: " + audioMixerGroup.name + " | " + audioMixerGroup.audioMixer.name, DebugType.Developer);
 
             foreach (AudioMixerSnapshot audioMixerSnapshot in PatchedContent.AudioMixerSnapshots)
-                DebugHelper.Log("Custom AudioMixerSnapshot: " + audioMixerSnapshot.name + " | " + audioMixerSnapshot.audioMixer.name);
+                DebugHelper.Log("Custom AudioMixerSnapshot: " + audioMixerSnapshot.name + " | " + audioMixerSnapshot.audioMixer.name, DebugType.Developer);
 
         }
 
@@ -596,9 +596,9 @@ namespace LethalLevelLoader
             foreach (SpawnableItemWithRarity scrap in extendedLevel.SelectableLevel.spawnableScrap)
             {
                 if (scrap.spawnableItem.spawnPrefab != null)
-                    DebugHelper.Log(extendedLevel.SelectableLevel.spawnableScrap.IndexOf(scrap) + " - " + scrap.spawnableItem.name + scrap.spawnableItem.spawnPrefab.name);
+                    DebugHelper.Log(extendedLevel.SelectableLevel.spawnableScrap.IndexOf(scrap) + " - " + scrap.spawnableItem.name + scrap.spawnableItem.spawnPrefab.name, DebugType.Developer);
                 else
-                    DebugHelper.Log(extendedLevel.SelectableLevel.spawnableScrap.IndexOf(scrap) + " - " + scrap.spawnableItem.name + "(Null)");
+                    DebugHelper.Log(extendedLevel.SelectableLevel.spawnableScrap.IndexOf(scrap) + " - " + scrap.spawnableItem.name + "(Null)", DebugType.Developer);
             }
         }
 
@@ -610,7 +610,7 @@ namespace LethalLevelLoader
             foreach (ExtendedContent extendedContent in extendedMod.ExtendedContents)
                 debugString += "\n" + extendedContent.name + " (" + extendedContent.GetType().Name + ")";
 
-            Log(debugString + "\n");
+            Log(debugString + "\n", DebugType.Developer);
         }
 
         public static void DebugAllContentTags()
@@ -649,7 +649,7 @@ namespace LethalLevelLoader
                 else
                     debugString = extendedMod.ModName + " Had No Content Tags.";
 
-                Log(debugString + "\n");
+                Log(debugString + "\n", DebugType.Developer);
             }
         }
 
@@ -669,7 +669,7 @@ namespace LethalLevelLoader
                 )
                 .AppendLine("End of matcher instructions.");
 
-            Log(builder.ToString());
+            Log(builder.ToString(), DebugType.Developer);
         }
 
         class CodeInstructionFormatter(int instructionCount)

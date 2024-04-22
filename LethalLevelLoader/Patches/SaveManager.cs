@@ -20,18 +20,18 @@ namespace LethalLevelLoader
             else
                 currentSaveFile = new LLLSaveFile("LLLSaveFile");
             currentSaveFile.Load();
-            DebugHelper.Log("Initialized LLL Save File, Current Level Was: " + currentSaveFile.CurrentLevelName + ", Current Vanilla Save Is: " + GameNetworkManager.Instance.currentSaveFileName);
+            DebugHelper.Log("Initialized LLL Save File, Current Level Was: " + currentSaveFile.CurrentLevelName + ", Current Vanilla Save Is: " + GameNetworkManager.Instance.currentSaveFileName, DebugType.User);
 
-            if (currentSaveFile.customItemDictionary == null)
+            if (ES3.KeyExists("CurrentPlanetID", GameNetworkManager.Instance.currentSaveFileName))
+                DebugHelper.Log("Vanilla CurrentSaveFileName Has Saved Current Planet ID: " + ES3.Load<int>("CurrentPlanetID", GameNetworkManager.Instance.currentSaveFileName), DebugType.Developer);
+            else
+            {
                 currentSaveFile.customItemDictionary = new Dictionary<string, string>();
-            if (currentSaveFile.allItemsList == null)
                 currentSaveFile.allItemsList = new List<string>();
-            if (currentSaveFile.itemSaveDataList == null)
                 currentSaveFile.itemSaveDataList = new List<AllItemsListItemData>();
-            if (currentSaveFile.itemSaveData == null)
                 currentSaveFile.itemSaveData = new Dictionary<int, AllItemsListItemData>();
-            if (currentSaveFile.CurrentLevelName == null)
                 currentSaveFile.CurrentLevelName = string.Empty;
+            }
 
             /*foreach (string item in currentSaveFile.allItemsList)
                 DebugHelper.Log("Saved AllItemsList: " + item);
@@ -40,10 +40,10 @@ namespace LethalLevelLoader
                 DebugHelper.Log("Save Item Info: " + extendedItemSaveInfo.Key + " from " + extendedItemSaveInfo.Value);*/
 
             foreach (AllItemsListItemData itemSaveData in currentSaveFile.itemSaveDataList)
-                DebugHelper.Log("Item Save Data: " + itemSaveData.itemName + ", " + itemSaveData.itemDisplayName + ", " + itemSaveData.modName + ", " + itemSaveData.allItemsListIndex);
+                DebugHelper.Log("Item Save Data: " + itemSaveData.itemName + ", " + itemSaveData.itemDisplayName + ", " + itemSaveData.modName + ", " + itemSaveData.allItemsListIndex, DebugType.Developer);
 
 
-            ValidateSaveData();
+            //ValidateSaveData();
         }
 
         internal static ProcessedData ValidateSaveData()
@@ -103,31 +103,31 @@ namespace LethalLevelLoader
             List<SavedShipItemData> validatedSavedShipItemDataList = new List<SavedShipItemData>();
             Dictionary<int, SavedShipItemData> constructedSavedShipItemDataDict = GetConstructedSavedShipItemData();
 
-            DebugHelper.Log("Processed Saved Items In: " + GameNetworkManager.Instance.currentSaveFileName);
+            DebugHelper.Log("Processed Saved Items In: " + GameNetworkManager.Instance.currentSaveFileName, DebugType.User);
             if (validIndices.Count > 0)
             {
                 string validItemsLog = "Valid Saved Items: ";
                 foreach (int validIndex in validIndices)
                     validItemsLog += patchedItemsList.itemsList[validIndex].itemName + ", ";
-                DebugHelper.Log(validItemsLog);
+                DebugHelper.Log(validItemsLog, DebugType.User);
             }
             if (recoveredIndicies.Count > 0)
             {
                 string recoveredItemsLog = "Recovered Saved Items: ";
                 foreach (KeyValuePair<int, int> recoveredIndexPair in recoveredIndicies)
                     recoveredItemsLog += patchedItemsList.itemsList[recoveredIndexPair.Value].itemName + ", ";
-                DebugHelper.LogWarning(recoveredItemsLog);
+                DebugHelper.LogWarning(recoveredItemsLog, DebugType.User);
             }
             if (invalidIndicies.Count > 0)
             {
                 string invalidItemsLog = "Corrupted Saved Items: ";
                 foreach (int invalidIndex in invalidIndicies)
                    invalidItemsLog += "Invalid ID: (" + invalidIndex + ")" + ", ";
-                DebugHelper.LogError(invalidItemsLog);
+                DebugHelper.LogError(invalidItemsLog, DebugType.User);
             }
 
             foreach (SavedShipItemData savedShipItemData in constructedSavedShipItemDataDict.Values)
-                DebugHelper.Log("Constructed SavedShipItemData: " + savedShipItemData.itemAllItemsListIndex + " | " + savedShipItemData.itemPosition + " | " + savedShipItemData.itemScrapValue + " | " + savedShipItemData.itemAdditionalSavedData);
+                DebugHelper.Log("Constructed SavedShipItemData: " + savedShipItemData.itemAllItemsListIndex + " | " + savedShipItemData.itemPosition + " | " + savedShipItemData.itemScrapValue + " | " + savedShipItemData.itemAdditionalSavedData, DebugType.User);
 
 
             foreach (int validIndex in validIndices)
@@ -142,7 +142,7 @@ namespace LethalLevelLoader
             validatedSavedShipItemDataList = validatedSavedShipItemDataList.OrderBy(s => s.itemAllItemsListIndex).ToList();
 
             foreach (SavedShipItemData savedShipItemData in validatedSavedShipItemDataList)
-                DebugHelper.Log("Validated SavedShipItemData: " + savedShipItemData.itemAllItemsListIndex + " | " + savedShipItemData.itemPosition + " | " + savedShipItemData.itemScrapValue + " | " + savedShipItemData.itemAdditionalSavedData);
+                DebugHelper.Log("Validated SavedShipItemData: " + savedShipItemData.itemAllItemsListIndex + " | " + savedShipItemData.itemPosition + " | " + savedShipItemData.itemScrapValue + " | " + savedShipItemData.itemAdditionalSavedData, DebugType.User);
 
             //OverrideCurrentSaveFileItemData(validatedSavedShipItemDataList);
             return (validatedSavedShipItemDataList);
@@ -304,7 +304,7 @@ namespace LethalLevelLoader
             }
 
             if (returnDict.Count == 0)
-                DebugHelper.LogWarning("GetConstructedSavedShipItemData() Returning Empty Dict!");
+                DebugHelper.LogWarning("GetConstructedSavedShipItemData() Returning Empty Dict!", DebugType.User);
 
             return (returnDict);
         }

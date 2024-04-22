@@ -40,7 +40,6 @@ namespace LethalLevelLoader
         {
             if (Plugin.IsSetupComplete == false)
             {
-                DebugHelper.Log("StartOfRound was: " + startOfRound + ", RoundManager was: " + roundManager);
                 if (startOfRound != null)
                 {
                     foreach (IndoorMapType indoorFlowType in roundManager.dungeonFlowTypes)

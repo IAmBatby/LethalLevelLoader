@@ -57,7 +57,7 @@ namespace LethalLevelLoader
 
         internal static void RefreshShipAnimatorClips(ExtendedLevel extendedLevel)
         {
-            DebugHelper.Log("Refreshing Ship Animator Clips!");
+            DebugHelper.Log("Refreshing Ship Animator Clips!", DebugType.Developer);
             shipAnimatorOverrideController["HangarShipLandB"] = extendedLevel.ShipFlyToMoonClip;
             shipAnimatorOverrideController["ShipLeave"] = extendedLevel.ShipFlyFromMoonClip;
         }

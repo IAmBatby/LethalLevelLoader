@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using DunGen;
 using HarmonyLib;
+using LethalLevelLoader.Tools;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -29,8 +30,8 @@ namespace LethalLevelLoader
 
         internal static BepInEx.Logging.ManualLogSource logger;
 
-        public delegate void OnSetupComplete();
-        public static event OnSetupComplete onSetupComplete;
+        public static event Action onBeforeSetup;
+        public static event Action onSetupComplete;
         public static bool IsSetupComplete { get; private set; } = false;
 
         internal static GameObject networkManagerPrefab;
@@ -62,18 +63,19 @@ namespace LethalLevelLoader
             test.hideFlags = HideFlags.HideAndDontSave;
             AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
 
-            foreach (GameObject gameObject in UnityEngine.Object.FindObjectsOfType<GameObject>(true))
-                DebugHelper.Log("GameObject Found: " + gameObject.name);
-
-            foreach (MonoBehaviour monoBehaviour in UnityEngine.Object.FindObjectsOfType<MonoBehaviour>(true))
-                DebugHelper.Log("MonoBheaviour Found: " + monoBehaviour.gameObject.name + " - " + monoBehaviour.GetType().Name);
+            ConfigLoader.BindGeneralConfigs();
 
             //UnityEngine.Object.FindFirstObjectByType<GameObject>()
         }
 
+        internal static void OnBeforeSetupInvoke()
+        {
+            onBeforeSetup?.Invoke();
+        }
+
         internal static void CompleteSetup()
         {
-            DebugHelper.Log("LethalLevelLoader Has Finished Initializing.");
+            DebugHelper.Log("LethalLevelLoader Has Finished Initializing.", DebugType.User);
             Plugin.IsSetupComplete = true;
             onSetupComplete?.Invoke();
         }
@@ -98,7 +100,7 @@ namespace LethalLevelLoader
             }
             catch
             {
-                DebugHelper.Log("NetcodePatcher did a big fucksie wuckise!");
+                DebugHelper.Log("NetcodePatcher did a big fucksie wuckise!", DebugType.Developer);
             }
         }
     }

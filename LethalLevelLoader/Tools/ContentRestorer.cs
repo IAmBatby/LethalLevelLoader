@@ -17,16 +17,16 @@ namespace LethalLevelLoader.Tools
         {
             if (extendedDungeonFlow == null)
             {
-                DebugHelper.LogError("Tried To Restore Null Vanilla ExtendedDungeonFlow! Returning!");
+                DebugHelper.LogError("Tried To Restore Null Vanilla ExtendedDungeonFlow! Returning!", DebugType.User);
                 return;
             }
-            if (extendedDungeonFlow.dungeonFlow == null)
+            if (extendedDungeonFlow.DungeonFlow == null)
             {
-                DebugHelper.LogError("Tried To Restore Null Vanilla ExtendedDungeonFlow " + extendedDungeonFlow.DungeonName +  " But DungeonFlow Was Null! Returning!");
+                DebugHelper.LogError("Tried To Restore Null Vanilla ExtendedDungeonFlow " + extendedDungeonFlow.DungeonName +  " But DungeonFlow Was Null! Returning!", DebugType.User);
                 return;
             }
 
-            foreach (Tile tile in extendedDungeonFlow.dungeonFlow.GetTiles())
+            foreach (Tile tile in extendedDungeonFlow.DungeonFlow.GetTiles())
             {
                 foreach (RandomScrapSpawn randomScrapSpawn in tile.gameObject.GetComponentsInChildren<RandomScrapSpawn>())
                     foreach (ItemGroup vanillaItemGroup in OriginalContent.ItemGroups)
@@ -35,20 +35,19 @@ namespace LethalLevelLoader.Tools
                                 if (vanillaItemGroup.name != null && randomScrapSpawn.spawnableItems.name == vanillaItemGroup.name)
                                     randomScrapSpawn.spawnableItems = RestoreAsset(randomScrapSpawn.spawnableItems, vanillaItemGroup, destroyOnReplace: false);
             }
-            foreach (RandomMapObject randomMapObject in extendedDungeonFlow.dungeonFlow.GetRandomMapObjects())
+            foreach (RandomMapObject randomMapObject in extendedDungeonFlow.DungeonFlow.GetRandomMapObjects())
             {
                 foreach (GameObject spawnablePrefab in new List<GameObject>(randomMapObject.spawnablePrefabs))
                     foreach (GameObject vanillaPrefab in OriginalContent.SpawnableMapObjects)
                         if (vanillaPrefab != null && spawnablePrefab != null && spawnablePrefab.name != null &&  vanillaPrefab.name != null && spawnablePrefab.name == vanillaPrefab.name)
                             randomMapObject.spawnablePrefabs[randomMapObject.spawnablePrefabs.IndexOf(spawnablePrefab)] = RestoreAsset(randomMapObject.spawnablePrefabs[randomMapObject.spawnablePrefabs.IndexOf(spawnablePrefab)], vanillaPrefab, destroyOnReplace: false);
             }
-            foreach (Tile tile in extendedDungeonFlow.dungeonFlow.GetTiles())
+            foreach (Tile tile in extendedDungeonFlow.DungeonFlow.GetTiles())
                 RestoreAudioAssetReferencesInParent(tile.gameObject);
         }
 
         internal static void RestoreVanillaLevelAssetReferences(ExtendedLevel extendedLevel)
         {
-            DebugHelper.Log("#1");
             foreach (SpawnableItemWithRarity spawnableItem in new List<SpawnableItemWithRarity>(extendedLevel.SelectableLevel.spawnableScrap))
             {
                 if (spawnableItem.spawnableItem == null)
@@ -56,31 +55,27 @@ namespace LethalLevelLoader.Tools
                 else
                     foreach (Item vanillaItem in OriginalContent.Items)
                         if (spawnableItem.spawnableItem.name == vanillaItem.name)
-                            spawnableItem.spawnableItem = RestoreAsset(spawnableItem.spawnableItem, vanillaItem, debugAction: true);
+                            spawnableItem.spawnableItem = RestoreAsset(spawnableItem.spawnableItem, vanillaItem);
             }
 
-            DebugHelper.Log("#2");
             foreach (EnemyType vanillaEnemyType in OriginalContent.Enemies)
                 foreach (SpawnableEnemyWithRarity enemyRarityPair in extendedLevel.SelectableLevel.Enemies.Concat(extendedLevel.SelectableLevel.DaytimeEnemies).Concat(extendedLevel.SelectableLevel.OutsideEnemies))
                     if (enemyRarityPair.enemyType != null && enemyRarityPair.enemyType.enemyName == vanillaEnemyType.enemyName)
-                        enemyRarityPair.enemyType = RestoreAsset(enemyRarityPair.enemyType, vanillaEnemyType, debugAction: true);
+                        enemyRarityPair.enemyType = RestoreAsset(enemyRarityPair.enemyType, vanillaEnemyType);
 
-            DebugHelper.Log("#3");
             foreach (SpawnableMapObject spawnableMapObject in extendedLevel.SelectableLevel.spawnableMapObjects)
                 foreach (GameObject vanillaSpawnableMapObject in OriginalContent.SpawnableMapObjects)
                     if (spawnableMapObject.prefabToSpawn != null && spawnableMapObject.prefabToSpawn.name == vanillaSpawnableMapObject.name)
-                        spawnableMapObject.prefabToSpawn = RestoreAsset(spawnableMapObject.prefabToSpawn, vanillaSpawnableMapObject, debugAction: true);
+                        spawnableMapObject.prefabToSpawn = RestoreAsset(spawnableMapObject.prefabToSpawn, vanillaSpawnableMapObject);
 
-            DebugHelper.Log("#4");
             foreach (SpawnableOutsideObjectWithRarity spawnableOutsideObject in extendedLevel.SelectableLevel.spawnableOutsideObjects)
                 foreach (SpawnableOutsideObject vanillaSpawnableOutsideObject in OriginalContent.SpawnableOutsideObjects)
                     if (spawnableOutsideObject.spawnableObject != null && spawnableOutsideObject.spawnableObject.name == vanillaSpawnableOutsideObject.name)
-                        spawnableOutsideObject.spawnableObject = RestoreAsset(spawnableOutsideObject.spawnableObject, vanillaSpawnableOutsideObject, debugAction: true);
+                        spawnableOutsideObject.spawnableObject = RestoreAsset(spawnableOutsideObject.spawnableObject, vanillaSpawnableOutsideObject);
 
-            DebugHelper.Log("#5");
             foreach (LevelAmbienceLibrary vanillaAmbienceLibrary in OriginalContent.LevelAmbienceLibraries)
                 if (extendedLevel.SelectableLevel.levelAmbienceClips != null && extendedLevel.SelectableLevel.levelAmbienceClips.name == vanillaAmbienceLibrary.name)
-                    extendedLevel.SelectableLevel.levelAmbienceClips = RestoreAsset(extendedLevel.SelectableLevel.levelAmbienceClips, vanillaAmbienceLibrary, debugAction: true);
+                    extendedLevel.SelectableLevel.levelAmbienceClips = RestoreAsset(extendedLevel.SelectableLevel.levelAmbienceClips, vanillaAmbienceLibrary);
         }
 
         internal static void RestoreAudioAssetReferencesInParent(GameObject parent)
@@ -92,7 +87,7 @@ namespace LethalLevelLoader.Tools
                 if (audioSource.outputAudioMixerGroup == null)
                 {
                     if (audioSource.gameObject.name != null)
-                        DebugHelper.LogWarning("Audio Restoration Warning: " + audioSource.gameObject.name + " Has Missing AudioMixerGroup");
+                        DebugHelper.LogWarning("Audio Restoration Warning: " + audioSource.gameObject.name + " Has Missing AudioMixerGroup", DebugType.Developer);
                 }
                 else
                     TryRestoreAudioSource(audioSource);
@@ -101,24 +96,24 @@ namespace LethalLevelLoader.Tools
             foreach (AudioReverbTrigger audioReverbTrigger in parent.GetComponentsInChildren<AudioReverbTrigger>(includeInactive: true))
             {
                 if (audioReverbTrigger.reverbPreset == null)
-                    DebugHelper.LogWarning("Audio Restoration Warning: " + audioReverbTrigger.gameObject.name + " Has Missing ReverbPreset");
+                    DebugHelper.LogWarning("Audio Restoration Warning: " + audioReverbTrigger.gameObject.name + " Has Missing ReverbPreset", DebugType.Developer);
                 else
                 {
                     foreach (ReverbPreset reverbPreset in OriginalContent.ReverbPresets)
                         if (reverbPreset.name != null && audioReverbTrigger.reverbPreset.name == reverbPreset.name)
                         {
-                            DebugHelper.Log("Restoring ReverbPreset: " + audioReverbTrigger.reverbPreset.name + " In AudioReverbTrigger: " + audioReverbTrigger.gameObject.name);
+                            DebugHelper.Log("Restoring ReverbPreset: " + audioReverbTrigger.reverbPreset.name + " In AudioReverbTrigger: " + audioReverbTrigger.gameObject.name, DebugType.Developer);
                             audioReverbTrigger.reverbPreset = RestoreAsset(audioReverbTrigger.reverbPreset, reverbPreset, debugAction: false);
                         }
                 }
                 foreach (switchToAudio audioChange in audioReverbTrigger.audioChanges)
                 {
                     if (audioChange.audio == null)
-                        DebugHelper.LogWarning("Audio Restoration Warning: " + audioReverbTrigger.gameObject.name + " Has Missing AudioChange AudioSource");
+                        DebugHelper.LogWarning("Audio Restoration Warning: " + audioReverbTrigger.gameObject.name + " Has Missing AudioChange AudioSource", DebugType.Developer);
                     else
                         TryRestoreAudioSource(audioChange.audio);
                     if (audioChange.changeToClip == null)
-                        DebugHelper.LogWarning("Audio Restoration Warning: " + audioReverbTrigger.gameObject.name + " Has Missing AudioChange AudioClip");
+                        DebugHelper.LogWarning("Audio Restoration Warning: " + audioReverbTrigger.gameObject.name + " Has Missing AudioChange AudioClip", DebugType.Developer);
                 }
             }
         }
@@ -151,11 +146,12 @@ namespace LethalLevelLoader.Tools
             }
         }
 
-        internal static void DestroyRestoredAssets()
+        internal static void DestroyRestoredAssets(bool debugAction = false)
         {
             foreach (Object objectToDestroy in objectsToDestroy)
             {
-                DebugHelper.Log("Destroying: " + objectToDestroy.name);
+                if (debugAction == true)
+                    DebugHelper.Log("Destroying: " + objectToDestroy.name, DebugType.Developer);
                 UnityEngine.Object.DestroyImmediate(objectToDestroy);
             }
             objectsToDestroy.Clear();
@@ -167,14 +163,14 @@ namespace LethalLevelLoader.Tools
             if (currentAsset != null && newAsset != null)
             {
                 if (debugAction == true && currentAsset.name != null)
-                    DebugHelper.Log("Restoring " + currentAsset.GetType().ToString() + ": Old Asset Name: " + currentAsset.name + " , New Asset Name: ");
+                    DebugHelper.Log("Restoring " + currentAsset.GetType().ToString() + ": Old Asset Name: " + currentAsset.name + " , New Asset Name: ", DebugType.Developer);
 
                 if (destroyOnReplace == true)
                     if (!objectsToDestroy.Contains(currentAsset))
                         objectsToDestroy.Add(currentAsset);
             }
             else
-                DebugHelper.LogWarning("Asset Restoration Failed, Null Reference Found!");
+                DebugHelper.LogWarning("Asset Restoration Failed, Null Reference Found!", DebugType.Developer);
             return (newAsset);
         }
 

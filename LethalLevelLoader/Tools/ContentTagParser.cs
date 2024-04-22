@@ -30,7 +30,7 @@ namespace LethalLevelLoader
 
         internal static void ParseContentFile(string fileName, Dictionary<string, List<string>> importedContentTagDict, int startingLine)
         {
-            DebugHelper.Log("Parsing Contents Of Content CSV Located At: " + fileName);
+            DebugHelper.Log("Parsing Contents Of Content CSV Located At: " + fileName, DebugType.Developer);
             int lineCount = 0;
             string line;
             try
@@ -76,7 +76,7 @@ namespace LethalLevelLoader
                 {
                     if (extendedItem.Item.name.RemoveWhitespace().StripSpecialCharacters().ToLower() == importedItemData.Key.RemoveWhitespace().StripSpecialCharacters().ToLower() || extendedItem.Item.itemName.RemoveWhitespace().StripSpecialCharacters().ToLower() == importedItemData.Key.RemoveWhitespace().StripSpecialCharacters().ToLower())
                     {
-                        DebugHelper.Log("Applying CSV Tags For Imported Item #" + (counter + 1) + " / " + (importedItemContentTagDictionary.Count - 1) + ": " + importedItemData.Key + " To ExtendedItem: " + extendedItem.Item.itemName + "(" + extendedItem.Item.name + ")");
+                        DebugHelper.Log("Applying CSV Tags For Imported Item #" + (counter + 1) + " / " + (importedItemContentTagDictionary.Count - 1) + ": " + importedItemData.Key + " To ExtendedItem: " + extendedItem.Item.itemName + "(" + extendedItem.Item.name + ")", DebugType.Developer);
                         extendedItem.ContentTags = ContentTagManager.CreateNewContentTags(importedItemData.Value.Concat(new List<string>() { "Vanilla" }).ToList());
                         appliedIndexes.Add(counter);
                         break;
@@ -88,7 +88,7 @@ namespace LethalLevelLoader
             for (int i = 0; i < importedItemContentTagDictionary.Count; i++)
             {
                 if (!appliedIndexes.Contains(i) && importedItemContentTagDictionary.Keys.ToList()[i] != string.Empty)
-                    DebugHelper.LogWarning("Could Not Apply CSV Tags For Imported Item: " + importedItemContentTagDictionary.Keys.ToList()[i]);
+                    DebugHelper.LogWarning("Could Not Apply CSV Tags For Imported Item: " + importedItemContentTagDictionary.Keys.ToList()[i], DebugType.Developer);
             }
         }
 
@@ -102,7 +102,7 @@ namespace LethalLevelLoader
                 {
                     if (extendedLevel.SelectableLevel.name.RemoveWhitespace().StripSpecialCharacters().ToLower() == importedItemData.Key.RemoveWhitespace().StripSpecialCharacters().ToLower() || extendedLevel.NumberlessPlanetName.RemoveWhitespace().StripSpecialCharacters().ToLower() == importedItemData.Key.RemoveWhitespace().StripSpecialCharacters().ToLower())
                     {
-                        DebugHelper.Log("Applying CSV Tags For Imported Level #" + (counter + 1) + " / " + (importedLevelContentTagDictionary.Count - 1) + ": " + importedItemData.Key + " To SelectableLevel: " + extendedLevel.SelectableLevel.PlanetName + "(" + extendedLevel.SelectableLevel.name + ")");
+                        DebugHelper.Log("Applying CSV Tags For Imported Level #" + (counter + 1) + " / " + (importedLevelContentTagDictionary.Count - 1) + ": " + importedItemData.Key + " To SelectableLevel: " + extendedLevel.SelectableLevel.PlanetName + "(" + extendedLevel.SelectableLevel.name + ")", DebugType.Developer);
                         extendedLevel.ContentTags = ContentTagManager.CreateNewContentTags(importedItemData.Value.Concat(new List<string>() { "Vanilla" }).ToList());
                         appliedIndexes.Add(counter);
                         break;
@@ -114,7 +114,7 @@ namespace LethalLevelLoader
             for (int i = 0; i < importedLevelContentTagDictionary.Count; i++)
             {
                 if (!appliedIndexes.Contains(i) && importedLevelContentTagDictionary.Keys.ToList()[i] != string.Empty)
-                    DebugHelper.LogWarning("Could Not Apply CSV Tags For Imported SelectableLevel: " + importedLevelContentTagDictionary.Keys.ToList()[i]);
+                    DebugHelper.LogWarning("Could Not Apply CSV Tags For Imported SelectableLevel: " + importedLevelContentTagDictionary.Keys.ToList()[i], DebugType.Developer);
             }
         }
 
@@ -128,7 +128,7 @@ namespace LethalLevelLoader
                 {
                     if (extendedEnemyType.EnemyType.name.RemoveWhitespace().StripSpecialCharacters().ToLower() == importedItemData.Key.RemoveWhitespace().StripSpecialCharacters().ToLower() || extendedEnemyType.EnemyType.enemyName.RemoveWhitespace().StripSpecialCharacters().ToLower() == importedItemData.Key.RemoveWhitespace().StripSpecialCharacters().ToLower())
                     {
-                        DebugHelper.Log("Applying CSV Tags For Imported Enemy #" + (counter + 1) + " / " + (importedEnemyContentTagDictionary.Count - 1) + ": " + importedItemData.Key + " To EnemyType: " + extendedEnemyType.EnemyType.enemyName + "(" + extendedEnemyType.EnemyType.name + ")");
+                        DebugHelper.Log("Applying CSV Tags For Imported Enemy #" + (counter + 1) + " / " + (importedEnemyContentTagDictionary.Count - 1) + ": " + importedItemData.Key + " To EnemyType: " + extendedEnemyType.EnemyType.enemyName + "(" + extendedEnemyType.EnemyType.name + ")", DebugType.Developer);
                         extendedEnemyType.ContentTags = ContentTagManager.CreateNewContentTags(importedItemData.Value.Concat(new List<string>() { "Vanilla" }).ToList());
                         appliedIndexes.Add(counter);
                         break;
@@ -137,11 +137,11 @@ namespace LethalLevelLoader
                 counter++;
             }
 
-            for (int i = 0; i < importedEnemyContentTagDictionary.Count; i++)
+            /*for (int i = 0; i < importedEnemyContentTagDictionary.Count; i++)
             {
                 if (!appliedIndexes.Contains(i) && importedEnemyContentTagDictionary.Keys.ToList()[i] != string.Empty)
                     DebugHelper.LogWarning("Could Not Apply CSV Tags For Imported EnemyType: " + importedEnemyContentTagDictionary.Keys.ToList()[i]);
-            }
+            }*/
         }
 
         internal static (string, List<string>) ParseLine(string line)
@@ -189,7 +189,7 @@ namespace LethalLevelLoader
                 string otherDebugString = string.Empty;
                 foreach (string tag in contentTags)
                     otherDebugString += ", " + tag;
-                DebugHelper.Log(debugString + otherDebugString.SkipToLetters());
+                DebugHelper.Log(debugString + otherDebugString.SkipToLetters(), DebugType.Developer);
             }
         }
 

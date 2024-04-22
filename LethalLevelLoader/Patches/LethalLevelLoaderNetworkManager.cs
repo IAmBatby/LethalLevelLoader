@@ -23,7 +23,7 @@ namespace LethalLevelLoader
                 if (_instance == null)
                     _instance = UnityEngine.Object.FindObjectOfType<LethalLevelLoaderNetworkManager>();
                 if (_instance == null)
-                    DebugHelper.LogWarning("LethalLevelLoaderNetworkManager Could Not Be Found! Returning Null!");
+                    DebugHelper.LogError("LethalLevelLoaderNetworkManager Could Not Be Found! Returning Null!", DebugType.User);
                 return _instance;
             }
             set { _instance = value; }
@@ -43,7 +43,7 @@ namespace LethalLevelLoader
         [ServerRpc]
         public void GetRandomExtendedDungeonFlowServerRpc()
         {
-            DebugHelper.Log("Getting Random DungeonFlows!");
+            DebugHelper.Log("Getting Random DungeonFlows!", DebugType.User);
 
             List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = DungeonManager.GetValidExtendedDungeonFlows(LevelManager.CurrentExtendedLevel, debugResults: true);
 
@@ -53,10 +53,10 @@ namespace LethalLevelLoader
 
             if (availableExtendedFlowsList.Count == 0)
             {
-                DebugHelper.LogError("No ExtendedDungeonFlow's could be found! This should only happen if the Host's requireMatchesOnAllDungeonFlows is set to true!");
-                DebugHelper.LogError("Loading Facility DungeonFlow to prevent infinite loading!");
+                DebugHelper.LogError("No ExtendedDungeonFlow's could be found! This should only happen if the Host's requireMatchesOnAllDungeonFlows is set to true!", DebugType.User);
+                DebugHelper.LogError("Loading Facility DungeonFlow to prevent infinite loading!", DebugType.User);
                 StringContainer newStringContainer = new StringContainer();
-                newStringContainer.SomeText = PatchedContent.ExtendedDungeonFlows[0].dungeonFlow.name;
+                newStringContainer.SomeText = PatchedContent.ExtendedDungeonFlows[0].DungeonFlow.name;
                 dungeonFlowNames.Add(newStringContainer);
                 rarities.Add(300);
             }
@@ -66,7 +66,7 @@ namespace LethalLevelLoader
                 foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowWithRarity in availableExtendedFlowsList)
                 {
                     StringContainer newStringContainer = new StringContainer();
-                    newStringContainer.SomeText = dungeonFlowTypes[dungeonFlowTypes.IndexOf(extendedDungeonFlowWithRarity.extendedDungeonFlow.dungeonFlow)].name;
+                    newStringContainer.SomeText = dungeonFlowTypes[dungeonFlowTypes.IndexOf(extendedDungeonFlowWithRarity.extendedDungeonFlow.DungeonFlow)].name;
                     dungeonFlowNames.Add(newStringContainer);
 
                     rarities.Add(extendedDungeonFlowWithRarity.rarity);
@@ -76,10 +76,46 @@ namespace LethalLevelLoader
             SetRandomExtendedDungeonFlowClientRpc(dungeonFlowNames.ToArray(), rarities.ToArray());
         }
 
+        [ServerRpc]
+        public void GetUpdatedLevelCurrentWeatherServerRpc()
+        {
+            List<StringContainer> levelNames = new List<StringContainer>();
+            List<LevelWeatherType> weatherTypes = new List<LevelWeatherType>();
+            foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
+            {
+                StringContainer stringContainer = new StringContainer();
+                stringContainer.SomeText = extendedLevel.name;
+                levelNames.Add(stringContainer);
+                weatherTypes.Add(extendedLevel.SelectableLevel.currentWeather);
+            }
+
+            SetUpdatedLevelCurrentWeatherClientRpc(levelNames.ToArray(), weatherTypes.ToArray());
+        }
+
+        [ClientRpc]
+        public void SetUpdatedLevelCurrentWeatherClientRpc(StringContainer[] levelNames, LevelWeatherType[] weatherTypes)
+        {
+            Dictionary<ExtendedLevel, LevelWeatherType> syncedLevelCurrentWeathers = new Dictionary<ExtendedLevel, LevelWeatherType>();
+
+            for (int i = 0; i < levelNames.Length; i++)
+                foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
+                    if (levelNames[i].SomeText == extendedLevel.name)
+                        syncedLevelCurrentWeathers.Add(extendedLevel, weatherTypes[i]);
+
+            foreach (KeyValuePair<ExtendedLevel, LevelWeatherType> syncedWeather in syncedLevelCurrentWeathers)
+            {
+                if (syncedWeather.Key.SelectableLevel.currentWeather != syncedWeather.Value)
+                {
+                    DebugHelper.LogWarning("Client Had Differing Current Weather Value For ExtendedLevel: " + syncedWeather.Key.NumberlessPlanetName + ", Syncing!", DebugType.User);
+                    syncedWeather.Key.SelectableLevel.currentWeather = syncedWeather.Value;
+                }
+            }
+        }
+
         [ClientRpc]
         public void SetRandomExtendedDungeonFlowClientRpc(StringContainer[] dungeonFlowNames, int[] rarities)
         {
-            DebugHelper.Log("Setting Random DungeonFlows!");
+            DebugHelper.Log("Setting Random DungeonFlows!", DebugType.User);
             List<IntWithRarity> dungeonFlowsList = new List<IntWithRarity>();
             List<IntWithRarity> cachedDungeonFlowsList = new List<IntWithRarity>();
             
@@ -121,7 +157,7 @@ namespace LethalLevelLoader
             if (networkHasStarted == false)
                 queuedNetworkPrefabs.Add(prefab);
             else
-                DebugHelper.Log("Attempted To Register NetworkPrefab: " + prefab + " After GameNetworkManager Has Started!");
+                DebugHelper.LogWarning("Attempted To Register NetworkPrefab: " + prefab + " After GameNetworkManager Has Started!", DebugType.User);
         }
 
         internal static void RegisterPrefabs(NetworkManager networkManager)
@@ -147,7 +183,7 @@ namespace LethalLevelLoader
                     debugCounter++;
             }
 
-            DebugHelper.Log("Skipped Registering " + debugCounter + " NetworkObjects As They Were Already Registered.");
+            DebugHelper.Log("Skipped Registering " + debugCounter + " NetworkObjects As They Were Already Registered.", DebugType.User);
 
             networkHasStarted = true;
             

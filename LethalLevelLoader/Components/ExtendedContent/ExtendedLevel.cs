@@ -13,7 +13,7 @@ namespace LethalLevelLoader
     public class ExtendedLevel : ExtendedContent
     {
         [field: Header("General Settings")]
-        [field: SerializeField] public SelectableLevel SelectableLevel { get { return (selectableLevel); } set { selectableLevel = value; } }
+        [field: SerializeField] public SelectableLevel SelectableLevel { get; set; }
         [Space(5)] [SerializeField] private int routePrice = 0;
 
         [field: Header("Extended Feature Settings")]
@@ -27,7 +27,7 @@ namespace LethalLevelLoader
 
         [field: SerializeField] public bool IsRouteHidden { get; set; } = false;
         [field: SerializeField] public bool IsRouteLocked { get; set; } = false;
-        [field: SerializeField] public string LockedRouteNodeText = string.Empty;
+        [field: SerializeField] public string LockedRouteNodeText { get; set; } = string.Empty;
 
         [field: Space(5)]
 
@@ -45,9 +45,10 @@ namespace LethalLevelLoader
         [field: SerializeField] [field: TextArea(2, 20)] public string OverrideRouteNodeDescription { get; set; } = string.Empty;
         [field: SerializeField] [field: TextArea(2, 20)] public string OverrideRouteConfirmNodeDescription { get; set; } = string.Empty;
 
-        [Space(10)]
-        [Header("Misc. Settings")]
-        [Space(5)] public bool generateAutomaticConfigurationOptions = true;
+        [field: Space(10)]
+        [field: Header("Misc. Settings")]
+        [field: Space(5)]
+        [field: SerializeField] public bool GenerateAutomaticConfigurationOptions { get; set; } = true;
 
         [Space(25)]
         [Header("Obsolete (Legacy Fields, Will Be Removed In The Future)")]
@@ -56,8 +57,6 @@ namespace LethalLevelLoader
         /*Obsolete*/ [Space(5)] public List<string> levelTags = new List<string>();
 
         //Runtime Stuff
-
-        [field: SerializeField]
         public int RoutePrice
         {
             get
@@ -70,7 +69,7 @@ namespace LethalLevelLoader
                 }
                 else
                 {
-                    DebugHelper.LogWarning("routeNode Is Missing! Using internal value!");
+                    DebugHelper.LogWarning("routeNode Is Missing! Using internal value!", DebugType.Developer);
                     return (routePrice);
                 }
             }
@@ -82,7 +81,7 @@ namespace LethalLevelLoader
                     RouteConfirmNode.itemCost = value;
                 }
                 else
-                    DebugHelper.LogWarning("routeNode Is Missing! Only setting internal value!");
+                    DebugHelper.LogWarning("routeNode Is Missing! Only setting internal value!", DebugType.Developer);
                 routePrice = value;
             }
         }
@@ -126,7 +125,7 @@ namespace LethalLevelLoader
             foreach (StringWithRarity sceneSelection in new List<StringWithRarity>(SceneSelections))
                 if (!PatchedContent.AllLevelSceneNames.Contains(sceneSelection.Name))
                 {
-                    DebugHelper.LogWarning("Removing SceneSelection From: " + SelectableLevel.PlanetName + " As SceneName: " + sceneSelection.Name + " Is Not Loaded!");
+                    DebugHelper.LogWarning("Removing SceneSelection From: " + SelectableLevel.PlanetName + " As SceneName: " + sceneSelection.Name + " Is Not Loaded!", DebugType.Developer);
                     SceneSelections.Remove(sceneSelection);
                 }
 
@@ -149,15 +148,31 @@ namespace LethalLevelLoader
                 }
             }
 
+            if (ContentType == ContentType.Vanilla)
+                GetVanillaInfoNode();
             SetExtendedDungeonFlowMatches();
-            //if (ContentType == ContentType.Vanilla)
-                //AssetBundleLoader.SetVanillaLevelTags(this);
 
             //Obsolete
+        }
+
+        internal void ConvertObsoleteValues()
+        {
             if (levelTags.Count > 0 && ContentTags.Count == 0)
+            {
+                DebugHelper.LogWarning("ExtendedLevel.levelTags Is Obsolete and will be removed in following releases, Please use .ContentTags instead.", DebugType.Developer);
                 foreach (ContentTag convertedContentTag in ContentTagManager.CreateNewContentTags(levelTags))
                     ContentTags.Add(convertedContentTag);
+            }
             levelTags.Clear();
+
+            if (SelectableLevel == null && selectableLevel != null)
+            {
+                DebugHelper.LogWarning("ExtendedLevel.selectableLevel Is Obsolete and will be removed in following releases, Please use .SelectableLevel instead.", DebugType.Developer);
+                SelectableLevel = selectableLevel;
+            }
+
+            if (!string.IsNullOrEmpty(contentSourceName))
+                DebugHelper.LogWarning("ExtendedLevel.contentSourceName is Obsolete and will be removed in following releases, Please use ExtendedMod.AuthorName instead.", DebugType.Developer);
         }
 
         internal static string GetNumberlessPlanetName(SelectableLevel selectableLevel)
@@ -192,6 +207,16 @@ namespace LethalLevelLoader
                     if (indoorMapType.dungeonFlow.name == "Level1Flow3Exits")
                         if (DungeonManager.TryGetExtendedDungeonFlow(indoorMapType.dungeonFlow, out ExtendedDungeonFlow marchDungeonFlow))
                             marchDungeonFlow.LevelMatchingProperties.planetNames.Add(new StringWithRarity(NumberlessPlanetName, 300));
+        }
+
+        internal void GetVanillaInfoNode()
+        {
+            foreach (CompatibleNoun infoNoun in TerminalManager.routeInfoKeyword.compatibleNouns)
+                if (infoNoun.noun.word == NumberlessPlanetName.ToLower())
+                {
+                    InfoNode = infoNoun.result;
+                    break;
+                }
         }
 
         public void ForceSetRoutePrice(int newValue)

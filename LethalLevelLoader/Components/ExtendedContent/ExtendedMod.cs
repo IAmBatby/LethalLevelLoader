@@ -63,7 +63,7 @@ namespace LethalLevelLoader
             ExtendedMod newExtendedMod = ScriptableObject.CreateInstance<ExtendedMod>();
             newExtendedMod.ModName = modName;
             newExtendedMod.name = modName.Sanitized() + "Mod";
-            DebugHelper.Log("Created New ExtendedMod: " + newExtendedMod.ModName);
+            DebugHelper.Log("Created New ExtendedMod: " + newExtendedMod.ModName, DebugType.Developer);
             return (newExtendedMod);
         }
 
@@ -74,7 +74,7 @@ namespace LethalLevelLoader
             newExtendedMod.name = modName.SkipToLetters().RemoveWhitespace() + "Mod";
             newExtendedMod.AuthorName = authorName;
             if (Plugin.Instance != null)
-                DebugHelper.Log("Created New ExtendedMod: " + newExtendedMod.ModName + " by " + authorName);
+                DebugHelper.Log("Created New ExtendedMod: " + newExtendedMod.ModName + " by " + authorName, DebugType.Developer);
             return (newExtendedMod);
         }
 
@@ -89,7 +89,7 @@ namespace LethalLevelLoader
                 newExtendedMod.RegisterExtendedContent(extendedContent);
 
             if (Plugin.Instance != null)
-                DebugHelper.Log("Created New ExtendedMod: " + newExtendedMod.ModName + " by " + authorName);
+                DebugHelper.Log("Created New ExtendedMod: " + newExtendedMod.ModName + " by " + authorName, DebugType.Developer);
 
             return (newExtendedMod);
         }
@@ -126,6 +126,7 @@ namespace LethalLevelLoader
 
         internal void RegisterExtendedContent(ExtendedLevel extendedLevel)
         {
+            extendedLevel.ConvertObsoleteValues();
             TryThrowInvalidContentException(extendedLevel, Validators.ValidateExtendedContent(extendedLevel));
 
             ExtendedLevels.Add(extendedLevel);
@@ -135,6 +136,7 @@ namespace LethalLevelLoader
 
         internal void RegisterExtendedContent(ExtendedDungeonFlow extendedDungeonFlow)
         {
+            extendedDungeonFlow.ConvertObsoleteValues();
             TryThrowInvalidContentException(extendedDungeonFlow, Validators.ValidateExtendedContent(extendedDungeonFlow));
 
             ExtendedDungeonFlows.Add(extendedDungeonFlow);
@@ -208,7 +210,7 @@ namespace LethalLevelLoader
                 ExtendedItems.Remove(extendedItem);
 
             currentExtendedContent.ExtendedMod = null;
-            DebugHelper.LogWarning("Unregistered ExtendedContent: " + currentExtendedContent.name + " In ExtendedMod: " + ModName);
+            DebugHelper.LogWarning("Unregistered ExtendedContent: " + currentExtendedContent.name + " In ExtendedMod: " + ModName, DebugType.Developer);
         }
 
         internal void UnregisterAllExtendedContent()

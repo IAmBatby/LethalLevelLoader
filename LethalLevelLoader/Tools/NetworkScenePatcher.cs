@@ -25,7 +25,7 @@ public static class NetworkScenePatcher
     {
         if (scenePaths.Contains(scenePath))
         {
-            Debug.LogError($"Can not add scene path {scenePath} to the network scene patcher! (already exists in scene paths list)");
+            //Debug.LogError($"Can not add scene path {scenePath} to the network scene patcher! (already exists in scene paths list)");
             return;
         }
         scenePaths.Add(scenePath);
@@ -116,7 +116,7 @@ public static class NetworkScenePatcher
             buildIndexToScenePath.Add(buildIndex, scenePath);
             sceneHashToScenePath.Add(hash, scenePath);
 
-            DebugHelper.Log($"Added modded scene path: {scenePath}");
+            //DebugHelper.Log($"Added modded scene path: {scenePath}");
         }
     }
     static string SceneNameFromHash_Hook(Func<NetworkSceneManager, uint, string> orig, NetworkSceneManager self, uint sceneHash)
@@ -129,7 +129,7 @@ public static class NetworkScenePatcher
     static bool ValidateSceneBeforeLoading_Hook(Func<NetworkSceneManager, int, string, LoadSceneMode, bool> orig, NetworkSceneManager self, int sceneIndex, string sceneName, LoadSceneMode loadSceneMode)
     {
         bool valid = orig(self, sceneIndex, sceneName, loadSceneMode);
-        DebugHelper.LogWarning(valid ? $"Validation check success for scene: {sceneName}" : $"Bypassed validation check for scene {sceneName}");
+        //DebugHelper.LogWarning(valid ? $"Validation check success for scene: {sceneName}" : $"Bypassed validation check for scene {sceneName}");
         return true;
     }
 }

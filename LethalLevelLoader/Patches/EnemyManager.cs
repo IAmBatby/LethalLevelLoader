@@ -43,9 +43,9 @@ namespace LethalLevelLoader
                 int daytimeLevelRarity = extendedEnemyType.DaytimeLevelMatchingProperties.GetDynamicRarity(extendedLevel);
 
                 if (outsideLevelRarity > 0)
-                    DebugHelper.Log("Custom ExtendedEnemyType: " + extendedEnemyType.EnemyDisplayName + " Has: " + outsideLevelRarity + " OutsideLevelRarity On Moon: " + extendedLevel.NumberlessPlanetName);
+                    DebugHelper.Log("Custom ExtendedEnemyType: " + extendedEnemyType.EnemyDisplayName + " Has: " + outsideLevelRarity + " OutsideLevelRarity On Moon: " + extendedLevel.NumberlessPlanetName, DebugType.Developer);
                 if (daytimeLevelRarity> 0)
-                    DebugHelper.Log("Custom ExtendedEnemyType: " + extendedEnemyType.EnemyDisplayName + " Has: " + daytimeLevelRarity + " DaytimeLevelRarity On Moon: " + extendedLevel.NumberlessPlanetName);
+                    DebugHelper.Log("Custom ExtendedEnemyType: " + extendedEnemyType.EnemyDisplayName + " Has: " + daytimeLevelRarity + " DaytimeLevelRarity On Moon: " + extendedLevel.NumberlessPlanetName, DebugType.Developer);
 
                 if (TryInjectEnemyIntoPool(extendedLevel.SelectableLevel.Enemies, extendedEnemyType, insideLevelRarity, out SpawnableEnemyWithRarity spawnableInsideEnemy) == false)
                     extendedLevel.SelectableLevel.Enemies.Remove(spawnableInsideEnemy);
@@ -100,7 +100,6 @@ namespace LethalLevelLoader
                 if (extendedEnemyType.EnemyID > highestVanillaEnemyScanNodeCreatureID)
                     highestVanillaEnemyScanNodeCreatureID = extendedEnemyType.EnemyID;
 
-            DebugHelper.Log("Highest Enemy ScanNode Creature ID Was: " + highestVanillaEnemyScanNodeCreatureID);
 
             int counter = 1; //we want this to be 1
             foreach (ExtendedEnemyType extendedEnemyType in customEnemyTypes)
@@ -110,7 +109,7 @@ namespace LethalLevelLoader
                 {
                     extendedEnemyType.ScanNodeProperties = enemyScanNode;
                     extendedEnemyType.ScanNodeProperties.creatureScanID = (highestVanillaEnemyScanNodeCreatureID + counter);
-                    DebugHelper.Log("Setting Custom EnemyType: " + extendedEnemyType.EnemyType.enemyName + " ID To: " + (highestVanillaEnemyScanNodeCreatureID + counter));
+                    DebugHelper.Log("Setting Custom EnemyType: " + extendedEnemyType.EnemyType.enemyName + " ID To: " + (highestVanillaEnemyScanNodeCreatureID + counter), DebugType.Developer);
                 }
                 counter++;
             }

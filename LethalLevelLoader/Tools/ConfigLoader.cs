@@ -14,35 +14,31 @@ namespace LethalLevelLoader.Tools
     {
         public static string debugLevelsString = string.Empty;
         public static string debugDungeonsString = string.Empty;
+        public static ConfigFile configFile;
 
         internal static void BindConfigs()
         {
-            ConfigFile newConfigFile = new ConfigFile(Path.Combine(Paths.ConfigPath, "LethalLevelLoader.cfg"), false);
-
-            GeneralSettingsConfig newGeneralSettingsConfig = new GeneralSettingsConfig(newConfigFile, " - LethalLevelLoader Settings -", 5);
-            newGeneralSettingsConfig.BindConfigs();
-
             foreach (ExtendedDungeonFlow extendedDungeonFlow in PatchedContent.VanillaExtendedDungeonFlows)
             {
-                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(newConfigFile, "Vanilla Dungeon:  " + extendedDungeonFlow.DungeonName.StripSpecialCharacters() + " (" + extendedDungeonFlow.dungeonFlow.name + ")", 7);
+                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(configFile, "Vanilla Dungeon:  " + extendedDungeonFlow.DungeonName.StripSpecialCharacters() + " (" + extendedDungeonFlow.DungeonFlow.name + ")", 7);
                 newConfig.BindConfigs(extendedDungeonFlow);
             }
 
             foreach (ExtendedDungeonFlow extendedDungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
             {
-                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(newConfigFile, "Custom Dungeon:  " + extendedDungeonFlow.DungeonName.StripSpecialCharacters(), 9);
+                ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(configFile, "Custom Dungeon:  " + extendedDungeonFlow.DungeonName.StripSpecialCharacters(), 9);
                 newConfig.BindConfigs(extendedDungeonFlow);
             }
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.VanillaExtendedLevels)
             {
-                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(newConfigFile, "Vanilla Level:  " + extendedLevel.SelectableLevel.PlanetName.StripSpecialCharacters(), 6);
+                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(configFile, "Vanilla Level:  " + extendedLevel.SelectableLevel.PlanetName.StripSpecialCharacters(), 6);
                 newConfig.BindConfigs(extendedLevel);
             }
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
             {
-                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(newConfigFile, "Custom Level:  " + extendedLevel.SelectableLevel.PlanetName.StripSpecialCharacters(), 8);
+                ExtendedLevelConfig newConfig = new ExtendedLevelConfig(configFile, "Custom Level:  " + extendedLevel.SelectableLevel.PlanetName.StripSpecialCharacters(), 8);
                 newConfig.BindConfigs(extendedLevel);
             }
 
@@ -54,6 +50,14 @@ namespace LethalLevelLoader.Tools
 
             debugLevelsString = string.Empty;
             debugDungeonsString = string.Empty;
+        }
+
+        internal static void BindGeneralConfigs()
+        {
+            configFile = new ConfigFile(Path.Combine(Paths.ConfigPath, "LethalLevelLoader.cfg"), false);
+
+            GeneralSettingsConfig newGeneralSettingsConfig = new GeneralSettingsConfig(configFile, " - LethalLevelLoader Settings -", 5);
+            newGeneralSettingsConfig.BindConfigs();
         }
 
         internal static string GetConfigCategory(string categoryName, string contentName)
@@ -122,21 +126,21 @@ namespace LethalLevelLoader.Tools
 
         public void BindConfigs(ExtendedDungeonFlow extendedDungeonFlow)
         {
-            if (extendedDungeonFlow.generateAutomaticConfigurationOptions == true)
+            if (extendedDungeonFlow.GenerateAutomaticConfigurationOptions == true)
             {
                 enableContentConfiguration = BindValue("Enable Content Configuration", "Enable This To Utilise Any Of The Configuration Options Below.", false);
 
                 subCategory = "General Settings - ";
-                enableDynamicDungeonSizeRestriction = BindValue("Enable Dynamic Dungeon Size Restriction", "Enable this to allow the following three settings to function.", extendedDungeonFlow.enableDynamicDungeonSizeRestriction);
-                minimumDungeonSizeMultiplier = BindValue("Minimum Dungeon Size Multiplier", "If The Level's Dungeon Size Multiplier Is Below This Value, The Size Multiplier Will Be Restricted Based On The RestrictDungeonSizeScaler Setting", extendedDungeonFlow.dungeonSizeMin);
-                maximumDungeonSizeMultiplier = BindValue("Maximum Dungeon Size Multiplier", "If The Level's Dungeon Size Multiplier Is Above This Value, The Size Multiplier Will Be Restricted Based On The RestrictDungeonSizeScaler Setting", extendedDungeonFlow.dungeonSizeMax);
+                enableDynamicDungeonSizeRestriction = BindValue("Enable Dynamic Dungeon Size Restriction", "Enable this to allow the following three settings to function.", extendedDungeonFlow.IsDynamicDungeonSizeRestrictionEnabled);
+                minimumDungeonSizeMultiplier = BindValue("Minimum Dungeon Size Multiplier", "If The Level's Dungeon Size Multiplier Is Below This Value, The Size Multiplier Will Be Restricted Based On The RestrictDungeonSizeScaler Setting", extendedDungeonFlow.DynamicDungeonSizeMinMax.x);
+                maximumDungeonSizeMultiplier = BindValue("Maximum Dungeon Size Multiplier", "If The Level's Dungeon Size Multiplier Is Above This Value, The Size Multiplier Will Be Restricted Based On The RestrictDungeonSizeScaler Setting", extendedDungeonFlow.DynamicDungeonSizeMinMax.y);
 
                 string description = "If The Level's Dungeon Size Multiplier Is Above Or Below The Previous Two Settings, The Dungeon Size Multiplier Will Be Set To The Value Between The Level's Dungeon Size Multiplier And This Value." + "\n";
                 description += "Example #1: If Set To 0, The Dungeon Size Will Not Be Higher Than Maximum Dungeon Size Multiplier." + "\n";
                 description += "Example #2: If Set To 0.5, The Dungeon Size Will Be Between The Maxiumum Dungeon Size Multiplier And The Level's Dungeon Size Multiplier." + "\n";
                 description += "Example #3: If Set To 1, The Dungeon Size Will Be The Level's Dungeon Size Multiplier With No Changes Applied." + "\n";
                 description += "(Minimum, 0, Maximum: 1)";
-                restrictDungeonSizeScaler = BindValue("Restrict Dungeon Size Scaler", description, extendedDungeonFlow.dungeonSizeLerpPercentage);
+                restrictDungeonSizeScaler = BindValue("Restrict Dungeon Size Scaler", description, extendedDungeonFlow.DynamicDungeonSizeLerpRate);
 
                 // ----- Getting -----
                 subCategory = "Dungeon Injection Settings - ";
@@ -150,13 +154,12 @@ namespace LethalLevelLoader.Tools
                 {
                     // ----- Setting -----
 
-                    DebugHelper.Log(extendedDungeonFlow.DungeonName + " enabled content configeration");
+                    DebugHelper.Log(extendedDungeonFlow.DungeonName + " enabled content configeration", DebugType.Developer);
 
-                    extendedDungeonFlow.enableDynamicDungeonSizeRestriction = enableContentConfiguration.Value;
+                    extendedDungeonFlow.IsDynamicDungeonSizeRestrictionEnabled = enableContentConfiguration.Value;
 
-                    extendedDungeonFlow.dungeonSizeMin = minimumDungeonSizeMultiplier.Value;
-                    extendedDungeonFlow.dungeonSizeMax = maximumDungeonSizeMultiplier.Value;
-                    extendedDungeonFlow.dungeonSizeLerpPercentage = restrictDungeonSizeScaler.Value;
+                    extendedDungeonFlow.DynamicDungeonSizeMinMax = new Vector2(minimumDungeonSizeMultiplier.Value, maximumDungeonSizeMultiplier.Value);
+                    extendedDungeonFlow.DynamicDungeonSizeLerpRate = restrictDungeonSizeScaler.Value;
 
                     extendedDungeonFlow.LevelMatchingProperties.modNames = ConfigHelper.ConvertToStringWithRarityList(manualModNames.Value, new Vector2(0, 9999));
                     extendedDungeonFlow.LevelMatchingProperties.planetNames = ConfigHelper.ConvertToStringWithRarityList(manualLevelNames.Value, new Vector2(0, 9999));
@@ -165,10 +168,10 @@ namespace LethalLevelLoader.Tools
                     extendedDungeonFlow.LevelMatchingProperties.levelTags = ConfigHelper.ConvertToStringWithRarityList(dynamicLevelTags.Value, new Vector2(0, 9999));
 
                     foreach (StringWithRarity stringWithRarity in ConfigHelper.ConvertToStringWithRarityList(dynamicLevelTags.Value, new Vector2(0, 9999)))
-                        DebugHelper.Log(stringWithRarity.Name + " | " + stringWithRarity.Rarity);
+                        DebugHelper.Log(stringWithRarity.Name + " | " + stringWithRarity.Rarity, DebugType.Developer);
 
                     if (extendedDungeonFlow.ContentType == ContentType.Vanilla)
-                        ConfigLoader.debugDungeonsString += extendedDungeonFlow.DungeonName +  "(" + extendedDungeonFlow.dungeonFlow.name + ")" + ", ";
+                        ConfigLoader.debugDungeonsString += extendedDungeonFlow.DungeonName +  "(" + extendedDungeonFlow.DungeonFlow.name + ")" + ", ";
                     else if (extendedDungeonFlow.ContentType == ContentType.Custom)
                         ConfigLoader.debugDungeonsString += extendedDungeonFlow.DungeonName + ", ";
                 }
@@ -218,7 +221,7 @@ namespace LethalLevelLoader.Tools
         public void BindConfigs(ExtendedLevel extendedLevel)
         {
             SelectableLevel selectableLevel = extendedLevel.SelectableLevel;
-            if (extendedLevel.generateAutomaticConfigurationOptions == true)
+            if (extendedLevel.GenerateAutomaticConfigurationOptions == true)
             {
                 // ----- Getting ----- //
 

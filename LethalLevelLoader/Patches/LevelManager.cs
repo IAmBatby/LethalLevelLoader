@@ -74,9 +74,6 @@ namespace LethalLevelLoader
                 if (!childObjects.Contains(child.gameObject))
                     childObjects.Add(child.gameObject);
 
-            foreach (GameObject gameObject in childObjects)
-                DebugHelper.Log("Original - ShipAnimator Child: " + gameObject.name + " (" + gameObject.activeSelf + ")");
-
             AnimatorOverrideController overrideController = new AnimatorOverrideController(shipAnimator.runtimeAnimatorController);
             LevelLoader.shipAnimatorOverrideController = overrideController;
             LevelLoader.defaultShipFlyToMoonClip = overrideController["HangarShipLandB"];
@@ -87,9 +84,6 @@ namespace LethalLevelLoader
 
             shipAnimator.runtimeAnimatorController = overrideController;
             //shipAnimator.Play("Base Layer.ShipIdle", layer: 0, normalizedTime: 1.0f);
-
-            foreach (GameObject gameObject in childObjects)
-                DebugHelper.Log("Override - ShipAnimator Child: " + gameObject.name + " (" + gameObject.activeSelf + ")");
 
             //shipAnimator.enabled = false;
         }
@@ -195,7 +189,7 @@ namespace LethalLevelLoader
 
             foreach (ExtendedLevel vanillaLevel in PatchedContent.VanillaExtendedLevels)
             {
-                DebugHelper.Log("Risk Level Of " + vanillaLevel.NumberlessPlanetName + " Is: " + vanillaLevel.SelectableLevel.riskLevel);
+                DebugHelper.Log("Risk Level Of " + vanillaLevel.NumberlessPlanetName + " Is: " + vanillaLevel.SelectableLevel.riskLevel, DebugType.Developer);
                 if (!vanillaLevel.SelectableLevel.riskLevel.Contains("Safe") && !string.IsNullOrEmpty(vanillaLevel.SelectableLevel.riskLevel))
                 {
                     if (vanillaRiskLevelDictionary.TryGetValue(vanillaLevel.SelectableLevel.riskLevel, out List<int> dynamicDifficultyRatingList))
@@ -214,25 +208,25 @@ namespace LethalLevelLoader
                     foreach (int calculatedDifficulty in vanillaRiskLevel.Value)
                         debugString += calculatedDifficulty.ToString() + ", ";
                 }
-                DebugHelper.Log(debugString);
+                DebugHelper.Log(debugString, DebugType.Developer);
             }
 
             foreach (KeyValuePair<string, int> dynamicRiskLevelPair in new Dictionary<string, int>(dynamicRiskLevelDictionary))
                     foreach (KeyValuePair<string, List<int>> vanillaRiskLevel in vanillaRiskLevelDictionary)
                         if (dynamicRiskLevelPair.Key.Equals(vanillaRiskLevel.Key))
                         {
-                            DebugHelper.Log("Setting RiskLevel " + vanillaRiskLevel.Key + " To " + (int)vanillaRiskLevel.Value.Average());
+                            DebugHelper.Log("Setting RiskLevel " + vanillaRiskLevel.Key + " To " + (int)vanillaRiskLevel.Value.Average(), DebugType.Developer);
                             dynamicRiskLevelDictionary[dynamicRiskLevelPair.Key] = Mathf.RoundToInt((float)vanillaRiskLevel.Value.Average());
                         }
 
-            DebugHelper.Log("Starting To Assign - and + Risk Levels");
+            DebugHelper.Log("Starting To Assign - and + Risk Levels", DebugType.Developer);
             int counter = 0;
             foreach (KeyValuePair<string, int> dynamicRiskLevelPair in new Dictionary<string, int>(dynamicRiskLevelDictionary))
             {
                 string previousFullRiskLevel = string.Empty;
                 string currentFullRiskLevel = string.Empty;
                 string nextFullRiskLevel = string.Empty;
-                DebugHelper.Log("Trying To Assign Value To Risk Level: " + dynamicRiskLevelPair.Key);
+                DebugHelper.Log("Trying To Assign Value To Risk Level: " + dynamicRiskLevelPair.Key, DebugType.Developer);
 
                 if (dynamicRiskLevelPair.Key.Contains("-"))
                 {
@@ -260,12 +254,12 @@ namespace LethalLevelLoader
                         dynamicRiskLevelDictionary[dynamicRiskLevelPair.Key] = Mathf.RoundToInt(Mathf.Lerp(dynamicRiskLevelDictionary[currentFullRiskLevel], dynamicRiskLevelDictionary[nextFullRiskLevel], 0.33f));
                 }
 
-                DebugHelper.Log("Risk Level: " + dynamicRiskLevelPair.Key + " Was Assigned Calculated Difficulty Of: " + dynamicRiskLevelDictionary[dynamicRiskLevelPair.Key].ToString());
+                DebugHelper.Log("Risk Level: " + dynamicRiskLevelPair.Key + " Was Assigned Calculated Difficulty Of: " + dynamicRiskLevelDictionary[dynamicRiskLevelPair.Key].ToString(), DebugType.Developer);
                 counter++;
             }
 
             foreach (KeyValuePair<string, int> dynamicRiskLevelPair in new Dictionary<string, int>(dynamicRiskLevelDictionary))
-                DebugHelper.Log("Dynamic Risk Level Pair: " + dynamicRiskLevelPair.Key + " (" + dynamicRiskLevelPair.Value + ")");
+                DebugHelper.Log("Dynamic Risk Level Pair: " + dynamicRiskLevelPair.Key + " (" + dynamicRiskLevelPair.Value + ")", DebugType.Developer);
         }
 
         public static void AssignCalculatedRiskLevels()
@@ -280,7 +274,7 @@ namespace LethalLevelLoader
                         assignmentRiskLevelDictionary.Add(calculatedDifficultyValue, calculatedRiskLevel.Key);
 
             foreach (KeyValuePair<int, string> calculatedRiskLevel in assignmentRiskLevelDictionary)
-                DebugHelper.Log("Ordered Calculated Risk Level: (" + calculatedRiskLevel.Value + ") - " + calculatedRiskLevel.Key);
+                DebugHelper.Log("Ordered Calculated Risk Level: (" + calculatedRiskLevel.Value + ") - " + calculatedRiskLevel.Key, DebugType.Developer);
 
             foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
             {
@@ -299,7 +293,7 @@ namespace LethalLevelLoader
             List<ExtendedLevel> extendedLevelsOrdered = new List<ExtendedLevel>(PatchedContent.ExtendedLevels).OrderBy(o => o.CalculatedDifficultyRating).ToList();
 
             foreach (ExtendedLevel extendedLevel in extendedLevelsOrdered)
-                DebugHelper.Log(extendedLevel.NumberlessPlanetName + " (" + extendedLevel.SelectableLevel.riskLevel + ") " + " (" + extendedLevel.CalculatedDifficultyRating + ")");
+                DebugHelper.Log(extendedLevel.NumberlessPlanetName + " (" + extendedLevel.SelectableLevel.riskLevel + ") " + " (" + extendedLevel.CalculatedDifficultyRating + ")", DebugType.Developer);
         }
 
         public static void LogDayHistory()
@@ -307,7 +301,7 @@ namespace LethalLevelLoader
             //Heavy early returns here because this runs from a DunGen patch and needs to be safe for unconventional Unity-Editor generation usage.
             if (Plugin.IsSetupComplete == false || Patches.StartOfRound == null || Patches.RoundManager == null || TimeOfDay.Instance == null)
             {
-                DebugHelper.LogWarning("Game Seems Uninitialized, Exiting LogDayHistory Early!");
+                DebugHelper.LogWarning("Game Seems Uninitialized, Exiting LogDayHistory Early!", DebugType.Developer);
                 return;
             }
 
@@ -331,7 +325,7 @@ namespace LethalLevelLoader
                 debugString += "MISSING EXTENDEDDUNGEONFLOW ,";
             debugString += "Quota: " + newDayHistory.quota + " , Day: " + newDayHistory.day + " , Weather: " + newDayHistory.weatherEffect.ToString();
 
-            DebugHelper.Log(debugString);
+            DebugHelper.Log(debugString, DebugType.User);
 
             if (dayHistoryList == null)
                 dayHistoryList = new List<DayHistory>();
@@ -389,7 +383,7 @@ namespace LethalLevelLoader
             debugString += "Multiplied Calculated Difficulty Value: " + returnRating;
 
             if (debugResults == true)
-                DebugHelper.Log(debugString);
+                DebugHelper.Log(debugString, DebugType.Developer);
             return (returnRating);
         }
     }

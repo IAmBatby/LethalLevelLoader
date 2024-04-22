@@ -74,13 +74,13 @@ namespace LethalLevelLoader
 
             if (sceneName == "MainMenu" && !allSceneNamesCalledToLoad.Contains("InitSceneLaunchOptions"))
             {
-                DebugHelper.LogError("SceneManager has been told to load Main Menu without ever loading InitSceneLaunchOptions. This will break LethalLevelLoader. This is likely due to a \"Skip to Main Menu\" mod.");
+                DebugHelper.LogError("SceneManager has been told to load Main Menu without ever loading InitSceneLaunchOptions. This will break LethalLevelLoader. This is likely due to a \"Skip to Main Menu\" mod.", DebugType.User);
                 return (false);
             }
 
             if (AssetBundleLoader.CurrentLoadingStatus == AssetBundleLoader.LoadingStatus.Loading)
             {
-                DebugHelper.LogWarning("SceneManager has attempted to load " + sceneName + " Scene before AssetBundles have finished loading. Pausing request until LethalLeveLoader is ready to proceed.");
+                DebugHelper.LogWarning("SceneManager has attempted to load " + sceneName + " Scene before AssetBundles have finished loading. Pausing request until LethalLeveLoader is ready to proceed.", DebugType.User);
                 delayedSceneLoadingName = sceneName;
                 AssetBundleLoader.onBundlesFinishedLoading -= LoadMainMenu;
                 AssetBundleLoader.onBundlesFinishedLoading += LoadMainMenu;
@@ -92,7 +92,7 @@ namespace LethalLevelLoader
 
         internal static void LoadMainMenu()
         {
-            DebugHelper.LogWarning("Proceeding with the loading of " + delayedSceneLoadingName + " Scene as LethalLevelLoader has finished loading AssetBundles.");
+            DebugHelper.LogWarning("Proceeding with the loading of " + delayedSceneLoadingName + " Scene as LethalLevelLoader has finished loading AssetBundles.", DebugType.User);
             if (delayedSceneLoadingName != string.Empty)
                 SceneManager.LoadScene(delayedSceneLoadingName);
             delayedSceneLoadingName = string.Empty;
@@ -129,6 +129,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void StartOfRoundAwake_Prefix(StartOfRound __instance)
         {
+            Plugin.OnBeforeSetupInvoke();
             //Reference Setup
             StartOfRound = __instance;
             RoundManager = UnityEngine.Object.FindFirstObjectByType<RoundManager>();
@@ -189,12 +190,12 @@ namespace LethalLevelLoader
                 string debugString = "LethalLevelLoader Loaded The Following ExtendedLevels:" + "\n";
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                     debugString += (PatchedContent.ExtendedLevels.IndexOf(extendedLevel) + 1) + ". " + extendedLevel.SelectableLevel.PlanetName + " (" + extendedLevel.ContentType + ")" + "\n";
-                DebugHelper.Log(debugString);
+                DebugHelper.Log(debugString, DebugType.User);
 
                 debugString = "LethalLevelLoader Loaded The Following ExtendedDungeonFlows:" + "\n";
                 foreach (ExtendedDungeonFlow extendedDungeonFlow in PatchedContent.ExtendedDungeonFlows)
-                    debugString += (PatchedContent.ExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1) + ". " + extendedDungeonFlow.DungeonName + " (" + extendedDungeonFlow.dungeonFlow.name + ") (" + extendedDungeonFlow.ContentType + ")" + "\n";
-                DebugHelper.Log(debugString);
+                    debugString += (PatchedContent.ExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1) + ". " + extendedDungeonFlow.DungeonName + " (" + extendedDungeonFlow.DungeonFlow.name + ") (" + extendedDungeonFlow.ContentType + ")" + "\n";
+                DebugHelper.Log(debugString, DebugType.User);
 
                 DebugStopwatch.StartStopWatch("Restore Content");
                 //Restore Custom Content References To Vanilla Content
@@ -309,15 +310,20 @@ namespace LethalLevelLoader
         internal static bool StartOfRoundSetPlanetsWeather_Prefix(int connectedPlayersOnServer)
         {
             if (Plugin.IsSetupComplete == false)
-                return (false);
-            /*
-            if (WeatherManager.vanillaExtendedWeatherEffectsDictionary.Count != 0)
             {
-                WeatherManager.SetExtendedLevelsExtendedWeatherEffect(connectedPlayersOnServer);
+                DebugHelper.LogWarning("Exiting SetPlanetsWeather() Early To Avoid Weather Being Set Before Custom Levels Are Registered.", DebugType.User);
                 return (false);
             }
-            else*/
             return (true);
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(StartOfRound), "SetPlanetsWeather")]
+        [HarmonyPostfix]
+        internal static void StartOfRoundSetPlanetsWeather_Postfix()
+        {
+            if (LethalLevelLoaderNetworkManager.Instance.IsServer)
+                LethalLevelLoaderNetworkManager.Instance.GetUpdatedLevelCurrentWeatherServerRpc();
         }
 
         public static bool hasInitiallyChangedLevel;
@@ -331,15 +337,18 @@ namespace LethalLevelLoader
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                     if (extendedLevel.SelectableLevel.name == SaveManager.currentSaveFile.CurrentLevelName)
                     {
-                        DebugHelper.Log("Loading Previously Saved SelectableLevel: " + extendedLevel.SelectableLevel.PlanetName);
+                        DebugHelper.Log("Loading Previously Saved SelectableLevel: " + extendedLevel.SelectableLevel.PlanetName, DebugType.User);
                         levelID = StartOfRound.levels.ToList().IndexOf(extendedLevel.SelectableLevel);
                         hasInitiallyChangedLevel = true;
                         return (true);
                     }
+
+
             //If we can't find the previous current level, that probably means the game is going to try and use an ID bigger than the current array, or reference the wrong level, so we reset it back to experimentation here.
-            if (hasInitiallyChangedLevel == false && (levelID >= StartOfRound.levels.Length || levelID > OriginalContent.SelectableLevels.Count))
+            if (hasInitiallyChangedLevel == false && !string.IsNullOrEmpty(SaveManager.currentSaveFile.CurrentLevelName) && !SaveManager.currentSaveFile.CurrentLevelName.Contains("Experimentation") && (levelID >= StartOfRound.levels.Length || levelID > OriginalContent.SelectableLevels.Count))
                 levelID = 0;
 
+            hasInitiallyChangedLevel = true;
             return (true);
         }
 
@@ -351,7 +360,7 @@ namespace LethalLevelLoader
         {
             if (RoundManager.currentLevel != null && SaveManager.currentSaveFile.CurrentLevelName != RoundManager.currentLevel.PlanetName)
             {
-                DebugHelper.Log("Saving Current SelectableLevel: " + RoundManager.currentLevel.PlanetName);
+                DebugHelper.Log("Saving Current SelectableLevel: " + RoundManager.currentLevel.PlanetName, DebugType.User);
                 SaveManager.SaveCurrentSelectableLevel(RoundManager.currentLevel);
                 //LevelLoader.RefreshShipAnimatorClips(LevelManager.CurrentExtendedLevel);
             }
@@ -472,7 +481,7 @@ namespace LethalLevelLoader
                 List<int> sceneSelections = LevelManager.CurrentExtendedLevel.SceneSelections.Select(s => s.Rarity).ToList();
                 int selectedSceneIndex = RoundManager.GetRandomWeightedIndex(sceneSelections.ToArray(), RoundManager.LevelRandom);
                 sceneName = LevelManager.CurrentExtendedLevel.SceneSelections[selectedSceneIndex].Name;
-                DebugHelper.Log("Selected SceneName: " +  sceneName + " For ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName);
+                DebugHelper.Log("Selected SceneName: " +  sceneName + " For ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName, DebugType.Developer);
             }
         }
 
@@ -486,7 +495,7 @@ namespace LethalLevelLoader
             LevelManager.LogDayHistory();
 
             if (Patches.RoundManager.dungeonGenerator.Generator.DungeonFlow == null)
-                DebugHelper.LogError("Critical Failure! DungeonGenerator DungeonFlow Is Null!");
+                DebugHelper.LogError("Critical Failure! DungeonGenerator DungeonFlow Is Null!", DebugType.User);
         }
 
         //Basegame has a bug where it stops listening before it gets the Complete call, so this is just a fixed version of the basegame function.
@@ -495,7 +504,6 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static bool OnGenerationStatusChanged_Prefix(RoundManager __instance, GenerationStatus status)
         {
-            DebugHelper.Log(status.ToString());
             if (status == GenerationStatus.Complete && !__instance.dungeonCompletedGenerating)
             {
                 __instance.FinishGeneratingLevel();
@@ -578,7 +586,7 @@ namespace LethalLevelLoader
                 {
                     if (__instance.storyLogID == extendedStoryLog.storyLogID)
                     {
-                        DebugHelper.Log("Updating " + extendedStoryLog.storyLogTitle + "ID");
+                        DebugHelper.Log("Updating " + extendedStoryLog.storyLogTitle + "ID", DebugType.Developer);
                         __instance.storyLogID = extendedStoryLog.newStoryLogID;
                     }
                 }

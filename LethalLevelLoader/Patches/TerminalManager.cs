@@ -114,12 +114,12 @@ namespace LethalLevelLoader
         {
             if (onBeforeLoadNewNodeRegisteredEventsDictionary.TryGetValue(node, out LoadNodeAction pair))
             {
-                DebugHelper.Log("Running OnBeforeLoadNewNode Event For: " + node.name + ", CurrentNode Is: " + Terminal.currentNode);
+                DebugHelper.Log("Running OnBeforeLoadNewNode Event For: " + node.name + ", CurrentNode Is: " + Terminal.currentNode, DebugType.Developer);
                 return (pair.Invoke(Terminal.currentNode, node));
             }
             else
             {
-                DebugHelper.Log("Could Not Find Registered Event For: " + node.name);
+                DebugHelper.Log("Could Not Find Registered Event For: " + node.name, DebugType.Developer);
                 return (true);
             }
         }
@@ -128,11 +128,11 @@ namespace LethalLevelLoader
         {
             if (onLoadNewNodeRegisteredEventsDictionary.TryGetValue(node, out LoadNodeAction pair))
             {
-                DebugHelper.Log("Running OnLoadNewNode Event For: " + node.name + ", CurrentNode Is: " + Terminal.currentNode);
+                DebugHelper.Log("Running OnLoadNewNode Event For: " + node.name + ", CurrentNode Is: " + Terminal.currentNode, DebugType.Developer);
                 pair.Invoke(Terminal.currentNode, node);
             }
             else
-                DebugHelper.Log("Could Not Find Registered Event For: " + node.name);
+                DebugHelper.Log("Could Not Find Registered Event For: " + node.name, DebugType.Developer);
         }
 
         internal static bool RunLethalLevelLoaderTerminalEvents(TerminalNode node)
@@ -180,7 +180,7 @@ namespace LethalLevelLoader
             {
                 Settings.levelPreviewFilterType = (FilterInfoType)filterEnumValue;
                 currentTagFilter = GetTerminalEventString(loadNode.terminalEvent);
-                DebugHelper.Log("Tag EventString: " + GetTerminalEventString(loadNode.terminalEvent));
+                //DebugHelper.Log("Tag EventString: " + GetTerminalEventString(loadNode.terminalEvent));
             }
 
             RefreshExtendedLevelGroups();
@@ -249,12 +249,12 @@ namespace LethalLevelLoader
                 if (loadNodeActionType == LoadNodeActionType.Before && !onBeforeLoadNewNodeRegisteredEventsDictionary.ContainsKey(node))
                 {
                     onBeforeLoadNewNodeRegisteredEventsDictionary.Add(node, action);
-                    DebugHelper.Log("Successfully Registered OnBeforeLoadNode Action: " + action.Method.Name + " To TerminalNode: " + node.name);
+                    DebugHelper.Log("Successfully Registered OnBeforeLoadNode Action: " + action.Method.Name + " To TerminalNode: " + node.name, DebugType.Developer);
                 }
                 else if (loadNodeActionType == LoadNodeActionType.After && !onLoadNewNodeRegisteredEventsDictionary.ContainsKey(node))
                 {
                     onLoadNewNodeRegisteredEventsDictionary.Add(node, action);
-                    DebugHelper.Log("Successfully Registered OnLoadNode Action: " + action.Method.Name + " To TerminalNode: " + node.name);
+                    DebugHelper.Log("Successfully Registered OnLoadNode Action: " + action.Method.Name + " To TerminalNode: " + node.name, DebugType.Developer);
                 }
             }
         }
@@ -279,19 +279,19 @@ namespace LethalLevelLoader
                     }
                     else
                     {
-                        DebugHelper.LogError("Failed To get Moons Catalogue overview text dynamically, falling back to hardcoded English variant.");
+                        DebugHelper.LogError("Failed To get Moons Catalogue overview text dynamically, falling back to hardcoded English variant.", DebugType.Developer);
                         overviewText = fallbackOverviewText;
                     }
                 }
                 else
                 {
-                    DebugHelper.LogError("Failed To get Moons Catalogue overview text dynamically, falling back to hardcoded English variant.");
+                    DebugHelper.LogError("Failed To get Moons Catalogue overview text dynamically, falling back to hardcoded English variant.", DebugType.Developer);
                     overviewText = fallbackOverviewText;
                 }
             }
             else
             {
-                DebugHelper.LogError("Failed To get Moons Catalogue overview text dynamically, falling back to hardcoded English variant.");
+                DebugHelper.LogError("Failed To get Moons Catalogue overview text dynamically, falling back to hardcoded English variant.", DebugType.Developer);
                 overviewText = fallbackOverviewText;
             }
 
@@ -397,7 +397,7 @@ namespace LethalLevelLoader
 
         internal static string GetSimulationResultsText(ExtendedLevel extendedLevel)
         {
-            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = new List<ExtendedDungeonFlowWithRarity>(DungeonManager.GetValidExtendedDungeonFlows(extendedLevel, false).OrderBy(o => -(o.rarity)).ToList());
+            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = new List<ExtendedDungeonFlowWithRarity>(DungeonManager.GetValidExtendedDungeonFlows(extendedLevel, true).OrderBy(o => -(o.rarity)).ToList());
             string overrideString = "Simulating arrival to " + extendedLevel.SelectableLevel.PlanetName + "\nAnalyzing potential remnants found on surface. \nListing generated probabilities below.\n____________________________ \n\nPOSSIBLE STRUCTURES: \n";
             int totalRarityPool = 0;
             foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowResult in availableExtendedFlowsList)
@@ -493,9 +493,9 @@ namespace LethalLevelLoader
 
         internal static void CreateExtendedLevelGroups()
         {
-            DebugHelper.Log("Creating ExtendedLevelGroups");
+            DebugHelper.Log("Creating ExtendedLevelGroups", DebugType.Developer);
             foreach (SelectableLevel level in OriginalContent.MoonsCatalogue)
-                DebugHelper.Log(level.PlanetName.ToString());
+                DebugHelper.Log(level.PlanetName.ToString(), DebugType.Developer);
             ExtendedLevelGroup vanillaGroupA = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(0, 3));
             ExtendedLevelGroup vanillaGroupB = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(3, 3));
             ExtendedLevelGroup vanillaGroupC = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(6, 3));
@@ -522,7 +522,8 @@ namespace LethalLevelLoader
                 if (customExtendedLevelLists.Value.Count == 1)
                     singleExtendedLevelsList.Add(customExtendedLevelLists.Value[0]);
                 else
-                    defaultCustomGroupedExtendedLevelGroups.Add(new ExtendedLevelGroup(customExtendedLevelLists.Value));
+                    foreach (ExtendedLevelGroup extendedLevelGroup in GetExtendedLevelGroups(customExtendedLevelLists.Value.ToArray(), Settings.moonsCatalogueSplitCount))
+                        defaultCustomGroupedExtendedLevelGroups.Add(extendedLevelGroup);
             }
 
             //defaultCustomExtendedLevelGroups.Add(new ExtendedLevelGroup(singleExtendedLevelsList.OrderBy(o => o.CalculatedDifficultyRating).ToList()));
@@ -543,20 +544,10 @@ namespace LethalLevelLoader
 
                 counter++;
             }
-            DebugHelper.Log(debugString);
+            DebugHelper.Log(debugString, DebugType.Developer);
             defaultMoonsCataloguePage = new MoonsCataloguePage(allDefaultExtendedLevelGroups);
             currentMoonsCataloguePage = new MoonsCataloguePage(new List<ExtendedLevelGroup>());
             RefreshExtendedLevelGroups();
-        }
-
-        internal static bool DebugCustomRouteNodes(TerminalNode currentNode, TerminalNode loadNode)
-        {
-            if (currentNode != null)
-                DebugHelper.Log("Debug Custom Route Node! CurretNode Is: " + currentNode.name + ", LoadNode Is: " + loadNode.name);
-            else
-                DebugHelper.Log("Debug Custom Route Node! CurretNode Is: Null! , LoadNode Is: " + loadNode.name);
-
-            return (true);
         }
 
         internal static void CreateLevelTerminalData(ExtendedLevel extendedLevel, int routePrice)
@@ -778,9 +769,11 @@ namespace LethalLevelLoader
         internal static void CreateEnemyTypeTerminalData(ExtendedEnemyType extendedEnemyType)
         {
             TerminalKeyword newEnemyInfoKeyword = CreateNewTerminalKeyword();
+            newEnemyInfoKeyword.name = extendedEnemyType.name + "BestiaryKeyword";
             newEnemyInfoKeyword.word = extendedEnemyType.EnemyDisplayName.ToLower();
 
             TerminalNode newEnemyInfoNode = CreateNewTerminalNode();
+            newEnemyInfoNode.name = extendedEnemyType.name + "BestiaryNode";
             newEnemyInfoNode.displayText = extendedEnemyType.InfoNodeDescription;
             newEnemyInfoNode.creatureFileID = extendedEnemyType.EnemyID;
             newEnemyInfoNode.creatureName = extendedEnemyType.EnemyDisplayName;
@@ -892,6 +885,7 @@ namespace LethalLevelLoader
         internal static TerminalKeyword CreateNewTerminalKeyword()
         {
             TerminalKeyword newTerminalKeyword = ScriptableObject.CreateInstance<TerminalKeyword>();
+            newTerminalKeyword.name = "NewLethalLevelLoaderTerminalKeyword";
 
             newTerminalKeyword.compatibleNouns = new CompatibleNoun[0];
             newTerminalKeyword.defaultVerb = null;
@@ -903,6 +897,7 @@ namespace LethalLevelLoader
         internal static TerminalNode CreateNewTerminalNode()
         {
             TerminalNode newTerminalNode = ScriptableObject.CreateInstance<TerminalNode>();
+            newTerminalNode.name = "NewLethalLevelLoaderTerminalNode";
 
             newTerminalNode.displayText = string.Empty;
             newTerminalNode.terminalEvent = string.Empty;

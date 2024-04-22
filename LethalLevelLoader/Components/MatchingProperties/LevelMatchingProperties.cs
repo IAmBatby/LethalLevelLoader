@@ -13,23 +13,24 @@ namespace LethalLevelLoader
         [Space(5)] public List<StringWithRarity> currentWeather = new List<StringWithRarity>();
         [Space(5)] public List<StringWithRarity> planetNames = new List<StringWithRarity>();
 
+        public static new LevelMatchingProperties Create(ExtendedContent extendedContent)
+        {
+            LevelMatchingProperties levelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
+            levelMatchingProperties.name = extendedContent.name + "LevelMatchingProperties";
+            return (levelMatchingProperties);
+        }
+
         public int GetDynamicRarity(ExtendedLevel extendedLevel)
         {
             int returnRarity = 0;
 
-            if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedTags(extendedLevel.ContentTags, levelTags)))
-                DebugHelper.Log("Raised Rarity Due To Matching Level Tags!");
-            if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.AuthorName, authorNames)))
-                DebugHelper.Log("Raised Rarity Due To Matching Author Name!");
-            foreach (string modNameAlias in extendedLevel.ExtendedMod.ModNameAliases)
-                if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(modNameAlias, modNames)))
-                    DebugHelper.Log("Raised Rarity Due To Matching Mod Name!");
-            if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.NumberlessPlanetName, planetNames)))
-                DebugHelper.Log("Raised Rarity Due To Matching Planet Name!");
-            if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingWithinRanges(extendedLevel.RoutePrice, currentRoutePrice)))
-                DebugHelper.Log("Raised Rarity Due To Matching Route Price!");
-            if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.SelectableLevel.currentWeather.ToString(), currentWeather)))
-                DebugHelper.Log("Raised Rarity Due To Matching Current Weather!");
+            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedTags(extendedLevel.ContentTags, levelTags), extendedLevel.name, "Content Tags");
+            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.AuthorName, authorNames), extendedLevel.name, "Author Name");
+            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedStrings(extendedLevel.ExtendedMod.ModNameAliases, modNames), extendedLevel.name, "Mod Name");
+            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingWithinRanges(extendedLevel.RoutePrice, currentRoutePrice), extendedLevel.name, "Route Price");
+            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.NumberlessPlanetName, planetNames), extendedLevel.name, "Planet Name");
+            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.SelectableLevel.currentWeather.ToString(), currentWeather), extendedLevel.name, "Current Weather");
+
 
             return (returnRarity);
         }

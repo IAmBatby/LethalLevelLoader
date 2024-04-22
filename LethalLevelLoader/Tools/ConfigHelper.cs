@@ -125,7 +125,7 @@ namespace LethalLevelLoader
                 {
                     if (SanitizeString(item.itemName).Contains(SanitizeString(stringString.Name)) || SanitizeString(stringString.Name).Contains(SanitizeString(item.itemName)))
                     {
-                        DebugHelper.Log("Vanilla Item Name: " + SanitizeString(item.itemName) + " , Parsed Item Name: " + SanitizeString(stringString.Name));
+                        DebugHelper.Log("Vanilla Item Name: " + SanitizeString(item.itemName) + " , Parsed Item Name: " + SanitizeString(stringString.Name), DebugType.Developer);
                         SpawnableItemWithRarity newItem = new SpawnableItemWithRarity();
                         newItem.spawnableItem = item;
                         newItem.rarity = stringString.Rarity;

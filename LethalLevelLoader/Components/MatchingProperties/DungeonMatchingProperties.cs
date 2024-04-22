@@ -11,19 +11,20 @@ namespace LethalLevelLoader
         [Space(5)] public List<StringWithRarity> dungeonTags = new List<StringWithRarity>();
         [Space(5)] public List<StringWithRarity> dungeonNames = new List<StringWithRarity>();
 
+        public static new DungeonMatchingProperties Create(ExtendedContent extendedContent)
+        {
+            DungeonMatchingProperties dungeonMatchingProperties = ScriptableObject.CreateInstance<DungeonMatchingProperties>();
+            dungeonMatchingProperties.name = extendedContent.name + "DungeonMatchingProperties";
+            return (dungeonMatchingProperties);
+        }
         public int GetDynamicRarity(ExtendedDungeonFlow extendedDungeonFlow)
         {
             int returnRarity = 0;
 
-            if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedTags(extendedDungeonFlow.ContentTags, dungeonNames)))
-                DebugHelper.Log("Raised Rarity Due To Matching Dungeon Tags!");
-            if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedDungeonFlow.AuthorName, authorNames)))
-                DebugHelper.Log("Raised Rarity Due To Matching Author Name!");
-            foreach (string modNameAlias in extendedDungeonFlow.ExtendedMod.ModNameAliases)
-                if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(modNameAlias, modNames)))
-                    DebugHelper.Log("Raised Rarity Due To Matching Mod Name!");
-            if (UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedDungeonFlow.dungeonFlow.name, dungeonNames)))
-                DebugHelper.Log("Raised Rarity Due To Matching Dungeon Name!");
+            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedTags(extendedDungeonFlow.ContentTags, dungeonNames), extendedDungeonFlow.name, "Content Tags");
+            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedDungeonFlow.AuthorName, authorNames), extendedDungeonFlow.name, "Author Name");
+            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedStrings(extendedDungeonFlow.ExtendedMod.ModNameAliases, modNames), extendedDungeonFlow.name, "Mod Name Name");
+            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedDungeonFlow.DungeonFlow.name, dungeonNames), extendedDungeonFlow.name, "Dungeon Name");
 
             return (returnRarity);
         }

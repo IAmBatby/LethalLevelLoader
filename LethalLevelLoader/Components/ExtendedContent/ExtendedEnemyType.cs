@@ -49,7 +49,7 @@ namespace LethalLevelLoader
 
         public void Initalize()
         {
-            DebugHelper.Log("Initializing Custom Enemy: " + EnemyType.enemyName);
+            DebugHelper.Log("Initializing Custom Enemy: " + EnemyType.enemyName, DebugType.Developer);
 
             TryCreateMatchingProperties();
         }
@@ -57,13 +57,13 @@ namespace LethalLevelLoader
         internal override void TryCreateMatchingProperties()
         {
             if (InsideLevelMatchingProperties == null)
-                InsideLevelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
+                InsideLevelMatchingProperties = LevelMatchingProperties.Create(this);
             if (InsideDungeonMatchingProperties == null)
-                InsideDungeonMatchingProperties = ScriptableObject.CreateInstance<DungeonMatchingProperties>();
+                InsideDungeonMatchingProperties = DungeonMatchingProperties.Create(this);
             if (OutsideLevelMatchingProperties == null)
-                OutsideLevelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
+                OutsideLevelMatchingProperties = LevelMatchingProperties.Create(this);
             if (DaytimeLevelMatchingProperties == null)
-                DaytimeLevelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
+                DaytimeLevelMatchingProperties = LevelMatchingProperties.Create(this);
         }
     }
 }

@@ -11,10 +11,24 @@ namespace LethalLevelLoader
         [Space(5)] public List<StringWithRarity> modNames = new List<StringWithRarity>();
         [Space(5)] public List<StringWithRarity> authorNames = new List<StringWithRarity>();
 
-        internal static bool UpdateRarity(ref int currentValue, int newValue)
+        public static MatchingProperties Create(ExtendedContent extendedContent)
+        {
+            MatchingProperties matchingProperties = ScriptableObject.CreateInstance<MatchingProperties>();
+            matchingProperties.name = extendedContent.name + "MatchingProperties";
+            return (matchingProperties);
+        }
+
+        internal static bool UpdateRarity(ref int currentValue, int newValue, string debugActionObject = null, string debugActionReason = null)
         {
             if (newValue > currentValue)
             {
+                if (!string.IsNullOrEmpty(debugActionReason))
+                {
+                    if (!string.IsNullOrEmpty(debugActionObject))
+                        DebugHelper.Log("Raised Rarity Of: " + debugActionObject + " From (" + currentValue + ") To (" + newValue + ") Due To Matching " + debugActionReason, DebugType.Developer);
+                    else
+                        DebugHelper.Log("Raised Rarity From (" + currentValue + ") To (" + newValue + ") Due To Matching " + debugActionReason, DebugType.Developer);
+                }
                 currentValue = newValue;
                 return (true);
             }

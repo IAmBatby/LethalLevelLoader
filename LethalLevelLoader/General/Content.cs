@@ -179,10 +179,11 @@ namespace LethalLevelLoader
 
         public static void RegisterExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
         {
+            extendedDungeonFlow.ConvertObsoleteValues();
             if (string.IsNullOrEmpty(extendedDungeonFlow.name))
             {
-                DebugHelper.LogWarning("Tried to register ExtendedDungeonFlow with missing name! Setting to DungeonFlow name for safety!");
-                extendedDungeonFlow.name = extendedDungeonFlow.dungeonFlow.name;
+                DebugHelper.LogWarning("Tried to register ExtendedDungeonFlow with missing name! Setting to DungeonFlow name for safety!", DebugType.Developer);
+                extendedDungeonFlow.name = extendedDungeonFlow.DungeonFlow.name;
             }
             AssetBundleLoader.RegisterNewExtendedContent(extendedDungeonFlow, extendedDungeonFlow.name);
         }
@@ -194,7 +195,7 @@ namespace LethalLevelLoader
 
         public static void RegisterExtendedMod(ExtendedMod extendedMod)
         {
-            DebugHelper.Log("Registering ExtendedMod: " + extendedMod.ModName + " Manually.");
+            DebugHelper.Log("Registering ExtendedMod: " + extendedMod.ModName + " Manually.", DebugType.Developer);
             AssetBundleLoader.RegisterExtendedMod(extendedMod);
         }
 
