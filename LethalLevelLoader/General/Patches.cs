@@ -322,7 +322,7 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         internal static void StartOfRoundSetPlanetsWeather_Postfix()
         {
-            if (LethalLevelLoaderNetworkManager.Instance.IsServer)
+            if (StartOfRound.IsServer)
                 LethalLevelLoaderNetworkManager.Instance.GetUpdatedLevelCurrentWeatherServerRpc();
         }
 
@@ -332,6 +332,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         public static bool StartOfRoundChangeLevel_Prefix(ref int levelID)
         {
+            /*
             //Because Level ID's can change between modpack adjustments and such, we save the name of the level instead and find and load that up instead of the saved ID the basegame uses.
             if (hasInitiallyChangedLevel == false && !string.IsNullOrEmpty(SaveManager.currentSaveFile.CurrentLevelName))
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
@@ -349,6 +350,7 @@ namespace LethalLevelLoader
                 levelID = 0;
 
             hasInitiallyChangedLevel = true;
+            */
             return (true);
         }
 
@@ -358,12 +360,14 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         public static void StartOfRoundChangeLevel_Postfix(int levelID)
         {
+            /*
             if (RoundManager.currentLevel != null && SaveManager.currentSaveFile.CurrentLevelName != RoundManager.currentLevel.PlanetName)
             {
                 DebugHelper.Log("Saving Current SelectableLevel: " + RoundManager.currentLevel.PlanetName, DebugType.User);
                 SaveManager.SaveCurrentSelectableLevel(RoundManager.currentLevel);
                 //LevelLoader.RefreshShipAnimatorClips(LevelManager.CurrentExtendedLevel);
             }
+            */
         }
 
         [HarmonyPriority(harmonyPriority)]

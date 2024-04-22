@@ -15,6 +15,9 @@ namespace LethalLevelLoader
 
         internal static void InitializeSave()
         {
+            if (Patches.StartOfRound.IsServer == false)
+                return;
+
             if (GameNetworkManager.Instance.currentSaveFileName.Contains("LC"))
                 currentSaveFile = new LLLSaveFile(GameNetworkManager.Instance.currentSaveFileName.Replace("LC", "LLL"));
             else
@@ -150,6 +153,7 @@ namespace LethalLevelLoader
 
         internal static void RefreshSaveItemInfo()
         {
+            /*
             currentSaveFile.customItemDictionary = new Dictionary<string, string>();
 
             currentSaveFile.allItemsList = new List<string>();
@@ -168,13 +172,15 @@ namespace LethalLevelLoader
                     currentSaveFile.customItemDictionary.Add(extendedItem.ModName + "_" + extendedItem.name, extendedItem.ModName);
 
 
-            currentSaveFile.Save();
+            currentSaveFile.Save();*/
         }
 
         internal static void SaveCurrentSelectableLevel(SelectableLevel selectableLevel)
         {
+            /*
             currentSaveFile.CurrentLevelName = selectableLevel.name;
             currentSaveFile.Save();
+            */
         }
 
         internal static List<AllItemsListItemData> GetItemSaveData()
