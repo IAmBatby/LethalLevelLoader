@@ -15,7 +15,7 @@ namespace LethalLevelLoader
 
         internal static void InitializeSave()
         {
-            if (Patches.StartOfRound.IsServer == false)
+            if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false)
                 return;
 
             if (GameNetworkManager.Instance.currentSaveFileName.Contains("LC"))
@@ -177,7 +177,7 @@ namespace LethalLevelLoader
 
         internal static void SaveCurrentSelectableLevel(SelectableLevel selectableLevel)
         {
-            if (Patches.StartOfRound.IsServer == false)
+            if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false)
                 return;
             currentSaveFile.CurrentLevelName = selectableLevel.name;
             currentSaveFile.Save();

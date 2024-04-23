@@ -105,6 +105,7 @@ namespace LethalLevelLoader
         {
             if (Plugin.IsSetupComplete == false)
             {
+                LethalLevelLoaderNetworkManager.networkManager = __instance.GetComponent<NetworkManager>();
                 foreach (NetworkPrefab networkPrefab in __instance.GetComponent<NetworkManager>().NetworkConfig.Prefabs.m_Prefabs)
                     if (networkPrefab.Prefab.name.Contains("EntranceTeleport"))
                         if (networkPrefab.Prefab.GetComponent<AudioSource>() != null)
@@ -132,9 +133,12 @@ namespace LethalLevelLoader
             Plugin.OnBeforeSetupInvoke();
             //Reference Setup
             StartOfRound = __instance;
+            //StartOfRound.Instance = __instance;
             RoundManager = UnityEngine.Object.FindFirstObjectByType<RoundManager>();
+            //RoundManager.Instance = RoundManager;
             Terminal = UnityEngine.Object.FindFirstObjectByType<Terminal>();
             TimeOfDay = UnityEngine.Object.FindFirstObjectByType<TimeOfDay>();
+            //TimeOfDay.Instance = TimeOfDay;
 
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.sceneLoaded += EventPatches.OnSceneLoaded;
@@ -289,7 +293,7 @@ namespace LethalLevelLoader
 
             DebugStopwatch.StartStopWatch("Initalize Save");
 
-            if (StartOfRound.IsServer)
+            if (LethalLevelLoaderNetworkManager.networkManager.IsServer)
             {
                 SaveManager.InitializeSave();
                 SaveManager.RefreshSaveItemInfo();
@@ -324,7 +328,7 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         internal static void StartOfRoundSetPlanetsWeather_Postfix()
         {
-            if (StartOfRound.IsServer)
+            if (LethalLevelLoaderNetworkManager.networkManager.IsServer)
                 LethalLevelLoaderNetworkManager.Instance.GetUpdatedLevelCurrentWeatherServerRpc();
         }
 
@@ -334,7 +338,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         public static bool StartOfRoundChangeLevel_Prefix(ref int levelID)
         {
-            if (StartOfRound.IsServer == false)
+            if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false)
                 return (true);
 
             //Because Level ID's can change between modpack adjustments and such, we save the name of the level instead and find and load that up instead of the saved ID the basegame uses.
@@ -363,7 +367,7 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         public static void StartOfRoundChangeLevel_Postfix(int levelID)
         {
-            if (StartOfRound.IsServer == false)
+            if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false)
                 return;
 
             if (RoundManager.currentLevel != null && SaveManager.currentSaveFile.CurrentLevelName != RoundManager.currentLevel.PlanetName)
@@ -667,5 +671,49 @@ namespace LethalLevelLoader
                     }
             */
         }
+
+        //DunGen Optimisation Patches (Credit To LadyRaphtalia, Author Of Scarlet Devil Mansion)
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(DoorwayPairFinder), "GetDoorwayPairs")]
+        [HarmonyPrefix]
+        public static bool GetDoorwayPairsPatch(ref DoorwayPairFinder __instance, int? maxCount, ref Queue<DoorwayPair> __result)
+        {
+
+            __instance.tileOrder = __instance.CalculateOrderedListOfTiles();
+            var doorwayPairs = __instance.PreviousTile == null ?
+              __instance.GetPotentialDoorwayPairsForFirstTile() :
+              __instance.GetPotentialDoorwayPairsForNonFirstTile();
+
+            var num = doorwayPairs.Count();
+            if (maxCount != null)
+            {
+                num = Mathf.Min(num, maxCount.Value);
+            }
+            __result = new Queue<DoorwayPair>(num);
+
+            var newList = OrderDoorwayPairs(doorwayPairs, num);
+            foreach (var item in newList)
+            {
+                __result.Enqueue(item);
+            }
+
+            return false;
+        }
+
+        private class DoorwayPairComparer : IComparer<DoorwayPair>
+        {
+            public int Compare(DoorwayPair x, DoorwayPair y)
+            {
+                var tileWeight = y.TileWeight.CompareTo(x.TileWeight);
+                if (tileWeight == 0) return y.DoorwayWeight.CompareTo(x.DoorwayWeight);
+                return tileWeight;
+            }
+        }
+
+        private static IEnumerable<DoorwayPair> OrderDoorwayPairs(IEnumerable<DoorwayPair> list, int num)
+        {
+            return list.OrderBy(x => x, new DoorwayPairComparer()).Take(num);
+        }
+
     }
 }

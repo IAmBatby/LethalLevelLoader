@@ -28,6 +28,7 @@ namespace LethalLevelLoader
             }
             set { _instance = value; }
         }
+        public static NetworkManager networkManager;
 
         private static List<GameObject> queuedNetworkPrefabs = new List<GameObject>();
         public static bool networkHasStarted;
