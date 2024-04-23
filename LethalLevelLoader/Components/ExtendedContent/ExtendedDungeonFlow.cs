@@ -44,21 +44,21 @@ namespace LethalLevelLoader
         [Space(25)]
         [Header("Obsolete (Legacy Fields, Will Be Removed In The Future)")]
         //public bool IsDynamicDungeonSizeRestrictionEnabled = false;
-        public bool generateAutomaticConfigurationOptions = false;
-        public bool enableDynamicDungeonSizeRestriction = false;
-        public float dungeonSizeMin = 1;
-        public float dungeonSizeMax = 1;
-        [Range(0, 1)] public float dungeonSizeLerpPercentage = 1;
-        public AudioClip dungeonFirstTimeAudio;
-        public DungeonFlow dungeonFlow;
-        public string dungeonDisplayName = string.Empty;
-        public string contentSourceName = string.Empty;
-        public List<StringWithRarity> dynamicLevelTagsList = new List<StringWithRarity>();
-        public List<Vector2WithRarity> dynamicRoutePricesList = new List<Vector2WithRarity>();
-        public List<StringWithRarity> dynamicCurrentWeatherList = new List<StringWithRarity>();
-        public List<StringWithRarity> manualPlanetNameReferenceList = new List<StringWithRarity>();
-        public List<StringWithRarity> manualContentSourceNameReferenceList = new List<StringWithRarity>();
-        [HideInInspector] public int dungeonDefaultRarity;
+        [Obsolete] public bool generateAutomaticConfigurationOptions = false;
+        [Obsolete] public bool enableDynamicDungeonSizeRestriction = false;
+        [Obsolete] public float dungeonSizeMin = 1;
+        [Obsolete] public float dungeonSizeMax = 1;
+        [Obsolete][Range(0, 1)] public float dungeonSizeLerpPercentage = 1;
+        [Obsolete] public AudioClip dungeonFirstTimeAudio;
+        [Obsolete] public DungeonFlow dungeonFlow;
+        [Obsolete] public string dungeonDisplayName = string.Empty;
+        [Obsolete] public string contentSourceName = string.Empty;
+        [Obsolete] public List<StringWithRarity> dynamicLevelTagsList = new List<StringWithRarity>();
+        [Obsolete] public List<Vector2WithRarity> dynamicRoutePricesList = new List<Vector2WithRarity>();
+        [Obsolete] public List<StringWithRarity> dynamicCurrentWeatherList = new List<StringWithRarity>();
+        [Obsolete] public List<StringWithRarity> manualPlanetNameReferenceList = new List<StringWithRarity>();
+        [Obsolete] public List<StringWithRarity> manualContentSourceNameReferenceList = new List<StringWithRarity>();
+        [Obsolete][HideInInspector] public int dungeonDefaultRarity;
 
         // HideInInspector
         public int DungeonID { get; internal set; }

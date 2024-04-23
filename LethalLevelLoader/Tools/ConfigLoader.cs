@@ -26,9 +26,9 @@ namespace LethalLevelLoader.Tools
 
             foreach (ExtendedDungeonFlow extendedDungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
             {
-                extendedDungeonFlow.ConvertObsoleteValues();
                 ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(configFile, "Custom Dungeon:  " + extendedDungeonFlow.DungeonName.StripSpecialCharacters(), 9);
                 newConfig.BindConfigs(extendedDungeonFlow);
+                extendedDungeonFlow.ConvertObsoleteValues();
             }
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.VanillaExtendedLevels)

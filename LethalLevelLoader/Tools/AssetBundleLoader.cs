@@ -76,6 +76,8 @@ namespace LethalLevelLoader
 
         internal static TextMeshProUGUI loadingBundlesHeaderText;
 
+        internal static bool noBundlesFound = false;
+
         internal static bool hasRequestedToLoadMainMenu;
 
         //This Function is used to Register NetworkPrefabs to the GameNetworkManager on GameNetworkManager.Start()
@@ -126,9 +128,15 @@ namespace LethalLevelLoader
             if (counter == 0)
             {
                 DebugHelper.Log("No Bundles Found!", DebugType.User);
+                noBundlesFound = true;
                 CurrentLoadingStatus = LoadingStatus.Complete;
                 onBundlesFinishedLoading?.Invoke();
             }
+        }
+
+        internal static void OnBundlesFinishedLoadingInvoke()
+        {
+            onBundlesFinishedLoading?.Invoke();
         }
 
         IEnumerator LoadBundle(string bundleFile, string fileName)

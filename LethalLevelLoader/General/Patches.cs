@@ -16,6 +16,7 @@ using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Device;
 using UnityEngine.SceneManagement;
+using static LethalLevelLoader.AssetBundleLoader;
 using NetworkManager = Unity.Netcode.NetworkManager;
 
 namespace LethalLevelLoader
@@ -47,6 +48,12 @@ namespace LethalLevelLoader
 
                 //AssetBundleLoader.LoadBundles(__instance);
                 //AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
+
+                if (AssetBundleLoader.noBundlesFound == true)
+                {
+                    CurrentLoadingStatus = LoadingStatus.Complete;
+                    AssetBundleLoader.OnBundlesFinishedLoadingInvoke();
+                }
 
 
                 ContentTagParser.ImportVanillaContentTags();

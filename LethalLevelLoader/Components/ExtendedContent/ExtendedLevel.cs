@@ -1,4 +1,5 @@
 ﻿using GameNetcodeStuff;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -52,9 +53,9 @@ namespace LethalLevelLoader
 
         [Space(25)]
         [Header("Obsolete (Legacy Fields, Will Be Removed In The Future)")]
-        /*Obsolete*/ public SelectableLevel selectableLevel;
-        /*Obsolete*/ [Space(5)] public string contentSourceName = string.Empty; //Levels from AssetBundles will have this as their Assembly Name.
-        /*Obsolete*/ [Space(5)] public List<string> levelTags = new List<string>();
+        [Obsolete] public SelectableLevel selectableLevel;
+        [Obsolete][Space(5)] public string contentSourceName = string.Empty; //Levels from AssetBundles will have this as their Assembly Name.
+        [Obsolete][Space(5)] public List<string> levelTags = new List<string>();
 
         //Runtime Stuff
         public int RoutePrice
