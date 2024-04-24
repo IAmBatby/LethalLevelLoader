@@ -28,7 +28,11 @@ namespace LethalLevelLoader.Tools
             {
                 ExtendedDungeonConfig newConfig = new ExtendedDungeonConfig(configFile, "Custom Dungeon:  " + extendedDungeonFlow.DungeonName.StripSpecialCharacters(), 9);
                 newConfig.BindConfigs(extendedDungeonFlow);
-                extendedDungeonFlow.ConvertObsoleteValues();
+                if (extendedDungeonFlow.dynamicLevelTagsList.Count > 0 || extendedDungeonFlow.dynamicRoutePricesList.Count > 0 || extendedDungeonFlow.dynamicCurrentWeatherList.Count > 0 || extendedDungeonFlow.manualPlanetNameReferenceList.Count > 0 || extendedDungeonFlow.manualContentSourceNameReferenceList.Count > 0)
+                {
+                    DebugHelper.LogWarning("ExtendedDungeonFlow: " + extendedDungeonFlow.name + ": ExtendedDungeonFlow dynamic and manual match reference lists are Obsolete and will be removed in following releases, Please use ExtendedDungeonFlow.LevelMatchingProperties instead.", DebugType.Developer);
+                    extendedDungeonFlow.LevelMatchingProperties.ApplyValues(newAuthorNames: extendedDungeonFlow.manualContentSourceNameReferenceList, newPlanetNames: extendedDungeonFlow.manualPlanetNameReferenceList, newLevelTags: extendedDungeonFlow.dynamicLevelTagsList, newRoutePrices: extendedDungeonFlow.dynamicRoutePricesList, newCurrentWeathers: extendedDungeonFlow.dynamicCurrentWeatherList);
+                }
             }
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.VanillaExtendedLevels)
@@ -59,6 +63,7 @@ namespace LethalLevelLoader.Tools
 
             GeneralSettingsConfig newGeneralSettingsConfig = new GeneralSettingsConfig(configFile, " - LethalLevelLoader Settings -", 5);
             newGeneralSettingsConfig.BindConfigs();
+            DebugHelper.Log("Config Level Set As: " + Settings.debugType.ToString(), DebugType.User);
         }
 
         internal static string GetConfigCategory(string categoryName, string contentName)
