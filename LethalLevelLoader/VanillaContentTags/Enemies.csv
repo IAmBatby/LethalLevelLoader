@@ -1,5 +1,5 @@
 ,Is Automatically Applied:,No,No,No,No,No,No,No,No,No,No
-Item Name,Total Tags,18,12,3,6,13,13,4,5,15,3
+Item Name,Total Tags,18,13,3,6,13,13,4,5,15,3
 ,,Organic,Killable,Passive,Neutral,Hostile,Biped,Quadruped,Small,Medium,Large
 Baboon Hawk,5,Organic,Killable,,Neutral,,Biped,,,Medium,
 Bunker Spider,5,Organic,Killable,,Neutral,,,Quadruped,,Medium,
@@ -7,7 +7,7 @@ Flowerman,5,Organic,Killable,,,Hostile,Biped,,,Medium,
 Spring Man,3,,,,,Hostile,Biped,,,Medium,
 Earth Leviathan,3,Organic,,,,Hostile,,,,,Large
 Mouth Dog,5,Organic,Killable,,,Hostile,,Quadruped,,Medium,
-Forest Giant,4,Organic,,,,Hostile,Biped,,,,Large
+Forest Giant,5,Organic,Killable,,,Hostile,Biped,,,,Large
 Dress Girl,3,,,,,Hostile,Biped,,Small,,
 Hoarding Bug,5,Organic,Killable,,Neutral,,Biped,,,Medium,
 Blob,3,Organic,,,Neutral,,,,Small,,

@@ -150,11 +150,11 @@ namespace LethalLevelLoader.Tools
 
                 // ----- Getting -----
                 subCategory = "Dungeon Injection Settings - ";
-                manualModNames = BindValue("Manual Mod Names List", "Add this Dungeon to any Level's randomisaton pool in a specific mod based on matching Mod Names. (Minimum: 0, Maximum: 9999)", "Lethal Company:300, MoreMoonsMod: 100");
-                manualLevelNames = BindValue("Manual Level Names List", "Add this Dungeon to a Level's randomisaton pool based on matching Level Names. (Minimum: 0, Maximum: 9999)", "Titan:300,vowLevel:40,220. Assurance: 41, Egypt");
+                manualModNames = BindValue("Manual Mod Names List", "Add this Dungeon to any Level's randomisaton pool in a specific mod based on matching Mod Names. (Minimum: 0, Maximum: 9999)", ConfigHelper.StringWithRaritiesToString(extendedDungeonFlow.LevelMatchingProperties.modNames));
+                manualLevelNames = BindValue("Manual Level Names List", "Add this Dungeon to a Level's randomisaton pool based on matching Level Names. (Minimum: 0, Maximum: 9999)", ConfigHelper.StringWithRaritiesToString(extendedDungeonFlow.LevelMatchingProperties.planetNames));
 
-                dynamicLevelTags = BindValue("Dynamic Level Tags List", "Add this Dungeon to a Level's randomisaton pool based on matching Level Tags. (Minimum: 0, Maximum: 9999)", "Wasteland:200");
-                dynamicRoutePrices = BindValue("Dynamic Route Price List", "Add this Dungeon to a Level's randomisaton pool based on matching Route Prices. (Minimum: 0, Maximum: 9999)", "500-800:30, 20-20:800, 100-100,4");
+                dynamicLevelTags = BindValue("Dynamic Level Tags List", "Add this Dungeon to a Level's randomisaton pool based on matching Level Tags. (Minimum: 0, Maximum: 9999)", ConfigHelper.StringWithRaritiesToString(extendedDungeonFlow.LevelMatchingProperties.levelTags));
+                dynamicRoutePrices = BindValue("Dynamic Route Price List", "Add this Dungeon to a Level's randomisaton pool based on matching Route Prices. (Minimum: 0, Maximum: 9999)", ConfigHelper.Vector2WithRaritiesToString(extendedDungeonFlow.LevelMatchingProperties.currentRoutePrice));
 
                 if (enableContentConfiguration.Value == true)
                 {
@@ -248,7 +248,7 @@ namespace LethalLevelLoader.Tools
                 maxScrapItemSpawns = BindValue("Maximum Scrap Item Spawns", "Override How Many Item's Can Spawn In This Level.", selectableLevel.maxScrap);
                 minTotalScrapValue = BindValue("Minimum Total Scrap Value", "Override How Much Total Value The Spawned Scrap Will Amount To In This Level.", selectableLevel.minTotalScrapValue);
                 maxTotalScrapValue = BindValue("Maximum Total Scrap Value", "Override How Much Total Value The Spawned Scrap Could Amount To In This Level.", selectableLevel.maxTotalScrapValue);
-                scrapOverrides = BindValue("Scrap Spawning List", "Add To Or Override The Spawnable Scrap Pool. (Minimum: 0, Maximum: 100)", SpawnableItemsWithRaritiesToString(selectableLevel.spawnableScrap));
+                scrapOverrides = BindValue("Scrap Spawning List", "Add To Or Override The Spawnable Scrap Pool. (Minimum: 0, Maximum: 100)", ConfigHelper.SpawnableItemsWithRaritiesToString(selectableLevel.spawnableScrap));
 
                 subCategory = "Enemy Settings - ";
 
@@ -256,9 +256,9 @@ namespace LethalLevelLoader.Tools
                 maxOutsideDaytimeEnemyPowerCount = BindValue("Maximum Outside, Daytime Enemy Power Count", "Override The Maximum Power Used To Spawn Enemies Outside During The Day.", selectableLevel.maxDaytimeEnemyPowerCount);
                 maxOutsideNighttimeEnemyPowerCount = BindValue("Maximum Outside, Nighttime Enemy Power Count", "Override The Maximum Power Used To Spawn Enemies Outside During The Night.", selectableLevel.maxOutsideEnemyPowerCount);
 
-                insideEnemiesOverrides = BindValue("Inside Enemies Spawning List", "Add To Or Override The Inside Enemy Spawn Pool. (Minimum: 0, Maximum: 100)", SpawnableEnemiesWithRaritiesToString(selectableLevel.Enemies));
-                outsideDaytimeEnemiesOverrides = BindValue("Outside Daytime Enemies Spawning List", "Add To Or Override The Outside, Daytime Enemy Spawn Pool. (Minimum: 0, Maximum: 100)", SpawnableEnemiesWithRaritiesToString(selectableLevel.DaytimeEnemies));
-                outsideNighttimeEnemiesOverrides = BindValue("Outside Nighttime Enemies Spawning List", "Add To Or Override The Outside, Nighttime Enemy Spawn Pool. (Minimum: 0, Maximum: 100)", SpawnableEnemiesWithRaritiesToString(selectableLevel.OutsideEnemies));
+                insideEnemiesOverrides = BindValue("Inside Enemies Spawning List", "Add To Or Override The Inside Enemy Spawn Pool. (Minimum: 0, Maximum: 100)", ConfigHelper.SpawnableEnemiesWithRaritiesToString(selectableLevel.Enemies));
+                outsideDaytimeEnemiesOverrides = BindValue("Outside Daytime Enemies Spawning List", "Add To Or Override The Outside, Daytime Enemy Spawn Pool. (Minimum: 0, Maximum: 100)", ConfigHelper.SpawnableEnemiesWithRaritiesToString(selectableLevel.DaytimeEnemies));
+                outsideNighttimeEnemiesOverrides = BindValue("Outside Nighttime Enemies Spawning List", "Add To Or Override The Outside, Nighttime Enemy Spawn Pool. (Minimum: 0, Maximum: 100)", ConfigHelper.SpawnableEnemiesWithRaritiesToString(selectableLevel.OutsideEnemies));
 
                 if (enableContentConfiguration.Value == true)
                 {
@@ -305,34 +305,6 @@ namespace LethalLevelLoader.Tools
                 description += "This is likely due to said content author providing alternative configuration options in their own Config.";
                 enableContentConfiguration = BindValue("Content Author Disabled Automatic Configuration File Warning", description, false);
             }
-        }
-
-        public string SpawnableEnemiesWithRaritiesToString(List<SpawnableEnemyWithRarity> spawnableEnemiesList)
-        {
-            string returnString = string.Empty;
-
-            foreach (SpawnableEnemyWithRarity spawnableEnemyWithRarity in spawnableEnemiesList)
-                returnString += spawnableEnemyWithRarity.enemyType.enemyName + ConfigHelper.keyPairSeperator + spawnableEnemyWithRarity.rarity.ToString() + ConfigHelper.indexSeperator;
-            if (returnString.Contains(",") && returnString.LastIndexOf(",") == (returnString.Length - 1))
-                returnString = returnString.Remove(returnString.LastIndexOf(","), 1);
-
-            if (returnString == string.Empty)
-                returnString = "Default Values Were Empty";
-            return (returnString);
-        }
-
-        public string SpawnableItemsWithRaritiesToString(List<SpawnableItemWithRarity> spawnableItemsList)
-        {
-            string returnString = string.Empty;
-
-            foreach (SpawnableItemWithRarity spawnableItemWithRarity in spawnableItemsList)
-                returnString += spawnableItemWithRarity.spawnableItem.itemName + ConfigHelper.keyPairSeperator + spawnableItemWithRarity.rarity.ToString() + ConfigHelper.indexSeperator;
-            if (returnString.Contains(",") && returnString.LastIndexOf(",") == (returnString.Length - 1))
-                returnString = returnString.Remove(returnString.LastIndexOf(","), 1);
-
-            if (returnString == string.Empty)
-                returnString = "Default Values Were Empty";
-            return (returnString);
         }
     }
 

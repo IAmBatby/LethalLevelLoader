@@ -9,12 +9,12 @@ namespace LethalLevelLoader
 {
     public static class ItemManager
     {
-        internal static void RefreshDynamicItemRarityOnAllExtendedLevels()
+        public static void RefreshDynamicItemRarityOnAllExtendedLevels()
         {
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                 InjectCustomItemsIntoLevelViaDynamicRarity(extendedLevel);
         }
-        internal static void InjectCustomItemsIntoLevelViaDynamicRarity(ExtendedLevel extendedLevel, bool debugResults = false)
+        public static void InjectCustomItemsIntoLevelViaDynamicRarity(ExtendedLevel extendedLevel, bool debugResults = false)
         {
             foreach (ExtendedItem extendedItem in PatchedContent.CustomExtendedItems)
             {

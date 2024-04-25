@@ -42,8 +42,8 @@ namespace LethalLevelLoader
             foreach (KeyValuePair<string, string> extendedItemSaveInfo in currentSaveFile.customItemDictionary)
                 DebugHelper.Log("Save Item Info: " + extendedItemSaveInfo.Key + " from " + extendedItemSaveInfo.Value);*/
 
-            foreach (AllItemsListItemData itemSaveData in currentSaveFile.itemSaveDataList)
-                DebugHelper.Log("Item Save Data: " + itemSaveData.itemName + ", " + itemSaveData.itemDisplayName + ", " + itemSaveData.modName + ", " + itemSaveData.allItemsListIndex, DebugType.Developer);
+            //foreach (AllItemsListItemData itemSaveData in currentSaveFile.itemSaveDataList)
+                //DebugHelper.Log("Item Save Data: " + itemSaveData.itemName + ", " + itemSaveData.itemDisplayName + ", " + itemSaveData.modName + ", " + itemSaveData.allItemsListIndex, DebugType.Developer);
 
 
             //ValidateSaveData();

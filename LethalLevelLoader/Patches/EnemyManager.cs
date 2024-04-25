@@ -11,13 +11,13 @@ namespace LethalLevelLoader
 {
     public class EnemyManager
     {
-        internal static void RefreshDynamicEnemyTypeRarityOnAllExtendedLevels()
+        public static void RefreshDynamicEnemyTypeRarityOnAllExtendedLevels()
         {
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                 InjectCustomEnemyTypesIntoLevelViaDynamicRarity(extendedLevel);
         }
 
-        internal static void InjectCustomEnemyTypesIntoLevelViaDynamicRarity(ExtendedLevel extendedLevel, bool debugResults = false)
+        public static void InjectCustomEnemyTypesIntoLevelViaDynamicRarity(ExtendedLevel extendedLevel, bool debugResults = false)
         {
             foreach (ExtendedEnemyType extendedEnemyType in PatchedContent.CustomExtendedEnemyTypes)
             {

@@ -138,6 +138,67 @@ namespace LethalLevelLoader
             return (returnList);
         }
 
+
+        public static string SpawnableEnemiesWithRaritiesToString(List<SpawnableEnemyWithRarity> spawnableEnemiesList)
+        {
+            string returnString = string.Empty;
+
+            foreach (SpawnableEnemyWithRarity spawnableEnemyWithRarity in spawnableEnemiesList)
+                returnString += spawnableEnemyWithRarity.enemyType.enemyName + ConfigHelper.keyPairSeperator + spawnableEnemyWithRarity.rarity.ToString() + ConfigHelper.indexSeperator;
+            if (returnString.Contains(",") && returnString.LastIndexOf(",") == (returnString.Length - 1))
+                returnString = returnString.Remove(returnString.LastIndexOf(","), 1);
+
+            if (returnString == string.Empty)
+                returnString = "Default Values Were Empty";
+            return (returnString);
+        }
+
+        public static string SpawnableItemsWithRaritiesToString(List<SpawnableItemWithRarity> spawnableItemsList)
+        {
+            string returnString = string.Empty;
+
+            foreach (SpawnableItemWithRarity spawnableItemWithRarity in spawnableItemsList)
+                returnString += spawnableItemWithRarity.spawnableItem.itemName + ConfigHelper.keyPairSeperator + spawnableItemWithRarity.rarity.ToString() + ConfigHelper.indexSeperator;
+            if (returnString.Contains(",") && returnString.LastIndexOf(",") == (returnString.Length - 1))
+                returnString = returnString.Remove(returnString.LastIndexOf(","), 1);
+
+            if (returnString == string.Empty)
+                returnString = "Default Values Were Empty";
+            return (returnString);
+        }
+
+        public static string StringWithRaritiesToString(List<StringWithRarity> names)
+        {
+            string returnString = string.Empty;
+
+            foreach (StringWithRarity name in names)
+                returnString += name.Name + ConfigHelper.keyPairSeperator + name.Rarity.ToString() + ConfigHelper.indexSeperator;
+
+            if (returnString.Contains(",") && returnString.LastIndexOf(",") == (returnString.Length - 1))
+                returnString = returnString.Remove(returnString.LastIndexOf(","), 1);
+
+            if (returnString == string.Empty)
+                returnString = "Default Values Were Empty";
+
+            return (returnString);
+        }
+
+        public static string Vector2WithRaritiesToString(List<Vector2WithRarity> values)
+        {
+            string returnString = string.Empty;
+
+            foreach (Vector2WithRarity vector2withRarity in values)
+                returnString += vector2withRarity.Min + vectorSeperator + vector2withRarity.Max + keyPairSeperator + vector2withRarity.Rarity + indexSeperator;
+
+            if (returnString.Contains(",") && returnString.LastIndexOf(",") == (returnString.Length - 1))
+                returnString = returnString.Remove(returnString.LastIndexOf(","), 1);
+
+            if (returnString == string.Empty)
+                returnString = "Default Values Were Empty";
+
+            return (returnString);
+        }
+
         public static List<string> SplitStringsByIndexSeperator(string newInputString)
         {
             List<string> stringList = new List<string>();

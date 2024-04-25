@@ -3,6 +3,28 @@
 
 **<details><summary>Version 1.2.0</summary>**
 
+**<details><summary>Fixes</summary>**
+
+* Updated LICENSE
+* Changed accessor for ExtendedDungeonFlow.GenerateAutomaticConfigurationOptions from internal to public
+* Fixed issue where ExtendedDungeonFlow.GenerationAutomaticConfigurationOptions was defaulting to false
+* Changed accessor for EnemyManager.RefreshDynamicEnemyTypeRarityOnAllExtendedLevels from internal to public
+* Changed accessor for EnemyManager.InjectCustomEnemyTypesIntoLevelViaDynamicRarity from internal to public
+* Changed accessor for ItemManager.RefreshDynamicItemRarityOnAllExtendedLevels from internal to public
+* Changed accessor for ItemManager.InjectCustomItemsIntoLevelViaDynamicRarity from internal to public
+* Changed ConfigLoader default dungeon binding to list current level matching values as default values
+* Added "Killable" ContentTag to Forest Giant
+* Added "Chargable" ContentTag to Jetpack
+* Added "Weapon" ContentTag to Knife
+* Added additional developer debug logging for the scene validation and selection process
+
+</details>
+
+</details>
+
+
+**<details><summary>Version 1.2.0</summary>**
+
 **<details><summary>Features</summary>**
 
 * Updated mod for Lethal Company version 50

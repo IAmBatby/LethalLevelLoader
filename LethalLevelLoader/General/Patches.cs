@@ -498,6 +498,13 @@ namespace LethalLevelLoader
 
                 RoundManager.InitializeRandomNumberGenerators();
 
+                int counter = 1;
+                foreach (StringWithRarity sceneSelection in LevelManager.CurrentExtendedLevel.SceneSelections)
+                {
+                    DebugHelper.Log("Scene Selection #" + counter + " \"" + sceneSelection.Name + "\" (" + sceneSelection.Rarity + ")", DebugType.Developer);
+                    counter++;
+                }
+
                 List<int> sceneSelections = LevelManager.CurrentExtendedLevel.SceneSelections.Select(s => s.Rarity).ToList();
                 int selectedSceneIndex = RoundManager.GetRandomWeightedIndex(sceneSelections.ToArray(), RoundManager.LevelRandom);
                 sceneName = LevelManager.CurrentExtendedLevel.SceneSelections[selectedSceneIndex].Name;

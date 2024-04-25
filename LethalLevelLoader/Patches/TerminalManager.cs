@@ -305,9 +305,13 @@ namespace LethalLevelLoader
 
             foreach (ExtendedLevelGroup extendedLevelGroup in currentMoonsCataloguePage.ExtendedLevelGroups)
             {
+                string groupString = string.Empty;
                 foreach (ExtendedLevel extendedLevel in extendedLevelGroup.extendedLevelsList)
-                    returnString += "* " + extendedLevel.NumberlessPlanetName + " " + GetExtendedLevelPreviewInfo(extendedLevel) + "\n";
-                returnString += "\n";
+                    if (extendedLevel.IsRouteHidden == false)
+                        groupString += "* " + extendedLevel.NumberlessPlanetName + " " + GetExtendedLevelPreviewInfo(extendedLevel) + "\n";
+                if (!string.IsNullOrEmpty(groupString))
+                    returnString += groupString + "\n";
+
             }
             if (returnString.Contains("\n"))
                 returnString.Replace(returnString.Substring(returnString.LastIndexOf("\n")), "");
@@ -355,7 +359,8 @@ namespace LethalLevelLoader
             string returnString = string.Empty;
             /*if (extendedLevel.currentExtendedWeatherEffect != null)
                 returnString = "(" + extendedLevel.currentExtendedWeatherEffect.weatherDisplayName + ")";*/
-            returnString = "(" + extendedLevel.SelectableLevel.currentWeather.ToString() + ")";
+            if (extendedLevel.SelectableLevel.currentWeather != LevelWeatherType.None)
+                returnString = "(" + extendedLevel.SelectableLevel.currentWeather.ToString() + ")";
             return (returnString);
         }
 
@@ -493,12 +498,25 @@ namespace LethalLevelLoader
 
         internal static void CreateExtendedLevelGroups()
         {
+            List<ExtendedLevel> hiddenVanillaLevels = new List<ExtendedLevel>();    
+            foreach (ExtendedLevel extendedLevel in PatchedContent.VanillaExtendedLevels)
+            {
+                if (!moonsKeyword.specialKeywordResult.displayText.Contains(extendedLevel.NumberlessPlanetName))
+                {
+                    extendedLevel.IsRouteHidden = true;
+                    hiddenVanillaLevels.Add(extendedLevel);
+                }
+            }
+
+            hiddenVanillaLevels = hiddenVanillaLevels.OrderBy(l => l.CalculatedDifficultyRating).ToList();
+
             DebugHelper.Log("Creating ExtendedLevelGroups", DebugType.Developer);
             foreach (SelectableLevel level in OriginalContent.MoonsCatalogue)
                 DebugHelper.Log(level.PlanetName.ToString(), DebugType.Developer);
             ExtendedLevelGroup vanillaGroupA = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(0, 3));
             ExtendedLevelGroup vanillaGroupB = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(3, 3));
             ExtendedLevelGroup vanillaGroupC = new ExtendedLevelGroup(OriginalContent.MoonsCatalogue.GetRange(6, 3));
+            ExtendedLevelGroup vanillaGroupD = new ExtendedLevelGroup(hiddenVanillaLevels);
 
             Dictionary<string, List<ExtendedLevel>> extendedLevelsContentSourceNameDictionary = new Dictionary<string, List<ExtendedLevel>>();
 
@@ -510,7 +528,7 @@ namespace LethalLevelLoader
                     extendedLevelsContentSourceNameDictionary.Add(customExtendedLevel.ModName, new List<ExtendedLevel> { customExtendedLevel });                 
             }
 
-            List<ExtendedLevelGroup> defaultVanillaExtendedLevelGroups = new List<ExtendedLevelGroup>() { vanillaGroupA, vanillaGroupB, vanillaGroupC };
+            List<ExtendedLevelGroup> defaultVanillaExtendedLevelGroups = new List<ExtendedLevelGroup>() { vanillaGroupA, vanillaGroupB, vanillaGroupC, vanillaGroupD };
             List<ExtendedLevelGroup> defaultCustomGroupedExtendedLevelGroups = new List<ExtendedLevelGroup>();
             List<ExtendedLevelGroup> defaultCustomSingleExtendedLevelGroups = new List<ExtendedLevelGroup>();
 

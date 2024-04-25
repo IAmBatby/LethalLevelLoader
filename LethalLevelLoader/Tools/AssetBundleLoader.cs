@@ -376,8 +376,8 @@ namespace LethalLevelLoader
             foreach (ExtendedMod extendedMod in obtainedExtendedModsList)
                 foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(extendedMod.ExtendedLevels))
                 {
-                    if (!sceneNames.Contains(extendedLevel.selectableLevel.sceneName))
-                        sceneNames.Add(extendedLevel.selectableLevel.sceneName);
+                    if (!sceneNames.Contains(extendedLevel.SelectableLevel.sceneName))
+                        sceneNames.Add(extendedLevel.SelectableLevel.sceneName);
                     foreach (StringWithRarity sceneName in extendedLevel.SceneSelections)
                         if (!sceneNames.Contains(sceneName.Name))
                             sceneNames.Add(sceneName.Name);
@@ -411,6 +411,9 @@ namespace LethalLevelLoader
                     }
                 }
             }
+
+            foreach (string loadedSceneName in PatchedContent.AllLevelSceneNames)
+                DebugHelper.Log("Loaded SceneName: " + loadedSceneName, DebugType.Developer);
         }
 
         internal static void InitializeBundles()

@@ -39,12 +39,12 @@ namespace LethalLevelLoader
 
 
         [field: Space(10)][field: Header("Misc. Settings")]
-        [field: SerializeField] internal bool GenerateAutomaticConfigurationOptions { get; set; } = true;
+        [field: SerializeField] public bool GenerateAutomaticConfigurationOptions { get; set; } = true;
 
         [Space(25)]
         [Header("Obsolete (Legacy Fields, Will Be Removed In The Future)")]
         //public bool IsDynamicDungeonSizeRestrictionEnabled = false;
-        [Obsolete] public bool generateAutomaticConfigurationOptions = false;
+        [Obsolete] public bool generateAutomaticConfigurationOptions = true;
         [Obsolete] public bool enableDynamicDungeonSizeRestriction = false;
         [Obsolete] public float dungeonSizeMin = 1;
         [Obsolete] public float dungeonSizeMax = 1;
@@ -154,7 +154,7 @@ namespace LethalLevelLoader
                 DebugHelper.LogWarning("ExtendedDungeonFlow.enableDynamicDungeonSizeRestriction Is Obsolete and will be removed in following releases, Please use ExtendedDungeonFlow.IsDynamicDungeonRestrictionEnabled instead.", DebugType.Developer);
                 IsDynamicDungeonSizeRestrictionEnabled = enableDynamicDungeonSizeRestriction;
             }
-            if (generateAutomaticConfigurationOptions != true || (GenerateAutomaticConfigurationOptions != generateAutomaticConfigurationOptions))
+            if (generateAutomaticConfigurationOptions == false || (GenerateAutomaticConfigurationOptions != generateAutomaticConfigurationOptions))
             {
                 DebugHelper.LogWarning("ExtendedDungeonFlow.generateAutomaticConfigurationOptions Is Obsolete and will be removed in following releases, Please use ExtendedDungeonFlow.GenerateAutomaticConfigurationOptions instead.", DebugType.Developer);
                 GenerateAutomaticConfigurationOptions = generateAutomaticConfigurationOptions;

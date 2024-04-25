@@ -1,5 +1,5 @@
 ,Is Automatically Applied:,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Yes,,Yes,Yes,,Yes,No,No,No,No,No,No,No,No,No,No,No,No
-Item Name,Total Tags,13,51,41,26,27,4,20,56,9,10,39,25,3,26,24,3,29,21,13,9,7,5,5,4,3,0,3,3
+Item Name,Total Tags,13,51,41,26,27,5,20,56,9,10,39,25,3,26,24,3,29,21,13,10,7,5,5,4,3,0,3,3
 ,,Buyable,Scrap,Non-Interactable,Interactable,Conductive,Chargable,Tool,One-Handed,Two-Handed,Noisy,Light-Weight,Medium-Weight,Heavy-Weight,Low-Value,Medium-Value,High-Value,Household,Metal,Harmful,Weapon,Consumable,Machine Part,Luminescent,Transportation,Communicative,Information,Natural,Beast Byproduct
 Airhorn,8,,Scrap,,Interactable,,,,One-Handed,,Noisy,Light-Weight,,,,Medium-Value,,Household,Metal,,,,,,,,,,
 Apparatus,9,,Scrap,Non-Interactable,,Conductive,,,,Two-Handed,,Light-Weight,,,,,High-Value,,Metal,,,,Machine Part,Luminescent,,,,,
@@ -29,9 +29,9 @@ Gun Ammo,7,,,Non-Interactable,,,,,,,,Light-Weight,,,Low-Value,,,,,Harmful,Weapon
 Hairdryer,7,,Scrap,,Interactable,,,,One-Handed,,Noisy,Light-Weight,,,,Medium-Value,,Household,,,,,,,,,,,
 Hive,9,,Scrap,Non-Interactable,,Conductive,,,,Two-Handed,,Light-Weight,,,,Medium-Value,,,,Harmful,,,,,,,,Natural,Beast Byproduct
 Jar Of Pickles,7,,Scrap,Non-Interactable,,,,,One-Handed,,,,Medium-Weight,,,Medium-Value,,Household,,,,,,,,,,Natural,
-Jetpack,8,Buyable,,,Interactable,Conductive,,Tool,One-Handed,,,,,Heavy-Weight,,,,,,Harmful,,,,,Transportation,,,,
+Jetpack,9,Buyable,,,Interactable,Conductive,Chargable,Tool,One-Handed,,,,,Heavy-Weight,,,,,,Harmful,,,,,Transportation,,,,
 Key,8,,,,Interactable,Conductive,,,One-Handed,,,Light-Weight,,,Low-Value,,,,Metal,,,Consumable,,,Transportation,,,,
-Knife,9,,,,Interactable,Conductive,,Tool,One-Handed,,,,Medium-Weight,,,Medium-Value,,,Metal,Harmful,,,,,,,,,Beast Byproduct
+Knife,10,,,,Interactable,Conductive,,Tool,One-Handed,,,,Medium-Weight,,,Medium-Value,,,Metal,Harmful,Weapon,,,,,,,,Beast Byproduct
 Large Axle,8,,Scrap,Non-Interactable,,Conductive,,,,Two-Handed,,,Medium-Weight,,,Medium-Value,,,Metal,,,,Machine Part,,,,,,
 Laser Pointer,7,,Scrap,,Interactable,,,Tool,,,,Light-Weight,,,,Medium-Value,,Household,,,,,,Luminescent,,,,,
 Lockpicker,6,Buyable,,,Interactable,,,Tool,One-Handed,,,,Medium-Weight,,,,,,,,,,,,Transportation,,,,
