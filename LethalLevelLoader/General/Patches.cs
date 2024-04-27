@@ -151,11 +151,13 @@ namespace LethalLevelLoader
             SceneManager.sceneLoaded += EventPatches.OnSceneLoaded;
 
             //Removing the broken cardboard box item please understand 
-            StartOfRound.allItemsList.itemsList.RemoveAt(2);
-            SaveManager.defaultCachedItemsList = new List<Item>(StartOfRound.allItemsList.itemsList);
+
             //Scrape Vanilla For Content References
             if (Plugin.IsSetupComplete == false)
             {
+                StartOfRound.allItemsList.itemsList.RemoveAt(2);
+                SaveManager.defaultCachedItemsList = new List<Item>(StartOfRound.allItemsList.itemsList);
+
                 DebugStopwatch.StartStopWatch("Scrape Vanilla Content");
                 ContentExtractor.TryScrapeVanillaItems(StartOfRound);
                 ContentExtractor.TryScrapeVanillaContent(StartOfRound, RoundManager);
@@ -282,6 +284,9 @@ namespace LethalLevelLoader
             {
                 //Populate SelectableLevel Data To Be Used In Overhaul Of The Terminal Moons Catalogue.
                 TerminalManager.CreateMoonsFilterTerminalAssets();
+
+                foreach (CompatibleNoun routeNode in TerminalManager.routeKeyword.compatibleNouns)
+                    TerminalManager.AddTerminalNodeEventListener(routeNode.result, TerminalManager.LockedNodeEventTest, TerminalManager.LoadNodeActionType.Before);
 
                 //Create Terminal Data For Custom StoryLog's And Patch Basegame References To StoryLog's To Include Custom StoryLogs.
                 TerminalManager.CreateTerminalDataForAllExtendedStoryLogs();
@@ -440,7 +445,7 @@ namespace LethalLevelLoader
 
             return (returnBool);*/
 
-            return (TerminalManager.OnBeforeLoadNewNode(node));
+            return (TerminalManager.OnBeforeLoadNewNode(ref node));
         }
 
         [HarmonyPriority(harmonyPriority)]
@@ -449,7 +454,7 @@ namespace LethalLevelLoader
         internal static bool TerminalLoadNewNode_Prefix(Terminal __instance, ref TerminalNode node)
         {
             Terminal.screenText.textComponent.fontSize = TerminalManager.defaultTerminalFontSize;
-            return (TerminalManager.OnBeforeLoadNewNode(node));
+            return (TerminalManager.OnBeforeLoadNewNode(ref node));
                 /*foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                     if (extendedLevel.RouteNode == node && extendedLevel.IsRouteLocked == true)
                         TerminalManager.SwapRouteNodeToLockedNode(extendedLevel, ref node);*/
@@ -460,7 +465,7 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         internal static void TerminalLoadNewNode_Postfix(Terminal __instance, ref TerminalNode node)
         {
-            TerminalManager.OnLoadNewNode(node);
+            TerminalManager.OnLoadNewNode(ref node);
             //if (ranLethalLevelLoaderTerminalEvent == true)
                 //__instance.currentNode = TerminalManager.moonsKeyword.specialKeywordResult;
         }

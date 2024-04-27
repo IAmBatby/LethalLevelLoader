@@ -12,7 +12,7 @@ namespace LethalLevelLoader
         public ContentType ContentType { get; internal set; } = ContentType.Vanilla;
         /*Obsolete*/ public List<string> ContentTagStrings { get; internal set; } = new List<string>();
         [field: SerializeField] public List<ContentTag> ContentTags { get; internal set; } = new List<ContentTag>();
-        public List<string> ContentTagsAsStrings => ContentTags.Select(t => t.contentTagName).ToList();
+        //public List<string> ContentTagsAsStrings => ContentTags.Select(t => t.contentTagName).ToList();
 
         public string ModName => ExtendedMod.ModName;
         public string AuthorName => ExtendedMod.AuthorName;
@@ -20,6 +20,36 @@ namespace LethalLevelLoader
         internal virtual void TryCreateMatchingProperties()
         {
 
+        }
+
+        public bool TryGetTag(string tag)
+        {
+            foreach (ContentTag contentTag in ContentTags)
+                if (contentTag.contentTagName == tag)
+                    return (true);
+            return (false);
+        }
+
+        public bool TryGetTag(string tag, out ContentTag returnTag)
+        {
+            returnTag = null;
+            foreach (ContentTag contentTag in ContentTags)
+                if (contentTag.contentTagName == tag)
+                {
+                    returnTag = contentTag;
+                    return (true);
+                }
+            return (false);
+        }
+
+        public bool TryAddTag(string tag)
+        {
+            if (TryGetTag(tag) == false)
+            {
+                ContentTags.Add(ContentTag.Create(tag));
+                return (true);
+            }
+            return (false);
         }
     }
 

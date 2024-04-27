@@ -23,7 +23,10 @@ namespace LethalLevelLoader
             else
                 currentSaveFile = new LLLSaveFile("LLLSaveFile");
             currentSaveFile.Load();
-            DebugHelper.Log("Initialized LLL Save File, Current Level Was: " + currentSaveFile.CurrentLevelName + ", Current Vanilla Save Is: " + GameNetworkManager.Instance.currentSaveFileName, DebugType.User);
+            if (currentSaveFile.CurrentLevelName != null)
+                DebugHelper.Log("Initialized LLL Save File, Current Level Was: " + currentSaveFile.CurrentLevelName + ", Current Vanilla Save Is: " + GameNetworkManager.Instance.currentSaveFileName, DebugType.User);
+            else
+                DebugHelper.Log("Initialized LLL Save File, Current Level Was: (Empty) " + ", Current Vanilla Save Is: " + GameNetworkManager.Instance.currentSaveFileName, DebugType.User);
 
             if (ES3.KeyExists("CurrentPlanetID", GameNetworkManager.Instance.currentSaveFileName))
                 DebugHelper.Log("Vanilla CurrentSaveFileName Has Saved Current Planet ID: " + ES3.Load<int>("CurrentPlanetID", GameNetworkManager.Instance.currentSaveFileName), DebugType.Developer);
@@ -35,6 +38,17 @@ namespace LethalLevelLoader
                 currentSaveFile.itemSaveData = new Dictionary<int, AllItemsListItemData>();
                 currentSaveFile.CurrentLevelName = string.Empty;
             }
+
+            if (currentSaveFile.customItemDictionary == null)
+                currentSaveFile.customItemDictionary = new Dictionary<string, string>();
+            if (currentSaveFile.allItemsList == null)
+                currentSaveFile.allItemsList = new List<string>();
+            if (currentSaveFile.itemSaveDataList == null)
+                currentSaveFile.itemSaveDataList = new List<AllItemsListItemData>();
+            if (currentSaveFile.itemSaveData == null)
+                currentSaveFile.itemSaveData = new Dictionary<int, AllItemsListItemData>();
+            if (currentSaveFile.CurrentLevelName == null)
+                currentSaveFile.CurrentLevelName = string.Empty;
 
             /*foreach (string item in currentSaveFile.allItemsList)
                 DebugHelper.Log("Saved AllItemsList: " + item);

@@ -49,20 +49,30 @@ namespace LethalLevelLoader
 
         public static float GetClampedDungeonSize()
         {
-            float returnValue = LevelManager.CurrentExtendedLevel.SelectableLevel.factorySizeMultiplier * Patches.RoundManager.mapSizeMultiplier;
+            ExtendedDungeonFlow extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
+            ExtendedLevel extendedLevel = LevelManager.CurrentExtendedLevel;
+            float calculatedMultiplier = CalculateDungeonMutliplier(LevelManager.CurrentExtendedLevel, DungeonManager.CurrentExtendedDungeonFlow);
             if (DungeonManager.CurrentExtendedDungeonFlow != null && DungeonManager.CurrentExtendedDungeonFlow.IsDynamicDungeonSizeRestrictionEnabled == true)
             {
-                ExtendedDungeonFlow extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
-                ExtendedLevel extendedLevel = LevelManager.CurrentExtendedLevel;
-                if (extendedLevel.SelectableLevel.factorySizeMultiplier > extendedDungeonFlow.DynamicDungeonSizeMinMax.y)
-                    returnValue = Mathf.Lerp(extendedLevel.SelectableLevel.factorySizeMultiplier, extendedDungeonFlow.DynamicDungeonSizeMinMax.y, extendedDungeonFlow.DynamicDungeonSizeLerpRate) * Patches.RoundManager.mapSizeMultiplier; //This is how vanilla does it.
-                else if (extendedLevel.SelectableLevel.factorySizeMultiplier < extendedDungeonFlow.DynamicDungeonSizeMinMax.x)
-                    returnValue = Mathf.Lerp(extendedLevel.SelectableLevel.factorySizeMultiplier, extendedDungeonFlow.DynamicDungeonSizeMinMax.x, extendedDungeonFlow.DynamicDungeonSizeLerpRate) * Patches.RoundManager.mapSizeMultiplier; //This is how vanilla does it.
-                DebugHelper.Log("CurrentLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " DungeonSize Is: " + LevelManager.CurrentExtendedLevel.SelectableLevel.factorySizeMultiplier + " | Overrriding DungeonSize To: " + (returnValue / Patches.RoundManager.mapSizeMultiplier) + " (" + returnValue + ")", DebugType.User);
+                if (calculatedMultiplier > extendedDungeonFlow.DynamicDungeonSizeMinMax.y)
+                    calculatedMultiplier = Mathf.Lerp(calculatedMultiplier, extendedDungeonFlow.DynamicDungeonSizeMinMax.y, extendedDungeonFlow.DynamicDungeonSizeLerpRate); //This is how vanilla does it.
+                else if (calculatedMultiplier < extendedDungeonFlow.DynamicDungeonSizeMinMax.x)
+                    calculatedMultiplier = Mathf.Lerp(calculatedMultiplier, extendedDungeonFlow.DynamicDungeonSizeMinMax.x, extendedDungeonFlow.DynamicDungeonSizeLerpRate);//This is how vanilla does it.
+                DebugHelper.Log("Current ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " ExtendedLevel DungeonSize Is: " + LevelManager.CurrentExtendedLevel.SelectableLevel.factorySizeMultiplier + " | Overrriding DungeonSize To: " + calculatedMultiplier, DebugType.User);
             }
             else
-                DebugHelper.Log("CurrentLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " DungeonSize Is: " + LevelManager.CurrentExtendedLevel.SelectableLevel.factorySizeMultiplier + " | Leaving DungeonSize As: " + (returnValue / Patches.RoundManager.mapSizeMultiplier) + " (" + returnValue + ")", DebugType.User);
-            return (returnValue);
+                DebugHelper.Log("CurrentLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " DungeonSize Is: " + LevelManager.CurrentExtendedLevel.SelectableLevel.factorySizeMultiplier + " | Leaving DungeonSize As: " + calculatedMultiplier, DebugType.User);
+            return (calculatedMultiplier);
+        }
+
+        public static float CalculateDungeonMutliplier(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow)
+        {
+            foreach (IndoorMapType indoorMapType in RoundManager.Instance.dungeonFlowTypes)
+                if (indoorMapType.dungeonFlow == extendedDungeonFlow.DungeonFlow)
+                    return (extendedLevel.selectableLevel.factorySizeMultiplier / indoorMapType.MapTileSize * RoundManager.Instance.mapSizeMultiplier);
+            
+            return 1f;
+
         }
 
         internal static void PatchDungeonSize(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow)

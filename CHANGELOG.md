@@ -1,6 +1,45 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.2.2</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Fixed issue where vanilla items were being incorrectly destroyed when playing multiple lobbies during the same game session
+* Restored functionality of the ExtendedLevel.IsRouteLocked feature
+* Added safety check to help prevent saves made in pre 1.2.0 LethalLevelLoader modpacks from corrupting when being used
+* Fixed issues with ExtendedDungeonFlow.DynamicDungeonSize related settings incorrectly applying after version 50 changes
+* Removed ExtendedMod.ContentTagAsStrings() function
+* Added ExtendedMod.TryGetTag(string tag) function
+* Added ExtendedMod.TryGetTag(string tag, out ContentTag contentTag) function
+* Added ExtendedMod.TryAddTag(string tag) function
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.2.1</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Updated LICENSE
+* Changed accessor for ExtendedDungeonFlow.GenerateAutomaticConfigurationOptions from internal to public
+* Fixed issue where ExtendedDungeonFlow.GenerationAutomaticConfigurationOptions was defaulting to false
+* Changed accessor for EnemyManager.RefreshDynamicEnemyTypeRarityOnAllExtendedLevels from internal to public
+* Changed accessor for EnemyManager.InjectCustomEnemyTypesIntoLevelViaDynamicRarity from internal to public
+* Changed accessor for ItemManager.RefreshDynamicItemRarityOnAllExtendedLevels from internal to public
+* Changed accessor for ItemManager.InjectCustomItemsIntoLevelViaDynamicRarity from internal to public
+* Changed ConfigLoader default dungeon binding to list current level matching values as default values
+* Added "Killable" ContentTag to Forest Giant
+* Added "Chargable" ContentTag to Jetpack
+* Added "Weapon" ContentTag to Knife
+* Added additional developer debug logging for the scene validation and selection process
+
+</details>
+
+</details>
+
+
 **<details><summary>Version 1.2.0</summary>**
 
 **<details><summary>Features</summary>**
@@ -415,4 +454,3 @@ By default SelectableLevel.riskLevel is now automatically assigned using calcula
 * *Initial Release*
 
 </details>
-

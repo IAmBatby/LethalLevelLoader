@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,7 +53,7 @@ namespace LethalLevelLoader
         //internal static Dictionary<TerminalNode, Action<TerminalNode, TerminalNode>> terminalNodeRegisteredEventDictionary = new Dictionary<TerminalNode, Action<TerminalNode, TerminalNode>>();
 
         public enum LoadNodeActionType { Before,  After }
-        public delegate bool LoadNodeAction(TerminalNode currentNode, TerminalNode loadNode);
+        public delegate bool LoadNodeAction(ref TerminalNode currentNode, ref TerminalNode loadNode);
 
         internal static Dictionary<TerminalNode, LoadNodeAction> onBeforeLoadNewNodeRegisteredEventsDictionary = new Dictionary<TerminalNode, LoadNodeAction>();
         internal static Dictionary<TerminalNode, LoadNodeAction> onLoadNewNodeRegisteredEventsDictionary = new Dictionary<TerminalNode, LoadNodeAction>();
@@ -78,12 +79,26 @@ namespace LethalLevelLoader
             lockedNode.clearPreviousText = true;
         }
 
+        internal static bool LockedNodeEventTest(ref TerminalNode currentNode, ref TerminalNode loadNode)
+        {
+            ExtendedLevel extendedLevel = LevelManager.GetExtendedLevel(StartOfRound.Instance.levels[loadNode.displayPlanetInfo]);
+
+            if (currentNode != null)
+                DebugHelper.Log("LockedNodeEventTest: ExtendedLevel Is: " + extendedLevel + ", CurrentNode Is: " + currentNode.name + ", LoadNode Is: " + loadNode.name, DebugType.User);
+            else
+                DebugHelper.Log("LockedNodeEventTest: ExtendedLevel Is: " + extendedLevel + ", CurrentNode Is Null, LoadNode Is: " + loadNode.name, DebugType.User);
+
+            if (extendedLevel.IsRouteLocked == true)
+                SwapRouteNodeToLockedNode(extendedLevel, ref loadNode);
+            return (true);
+        }
+
         internal static void SwapRouteNodeToLockedNode(ExtendedLevel extendedLevel, ref TerminalNode terminalNode)
         {
             if (extendedLevel.LockedRouteNodeText != string.Empty)
-                lockedNode.displayText = extendedLevel.LockedRouteNodeText;
+                lockedNode.displayText = extendedLevel.LockedRouteNodeText + "\n\n\n";
             else
-                lockedNode.displayText = "Route to " + extendedLevel.SelectableLevel.PlanetName + " is currently locked.";
+                lockedNode.displayText = "Route to " + extendedLevel.SelectableLevel.PlanetName + " is currently locked." + "\n\n\n";
 
             terminalNode = lockedNode;
         }
@@ -97,7 +112,7 @@ namespace LethalLevelLoader
             FilterMoonsCataloguePage(currentMoonsCataloguePage);
         }
 
-        internal static bool SetSimulationResultsText(TerminalNode currentNode, TerminalNode node)
+        internal static bool SetSimulationResultsText(ref TerminalNode currentNode, ref TerminalNode node)
         {
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                 if (node.terminalEvent.StripSpecialCharacters().Sanitized().ToLower().Contains(extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized().ToLower()))
@@ -110,12 +125,12 @@ namespace LethalLevelLoader
             return (true);
         }
 
-        internal static bool OnBeforeLoadNewNode(TerminalNode node)
+        internal static bool OnBeforeLoadNewNode(ref TerminalNode node)
         {
             if (onBeforeLoadNewNodeRegisteredEventsDictionary.TryGetValue(node, out LoadNodeAction pair))
             {
                 DebugHelper.Log("Running OnBeforeLoadNewNode Event For: " + node.name + ", CurrentNode Is: " + Terminal.currentNode, DebugType.Developer);
-                return (pair.Invoke(Terminal.currentNode, node));
+                return (pair.Invoke(ref Terminal.currentNode, ref node));
             }
             else
             {
@@ -124,12 +139,12 @@ namespace LethalLevelLoader
             }
         }
 
-        internal static void OnLoadNewNode(TerminalNode node)
+        internal static void OnLoadNewNode(ref TerminalNode node)
         {
             if (onLoadNewNodeRegisteredEventsDictionary.TryGetValue(node, out LoadNodeAction pair))
             {
                 DebugHelper.Log("Running OnLoadNewNode Event For: " + node.name + ", CurrentNode Is: " + Terminal.currentNode, DebugType.Developer);
-                pair.Invoke(Terminal.currentNode, node);
+                pair.Invoke(ref Terminal.currentNode, ref node);
             }
             else
                 DebugHelper.Log("Could Not Find Registered Event For: " + node.name, DebugType.Developer);
@@ -161,15 +176,15 @@ namespace LethalLevelLoader
             return (true);
         }
 
-        internal static bool TryRefreshMoonsCataloguePage(TerminalNode currentNode, TerminalNode loadNode)
+        internal static bool TryRefreshMoonsCataloguePage(ref TerminalNode currentNode, ref TerminalNode loadNode)
         {
             if (currentNode == moonsKeyword.specialKeywordResult)
-                return (RefreshMoonsCataloguePage(currentNode, loadNode));
+                return (RefreshMoonsCataloguePage(ref currentNode, ref loadNode));
             else
                 return (true);
         }
 
-        public static bool RefreshMoonsCataloguePage(TerminalNode currentNode, TerminalNode loadNode)
+        public static bool RefreshMoonsCataloguePage(ref TerminalNode currentNode, ref TerminalNode loadNode)
         {
             //DebugHelper.Log("Running LLL Terminal Event: " + node.terminalEvent + "| EnumValue: " + GetTerminalEventEnum(node.terminalEvent) + " | StringValue: " + GetTerminalEventString(node.terminalEvent));
             if (loadNode.name.Contains("preview") && Enum.TryParse(typeof(PreviewInfoType), GetTerminalEventEnum(loadNode.terminalEvent), out object previewEnumValue))
@@ -213,7 +228,7 @@ namespace LethalLevelLoader
                     else if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Weather))
                         removeExtendedLevel = (GetWeatherConditions(extendedLevel) != string.Empty);
                     else if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Tag))
-                        removeExtendedLevel = (!extendedLevel.ContentTagsAsStrings.Contains(currentTagFilter));
+                        removeExtendedLevel = (!extendedLevel.TryGetTag(currentTagFilter));
 
                     if (removeExtendedLevel == true)
                         removeLevelList.Add(extendedLevel);
