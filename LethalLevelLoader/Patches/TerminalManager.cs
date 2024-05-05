@@ -82,7 +82,7 @@ namespace LethalLevelLoader
         internal static bool LockedNodeEventTest(ref TerminalNode currentNode, ref TerminalNode loadNode)
         {
             // This prevents an IndexOutOfRangeException when travelling to the company store
-            if (StartOfRound.Instance.levels.Length <= loadNode.displayPlanetInfo) {
+            if (loadNode.displayPlanetInfo == -1) {
                 return true;
             }
             
