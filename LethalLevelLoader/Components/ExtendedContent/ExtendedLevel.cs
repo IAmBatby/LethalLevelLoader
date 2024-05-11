@@ -186,14 +186,11 @@ namespace LethalLevelLoader
 
         internal void SetLevelID()
         {
-            if (ContentType == ContentType.Custom)
-            {
-                SelectableLevel.levelID = PatchedContent.ExtendedLevels.IndexOf(this);
-                if (RouteNode != null)
-                    RouteNode.displayPlanetInfo = SelectableLevel.levelID;
-                if (RouteConfirmNode != null)
-                    RouteConfirmNode.buyRerouteToMoon = SelectableLevel.levelID;
-            }
+            SelectableLevel.levelID = PatchedContent.ExtendedLevels.IndexOf(this);
+            if (RouteNode != null)
+                RouteNode.displayPlanetInfo = SelectableLevel.levelID;
+            if (RouteConfirmNode != null)
+                RouteConfirmNode.buyRerouteToMoon = SelectableLevel.levelID;
         }
 
         internal void SetExtendedDungeonFlowMatches()

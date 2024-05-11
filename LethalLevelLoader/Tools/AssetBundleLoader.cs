@@ -472,13 +472,22 @@ namespace LethalLevelLoader
                 ExtendedLevel extendedLevel = ExtendedLevel.Create(selectableLevel);
 
                 foreach (CompatibleNoun compatibleRouteNoun in TerminalManager.routeKeyword.compatibleNouns)
-                    if (compatibleRouteNoun.noun.name.Contains(ExtendedLevel.GetNumberlessPlanetName(selectableLevel)))
+                {
+                    
+                    string comparedName = compatibleRouteNoun.noun.name;
+                    switch(comparedName)
+                    {
+                        // Terminal node noun is called "CompanyMoon", not "Gordion" so it will never grab the respective nodes if we don't change the compared name
+                        case "CompanyMoon": comparedName = "Gordion"; break;
+                    }
+                    if (comparedName.Contains(ExtendedLevel.GetNumberlessPlanetName(selectableLevel)))
                     {
                         extendedLevel.RouteNode = compatibleRouteNoun.result;
                         extendedLevel.RouteConfirmNode = compatibleRouteNoun.result.terminalOptions[1].result;
                         extendedLevel.RoutePrice = compatibleRouteNoun.result.itemCost;
                         break;
                     }
+                }
                 PatchedContent.AllLevelSceneNames.Add(extendedLevel.SelectableLevel.sceneName);
 
                 extendedLevel.Initialize("Lethal Company", generateTerminalAssets: false);
