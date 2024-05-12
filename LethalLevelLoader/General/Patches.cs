@@ -641,6 +641,67 @@ namespace LethalLevelLoader
         }
 
         [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.SpawnScrapInLevel))]
+        [HarmonyTranspiler]
+        internal static IEnumerable<CodeInstruction> RoundManagerSpawnScrapInLevel_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            CodeMatcher codeMatch = new CodeMatcher(instructions);
+
+            return codeMatch
+                /*
+                * Before: int num3 = 0;
+                * After: int num3 = AnomalyRandom.Next(currentLevel.minTotalScrapValue, currentLevel.maxTotalScrapValue);
+                */
+                .MatchForward(useEnd: true,
+                new CodeMatch(OpCodes.Ldc_I4_0),
+                new CodeMatch(OpCodes.Stloc_3))
+                .Advance(-1)
+                .RemoveInstruction()
+                .Insert(
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(RoundManager), nameof(RoundManager.AnomalyRandom))),
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(RoundManager), nameof(RoundManager.currentLevel))),
+                new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(SelectableLevel), nameof(SelectableLevel.minTotalScrapValue))),
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(RoundManager), nameof(RoundManager.currentLevel))),
+                new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(SelectableLevel), nameof(SelectableLevel.maxTotalScrapValue))),
+                new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(System.Random), nameof(System.Random.Next), [typeof(int), typeof(int)]))
+                )
+                /*
+                 * Before: for (i = 0; i < ScrapToSpawn.Count; i++)
+                 * After: for (i = 0; i < ScrapToSpawn.Count && num3 > 0; i++)
+                 */
+                .MatchForward(useEnd: true,
+                new CodeMatch(OpCodes.Blt),
+                new CodeMatch(OpCodes.Ldarg_0),
+                new CodeMatch(OpCodes.Ldarg_0)
+                )
+                .Advance(-2)
+                .SetOpcodeAndAdvance(OpCodes.Brtrue)
+                .Advance(-1)
+                .Insert(
+                new CodeInstruction(OpCodes.Clt),
+                new CodeInstruction(OpCodes.Ldloc_3),
+                new CodeInstruction(OpCodes.Ldc_I4_0),
+                new CodeInstruction(OpCodes.Cgt),
+                new CodeInstruction(OpCodes.And)
+                )
+                /*
+                 * Before: num3 += list[list.Count - 1];
+                 * After: num3 -= list[list.Count - 1];
+                 */
+                .MatchBack(useEnd: true,
+                new CodeMatch(OpCodes.Add),
+                new CodeMatch(OpCodes.Stloc_3)
+                )
+                .Advance(-1)
+                .SetInstruction(new CodeInstruction(OpCodes.Sub))
+                .InstructionEnumeration();
+                
+        }
+
+        [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects")]
         [HarmonyPostfix]
         internal static void RoundManagerSpawnMapObjects_Postfix()
