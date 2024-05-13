@@ -60,7 +60,8 @@ namespace LethalLevelLoader
 
             GameObject test = new GameObject("LethalLevelLoader AssetBundleLoader");
             test.AddComponent<AssetBundleLoader>().LoadBundles();
-            test.hideFlags = HideFlags.HideAndDontSave;
+            //test.hideFlags = HideFlags.HideAndDontSave;
+            DontDestroyOnLoad(test);
             AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
 
             ConfigLoader.BindGeneralConfigs();
