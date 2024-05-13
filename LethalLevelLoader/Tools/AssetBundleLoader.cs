@@ -41,8 +41,8 @@ namespace LethalLevelLoader
         internal static Dictionary<string, AssetBundle> assetBundles = new Dictionary<string, AssetBundle>(); 
         internal static Dictionary<string, string> assetBundleLoadTimes = new Dictionary<string, string>();
 
-        internal static Dictionary<string, Action<AssetBundle>> onLethalBundleLoadedRequestDictionary = new Dictionary<string, Action<AssetBundle>>();
-        internal static Dictionary<string, Action<ExtendedMod>> onExtendedModLoadedRequestDictionary = new Dictionary<string, Action<ExtendedMod>>();
+        internal static Dictionary<string, List<Action<AssetBundle>>> onLethalBundleLoadedRequestDictionary = new Dictionary<string, List<Action<AssetBundle>>>();
+        internal static Dictionary<string, List<Action<ExtendedMod>>> onExtendedModLoadedRequestDictionary = new Dictionary<string, List<Action<ExtendedMod>>>();
 
         internal static bool HaveBundlesFinishedLoading
         {
@@ -266,14 +266,32 @@ namespace LethalLevelLoader
 
         public static void AddOnLethalBundleLoadedListener(Action<AssetBundle> invokedFunction, string lethalBundleFileName)
         {
-            if (invokedFunction != null && !string.IsNullOrEmpty(lethalBundleFileName) && !onLethalBundleLoadedRequestDictionary.ContainsKey(lethalBundleFileName))
-                onLethalBundleLoadedRequestDictionary.Add(lethalBundleFileName, invokedFunction);
+            if (invokedFunction != null && !string.IsNullOrEmpty(lethalBundleFileName))
+            {
+                if (!onLethalBundleLoadedRequestDictionary.ContainsKey(lethalBundleFileName))
+                    onLethalBundleLoadedRequestDictionary.Add(lethalBundleFileName, new List<Action<AssetBundle>>() { invokedFunction });
+                else
+                    onLethalBundleLoadedRequestDictionary[lethalBundleFileName].Add(invokedFunction);
+            }
         }
 
-        public static void AddOnExtendedModLoadedListener(Action<ExtendedMod> invokedFunction, string extendedModAuthorName)
+        public static void AddOnExtendedModLoadedListener(Action<ExtendedMod> invokedFunction, string extendedModAuthorName = null, string extendedModModName = null)
         {
-            if (invokedFunction != null && !string.IsNullOrEmpty(extendedModAuthorName) && !onExtendedModLoadedRequestDictionary.ContainsKey(extendedModAuthorName))
-                onExtendedModLoadedRequestDictionary.Add(extendedModAuthorName, invokedFunction);
+            if (invokedFunction != null && !string.IsNullOrEmpty(extendedModAuthorName))
+            {
+                if (!onExtendedModLoadedRequestDictionary.ContainsKey(extendedModAuthorName))
+                    onExtendedModLoadedRequestDictionary.Add(extendedModAuthorName, new List<Action<ExtendedMod>>() { invokedFunction });
+                else
+                    onExtendedModLoadedRequestDictionary[extendedModAuthorName].Add(invokedFunction);
+            }
+
+            if (invokedFunction != null && !string.IsNullOrEmpty(extendedModModName))
+            {
+                if (!onExtendedModLoadedRequestDictionary.ContainsKey(extendedModModName))
+                    onExtendedModLoadedRequestDictionary.Add(extendedModModName, new List<Action<ExtendedMod>>() { invokedFunction });
+                else
+                    onExtendedModLoadedRequestDictionary[extendedModModName].Add(invokedFunction);
+            }
         }
 
         internal static void OnBundlesFinishedLoading()
@@ -292,14 +310,16 @@ namespace LethalLevelLoader
             foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods)
                 extendedMod.SortRegisteredContent();
 
-            foreach (KeyValuePair<string, System.Action<AssetBundle>> kvp in onLethalBundleLoadedRequestDictionary)
+            foreach (KeyValuePair<string, List<System.Action<AssetBundle>>> kvp in onLethalBundleLoadedRequestDictionary)
                 if (assetBundles.ContainsKey(kvp.Key))
-                    kvp.Value(assetBundles[kvp.Key]);
+                    foreach (Action<AssetBundle> action in kvp.Value)
+                        action(assetBundles[kvp.Key]);
 
-            foreach (KeyValuePair<string, Action<ExtendedMod>> kvp in onExtendedModLoadedRequestDictionary)
+            foreach (KeyValuePair<string, List<Action<ExtendedMod>>> kvp in onExtendedModLoadedRequestDictionary)
                 foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods)
-                    if (extendedMod.AuthorName == kvp.Key)
-                        kvp.Value(extendedMod);
+                    if (extendedMod.ModNameAliases.Contains(kvp.Key))
+                        foreach (Action<ExtendedMod> action in kvp.Value)
+                            action(extendedMod);
         }
 
         //This Function is used to Register new ExtendedConte to LethalLevelLoader, assiging content to it's relevant ExtendedMod or creating a new ExtendedMod if neccasary.

@@ -79,14 +79,25 @@ namespace LethalLevelLoader
             lockedNode.clearPreviousText = true;
         }
 
-        internal static bool LockedNodeEventTest(ref TerminalNode currentNode, ref TerminalNode loadNode)
+        internal static bool OnBeforeRouteNodeLoaded(ref TerminalNode currentNode, ref TerminalNode loadNode)
         {
-            ExtendedLevel extendedLevel = LevelManager.GetExtendedLevel(StartOfRound.Instance.levels[loadNode.displayPlanetInfo]);
+            TerminalNode confirmNode = loadNode.terminalOptions[1].result;
+            if (confirmNode.buyRerouteToMoon < 0 || confirmNode.buyRerouteToMoon > StartOfRound.Instance.levels.Length - 1)
+            {
+                DebugHelper.LogError("Invalid DisplayPlanetInfo For Route Node: " + confirmNode.name, DebugType.User);
+                return (true);
+            }
+            ExtendedLevel extendedLevel = LevelManager.GetExtendedLevel(StartOfRound.Instance.levels[confirmNode.buyRerouteToMoon]);
 
+            if (extendedLevel == null)
+            {
+                DebugHelper.LogError("ExtendedLevel Was Null For Route Node: " + confirmNode.name, DebugType.User);
+                return (true);
+            }
             if (currentNode != null)
-                DebugHelper.Log("LockedNodeEventTest: ExtendedLevel Is: " + extendedLevel + ", CurrentNode Is: " + currentNode.name + ", LoadNode Is: " + loadNode.name, DebugType.User);
+                DebugHelper.Log("LockedNodeEventTest: ExtendedLevel Is: " + extendedLevel + ", CurrentNode Is: " + currentNode.name + ", LoadNode Is: " + confirmNode.name, DebugType.User);
             else
-                DebugHelper.Log("LockedNodeEventTest: ExtendedLevel Is: " + extendedLevel + ", CurrentNode Is Null, LoadNode Is: " + loadNode.name, DebugType.User);
+                DebugHelper.Log("LockedNodeEventTest: ExtendedLevel Is: " + extendedLevel + ", CurrentNode Is Null, LoadNode Is: " + confirmNode.name, DebugType.User);
 
             if (extendedLevel.IsRouteLocked == true)
                 SwapRouteNodeToLockedNode(extendedLevel, ref loadNode);
