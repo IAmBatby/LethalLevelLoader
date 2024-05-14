@@ -7,6 +7,7 @@ using LethalLevelLoader.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using TMPro;
@@ -133,6 +134,18 @@ namespace LethalLevelLoader
         }
 
         [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(GameNetworkManager), "SaveGameValues")]
+        [HarmonyPostfix]
+        internal static void GameNetworkManagerSaveGameValues_Postfix(GameNetworkManager __instance)
+        {
+            // Vanilla checks
+            if (!__instance.isHostingGame || !StartOfRound.Instance.inShipPhase || StartOfRound.Instance.isChallengeFile)
+                return;
+
+            SaveManager.SaveGameValues();
+        }
+
+        [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(StartOfRound), "Awake")]
         [HarmonyPrefix]
         internal static void StartOfRoundAwake_Prefix(StartOfRound __instance)
@@ -151,12 +164,10 @@ namespace LethalLevelLoader
             SceneManager.sceneLoaded += EventPatches.OnSceneLoaded;
 
             //Removing the broken cardboard box item please understand 
-
             //Scrape Vanilla For Content References
             if (Plugin.IsSetupComplete == false)
             {
                 StartOfRound.allItemsList.itemsList.RemoveAt(2);
-                SaveManager.defaultCachedItemsList = new List<Item>(StartOfRound.allItemsList.itemsList);
 
                 DebugStopwatch.StartStopWatch("Scrape Vanilla Content");
                 ContentExtractor.TryScrapeVanillaItems(StartOfRound);
@@ -286,7 +297,7 @@ namespace LethalLevelLoader
                 TerminalManager.CreateMoonsFilterTerminalAssets();
 
                 foreach (CompatibleNoun routeNode in TerminalManager.routeKeyword.compatibleNouns)
-                    TerminalManager.AddTerminalNodeEventListener(routeNode.result, TerminalManager.LockedNodeEventTest, TerminalManager.LoadNodeActionType.Before);
+                    TerminalManager.AddTerminalNodeEventListener(routeNode.result, TerminalManager.OnBeforeRouteNodeLoaded, TerminalManager.LoadNodeActionType.Before);
 
                 //Create Terminal Data For Custom StoryLog's And Patch Basegame References To StoryLog's To Include Custom StoryLogs.
                 TerminalManager.CreateTerminalDataForAllExtendedStoryLogs();
@@ -308,7 +319,6 @@ namespace LethalLevelLoader
             if (LethalLevelLoaderNetworkManager.networkManager.IsServer)
             {
                 SaveManager.InitializeSave();
-                SaveManager.RefreshSaveItemInfo();
             }
 
             DebugStopwatch.StopStopWatch("Initalize Save");
@@ -385,7 +395,8 @@ namespace LethalLevelLoader
             if (RoundManager.currentLevel != null && SaveManager.currentSaveFile.CurrentLevelName != RoundManager.currentLevel.PlanetName)
             {
                 DebugHelper.Log("Saving Current SelectableLevel: " + RoundManager.currentLevel.PlanetName, DebugType.User);
-                SaveManager.SaveCurrentSelectableLevel(RoundManager.currentLevel);
+                SaveManager.currentSaveFile.CurrentLevelName = RoundManager.currentLevel.PlanetName;
+                //SaveManager.SaveCurrentSelectableLevel(RoundManager.currentLevel);
                 //LevelLoader.RefreshShipAnimatorClips(LevelManager.CurrentExtendedLevel);
             }
             
@@ -394,11 +405,9 @@ namespace LethalLevelLoader
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(StartOfRound), "LoadShipGrabbableItems")]
         [HarmonyPrefix]
-        internal static bool StartOfRoundLoadShipGrabbableItems_Prefix()
+        internal static void StartOfRoundLoadShipGrabbableItems_Prefix()
         {
-            //SaveManager.LoadShipGrabbableItems(); 
-            //return (false);
-            return (true);
+            SaveManager.LoadShipGrabbableItems();
         }
 
 
@@ -487,34 +496,28 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void StartOfRoundStartGame_Prefix()
         {
-            //LevelLoader.RefreshShipAnimatorClips(LevelManager.CurrentExtendedLevel);
-        }
+            if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false)
+                return;
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(NetworkSceneManager), "LoadScene")]
-        [HarmonyPrefix]
-        internal static void NetworkSceneManagerLoadScene_Prefix(ref string sceneName)
-        {
-            if (LevelManager.CurrentExtendedLevel == null) return;
-            
-            if (LevelManager.CurrentExtendedLevel.SelectableLevel.sceneName == sceneName)
+            ExtendedLevel extendedLevel = LevelManager.CurrentExtendedLevel;
+
+            if (extendedLevel == null) return;
+
+            extendedLevel.SelectableLevel.sceneName = string.Empty;
+
+            RoundManager.InitializeRandomNumberGenerators();
+
+            int counter = 1;
+            foreach (StringWithRarity sceneSelection in LevelManager.CurrentExtendedLevel.SceneSelections)
             {
-                sceneName = string.Empty;
-
-                RoundManager.InitializeRandomNumberGenerators();
-
-                int counter = 1;
-                foreach (StringWithRarity sceneSelection in LevelManager.CurrentExtendedLevel.SceneSelections)
-                {
-                    DebugHelper.Log("Scene Selection #" + counter + " \"" + sceneSelection.Name + "\" (" + sceneSelection.Rarity + ")", DebugType.Developer);
-                    counter++;
-                }
-
-                List<int> sceneSelections = LevelManager.CurrentExtendedLevel.SceneSelections.Select(s => s.Rarity).ToList();
-                int selectedSceneIndex = RoundManager.GetRandomWeightedIndex(sceneSelections.ToArray(), RoundManager.LevelRandom);
-                sceneName = LevelManager.CurrentExtendedLevel.SceneSelections[selectedSceneIndex].Name;
-                DebugHelper.Log("Selected SceneName: " +  sceneName + " For ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName, DebugType.Developer);
+                DebugHelper.Log("Scene Selection #" + counter + " \"" + sceneSelection.Name + "\" (" + sceneSelection.Rarity + ")", DebugType.Developer);
+                counter++;
             }
+
+            List<int> sceneSelections = LevelManager.CurrentExtendedLevel.SceneSelections.Select(s => s.Rarity).ToList();
+            int selectedSceneIndex = RoundManager.GetRandomWeightedIndex(sceneSelections.ToArray(), RoundManager.LevelRandom);
+            extendedLevel.SelectableLevel.sceneName = LevelManager.CurrentExtendedLevel.SceneSelections[selectedSceneIndex].Name;
+            DebugHelper.Log("Selected SceneName: " + extendedLevel.SelectableLevel.sceneName + " For ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName, DebugType.Developer);
         }
 
         [HarmonyPriority(harmonyPriority)]

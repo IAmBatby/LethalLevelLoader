@@ -233,6 +233,8 @@ namespace LethalLevelLoader
     public class LevelEvents
     {
         public ExtendedEvent onLevelLoaded = new ExtendedEvent();
+        public ExtendedEvent onShipLand = new ExtendedEvent();
+        public ExtendedEvent onShipLeave = new ExtendedEvent();
         public ExtendedEvent<EnemyAI> onDaytimeEnemySpawn = new ExtendedEvent<EnemyAI>();
         public ExtendedEvent<EnemyAI> onNighttimeEnemySpawn = new ExtendedEvent<EnemyAI>();
         public ExtendedEvent<StoryLog> onStoryLogCollected = new ExtendedEvent<StoryLog>();

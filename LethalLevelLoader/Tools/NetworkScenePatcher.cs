@@ -28,6 +28,7 @@ public static class NetworkScenePatcher
             //Debug.LogError($"Can not add scene path {scenePath} to the network scene patcher! (already exists in scene paths list)");
             return;
         }
+        DebugHelper.Log("Adding ScenePath: " + scenePath, DebugType.User);
         scenePaths.Add(scenePath);
     }
 

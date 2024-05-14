@@ -109,6 +109,7 @@ namespace LethalLevelLoader
                 {
                     extendedEnemyType.ScanNodeProperties = enemyScanNode;
                     extendedEnemyType.ScanNodeProperties.creatureScanID = (highestVanillaEnemyScanNodeCreatureID + counter);
+                    extendedEnemyType.EnemyID = (highestVanillaEnemyScanNodeCreatureID + counter);
                     DebugHelper.Log("Setting Custom EnemyType: " + extendedEnemyType.EnemyType.enemyName + " ID To: " + (highestVanillaEnemyScanNodeCreatureID + counter), DebugType.Developer);
                 }
                 counter++;
@@ -127,6 +128,8 @@ namespace LethalLevelLoader
                     spawnableEnemyWithRarity.enemyType = customEnemyType.EnemyType;
                     spawnableEnemyWithRarity.rarity = 300;
                     quickMenuManager.testAllEnemiesLevel.Enemies.Add(spawnableEnemyWithRarity);
+                    quickMenuManager.testAllEnemiesLevel.OutsideEnemies.Add(spawnableEnemyWithRarity);
+                    quickMenuManager.testAllEnemiesLevel.DaytimeEnemies.Add(spawnableEnemyWithRarity);
                 }
             }
         }

@@ -63,7 +63,7 @@ namespace LethalLevelLoader
         // HideInInspector
         public int DungeonID { get; internal set; }
         public bool IsCurrentDungeon => (DungeonManager.CurrentExtendedDungeonFlow == this);
-        [HideInInspector] public DungeonEvents dungeonEvents = new DungeonEvents();
+        [HideInInspector] public DungeonEvents DungeonEvents { get; internal set; } = new DungeonEvents();
 
         internal static ExtendedDungeonFlow Create(DungeonFlow newDungeonFlow, AudioClip newFirstTimeDungeonAudio)
         {
@@ -173,6 +173,8 @@ namespace LethalLevelLoader
     public class DungeonEvents
     {
         public ExtendedEvent<RoundManager> onBeforeDungeonGenerate = new ExtendedEvent<RoundManager>();
+        public ExtendedEvent onShipLand = new ExtendedEvent();
+        public ExtendedEvent onShipLeave = new ExtendedEvent();
         public ExtendedEvent<List<GameObject>> onSpawnedSyncedObjects = new ExtendedEvent<List<GameObject>>();
         public ExtendedEvent<List<GameObject>> onSpawnedMapObjects = new ExtendedEvent<List<GameObject>>();
         public ExtendedEvent<List<GrabbableObject>> onSpawnedScrapObjects = new ExtendedEvent<List<GrabbableObject>>();

@@ -69,7 +69,7 @@ namespace LethalLevelLoader
         {
             foreach (IndoorMapType indoorMapType in RoundManager.Instance.dungeonFlowTypes)
                 if (indoorMapType.dungeonFlow == extendedDungeonFlow.DungeonFlow)
-                    return (extendedLevel.selectableLevel.factorySizeMultiplier / indoorMapType.MapTileSize * RoundManager.Instance.mapSizeMultiplier);
+                    return (extendedLevel.SelectableLevel.factorySizeMultiplier / indoorMapType.MapTileSize * RoundManager.Instance.mapSizeMultiplier);
             
             return 1f;
 

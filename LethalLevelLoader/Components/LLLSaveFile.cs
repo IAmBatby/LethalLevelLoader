@@ -9,32 +9,45 @@ namespace LethalLevelLoader
     {
         public string CurrentLevelName { get; internal set; } = string.Empty;
 
-        public Dictionary<string, string> customItemDictionary = new Dictionary<string, string>();
-
-        public List<string> allItemsList = new List<string>();
-
-        public List<AllItemsListItemData> itemSaveDataList = new List<AllItemsListItemData>();
+        public int parityStepsTaken;
         public Dictionary<int, AllItemsListItemData> itemSaveData = new Dictionary<int, AllItemsListItemData>();
 
-        public LLLSaveFile(string name)
+        public LLLSaveFile()
         {
-            OptionalPrefixSuffix = name;
+            //OptionalPrefixSuffix = name;
+        }
+
+        public void Reset()
+        {
+            CurrentLevelName = string.Empty;
+            parityStepsTaken = 0;
+            itemSaveData = new Dictionary<int, AllItemsListItemData>();
         }
     }
 
     public struct AllItemsListItemData
     {
+        public string itemObjectName;
         public string itemName;
-        public string itemDisplayName;
         public string modName;
+        public string modAuthor;
         public int allItemsListIndex;
+        public int modItemsListIndex;
+        public int itemNameDuplicateIndex;
+        public bool isScrap;
+        public bool saveItemVariable;
 
-        public AllItemsListItemData(string newItemName, string newItemDisplayName, string newModName, int newAllItemsListIndex)
+        public AllItemsListItemData(string newItemObjectName, string newItemName, string newModName, string newModAuthor, int newAllItemsListIndex, int newModItemsListIndex, int newItemNameDuplicateIndex, bool newIsScrap, bool newSaveItemVariable)
         {
+            itemObjectName = newItemObjectName;
             itemName = newItemName;
-            itemDisplayName = newItemDisplayName;
             modName = newModName;
+            modAuthor = newModAuthor;
             allItemsListIndex = newAllItemsListIndex;
+            modItemsListIndex = newModItemsListIndex;
+            itemNameDuplicateIndex = newItemNameDuplicateIndex;
+            isScrap = newIsScrap;
+            saveItemVariable = newSaveItemVariable;
         }
     }
 }
