@@ -41,8 +41,52 @@ namespace LethalLevelLoader
             DontDestroyOnLoad(gameObject);
         }
 
-        [ServerRpc]
-        public void GetRandomExtendedDungeonFlowServerRpc()
+        [ServerRpc(RequireOwnership = false)]
+        public void GetUpdatedLevelCurrentWeatherServerRpc()
+        {
+            GetUpdatedLevelCurrentWeather();
+        }
+
+        public void GetUpdatedLevelCurrentWeather()
+        {
+            List<StringContainer> levelNames = new List<StringContainer>();
+            List<LevelWeatherType> weatherTypes = new List<LevelWeatherType>();
+            foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
+            {
+                StringContainer stringContainer = new StringContainer();
+                stringContainer.SomeText = extendedLevel.name;
+                levelNames.Add(stringContainer);
+                weatherTypes.Add(extendedLevel.SelectableLevel.currentWeather);
+            }
+
+            SetUpdatedLevelCurrentWeatherClientRpc(levelNames.ToArray(), weatherTypes.ToArray());
+        }
+
+        [ClientRpc]
+        public void SetUpdatedLevelCurrentWeatherClientRpc(StringContainer[] levelNames, LevelWeatherType[] weatherTypes)
+        {
+            SetUpdatedLevelCurrentWeather(levelNames, weatherTypes);
+        }
+
+        public void SetUpdatedLevelCurrentWeather(StringContainer[] levelNames, LevelWeatherType[] weatherTypes)
+        {
+            Dictionary<ExtendedLevel, LevelWeatherType> syncedLevelCurrentWeathers = new Dictionary<ExtendedLevel, LevelWeatherType>();
+
+            for (int i = 0; i < levelNames.Length; i++)
+                foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
+                    if (levelNames[i].SomeText == extendedLevel.name)
+                        syncedLevelCurrentWeathers.Add(extendedLevel, weatherTypes[i]);
+
+            foreach (KeyValuePair<ExtendedLevel, LevelWeatherType> syncedWeather in syncedLevelCurrentWeathers)
+            {
+                if (syncedWeather.Key.SelectableLevel.currentWeather != syncedWeather.Value)
+                {
+                    DebugHelper.LogWarning("Client Had Differing Current Weather Value For ExtendedLevel: " + syncedWeather.Key.NumberlessPlanetName + ", Syncing!", DebugType.User);
+                    syncedWeather.Key.SelectableLevel.currentWeather = syncedWeather.Value;
+                }
+            }
+        }
+        public void GetRandomExtendedDungeonFlow()
         {
             DebugHelper.Log("Getting Random DungeonFlows!", DebugType.User);
 
@@ -76,57 +120,26 @@ namespace LethalLevelLoader
 
             SetRandomExtendedDungeonFlowClientRpc(dungeonFlowNames.ToArray(), rarities.ToArray());
         }
-
-        [ServerRpc]
-        public void GetUpdatedLevelCurrentWeatherServerRpc()
-        {
-            List<StringContainer> levelNames = new List<StringContainer>();
-            List<LevelWeatherType> weatherTypes = new List<LevelWeatherType>();
-            foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-            {
-                StringContainer stringContainer = new StringContainer();
-                stringContainer.SomeText = extendedLevel.name;
-                levelNames.Add(stringContainer);
-                weatherTypes.Add(extendedLevel.SelectableLevel.currentWeather);
-            }
-
-            SetUpdatedLevelCurrentWeatherClientRpc(levelNames.ToArray(), weatherTypes.ToArray());
-        }
-
-        [ClientRpc]
-        public void SetUpdatedLevelCurrentWeatherClientRpc(StringContainer[] levelNames, LevelWeatherType[] weatherTypes)
-        {
-            Dictionary<ExtendedLevel, LevelWeatherType> syncedLevelCurrentWeathers = new Dictionary<ExtendedLevel, LevelWeatherType>();
-
-            for (int i = 0; i < levelNames.Length; i++)
-                foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                    if (levelNames[i].SomeText == extendedLevel.name)
-                        syncedLevelCurrentWeathers.Add(extendedLevel, weatherTypes[i]);
-
-            foreach (KeyValuePair<ExtendedLevel, LevelWeatherType> syncedWeather in syncedLevelCurrentWeathers)
-            {
-                if (syncedWeather.Key.SelectableLevel.currentWeather != syncedWeather.Value)
-                {
-                    DebugHelper.LogWarning("Client Had Differing Current Weather Value For ExtendedLevel: " + syncedWeather.Key.NumberlessPlanetName + ", Syncing!", DebugType.User);
-                    syncedWeather.Key.SelectableLevel.currentWeather = syncedWeather.Value;
-                }
-            }
-        }
-
         [ClientRpc]
         public void SetRandomExtendedDungeonFlowClientRpc(StringContainer[] dungeonFlowNames, int[] rarities)
         {
+            SetRandomExtendedDungeonFlow(dungeonFlowNames, rarities);
+        }
+
+        public void SetRandomExtendedDungeonFlow(StringContainer[] dungeonFlowNames, int[] rarities)
+        {
+
             DebugHelper.Log("Setting Random DungeonFlows!", DebugType.User);
             List<IntWithRarity> dungeonFlowsList = new List<IntWithRarity>();
             List<IntWithRarity> cachedDungeonFlowsList = new List<IntWithRarity>();
-            
+
             Dictionary<string, int> dungeonFlowIds = new Dictionary<string, int>();
             int counter = 0;
             foreach (DungeonFlow dungeonFlow in Patches.RoundManager.GetDungeonFlows())
             {
                 dungeonFlowIds.Add(dungeonFlow.name, counter);
                 counter++;
-            }    
+            }
             for (int i = 0; i < dungeonFlowNames.Length; i++)
             {
                 IntWithRarity intWithRarity = new IntWithRarity();
