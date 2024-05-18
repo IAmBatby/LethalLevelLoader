@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Sdk Name="Evaisa.NetcodePatcher.MSBuild" Version="4.2.0" />
 
   <PropertyGroup>
       <TargetFramework>netstandard2.1</TargetFramework>
@@ -40,9 +41,9 @@
   </ItemGroup>
 
   
-  <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
-    <Exec Command="netcode-patch &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies->'&quot;%(Identity)&quot;', ' ')" />
-  </Target>
+  <ItemGroup>
+    <NetcodePatch Include="$(TargetPath)" />
+  </ItemGroup>
 
   <Target Name="CopyToDebugProfile" AfterTargets="NetcodePatch" Condition="'$(Configuration)' == 'Debug'">
     <Message Importance="high" Text="Copying To Lethal Company Dir" />
