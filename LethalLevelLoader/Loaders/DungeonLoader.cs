@@ -33,7 +33,7 @@ namespace LethalLevelLoader
         {
             Patches.RoundManager.dungeonGenerator.Generator.DungeonFlow = null;
             if (LethalLevelLoaderNetworkManager.Instance.IsServer)
-                LethalLevelLoaderNetworkManager.Instance.GetRandomExtendedDungeonFlowServerRpc();
+                LethalLevelLoaderNetworkManager.Instance.GetRandomExtendedDungeonFlow();
         }
 
         internal static void PrepareDungeon()

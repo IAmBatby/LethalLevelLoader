@@ -346,14 +346,52 @@ namespace LethalLevelLoader
         }
 
         [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartOfRound), "SetPlanetsWeather")]
-        [HarmonyPostfix]
-        internal static void StartOfRoundSetPlanetsWeather_Postfix()
+        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnPlayerConnectedClientRpc))]
+        [HarmonyTranspiler]
+        internal static IEnumerable<CodeInstruction> StartOfRoundOnPlayerConnectedClientRpc_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            if (LethalLevelLoaderNetworkManager.networkManager.IsServer)
-                LethalLevelLoaderNetworkManager.Instance.GetUpdatedLevelCurrentWeatherServerRpc();
+
+            CodeMatcher codeMatcher = new CodeMatcher(instructions)
+                .SearchForward(instructions => instructions.Calls(AccessTools.Method(typeof(StartOfRound), nameof(StartOfRound.SetPlanetsWeather))))
+                .SetInstruction(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Patches), nameof(InjectHostWeatherSelection))))
+                .Advance(-1)
+                .SetInstruction(new CodeInstruction(OpCodes.Ldc_I4_1))
+                .Advance(-1)
+                .SetOpcodeAndAdvance(OpCodes.Nop);
+            return codeMatcher.InstructionEnumeration();
         }
 
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(TimeOfDay), nameof(TimeOfDay.OnDayChanged))]
+        [HarmonyTranspiler]
+        internal static IEnumerable<CodeInstruction> TimeOfDayOnDayChanged_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+
+            CodeMatcher codeMatcher = new CodeMatcher(instructions)
+                .SearchForward(instructions => instructions.Calls(AccessTools.Method(typeof(StartOfRound), nameof(StartOfRound.SetPlanetsWeather))))
+                .SetInstruction(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Patches), nameof(InjectHostWeatherSelection))))
+                .Advance(-1)
+                .SetInstruction(new CodeInstruction(OpCodes.Ldc_I4_0))
+                .Advance(-1)
+                .SetOpcodeAndAdvance(OpCodes.Nop);
+            return codeMatcher.InstructionEnumeration();
+        }
+
+        static void InjectHostWeatherSelection(bool requestWeathers)
+        {
+            if (requestWeathers)
+            {
+                LethalLevelLoaderNetworkManager.Instance.GetUpdatedLevelCurrentWeatherServerRpc();
+                return;
+            }
+
+            if (LethalLevelLoaderNetworkManager.networkManager.IsServer)
+            {
+                // Only the host selects the weathers and sends the output to the clients.
+                StartOfRound.SetPlanetsWeather();
+                LethalLevelLoaderNetworkManager.Instance.GetUpdatedLevelCurrentWeather();
+            }
+        }
         public static bool hasInitiallyChangedLevel;
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(StartOfRound), "ChangeLevel")]
