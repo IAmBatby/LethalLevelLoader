@@ -180,10 +180,16 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void StartOfRoundOnShipLandedMiscEvents_Prefix()
         {
-            LevelManager.CurrentExtendedLevel.LevelEvents.onShipLand.Invoke();
-            LevelManager.GlobalLevelEvents.onShipLand.Invoke();
-            DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onShipLand.Invoke();
-            DungeonManager.GlobalDungeonEvents.onShipLand.Invoke();
+            if (LevelManager.CurrentExtendedLevel != null)
+            {
+                LevelManager.CurrentExtendedLevel.LevelEvents.onShipLand.Invoke();
+                LevelManager.GlobalLevelEvents.onShipLand.Invoke();
+            }
+            if (DungeonManager.CurrentExtendedDungeonFlow != null)
+            {
+                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onShipLand.Invoke();
+                DungeonManager.GlobalDungeonEvents.onShipLand.Invoke();
+            }
         }
 
         [HarmonyPriority(Patches.harmonyPriority)]
@@ -191,10 +197,16 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void StartOfRoundShipLeave_Prefix()
         {
-            LevelManager.CurrentExtendedLevel.LevelEvents.onShipLeave.Invoke();
-            LevelManager.GlobalLevelEvents.onShipLeave.Invoke();
-            DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onShipLeave.Invoke();
-            DungeonManager.GlobalDungeonEvents.onShipLeave.Invoke();
+            if (LevelManager.CurrentExtendedLevel != null)
+            {
+                LevelManager.CurrentExtendedLevel.LevelEvents.onShipLeave.Invoke();
+                LevelManager.GlobalLevelEvents.onShipLeave.Invoke();
+            }
+            if (DungeonManager.CurrentExtendedDungeonFlow != null)
+            {
+                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onShipLeave.Invoke();
+                DungeonManager.GlobalDungeonEvents.onShipLeave.Invoke();
+            }
         }
 
         [HarmonyPriority(Patches.harmonyPriority)]

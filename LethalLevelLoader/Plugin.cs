@@ -11,6 +11,7 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Device;
 using UnityEngine.SceneManagement;
+using Application = UnityEngine.Application;
 
 namespace LethalLevelLoader
 {
@@ -21,7 +22,7 @@ namespace LethalLevelLoader
     {
         public const string ModGUID = "imabatby.lethallevelloader";
         public const string ModName = "LethalLevelLoader";
-        public const string ModVersion = "1.2.0.1";
+        public const string ModVersion = "1.2.0.4";
 
         internal static Plugin Instance;
 
@@ -60,8 +61,10 @@ namespace LethalLevelLoader
 
             GameObject test = new GameObject("LethalLevelLoader AssetBundleLoader");
             test.AddComponent<AssetBundleLoader>().LoadBundles();
-            //test.hideFlags = HideFlags.HideAndDontSave;
-            DontDestroyOnLoad(test);
+            if (Application.isEditor)
+                DontDestroyOnLoad(test);
+            else
+                test.hideFlags = HideFlags.HideAndDontSave;
             AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
 
             ConfigLoader.BindGeneralConfigs();

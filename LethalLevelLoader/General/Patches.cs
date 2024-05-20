@@ -395,7 +395,7 @@ namespace LethalLevelLoader
             if (RoundManager.currentLevel != null && SaveManager.currentSaveFile.CurrentLevelName != RoundManager.currentLevel.PlanetName)
             {
                 DebugHelper.Log("Saving Current SelectableLevel: " + RoundManager.currentLevel.PlanetName, DebugType.User);
-                SaveManager.currentSaveFile.CurrentLevelName = RoundManager.currentLevel.PlanetName;
+                SaveManager.currentSaveFile.CurrentLevelName = RoundManager.currentLevel.name;
                 //SaveManager.SaveCurrentSelectableLevel(RoundManager.currentLevel);
                 //LevelLoader.RefreshShipAnimatorClips(LevelManager.CurrentExtendedLevel);
             }
