@@ -39,6 +39,10 @@ namespace LethalLevelLoader
                 foreach (ExtendedLevel level in ExtendedLevels)
                     if (level.ContentType == ContentType.Custom)
                         list.Add(level);
+
+                //Sort the list by name.
+                list.Sort((s1, s2) => s1.name.CompareTo(s2.name));
+
                 return (list);
             }
         }
@@ -52,7 +56,7 @@ namespace LethalLevelLoader
                     list.Add(level.SelectableLevel);
                 return (list);
             }
-       
+
         }
 
         public static List<SelectableLevel> MoonsCatalogue
@@ -207,6 +211,22 @@ namespace LethalLevelLoader
             {
                 extendedMod.SortRegisteredContent();
             }
+        }
+
+        // Phantom139: This may be a little redundant since CustomExtendedLevels is now sorted by name on get, but always a good "sanity" check on level IDs
+        internal static void SortLevelList()
+        {
+            List<ExtendedLevel> ExtendedVanillaLevels = VanillaExtendedLevels;
+            List<ExtendedLevel> ExtendedCustomLevels = CustomExtendedLevels;
+            //Sort the custom list, leave the vanilla list alone.
+            ExtendedCustomLevels.Sort((s1, s2) => s1.name.CompareTo(s2.name));
+
+            //Overwrite the existing list.
+            List<ExtendedLevel> ExtendedLevelsSorted = new List<ExtendedLevel>();
+            ExtendedLevelsSorted = ExtendedVanillaLevels;
+            ExtendedLevelsSorted.AddRange(ExtendedCustomLevels);
+
+            ExtendedLevels = ExtendedLevelsSorted;
         }
     }
 
