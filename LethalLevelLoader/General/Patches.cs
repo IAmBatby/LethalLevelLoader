@@ -114,7 +114,7 @@ namespace LethalLevelLoader
             if (Plugin.IsSetupComplete == false)
             {
                 LethalLevelLoaderNetworkManager.networkManager = __instance.GetComponent<NetworkManager>();
-                foreach (NetworkPrefab networkPrefab in __instance.GetComponent<NetworkManager>().NetworkConfig.Prefabs.m_Prefabs)
+                foreach (NetworkPrefab networkPrefab in __instance.GetComponent<NetworkManager>().NetworkConfig.Prefabs.Prefabs)
                     if (networkPrefab.Prefab.name.Contains("EntranceTeleport"))
                         if (networkPrefab.Prefab.GetComponent<AudioSource>() != null)
                             OriginalContent.AudioMixers.Add(networkPrefab.Prefab.GetComponent<AudioSource>().outputAudioMixerGroup.audioMixer);
@@ -188,6 +188,7 @@ namespace LethalLevelLoader
 
             if (Plugin.IsSetupComplete == false)
             {
+                string debugString;
                 //Terminal Specific Reference Setup
                 TerminalManager.CacheTerminalReferences();
 
@@ -207,11 +208,15 @@ namespace LethalLevelLoader
                 //Initialize ExtendedContent Objects For Custom Content.
                 AssetBundleLoader.InitializeBundles();
 
+                debugString = "Sorting the ExtendedLevels lists." + "\n";
+                PatchedContent.SortLevelList();
+                DebugHelper.Log(debugString, DebugType.User);
+
                 foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
                     extendedLevel.SetLevelID();
 
                 //Some Debugging.
-                string debugString = "LethalLevelLoader Loaded The Following ExtendedLevels:" + "\n";
+                debugString = "LethalLevelLoader Loaded The Following ExtendedLevels:" + "\n";
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                     debugString += (PatchedContent.ExtendedLevels.IndexOf(extendedLevel) + 1) + ". " + extendedLevel.SelectableLevel.PlanetName + " (" + extendedLevel.ContentType + ")" + "\n";
                 DebugHelper.Log(debugString, DebugType.User);
@@ -399,7 +404,7 @@ namespace LethalLevelLoader
                 //SaveManager.SaveCurrentSelectableLevel(RoundManager.currentLevel);
                 //LevelLoader.RefreshShipAnimatorClips(LevelManager.CurrentExtendedLevel);
             }
-            
+
         }
 
         [HarmonyPriority(harmonyPriority)]
@@ -464,9 +469,9 @@ namespace LethalLevelLoader
         {
             Terminal.screenText.textComponent.fontSize = TerminalManager.defaultTerminalFontSize;
             return (TerminalManager.OnBeforeLoadNewNode(ref node));
-                /*foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                    if (extendedLevel.RouteNode == node && extendedLevel.IsRouteLocked == true)
-                        TerminalManager.SwapRouteNodeToLockedNode(extendedLevel, ref node);*/
+            /*foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
+                if (extendedLevel.RouteNode == node && extendedLevel.IsRouteLocked == true)
+                    TerminalManager.SwapRouteNodeToLockedNode(extendedLevel, ref node);*/
         }
 
         [HarmonyPriority(harmonyPriority)]
@@ -476,7 +481,7 @@ namespace LethalLevelLoader
         {
             TerminalManager.OnLoadNewNode(ref node);
             //if (ranLethalLevelLoaderTerminalEvent == true)
-                //__instance.currentNode = TerminalManager.moonsKeyword.specialKeywordResult;
+            //__instance.currentNode = TerminalManager.moonsKeyword.specialKeywordResult;
         }
 
         //Called via SceneManager event.
@@ -547,7 +552,7 @@ namespace LethalLevelLoader
             }
             return (false);
         }
-        
+
         [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.GenerateNewLevelClientRpc))]
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> GenerateNewLevelClientRpcTranspiler(IEnumerable<CodeInstruction> instructions)
@@ -579,7 +584,7 @@ namespace LethalLevelLoader
             /*if (LevelManager.CurrentExtendedLevel != null)
                 LethalLevelLoaderNetworkManager.Instance.GetDungeonFlowSizeServerRpc();
             else*/
-                roundManager.dungeonGenerator.Generate();
+            roundManager.dungeonGenerator.Generate();
         }
 
         //Called via Transpiler.
