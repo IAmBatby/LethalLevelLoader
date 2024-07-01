@@ -191,6 +191,7 @@ namespace LethalLevelLoader
                 AssetBundleLoader.CreateVanillaExtendedLevels(StartOfRound);
                 AssetBundleLoader.CreateVanillaExtendedItems();
                 AssetBundleLoader.CreateVanillaExtendedEnemyTypes();
+                AssetBundleLoader.CreateVanillaExtendedBuyableVehicles();
 
                 DebugStopwatch.StartStopWatch("Initalize Custom ExtendedContent");
                 //Initialize ExtendedContent Objects For Custom Content.
@@ -276,6 +277,12 @@ namespace LethalLevelLoader
             EnemyManager.RefreshDynamicEnemyTypeRarityOnAllExtendedLevels();
 
             DebugStopwatch.StartStopWatch("Create ExtendedLevelGroups & Filter Assets");
+
+            VehiclesManager.PatchVanillaVehiclesLists();
+            VehiclesManager.SetBuyableVehicleIDs();
+
+            foreach (ExtendedBuyableVehicle customExtendedBuyableVehicle in PatchedContent.CustomExtendedBuyableVehicles)
+                TerminalManager.CreateBuyableVehicleTerminalData(customExtendedBuyableVehicle);
 
             //Populate SelectableLevel Data To Be Used In Overhaul Of The Terminal Moons Catalogue.
             TerminalManager.CreateExtendedLevelGroups();
@@ -600,6 +607,25 @@ namespace LethalLevelLoader
         {
             RoundManager.quicksandPrefab = LevelManager.CurrentExtendedLevel.OverrideQuicksandPrefab;
         }
+
+        /*
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(MoldSpreadManager), nameof(MoldSpreadManager.Start))]
+        [HarmonyPrefix]
+        internal static bool MoldSpreadManagerStart_Prefix(MoldSpreadManager __instance)
+        {
+            MoldSpreadManager moldSpreadManager = __instance;
+
+            moldSpreadManager.planetMoldStates = new PlanetMoldState[StartOfRound.Instance.levels.Length];
+            for (int i = 0; i < moldSpreadManager.planetMoldStates.Length; i++)
+            {
+                moldSpreadManager.planetMoldStates[i] = new PlanetMoldState();
+                moldSpreadManager.planetMoldStates[i].destroyedMold = ES3.Load<int[]>(string.Format("Level{Name}DestroyedMold", StartOfRound.Instance.levels[i].name), GameNetworkManager.Instance.currentSaveFileName, new int[0]).ToList();
+            }
+            Debug.Log(string.Format("planet mold states length: ${0}", moldSpreadManager.planetMoldStates.Length));
+            moldSpreadManager.weedColliders = new Collider[3];
+            return (false);
+        }*/
 
 
         [HarmonyPriority(harmonyPriority)]

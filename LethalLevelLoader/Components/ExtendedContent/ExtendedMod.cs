@@ -36,6 +36,9 @@ namespace LethalLevelLoader
         [field: SerializeField]
         public List<ExtendedStoryLog> ExtendedStoryLogs { get; private set; } = new List<ExtendedStoryLog>();
 
+        [field: SerializeField]
+        public List<ExtendedBuyableVehicle> ExtendedBuyableVehicles { get; private set; } = new List<ExtendedBuyableVehicle>();
+
         public List<ExtendedContent> ExtendedContents
         {
             get
@@ -53,6 +56,10 @@ namespace LethalLevelLoader
                     returnList.Add(weatherEffect);
                 foreach (ExtendedFootstepSurface surface in ExtendedFootstepSurfaces)
                     returnList.Add(surface);
+                foreach (ExtendedStoryLog storyLog in ExtendedStoryLogs)
+                    returnList.Add(storyLog);
+                foreach (ExtendedBuyableVehicle vehicle in ExtendedBuyableVehicles)
+                    returnList.Add(vehicle);
 
                 return (returnList);
             }
@@ -189,6 +196,15 @@ namespace LethalLevelLoader
             extendedStoryLog.ExtendedMod = this;
         }
 
+        internal void RegisterExtendedContent(ExtendedBuyableVehicle extendedBuyableVehicle)
+        {
+            TryThrowInvalidContentException(extendedBuyableVehicle, Validators.ValidateExtendedContent(extendedBuyableVehicle));
+
+            ExtendedBuyableVehicles.Add(extendedBuyableVehicle);
+            extendedBuyableVehicle.ContentTags.Add(ContentTag.Create("Custom"));
+            extendedBuyableVehicle.ExtendedMod = this;
+        }
+
         internal void TryThrowInvalidContentException(ExtendedContent extendedContent, (bool,string) result)
         {
             if (result.Item1 == false)
@@ -225,7 +241,7 @@ namespace LethalLevelLoader
 
         internal void SortRegisteredContent()
         {
-            //ExtendedLevels.Sort((s1, s2) => s1.name.CompareTo(s2.name)); 
+            ExtendedLevels.Sort((s1, s2) => s1.name.CompareTo(s2.name)); 
             ExtendedDungeonFlows.Sort((s1, s2) => s1.name.CompareTo(s2.name));
             ExtendedItems.Sort((s1, s2) => s1.name.CompareTo(s2.name));
             ExtendedEnemyTypes.Sort((s1, s2) => s1.name.CompareTo(s2.name));

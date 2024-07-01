@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Sdk Name="Evaisa.NetcodePatcher.MSBuild" Version="4.2.0" />
 
   <PropertyGroup>
       <TargetFramework>netstandard2.1</TargetFramework>
@@ -35,15 +34,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Evaisa.LethalLib" Version="0.15.1" />
+    <PackageReference Include="Evaisa.LethalLib" Version="0.16.0" />
     <PackageReference Include="MaxWasUnavailable.LethalModDataLib" Version="1.2.2" />
-    <PackageReference Include="LethalCompany.GameLibs.Steam" Version="50.0.1-ngd.0" Publicize="true" />
+    <PackageReference Include="LethalCompany.GameLibs.Steam" Version="55.0.0-beta.0-ngd.0" Publicize="true" />
   </ItemGroup>
 
-  
-  <ItemGroup>
-    <NetcodePatch Include="$(TargetPath)" />
-  </ItemGroup>
+  <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
+  <Exec Command="netcode-patch &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies-> '&quot;%(Identity)&quot;', ' ')" />
+  </Target>
 
   <Target Name="CopyToDebugProfile" AfterTargets="NetcodePatch" Condition="'$(Configuration)' == 'Debug'">
     <Message Importance="high" Text="Copying To Lethal Company Dir" />
