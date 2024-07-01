@@ -833,6 +833,52 @@ namespace LethalLevelLoader
             routeInfoKeyword.AddCompatibleNoun(newEnemyInfoKeyword, newEnemyInfoNode);
         }
 
+        internal static void CreateBuyableVehicleTerminalData(ExtendedBuyableVehicle extendedBuyableVehicle)
+        {
+            TerminalKeyword newVehicleTerminalKeyword = CreateNewTerminalKeyword();
+            newVehicleTerminalKeyword.name = extendedBuyableVehicle.name + "Keyword";
+            newVehicleTerminalKeyword.word = extendedBuyableVehicle.TerminalKeywordName.ToLower();
+            newVehicleTerminalKeyword.defaultVerb = buyKeyword;
+
+            TerminalNode newVehicleBuyNode = CreateNewTerminalNode();
+            newVehicleBuyNode.name = extendedBuyableVehicle.name + "Buy";
+            newVehicleBuyNode.itemCost = extendedBuyableVehicle.BuyableVehicle.creditsWorth;
+            newVehicleBuyNode.buyVehicleIndex = extendedBuyableVehicle.VehicleID;
+            newVehicleBuyNode.isConfirmationNode = true;
+            newVehicleBuyNode.overrideOptions = true;
+            newVehicleBuyNode.clearPreviousText = true;
+            newVehicleBuyNode.maxCharactersToType = 15;
+            newVehicleBuyNode.displayText =
+                "You have requested to order the " + extendedBuyableVehicle.BuyableVehicle.vehicleDisplayName + "." + "\n" +
+                "[warranty] Total cost of items: [totalCost]." + "\n\n" +
+                "Please CONFIRM or DENY." + "\n\n";
+                
+            
+
+
+            TerminalNode newVehicleBuyConfirmNode = CreateNewTerminalNode();
+            newVehicleBuyConfirmNode.name = extendedBuyableVehicle.name + "BuyConfirm";
+            newVehicleBuyConfirmNode.itemCost = extendedBuyableVehicle.BuyableVehicle.creditsWorth;
+            newVehicleBuyConfirmNode.buyVehicleIndex = extendedBuyableVehicle.VehicleID;
+            newVehicleBuyConfirmNode.clearPreviousText = true;
+            newVehicleBuyConfirmNode.maxCharactersToType = 35;
+            newVehicleBuyConfirmNode.displayText =
+                "Ordered the " + extendedBuyableVehicle.BuyableVehicle.vehicleDisplayName + ". Your new balance is [playerCredits]." + "\n\n" +
+                "We are so confident in the quality of this product, it comes with a life-time warranty! If your " + extendedBuyableVehicle.BuyableVehicle.vehicleDisplayName + " is lost or destroyed, you can get one free replacement. Items cannot be purchased while the vehicle is en route." + "\n\n";
+
+            TerminalNode newVehicleInfoNode = CreateNewTerminalNode();
+            newVehicleInfoNode.name = extendedBuyableVehicle.name + "Info";
+
+            extendedBuyableVehicle.VehicleBuyNode = newVehicleBuyNode;
+            extendedBuyableVehicle.VehicleBuyConfirmNode = newVehicleBuyConfirmNode;
+            extendedBuyableVehicle.VehicleInfoNode = newVehicleInfoNode;
+
+            newVehicleBuyNode.AddCompatibleNoun(routeConfirmKeyword, newVehicleBuyConfirmNode);
+            newVehicleBuyNode.AddCompatibleNoun(routeDenyKeyword, cancelPurchaseNode);
+
+            buyKeyword.AddCompatibleNoun(newVehicleTerminalKeyword, newVehicleBuyNode);
+        }
+
         internal static void RegisterStoryLog(TerminalKeyword terminalKeyword, TerminalNode terminalNode)
         {
 

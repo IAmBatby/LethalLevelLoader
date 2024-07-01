@@ -95,6 +95,12 @@ namespace LethalLevelLoader
 
                 foreach (ExtendedEnemyType extendedEnemyType in extendedMod.ExtendedEnemyTypes)
                     LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedEnemyType.EnemyType.enemyPrefab);
+
+                foreach (ExtendedBuyableVehicle extendedBuyableVehicle in extendedMod.ExtendedBuyableVehicles)
+                {
+                    LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedBuyableVehicle.BuyableVehicle.vehiclePrefab);
+                    LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedBuyableVehicle.BuyableVehicle.secondaryPrefab);
+                }
             }
         }
 
@@ -358,6 +364,10 @@ namespace LethalLevelLoader
                     //extendedWeatherEffect.contentSourceName = fallbackName;
                 //extendedMod = GetOrCreateExtendedMod(extendedWeatherEffect.contentSourceName);
             }
+            else if (extendedContent is ExtendedBuyableVehicle extendedBuyableVehicle)
+            {
+                extendedMod = GetOrCreateExtendedMod(extendedBuyableVehicle.name);
+            }
 
             if (extendedMod != null)
             {
@@ -467,6 +477,11 @@ namespace LethalLevelLoader
                 }
                 foreach (ExtendedWeatherEffect extendedWeatherEffect in extendedMod.ExtendedWeatherEffects)
                     PatchedContent.ExtendedWeatherEffects.Add(extendedWeatherEffect);
+                foreach (ExtendedBuyableVehicle extendedBuyableVehicle in extendedMod.ExtendedBuyableVehicles)
+                {
+                    extendedBuyableVehicle.ContentType = ContentType.Custom;
+                    PatchedContent.ExtendedBuyableVehicles.Add(extendedBuyableVehicle);
+                }    
             }
             //DebugHelper.DebugAllLevels();
         }
@@ -613,6 +628,19 @@ namespace LethalLevelLoader
             if (extendedDungeonFlow.DungeonID == -1)
                 DungeonManager.RefreshDungeonFlowIDs();
             //Gotta assign the right audio later.
+        }
+
+        internal static void CreateVanillaExtendedBuyableVehicles()
+        {
+            foreach (BuyableVehicle vanillaBuyableVehicle in Patches.Terminal.buyableVehicles)
+                CreateVanillaExtendedBuyableVehicle(vanillaBuyableVehicle);
+        }
+
+        internal static void CreateVanillaExtendedBuyableVehicle(BuyableVehicle buyableVehicle)
+        {
+            ExtendedBuyableVehicle newExtendedVanillaBuyableVehicle = ExtendedBuyableVehicle.Create(buyableVehicle);
+            PatchedContent.VanillaMod.RegisterExtendedContent(newExtendedVanillaBuyableVehicle);
+            PatchedContent.ExtendedBuyableVehicles.Add(newExtendedVanillaBuyableVehicle);
         }
 
         internal static void NetworkRegisterDungeonContent(ExtendedDungeonFlow extendedDungeonFlow, NetworkManager networkManager)

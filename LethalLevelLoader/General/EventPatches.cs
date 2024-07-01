@@ -1,8 +1,6 @@
 ﻿using DunGen;
 using GameNetcodeStuff;
 using HarmonyLib;
-using IL;
-using On;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -253,7 +251,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void LungPropEquipItem_Postfix(LungProp __instance)
         {
-            if (__instance.IsServer == true)
+            if (__instance.IsServer == true && __instance.isLungDockedInElevator)
             {
                 if (DungeonManager.CurrentExtendedDungeonFlow != null)
                 {

@@ -17,6 +17,8 @@ namespace LethalLevelLoader
 
         public static List<ExtendedMod> ExtendedMods { get; internal set; } = new List<ExtendedMod>();
 
+
+
         public static List<ExtendedLevel> ExtendedLevels { get; internal set; } = new List<ExtendedLevel>();
 
         public static List<ExtendedLevel> VanillaExtendedLevels
@@ -69,6 +71,8 @@ namespace LethalLevelLoader
             }
         }
 
+
+
         public static List<ExtendedDungeonFlow> ExtendedDungeonFlows { get; internal set; } = new List<ExtendedDungeonFlow>();
 
         public static List<ExtendedDungeonFlow> VanillaExtendedDungeonFlows
@@ -94,6 +98,8 @@ namespace LethalLevelLoader
                 return (list);
             }
         }
+
+
 
         public static List<ExtendedWeatherEffect> ExtendedWeatherEffects { get; internal set; } = new List<ExtendedWeatherEffect>();
 
@@ -121,6 +127,8 @@ namespace LethalLevelLoader
             }
         }
 
+
+
         public static List<ExtendedItem> ExtendedItems { get; internal set; } = new List<ExtendedItem>();
 
         public static List<ExtendedItem> CustomExtendedItems
@@ -134,6 +142,8 @@ namespace LethalLevelLoader
                 return (returnList);
             }
         }
+
+
 
         public static List<ExtendedEnemyType> ExtendedEnemyTypes { get; internal set; } = new List<ExtendedEnemyType>();
 
@@ -160,6 +170,33 @@ namespace LethalLevelLoader
                 return (returnList);
             }
         }
+
+        public static List<ExtendedBuyableVehicle> ExtendedBuyableVehicles { get; internal set; } = new List<ExtendedBuyableVehicle>();
+
+        public static List<ExtendedBuyableVehicle> CustomExtendedBuyableVehicles
+        {
+            get
+            {
+                List<ExtendedBuyableVehicle> returnList = new List<ExtendedBuyableVehicle>();
+                foreach (ExtendedBuyableVehicle extendedBuyableVehicle in ExtendedBuyableVehicles)
+                    if (extendedBuyableVehicle.ContentType == ContentType.Custom)
+                        returnList.Add(extendedBuyableVehicle);
+                return (returnList);
+            }
+        }
+
+        public static List<ExtendedBuyableVehicle> VanillaExtendedBuyableVehicles
+        {
+            get
+            {
+                List<ExtendedBuyableVehicle> returnList = new List<ExtendedBuyableVehicle>();
+                foreach (ExtendedBuyableVehicle extendedBuyableVehicle in ExtendedBuyableVehicles)
+                    if (extendedBuyableVehicle.ContentType == ContentType.Vanilla)
+                        returnList.Add(extendedBuyableVehicle);
+                return (returnList);
+            }
+        }
+
 
         public static List<AudioMixer> AudioMixers { get; internal set; } = new List<AudioMixer>();
 

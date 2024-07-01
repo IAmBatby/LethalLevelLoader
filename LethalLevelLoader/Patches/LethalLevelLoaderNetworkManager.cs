@@ -167,7 +167,7 @@ namespace LethalLevelLoader
 
             List<GameObject> addedNetworkPrefabs = new List<GameObject>();
 
-            foreach (NetworkPrefab networkPrefab in networkManager.NetworkConfig.Prefabs.m_Prefabs)
+            foreach (NetworkPrefab networkPrefab in networkManager.NetworkConfig.Prefabs.Prefabs)
                 addedNetworkPrefabs.Add(networkPrefab.Prefab);
 
             int debugCounter = 0;

@@ -136,7 +136,7 @@ namespace LethalLevelLoader
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(LethalLib.Modules.Dungeon), "RoundManager_Start")]
         [HarmonyPrefix]
-        internal static bool Dungeon_Start_Prefix(On.RoundManager.orig_Start orig, RoundManager self)
+        internal static bool Dungeon_Start_Prefix(Action<RoundManager> orig, RoundManager self)
         {
             DebugHelper.LogWarning("Disabling LethalLib Dungeon.RoundManager_Start() Function To Prevent Conflicts", DebugType.User);
             orig(self);
@@ -146,7 +146,7 @@ namespace LethalLevelLoader
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(LethalLib.Modules.Dungeon), "RoundManager_GenerateNewFloor")]
         [HarmonyPrefix]
-        internal static bool Dungeon_GenerateNewFloor_Prefix(On.RoundManager.orig_GenerateNewFloor orig, RoundManager self)
+        internal static bool Dungeon_GenerateNewFloor_Prefix(Action<RoundManager> orig, RoundManager self)
         {
             DebugHelper.LogWarning("Disabling LethalLib Dungeon.RoundManager_GenerateNewFloor() Function To Prevent Conflicts", DebugType.User);
             orig(self);
