@@ -4,6 +4,8 @@ using DunGen.Graph;
 using GameNetcodeStuff;
 using HarmonyLib;
 using LethalLevelLoader.Tools;
+using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +37,58 @@ namespace LethalLevelLoader
         public static RoundManager RoundManager { get; internal set; }
         public static Terminal Terminal { get; internal set; }
         public static TimeOfDay TimeOfDay { get; internal set; }
+
+        private static readonly List<IDetour> monomodHooks = [];
+        internal static void InitMonoModHooks()
+        {
+            var method_GameNetworkManager_SaveGameValues = AccessTools.DeclaredMethod(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveGameValues));
+            var method_GameNetworkManager_ResetSavedGameValues = AccessTools.DeclaredMethod(typeof(GameNetworkManager), nameof(GameNetworkManager.ResetSavedGameValues));
+            var method_StartOfRound_LoadPlanetsMoldSpreadData = AccessTools.DeclaredMethod(typeof(StartOfRound), nameof(StartOfRound.LoadPlanetsMoldSpreadData));
+            var method_MoldSpreadManager_Start = AccessTools.DeclaredMethod(typeof(MoldSpreadManager), nameof(MoldSpreadManager.Start));
+
+            monomodHooks.Add(new ILHook(method_GameNetworkManager_SaveGameValues, MoldLevelID2LevelName_ILHook));
+            monomodHooks.Add(new ILHook(method_GameNetworkManager_ResetSavedGameValues, MoldLevelID2LevelName_ILHook));
+            monomodHooks.Add(new ILHook(method_StartOfRound_LoadPlanetsMoldSpreadData, MoldLevelID2LevelName_ILHook));
+            monomodHooks.Add(new ILHook(method_MoldSpreadManager_Start, MoldLevelID2LevelName_ILHook));
+        }
+
+        /// <summary>
+        /// A rather generic ILHook that modifies Mold level save data to use level name instead of ID,<br/>
+        /// as ID will not be consistent.
+        /// </summary>
+        /// <param name="il"></param>
+        private static void MoldLevelID2LevelName_ILHook(ILContext il)
+        {
+            DebugHelper.Log($"[{nameof(MoldLevelID2LevelName_ILHook)}] ILHooking method: {il.Body.Method.Name}", DebugType.Developer);
+            int dbgModificationsAmount = 0;
+            string dbgMatchedStr = "";
+
+            ILCursor c = new(il);
+            while (
+                c.TryGotoNext(MoveType.After,
+                    x => x.MatchLdstr(out dbgMatchedStr) && dbgMatchedStr.Contains("Mold"), // The save file key, e.g. "Level{0}Mold"
+                    x => true   // game has various ways of referencing StartOfRound, listed here purely for reference:
+                        || x.MatchLdloc(out _)                                                  // via local variable
+                        || x.MatchLdarg(0)                                                      // via 'this'
+                        || x.MatchCall<StartOfRound>("get_" + nameof(StartOfRound.Instance)),   // via StartOfRound.Instance
+                    x => x.MatchLdfld<StartOfRound>(nameof(StartOfRound.levels)),
+                    x => x.MatchLdloc(out _),
+                    x => x.MatchLdelemRef(),
+                    x => x.MatchLdfld<SelectableLevel>(nameof(SelectableLevel.levelID)),
+                    x => x.MatchBox<Int32>()
+                )
+            )
+            {
+                DebugHelper.Log($"Matched \"{dbgMatchedStr}\"", DebugType.Developer);
+                c.Index -= 2;
+                c.RemoveRange(2);
+                c.EmitDelegate<Func<SelectableLevel, object>>(selectableLevel =>
+                    { return selectableLevel.name; }
+                );
+                dbgModificationsAmount++;
+            }
+            DebugHelper.Log($"Modified {dbgModificationsAmount} save data level IDs to level names", DebugType.Developer);
+        }
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(PreInitSceneScript), "Awake")]

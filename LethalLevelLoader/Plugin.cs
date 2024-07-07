@@ -69,6 +69,7 @@ namespace LethalLevelLoader
 
             ConfigLoader.BindGeneralConfigs();
 
+            Patches.InitMonoModHooks();
             //UnityEngine.Object.FindFirstObjectByType<GameObject>()
         }
 
