@@ -38,18 +38,13 @@ namespace LethalLevelLoader
         public static Terminal Terminal { get; internal set; }
         public static TimeOfDay TimeOfDay { get; internal set; }
 
-        private static readonly List<IDetour> monomodHooks = [];
+        private static readonly HookHelper.DisposableHookCollection monomodHooks = new();
         internal static void InitMonoModHooks()
         {
-            var method_GameNetworkManager_SaveGameValues = AccessTools.DeclaredMethod(typeof(GameNetworkManager), nameof(GameNetworkManager.SaveGameValues));
-            var method_GameNetworkManager_ResetSavedGameValues = AccessTools.DeclaredMethod(typeof(GameNetworkManager), nameof(GameNetworkManager.ResetSavedGameValues));
-            var method_StartOfRound_LoadPlanetsMoldSpreadData = AccessTools.DeclaredMethod(typeof(StartOfRound), nameof(StartOfRound.LoadPlanetsMoldSpreadData));
-            var method_MoldSpreadManager_Start = AccessTools.DeclaredMethod(typeof(MoldSpreadManager), nameof(MoldSpreadManager.Start));
-
-            monomodHooks.Add(new ILHook(method_GameNetworkManager_SaveGameValues, MoldLevelID2LevelName_ILHook));
-            monomodHooks.Add(new ILHook(method_GameNetworkManager_ResetSavedGameValues, MoldLevelID2LevelName_ILHook));
-            monomodHooks.Add(new ILHook(method_StartOfRound_LoadPlanetsMoldSpreadData, MoldLevelID2LevelName_ILHook));
-            monomodHooks.Add(new ILHook(method_MoldSpreadManager_Start, MoldLevelID2LevelName_ILHook));
+            monomodHooks.ILHook<GameNetworkManager>(nameof(GameNetworkManager.SaveGameValues), MoldLevelID2LevelName_ILHook);
+            monomodHooks.ILHook<GameNetworkManager>(nameof(GameNetworkManager.ResetSavedGameValues), MoldLevelID2LevelName_ILHook);
+            monomodHooks.ILHook<StartOfRound>(nameof(StartOfRound.LoadPlanetsMoldSpreadData), MoldLevelID2LevelName_ILHook);
+            monomodHooks.ILHook<MoldSpreadManager>(nameof(MoldSpreadManager.Start), MoldLevelID2LevelName_ILHook);
         }
 
         /// <summary>
