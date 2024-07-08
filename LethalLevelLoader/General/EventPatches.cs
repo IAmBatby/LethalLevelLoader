@@ -133,7 +133,7 @@ namespace LethalLevelLoader
             }
         }
 
-        private static EnemyVent cachedSelectedVent;
+        private static EnemyVent? cachedSelectedVent;
         [HarmonyPriority(Patches.harmonyPriority)]
         [HarmonyPatch(typeof(RoundManager), "SpawnEnemyFromVent")]
         [HarmonyPrefix]
@@ -285,7 +285,7 @@ namespace LethalLevelLoader
     public class ExtendedEvent<T>
     {
         public delegate void ParameterEvent(T param);
-        private event ParameterEvent onParameterEvent;
+        private event ParameterEvent? onParameterEvent;
         public bool HasListeners => (Listeners != 0);
         public int Listeners { get; internal set; }
         public void Invoke(T param) { onParameterEvent?.Invoke(param); }
@@ -296,7 +296,7 @@ namespace LethalLevelLoader
     public class ExtendedEvent
     {
         public delegate void Event();
-        private event Event onEvent;
+        private event Event? onEvent;
         public bool HasListeners => (Listeners != 0);
         public int Listeners { get; internal set; }
         public void Invoke() { onEvent?.Invoke(); }

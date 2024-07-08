@@ -12,27 +12,27 @@ namespace LethalLevelLoader
     {
         [field: Header("General Settings")]
 
-        [field: SerializeField] public EnemyType EnemyType { get; set; }
-        [field: SerializeField] public string EnemyDisplayName { get; set; }
+        [field: SerializeField] public EnemyType EnemyType { get; set; } = null!;
+        [field: SerializeField] public string EnemyDisplayName { get; set; } = null!;
 
         [field: Space(5)]
         [field: Header("Dynamic Injection Matching Settings")]
 
-        [field: SerializeField] public LevelMatchingProperties OutsideLevelMatchingProperties { get; set; }
-        [field: SerializeField] public LevelMatchingProperties DaytimeLevelMatchingProperties { get; set; }
+        [field: SerializeField] public LevelMatchingProperties OutsideLevelMatchingProperties { get; set; } = null!;
+        [field: SerializeField] public LevelMatchingProperties DaytimeLevelMatchingProperties { get; set; } = null!;
 
-        [field: SerializeField] public LevelMatchingProperties InsideLevelMatchingProperties { get; set; }
-        [field: SerializeField] public DungeonMatchingProperties InsideDungeonMatchingProperties { get; set; }
+        [field: SerializeField] public LevelMatchingProperties InsideLevelMatchingProperties { get; set; } = null!;
+        [field: SerializeField] public DungeonMatchingProperties InsideDungeonMatchingProperties { get; set; } = null!;
 
         [field: Space(5)]
         [field: Header("Terminal Bestiary Override Settings")]
 
         [field: SerializeField] [field: TextArea(2,20)] public string InfoNodeDescription { get; set; } = string.Empty;
-        [field: SerializeField] public VideoClip InfoNodeVideoClip { get; set; }
+        [field: SerializeField] public VideoClip? InfoNodeVideoClip { get; set; }
 
-        public ScanNodeProperties ScanNodeProperties { get; internal set; }
+        public ScanNodeProperties ScanNodeProperties { get; internal set; } = null!;
         public int EnemyID { get; internal set; }
-        public TerminalNode EnemyInfoNode { get; internal set; }
+        public TerminalNode? EnemyInfoNode { get; internal set; }
 
         public static ExtendedEnemyType Create(EnemyType enemyType, ExtendedMod extendedMod, ContentType contentType)
         {

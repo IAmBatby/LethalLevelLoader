@@ -11,7 +11,7 @@ namespace LethalLevelLoader
 {
     public static class PatchedContent
     {
-        public static ExtendedMod VanillaMod { get; internal set; }
+        public static ExtendedMod VanillaMod { get; internal set; } = null!;
 
         public static List<string> AllLevelSceneNames { get; internal set; } = new List<string>();
 

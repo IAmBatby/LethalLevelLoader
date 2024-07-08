@@ -33,7 +33,7 @@ namespace LethalLevelLoader
 
             foreach (Tile tile in new List<Tile>(tilesList))
                 if (tile == null)
-                    tilesList.Remove(tile);
+                    tilesList.Remove(tile!);
 
             return (tilesList);
         }

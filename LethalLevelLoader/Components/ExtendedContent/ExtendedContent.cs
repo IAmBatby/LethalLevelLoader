@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace LethalLevelLoader
 {
     public class ExtendedContent : ScriptableObject
     {
-        public ExtendedMod ExtendedMod { get; internal set; }
+        public ExtendedMod ExtendedMod { get; internal set; } = null!;
         public ContentType ContentType { get; internal set; } = ContentType.Vanilla;
         /*Obsolete*/ public List<string> ContentTagStrings { get; internal set; } = new List<string>();
         [field: SerializeField] public List<ContentTag> ContentTags { get; internal set; } = new List<ContentTag>();
@@ -30,7 +31,7 @@ namespace LethalLevelLoader
             return (false);
         }
 
-        public bool TryGetTag(string tag, out ContentTag returnTag)
+        public bool TryGetTag(string tag, [NotNullWhen(returnValue: true)] out ContentTag? returnTag)
         {
             returnTag = null;
             foreach (ContentTag contentTag in ContentTags)
