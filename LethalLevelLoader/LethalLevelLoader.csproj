@@ -1,51 +1,62 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-      <TargetFramework>netstandard2.1</TargetFramework>
-      <AssemblyName>LethalLevelLoader</AssemblyName>
-      <Description>A Custom API to support the manual and dynamic integration of custom levels and dungeons in Lethal Company.</Description>
-      <Version>1.1.0</Version>
-      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-      <LangVersion>preview</LangVersion>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <AssemblyName>LethalLevelLoader</AssemblyName>
+        <Description>A Custom API to support the manual and dynamic integration of custom levels and dungeons in Lethal Company.</Description>
+        <Version>1.1.0</Version>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>preview</LangVersion>
+    </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-      <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
-  </ItemGroup>
+    <!-- Embed Debug Symbols for Easier Debugging -->
+    <PropertyGroup>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>embedded</DebugType>
+        <!--
+        Trim the project path to prevent players from potentially
+        viewing Private Information in stack traces.
+        -->
+        <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="VanillaContentTags\Enemies.csv" />
-    <None Remove="VanillaContentTags\Items.csv" />
-    <None Remove="VanillaContentTags\SelectableLevels.csv" />
-  </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="VanillaContentTags\Enemies.csv" />
-    <EmbeddedResource Include="VanillaContentTags\Items.csv" />
-    <EmbeddedResource Include="VanillaContentTags\SelectableLevels.csv" />
-  </ItemGroup>
+    <ItemGroup>
+        <None Remove="VanillaContentTags\Enemies.csv" />
+        <None Remove="VanillaContentTags\Items.csv" />
+        <None Remove="VanillaContentTags\SelectableLevels.csv" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="BepInEx.Core" Version="5.4.21" />
-  </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="VanillaContentTags\Enemies.csv" />
+        <EmbeddedResource Include="VanillaContentTags\Items.csv" />
+        <EmbeddedResource Include="VanillaContentTags\SelectableLevels.csv" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Evaisa.LethalLib" Version="0.16.0" />
-    <PackageReference Include="MaxWasUnavailable.LethalModDataLib" Version="1.2.2" />
-    <PackageReference Include="LethalCompany.GameLibs.Steam" Version="55.0.0-beta.0-ngd.0" Publicize="true" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="BepInEx.Core" Version="5.4.21" />
+    </ItemGroup>
 
-  <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
-  <Exec Command="netcode-patch &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies-> '&quot;%(Identity)&quot;', ' ')" />
-  </Target>
+    <ItemGroup>
+        <PackageReference Include="Evaisa.LethalLib" Version="0.16.0" />
+        <PackageReference Include="MaxWasUnavailable.LethalModDataLib" Version="1.2.2" />
+        <PackageReference Include="LethalCompany.GameLibs.Steam" Version="55.0.0-beta.0-ngd.0" Publicize="true" />
+    </ItemGroup>
 
-  <Target Name="CopyToDebugProfile" AfterTargets="NetcodePatch" Condition="'$(Configuration)' == 'Debug'">
-    <Message Importance="high" Text="Copying To Lethal Company Dir" />
-    <Copy SourceFiles="$(TargetDir)LethalLevelLoader.dll" DestinationFolder="C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\plugins\LethalLevelLoader" />
-  </Target>
-  
+    <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
+        <Exec Command="netcode-patch &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies-> '&quot;%(Identity)&quot;', ' ')" />
+    </Target>
+
+    <Target Name="CopyToDebugProfile" AfterTargets="NetcodePatch" Condition="'$(Configuration)' == 'Debug'">
+        <Message Importance="high" Text="Copying To Lethal Company Dir" />
+        <Copy SourceFiles="$(TargetDir)LethalLevelLoader.dll" DestinationFolder="C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\plugins\LethalLevelLoader" />
+    </Target>
+
 </Project>
