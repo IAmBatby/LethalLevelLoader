@@ -27,7 +27,7 @@ namespace LethalLevelLoader
 
     public static class DungeonLoader
     {
-        internal static GameObject defaultKeyPrefab;
+        internal static GameObject defaultKeyPrefab = null!;
         
         internal static void SelectDungeon()
         {
@@ -100,7 +100,7 @@ namespace LethalLevelLoader
         {
             string debugString = "Fire Exit Patch Report, Details Below;" + "\n" + "\n";
 
-            if (DungeonManager.TryGetExtendedDungeonFlow(dungeonGenerator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
+            if (DungeonManager.TryGetExtendedDungeonFlow(dungeonGenerator.DungeonFlow, out ExtendedDungeonFlow? extendedDungeonFlow))
             {
                 List<EntranceTeleport> entranceTeleports = GetEntranceTeleports(scene).OrderBy(o => o.entranceId).ToList();
 

@@ -125,8 +125,8 @@ namespace LethalLevelLoader.Tools
             AudioMixerGroup targetMixerGroup = audioSource.outputAudioMixerGroup;
             AudioMixer targetMixer = audioSource.outputAudioMixerGroup.audioMixer;
 
-            AudioMixerGroup restoredMixerGroup = null;
-            AudioMixer restoredMixer = null;
+            AudioMixerGroup? restoredMixerGroup = null;
+            AudioMixer? restoredMixer = null;
 
             foreach (AudioMixer vanillaMixer in OriginalContent.AudioMixers)
                 if (targetMixer.name == vanillaMixer.name)

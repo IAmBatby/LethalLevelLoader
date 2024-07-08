@@ -39,17 +39,16 @@ namespace LethalLevelLoader
         {
             if (Plugin.IsSetupComplete == false)
             {
-                if (startOfRound != null)
-                {
-                    foreach (IndoorMapType indoorFlowType in roundManager.dungeonFlowTypes)
-                        TryAddReference(OriginalContent.DungeonFlows, indoorFlowType.dungeonFlow);
+                
+                foreach (IndoorMapType indoorFlowType in roundManager.dungeonFlowTypes)
+                    TryAddReference(OriginalContent.DungeonFlows, indoorFlowType.dungeonFlow);
 
-                    foreach (SelectableLevel selectableLevel in startOfRound.levels)
-                        ExtractSelectableLevelReferences(selectableLevel);
+                foreach (SelectableLevel selectableLevel in startOfRound.levels)
+                    ExtractSelectableLevelReferences(selectableLevel);
 
-                    foreach (IndoorMapType indoorFlowType in roundManager.dungeonFlowTypes)
-                        ExtractDungeonFlowReferences(indoorFlowType.dungeonFlow);
-                }
+                foreach (IndoorMapType indoorFlowType in roundManager.dungeonFlowTypes)
+                    ExtractDungeonFlowReferences(indoorFlowType.dungeonFlow);
+                
                 if (TerminalManager.Terminal.currentNode != null)
                     TryAddReference(OriginalContent.TerminalNodes, TerminalManager.Terminal.currentNode);
 

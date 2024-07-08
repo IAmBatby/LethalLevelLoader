@@ -16,11 +16,11 @@ namespace LethalLevelLoader
     {
         internal static List<MeshCollider> customLevelMeshCollidersList = new List<MeshCollider>();
 
-        internal static AnimatorOverrideController shipAnimatorOverrideController;
-        internal static AnimationClip defaultShipFlyToMoonClip;
-        internal static AnimationClip defaultShipFlyFromMoonClip;
+        internal static AnimatorOverrideController shipAnimatorOverrideController = null!;
+        internal static AnimationClip defaultShipFlyToMoonClip = null!;
+        internal static AnimationClip defaultShipFlyFromMoonClip = null!;
 
-        internal static GameObject defaultQuicksandPrefab;
+        internal static GameObject defaultQuicksandPrefab = null!;
 
         internal static async void EnableMeshColliders()
         {
