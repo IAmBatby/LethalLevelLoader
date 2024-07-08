@@ -15,19 +15,19 @@ namespace LethalLevelLoader
     public class ExtendedDungeonFlow : ExtendedContent
     {
         [field: Header("General Settings")]
-        [field: SerializeField] public DungeonFlow DungeonFlow { get; set; }
+        [field: SerializeField] public DungeonFlow DungeonFlow { get; set; } = null!;
         [field: SerializeField] public string DungeonName { get; set; } = string.Empty;
         [field: SerializeField] public float MapTileSize { get; set; } = 1f;
-        [field: SerializeField] public AudioClip FirstTimeDungeonAudio { get; set; }
+        [field: SerializeField] public AudioClip FirstTimeDungeonAudio { get; set; } = null!;
 
         [field: Space(5)]
         [field: Header("Dynamic Injection Matching Settings")]
-        [field: SerializeField] public LevelMatchingProperties LevelMatchingProperties { get; set; }
+        [field: SerializeField] public LevelMatchingProperties LevelMatchingProperties { get; set; } = null!;
 
         [field: Space(5)]
         [field: Header("Extended Feature Settings")]
 
-        [field: SerializeField] public GameObject OverrideKeyPrefab { get; set; }
+        [field: SerializeField] public GameObject OverrideKeyPrefab { get; set; } = null!;
         [field: SerializeField] public List<SpawnableMapObject> SpawnableMapObjects { get; set; } = new List<SpawnableMapObject>();
         [field: SerializeField] public List<GlobalPropCountOverride> GlobalPropCountOverridesList { get; set; } = new List<GlobalPropCountOverride>();
 
@@ -49,8 +49,8 @@ namespace LethalLevelLoader
         [Obsolete] public float dungeonSizeMin = 1;
         [Obsolete] public float dungeonSizeMax = 1;
         [Obsolete][Range(0, 1)] public float dungeonSizeLerpPercentage = 1;
-        [Obsolete] public AudioClip dungeonFirstTimeAudio;
-        [Obsolete] public DungeonFlow dungeonFlow;
+        [Obsolete] public AudioClip? dungeonFirstTimeAudio;
+        [Obsolete] public DungeonFlow? dungeonFlow;
         [Obsolete] public string dungeonDisplayName = string.Empty;
         [Obsolete] public string contentSourceName = string.Empty;
         [Obsolete] public List<StringWithRarity> dynamicLevelTagsList = new List<StringWithRarity>();
@@ -65,11 +65,11 @@ namespace LethalLevelLoader
         public bool IsCurrentDungeon => (DungeonManager.CurrentExtendedDungeonFlow == this);
         [HideInInspector] public DungeonEvents DungeonEvents { get; internal set; } = new DungeonEvents();
 
-        internal static ExtendedDungeonFlow Create(DungeonFlow newDungeonFlow, AudioClip newFirstTimeDungeonAudio)
+        internal static ExtendedDungeonFlow Create(DungeonFlow newDungeonFlow, AudioClip? newFirstTimeDungeonAudio)
         {
             ExtendedDungeonFlow newExtendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
             newExtendedDungeonFlow.DungeonFlow = newDungeonFlow;
-            newExtendedDungeonFlow.FirstTimeDungeonAudio = newFirstTimeDungeonAudio;
+            newExtendedDungeonFlow.FirstTimeDungeonAudio = newFirstTimeDungeonAudio!;
 
             if (newExtendedDungeonFlow.LevelMatchingProperties == null)
                 newExtendedDungeonFlow.LevelMatchingProperties = LevelMatchingProperties.Create(newExtendedDungeonFlow);

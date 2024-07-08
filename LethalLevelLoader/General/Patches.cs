@@ -31,10 +31,10 @@ namespace LethalLevelLoader
         internal static List<string> allSceneNamesCalledToLoad = new List<string>();
 
         //Singletons and such for these are set in each classes Awake function, But they all are accessible on the first awake function of the earliest one of these four managers awake function, so i grab them directly via findobjectoftype to safely access them as early as possible.
-        public static StartOfRound StartOfRound { get; internal set; }
-        public static RoundManager RoundManager { get; internal set; }
-        public static Terminal Terminal { get; internal set; }
-        public static TimeOfDay TimeOfDay { get; internal set; }
+        public static StartOfRound StartOfRound { get; internal set; } = null!;
+        public static RoundManager RoundManager { get; internal set; } = null!;
+        public static Terminal Terminal { get; internal set; } = null!;
+        public static TimeOfDay TimeOfDay { get; internal set; } = null!;
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(PreInitSceneScript), "Awake")]
@@ -681,8 +681,8 @@ namespace LethalLevelLoader
             tempoarySpawnableMapObjectList.Clear();
         }
 
-        internal static GameObject previousHit;
-        internal static FootstepSurface previouslyAssignedFootstepSurface;
+        internal static GameObject? previousHit;
+        internal static FootstepSurface? previouslyAssignedFootstepSurface;
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(PlayerControllerB), "GetCurrentMaterialStandingOn")]

@@ -24,18 +24,18 @@ namespace LethalLevelLoader
         public const string ModName = "LethalLevelLoader";
         public const string ModVersion = "1.3.0";
 
-        internal static Plugin Instance;
+        internal static Plugin Instance = null!;
 
-        internal static AssetBundle MainAssets;
+        internal static AssetBundle? MainAssets;
         internal static readonly Harmony Harmony = new Harmony(ModGUID);
 
-        internal static BepInEx.Logging.ManualLogSource logger;
+        internal static BepInEx.Logging.ManualLogSource logger = null!;
 
-        public static event Action onBeforeSetup;
-        public static event Action onSetupComplete;
+        public static event Action? onBeforeSetup;
+        public static event Action? onSetupComplete;
         public static bool IsSetupComplete { get; private set; } = false;
 
-        internal static GameObject networkManagerPrefab;
+        internal static GameObject? networkManagerPrefab;
 
         private void Awake()
         {
