@@ -12,7 +12,7 @@ namespace LethalLevelLoader
 {
     public class TerminalManager
     {
-        private static Terminal _terminal;
+        private static Terminal? _terminal;
         internal static Terminal Terminal
         {
             get
@@ -24,30 +24,30 @@ namespace LethalLevelLoader
             }
         }
 
-        internal static TerminalNode lockedNode;
+        internal static TerminalNode lockedNode = null!;
 
-        public static MoonsCataloguePage defaultMoonsCataloguePage { get; internal set; }
-        public static MoonsCataloguePage currentMoonsCataloguePage { get; internal set; }
+        public static MoonsCataloguePage defaultMoonsCataloguePage { get; internal set; } = null!;
+        public static MoonsCataloguePage currentMoonsCataloguePage { get; internal set; } = null!;
 
         //Cached References To Important Base-Game TerminalKeywords;
-        internal static TerminalKeyword routeKeyword;
-        internal static TerminalKeyword routeInfoKeyword;
-        internal static TerminalKeyword routeConfirmKeyword;
-        internal static TerminalKeyword routeDenyKeyword;
-        internal static TerminalKeyword moonsKeyword;
-        internal static TerminalKeyword viewKeyword;
-        internal static TerminalKeyword buyKeyword;
-        internal static TerminalNode cancelRouteNode;
-        internal static TerminalNode cancelPurchaseNode;
+        internal static TerminalKeyword routeKeyword = null!;
+        internal static TerminalKeyword routeInfoKeyword = null!;
+        internal static TerminalKeyword routeConfirmKeyword = null!;
+        internal static TerminalKeyword routeDenyKeyword = null!;
+        internal static TerminalKeyword moonsKeyword = null!;
+        internal static TerminalKeyword viewKeyword = null!;
+        internal static TerminalKeyword buyKeyword = null!;
+        internal static TerminalNode cancelRouteNode = null!;
+        internal static TerminalNode cancelPurchaseNode = null!;
 
-        internal static string currentTagFilter;
+        internal static string currentTagFilter = null!;
 
         internal static float defaultTerminalFontSize;
 
-        internal static TerminalKeyword lastParsedVerbKeyword;
+        internal static TerminalKeyword? lastParsedVerbKeyword;
 
         public delegate string PreviewInfoText(ExtendedLevel extendedLevel, PreviewInfoType infoType);
-        public static event PreviewInfoText onBeforePreviewInfoTextAdded;
+        public static event PreviewInfoText? onBeforePreviewInfoTextAdded;
 
         //internal static Dictionary<TerminalNode, Action<TerminalNode, TerminalNode>> terminalNodeRegisteredEventDictionary = new Dictionary<TerminalNode, Action<TerminalNode, TerminalNode>>();
 
@@ -371,7 +371,7 @@ namespace LethalLevelLoader
             if (extendedLevel.IsRouteLocked == true)
                 levelPreviewInfo += " (Locked)";
 
-            string overridePreviewInfo = onBeforePreviewInfoTextAdded?.Invoke(extendedLevel, Settings.levelPreviewInfoType);
+            string? overridePreviewInfo = onBeforePreviewInfoTextAdded?.Invoke(extendedLevel, Settings.levelPreviewInfoType);
             if (overridePreviewInfo != null && overridePreviewInfo != string.Empty)
                 levelPreviewInfo = overridePreviewInfo;
 
@@ -391,7 +391,7 @@ namespace LethalLevelLoader
 
         public static string GetHistoryConditions(ExtendedLevel extendedLevel)
         {
-            DayHistory dayHistory = null;
+            DayHistory? dayHistory = null;
 
             foreach (DayHistory loggedDayHistory in LevelManager.dayHistoryList)
                 if (loggedDayHistory.extendedLevel == extendedLevel)
@@ -465,9 +465,9 @@ namespace LethalLevelLoader
             return returnString;
         }
 
-        internal static TerminalKeyword TryFindAlternativeNoun(Terminal terminal, TerminalKeyword foundKeyword, string playerInput)
+        internal static TerminalKeyword? TryFindAlternativeNoun(Terminal terminal, TerminalKeyword? foundKeyword, string playerInput)
         {
-            if (foundKeyword != null & terminal.hasGottenVerb == false && foundKeyword.isVerb == true)
+            if (foundKeyword != null && terminal.hasGottenVerb == false && foundKeyword.isVerb == true)
                 lastParsedVerbKeyword = foundKeyword;
 
             if (foundKeyword != null && foundKeyword.isVerb == false && terminal.hasGottenVerb == true && lastParsedVerbKeyword != null)
@@ -778,7 +778,7 @@ namespace LethalLevelLoader
             }
 
             //Terminal Info Node
-            TerminalNode terminalNodeInfo = null;
+            TerminalNode? terminalNodeInfo = null;
             if (!string.IsNullOrEmpty(extendedItem.OverrideInfoNodeDescription))
             {
                 if (extendedItem.BuyInfoNode != null)
@@ -931,16 +931,20 @@ namespace LethalLevelLoader
             return (CreateTerminalEventNodes(newVerbKeywordWord, convertedList));
         }
 
-        internal static List<TerminalNode> CreateTerminalEventNodes(string newVerbKeywordWord, List<string> nounWords, List<string> terminalEventStrings = null, bool createNewVerbKeyword = true)
+        internal static List<TerminalNode> CreateTerminalEventNodes(string newVerbKeywordWord, List<string> nounWords, List<string>? terminalEventStrings = null, bool createNewVerbKeyword = true)
         {
             List<TerminalNode> newTerminalNodes = new List<TerminalNode>();
-            TerminalKeyword verbKeyword = null;
+            TerminalKeyword? verbKeyword = null;
             if (createNewVerbKeyword == true)
                 verbKeyword = CreateNewTerminalKeyword();
             else
                 foreach (TerminalKeyword terminalKeyword in Terminal.terminalNodes.allKeywords)
                     if (terminalKeyword.isVerb == true && terminalKeyword.word == newVerbKeywordWord.ToLower())
-                        verbKeyword = terminalKeyword;  
+                        verbKeyword = terminalKeyword;
+
+            if (verbKeyword == null) // Should this throw? I left the possible NRE where it was, but with a clear message.
+                throw new NullReferenceException($"A new 'VerbKeyword' was not created, and an existing verb called '{newVerbKeywordWord}' wasn't found!");
+
             verbKeyword.word = newVerbKeywordWord.ToLower();
             verbKeyword.name = newVerbKeywordWord.ToLower() + "Keyword";
             verbKeyword.isVerb = true;
