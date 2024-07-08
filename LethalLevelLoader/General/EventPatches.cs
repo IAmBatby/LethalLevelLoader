@@ -161,7 +161,7 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         internal static void RoundManagerSpawnMapObjects_Postfix()
         {
-            if (DungeonManager.CurrentExtendedDungeonFlow != null)
+            if (DungeonManager.CurrentExtendedDungeonFlow != null && LevelManager.CurrentExtendedLevel != null)
             {
                 List<GameObject> mapObjects = new List<GameObject>();
                 foreach (GameObject rootObject in SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.SelectableLevel.sceneName).GetRootGameObjects())

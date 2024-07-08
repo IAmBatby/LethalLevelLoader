@@ -506,7 +506,7 @@ namespace LethalLevelLoader
             if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false)
                 return;
 
-            ExtendedLevel extendedLevel = LevelManager.CurrentExtendedLevel;
+            ExtendedLevel? extendedLevel = LevelManager.CurrentExtendedLevel;
 
             if (extendedLevel == null) return;
 
@@ -515,7 +515,7 @@ namespace LethalLevelLoader
             RoundManager.InitializeRandomNumberGenerators();
 
             int counter = 1;
-            foreach (StringWithRarity sceneSelection in LevelManager.CurrentExtendedLevel.SceneSelections)
+            foreach (StringWithRarity sceneSelection in LevelManager.CurrentExtendedLevel!.SceneSelections)
             {
                 DebugHelper.Log("Scene Selection #" + counter + " \"" + sceneSelection.Name + "\" (" + sceneSelection.Rarity + ")", DebugType.Developer);
                 counter++;
