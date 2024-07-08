@@ -43,9 +43,4 @@
   <Exec Command="netcode-patch &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies-> '&quot;%(Identity)&quot;', ' ')" />
   </Target>
 
-  <Target Name="CopyToDebugProfile" AfterTargets="NetcodePatch" Condition="'$(Configuration)' == 'Debug'">
-    <Message Importance="high" Text="Copying To Lethal Company Dir" />
-    <Copy SourceFiles="$(TargetDir)LethalLevelLoader.dll" DestinationFolder="C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\plugins\LethalLevelLoader" />
-  </Target>
-  
 </Project>

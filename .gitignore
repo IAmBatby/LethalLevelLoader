@@ -13654,3 +13654,6 @@ Unity/LethalCompanyProject/UserSettings/Layouts/default-2022.dwlt
 Unity/LethalCompanyProject/UserSettings/Search.settings
 
 bin/Debug/*
+
+# Exclusions
+!*template.csproj.user
