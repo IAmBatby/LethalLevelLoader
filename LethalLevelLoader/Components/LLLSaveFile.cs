@@ -7,7 +7,7 @@ namespace LethalLevelLoader
 {
     public class LLLSaveFile : ModDataContainer
     {
-        public string? CurrentLevelName { get; internal set; } = string.Empty;
+        public string CurrentLevelName { get; internal set; } = string.Empty;
 
         public int parityStepsTaken;
         public Dictionary<int, AllItemsListItemData> itemSaveData = new Dictionary<int, AllItemsListItemData>();
