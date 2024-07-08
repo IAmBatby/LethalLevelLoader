@@ -11,11 +11,11 @@ namespace LethalLevelLoader
 {
     public class DungeonManager
     {
-        public static ExtendedDungeonFlow CurrentExtendedDungeonFlow
+        public static ExtendedDungeonFlow? CurrentExtendedDungeonFlow
         {
             get
             {
-                ExtendedDungeonFlow returnFlow = null;
+                ExtendedDungeonFlow? returnFlow = null;
                 if (Patches.RoundManager != null && Patches.RoundManager.dungeonGenerator != null)
                     if (TryGetExtendedDungeonFlow(Patches.RoundManager.dungeonGenerator.Generator.DungeonFlow, out ExtendedDungeonFlow flow))
                         returnFlow = flow;
@@ -119,10 +119,10 @@ namespace LethalLevelLoader
             Patches.RoundManager.dungeonFlowTypes = indoorMapTypes.ToArray();
         }
 
-        internal static bool TryGetExtendedDungeonFlow(DungeonFlow dungeonFlow, out ExtendedDungeonFlow returnExtendedDungeonFlow, ContentType contentType = ContentType.Any)
+        internal static bool TryGetExtendedDungeonFlow(DungeonFlow dungeonFlow, out ExtendedDungeonFlow? returnExtendedDungeonFlow, ContentType contentType = ContentType.Any)
         {
             returnExtendedDungeonFlow = null;
-            List<ExtendedDungeonFlow> extendedDungeonFlowsList = null;
+            List<ExtendedDungeonFlow> extendedDungeonFlowsList = null!;
 
             if (dungeonFlow == null) return (false);
 
@@ -140,7 +140,7 @@ namespace LethalLevelLoader
             return (returnExtendedDungeonFlow != null);
         }
 
-        internal static bool TryGetExtendedDungeonFlow(IndoorMapType indoorMapType, out ExtendedDungeonFlow returnExtendedDungeonFlow, ContentType contentType = ContentType.Any)
+        internal static bool TryGetExtendedDungeonFlow(IndoorMapType indoorMapType, out ExtendedDungeonFlow? returnExtendedDungeonFlow, ContentType contentType = ContentType.Any)
         {
             return (TryGetExtendedDungeonFlow(indoorMapType.dungeonFlow, out returnExtendedDungeonFlow, contentType));
         }

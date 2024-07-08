@@ -425,7 +425,7 @@ namespace LethalLevelLoader
         {
             if (__result != null)
             {
-                TerminalKeyword newKeyword = TerminalManager.TryFindAlternativeNoun(__instance, __result, playerWord);
+                TerminalKeyword? newKeyword = TerminalManager.TryFindAlternativeNoun(__instance, __result, playerWord);
                 if (newKeyword != null)
                     __result = newKeyword;
             }

@@ -14,8 +14,8 @@ namespace LethalLevelLoader
 {
     public class LethalLevelLoaderNetworkManager : NetworkBehaviour
     {
-        public static GameObject networkingManagerPrefab;
-        private static LethalLevelLoaderNetworkManager _instance;
+        public static GameObject networkingManagerPrefab = null!;
+        private static LethalLevelLoaderNetworkManager? _instance;
         public static LethalLevelLoaderNetworkManager Instance
         {
             get
@@ -24,11 +24,11 @@ namespace LethalLevelLoader
                     _instance = UnityEngine.Object.FindObjectOfType<LethalLevelLoaderNetworkManager>();
                 if (_instance == null)
                     DebugHelper.LogError("LethalLevelLoaderNetworkManager Could Not Be Found! Returning Null!", DebugType.User);
-                return _instance;
+                return _instance!;
             }
             set { _instance = value; }
         }
-        public static NetworkManager networkManager;
+        public static NetworkManager networkManager = null!;
 
         private static List<GameObject> queuedNetworkPrefabs = new List<GameObject>();
         public static bool networkHasStarted;
@@ -192,7 +192,7 @@ namespace LethalLevelLoader
 
         public class StringContainer : INetworkSerializable
         {
-            public string SomeText;
+            public string SomeText = null!;
             public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
             {
                 if (serializer.IsWriter)
