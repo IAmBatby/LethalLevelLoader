@@ -26,7 +26,7 @@ namespace LethalLevelLoader
             }*/
         }
 
-        static List<SpawnableMapObject> tempoarySpawnableMapObjectList = new List<SpawnableMapObject>();
+        static List<SpawnableMapObject> temporarySpawnableMapObjectList = new List<SpawnableMapObject>();
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects")]
@@ -67,7 +67,7 @@ namespace LethalLevelLoader
                 spawnableMapObject.prefabToSpawn = orphanedMapObject;
                 spawnableMapObject.numberToSpawn = curve;
                 spawnableMapObjects.Add(spawnableMapObject);
-                tempoarySpawnableMapObjectList.Add(spawnableMapObject);
+                temporarySpawnableMapObjectList.Add(spawnableMapObject);
             }
             LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
 
@@ -80,10 +80,10 @@ namespace LethalLevelLoader
         internal static void RoundManagerSpawnMapObjects_Postfix()
         {
             List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects);
-            foreach (SpawnableMapObject spawnableMapObject in tempoarySpawnableMapObjectList)
+            foreach (SpawnableMapObject spawnableMapObject in temporarySpawnableMapObjectList)
                 spawnableMapObjects.Remove(spawnableMapObject);
             LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
-            tempoarySpawnableMapObjectList.Clear();
+            temporarySpawnableMapObjectList.Clear();
         }
 
 

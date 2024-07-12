@@ -191,7 +191,7 @@ namespace LethalLevelLoader
                 //Terminal Specific Reference Setup
                 TerminalManager.CacheTerminalReferences();
 
-                LevelManager.InitalizeShipAnimatorOverrideController();
+                LevelManager.InitializeShipAnimatorOverrideController();
 
                 DungeonLoader.defaultKeyPrefab = RoundManager.keyPrefab;
                 LevelLoader.defaultQuicksandPrefab = RoundManager.quicksandPrefab;
@@ -627,7 +627,7 @@ namespace LethalLevelLoader
                 }
         }
 
-        static List<SpawnableMapObject> tempoarySpawnableMapObjectList = new List<SpawnableMapObject>();
+        static List<SpawnableMapObject> temporarySpawnableMapObjectList = new List<SpawnableMapObject>();
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects")]
@@ -638,7 +638,7 @@ namespace LethalLevelLoader
             foreach (SpawnableMapObject newRandomMapObject in DungeonManager.CurrentExtendedDungeonFlow.SpawnableMapObjects)
             {
                 spawnableMapObjects.Add(newRandomMapObject);
-                tempoarySpawnableMapObjectList.Add(newRandomMapObject);
+                temporarySpawnableMapObjectList.Add(newRandomMapObject);
             }
             LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
         }
@@ -649,10 +649,10 @@ namespace LethalLevelLoader
         internal static void RoundManagerSpawnMapObjects_Postfix()
         {
             List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects);
-            foreach (SpawnableMapObject spawnableMapObject in tempoarySpawnableMapObjectList)
+            foreach (SpawnableMapObject spawnableMapObject in temporarySpawnableMapObjectList)
                 spawnableMapObjects.Remove(spawnableMapObject);
             LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
-            tempoarySpawnableMapObjectList.Clear();
+            temporarySpawnableMapObjectList.Clear();
         }
 
         internal static GameObject previousHit;

@@ -65,7 +65,7 @@ namespace LethalLevelLoader
             TerminalManager.Terminal.moonsCatalogueList = PatchedContent.MoonsCatalogue.ToArray();
         }
 
-        internal static void InitalizeShipAnimatorOverrideController()
+        internal static void InitializeShipAnimatorOverrideController()
         {
             Animator shipAnimator = Patches.StartOfRound.shipAnimator;
 
