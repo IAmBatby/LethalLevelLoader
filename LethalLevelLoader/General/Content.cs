@@ -43,7 +43,8 @@ namespace LethalLevelLoader
             }
         }
 
-        public static List<SelectableLevel> SeletectableLevels
+
+        public static List<SelectableLevel> SelectableLevels
         {
             get
             {
@@ -52,7 +53,12 @@ namespace LethalLevelLoader
                     list.Add(level.SelectableLevel);
                 return (list);
             }
-       
+        }
+
+        [Obsolete("Use PatchedContent.SelectableLevels instead.")] // probably used by no mod, but this is public so we should be careful
+        public static List<SelectableLevel> SeletectableLevels
+        {
+            get { return (SelectableLevels); }
         }
 
         public static List<SelectableLevel> MoonsCatalogue
