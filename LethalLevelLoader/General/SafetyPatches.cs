@@ -120,13 +120,13 @@ namespace LethalLevelLoader
             {
                 if ((int)__instance.currentWeatherVariable >= (int)__instance.currentWeatherVariable2)
                 {
-                    DebugHelper.LogError("TimeOfDay Foggy CurrentWeatherVariable (Int) Was Equal Or Higher Than CurrentWeatherVariable2 (Int). Resetting For Safetey!", DebugType.User);
+                    DebugHelper.LogError("TimeOfDay Foggy CurrentWeatherVariable (Int) Was Equal Or Higher Than CurrentWeatherVariable2 (Int). Resetting For Safety!", DebugType.User);
                     __instance.currentWeatherVariable = 3f;
                     __instance.currentWeatherVariable2 = 10f;
                 }
                 else if ((int)__instance.currentWeatherVariable <= 0 || (int)__instance.currentWeatherVariable2 <= 0)
                 {
-                    DebugHelper.LogError("TimeOfDay Foggy CurrentWeatherVariable (Int) And/Or CurrentWeatherVariable2 (Int) Were 0. Resetting For Safetey!", DebugType.User);
+                    DebugHelper.LogError("TimeOfDay Foggy CurrentWeatherVariable (Int) And/Or CurrentWeatherVariable2 (Int) Were 0. Resetting For Safety!", DebugType.User);
                     __instance.currentWeatherVariable = 3f;
                     __instance.currentWeatherVariable2 = 10f;
                 }

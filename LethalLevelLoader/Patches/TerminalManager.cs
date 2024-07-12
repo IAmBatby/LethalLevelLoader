@@ -323,7 +323,7 @@ namespace LethalLevelLoader
             return (overviewText + GetMoonCatalogDisplayListings() + "\r\n");
         }
 
-        //This is some abslolute super arbitary wizardry to replicate basegame >moons command
+        //This is some absolute super arbitrary wizardry to replicate base game >moons command
         public static string GetMoonCatalogDisplayListings()
         {
             string returnString = string.Empty;
@@ -676,7 +676,7 @@ namespace LethalLevelLoader
                 terminalNodeInfo.displayText = infoString;
             }
 
-            //Population Into Basegame
+            //Population Into Base game
 
             terminalNodeRoute.AddCompatibleNoun(routeDenyKeyword, cancelRouteNode);
             terminalNodeRoute.AddCompatibleNoun(routeConfirmKeyword, terminalNodeRouteConfirm);
@@ -794,7 +794,7 @@ namespace LethalLevelLoader
             }
 
 
-            //Population Into Basegame
+            //Population Into Base game
 
             terminalNodeBuy.AddCompatibleNoun(routeConfirmKeyword, terminalNodeBuyConfirm);
             terminalNodeBuy.AddCompatibleNoun(routeDenyKeyword, cancelPurchaseNode);
