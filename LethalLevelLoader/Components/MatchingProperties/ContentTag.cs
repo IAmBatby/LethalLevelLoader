@@ -8,7 +8,7 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ContentTag", menuName = "Lethal Level Loader/Utility/ContentTag", order = 11)]
     public class ContentTag : ScriptableObject
     {
-        public string contentTagName;
+        public string contentTagName = null!;
         public Color contentTagColor;
 
 

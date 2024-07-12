@@ -30,7 +30,7 @@ namespace LethalLevelLoader
         }
 
 
-        public void ApplyValues(List<StringWithRarity> newModNames = null, List<StringWithRarity> newAuthorNames = null, List<StringWithRarity> newDungeonTags = null, List<StringWithRarity> newDungeonNames = null)
+        public void ApplyValues(List<StringWithRarity>? newModNames = null, List<StringWithRarity>? newAuthorNames = null, List<StringWithRarity>? newDungeonTags = null, List<StringWithRarity>? newDungeonNames = null)
         {
             if (newModNames != null && newModNames.Count != 0)
                 modNames = new List<StringWithRarity>(newModNames);

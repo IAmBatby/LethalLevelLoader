@@ -39,8 +39,8 @@ namespace LethalLevelLoader
         internal static void PrepareDungeon()
         {
             DungeonGenerator dungeonGenerator = Patches.RoundManager.dungeonGenerator.Generator;
-            ExtendedLevel currentExtendedLevel = LevelManager.CurrentExtendedLevel;
-            ExtendedDungeonFlow currentExtendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
+            ExtendedLevel currentExtendedLevel = LevelManager.CurrentExtendedLevel!; // checked for null in calling method
+            ExtendedDungeonFlow currentExtendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow!;
 
             //PatchDungeonSize(dungeonGenerator, currentExtendedLevel, currentExtendedDungeonFlow);
             PatchFireEscapes(dungeonGenerator, currentExtendedLevel, SceneManager.GetSceneByName(currentExtendedLevel.SelectableLevel.sceneName));
@@ -49,8 +49,8 @@ namespace LethalLevelLoader
 
         public static float GetClampedDungeonSize()
         {
-            ExtendedDungeonFlow extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
-            ExtendedLevel extendedLevel = LevelManager.CurrentExtendedLevel;
+            ExtendedDungeonFlow? extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
+            ExtendedLevel? extendedLevel = LevelManager.CurrentExtendedLevel;
             float calculatedMultiplier = CalculateDungeonMutliplier(LevelManager.CurrentExtendedLevel, DungeonManager.CurrentExtendedDungeonFlow);
             if (DungeonManager.CurrentExtendedDungeonFlow != null && DungeonManager.CurrentExtendedDungeonFlow.IsDynamicDungeonSizeRestrictionEnabled == true)
             {
