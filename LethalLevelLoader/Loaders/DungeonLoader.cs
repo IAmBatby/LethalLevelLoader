@@ -51,7 +51,7 @@ namespace LethalLevelLoader
         {
             ExtendedDungeonFlow extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
             ExtendedLevel extendedLevel = LevelManager.CurrentExtendedLevel;
-            float calculatedMultiplier = CalculateDungeonMutliplier(LevelManager.CurrentExtendedLevel, DungeonManager.CurrentExtendedDungeonFlow);
+            float calculatedMultiplier = CalculateDungeonMultiplier(LevelManager.CurrentExtendedLevel, DungeonManager.CurrentExtendedDungeonFlow);
             if (DungeonManager.CurrentExtendedDungeonFlow != null && DungeonManager.CurrentExtendedDungeonFlow.IsDynamicDungeonSizeRestrictionEnabled == true)
             {
                 if (calculatedMultiplier > extendedDungeonFlow.DynamicDungeonSizeMinMax.y)
@@ -65,15 +65,18 @@ namespace LethalLevelLoader
             return (calculatedMultiplier);
         }
 
-        public static float CalculateDungeonMutliplier(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow)
+        public static float CalculateDungeonMultiplier(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow)
         {
             foreach (IndoorMapType indoorMapType in RoundManager.Instance.dungeonFlowTypes)
                 if (indoorMapType.dungeonFlow == extendedDungeonFlow.DungeonFlow)
                     return (extendedLevel.SelectableLevel.factorySizeMultiplier / indoorMapType.MapTileSize * RoundManager.Instance.mapSizeMultiplier);
-            
-            return 1f;
 
+            return 1f;
         }
+
+        [System.Obsolete("Use DungeonLoader.CalculateDungeonMultiplier instead.")]
+        public static float CalculateDungeonMutliplier(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow) =>
+            CalculateDungeonMultiplier(extendedLevel, extendedDungeonFlow);
 
         internal static void PatchDungeonSize(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow)
         {
