@@ -74,10 +74,6 @@ namespace LethalLevelLoader
             return 1f;
         }
 
-        [System.Obsolete("Use DungeonLoader.CalculateDungeonMultiplier instead.")]
-        public static float CalculateDungeonMutliplier(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow) =>
-            CalculateDungeonMultiplier(extendedLevel, extendedDungeonFlow);
-
         internal static void PatchDungeonSize(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow)
         {
             /*if (extendedDungeonFlow.enableDynamicDungeonSizeRestriction == true)
