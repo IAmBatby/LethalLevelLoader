@@ -42,7 +42,18 @@ This Mod is Likely To Be Incompataible with **LethalExpansion**, Due To The inhe
 * Custom StoryLog's
 * Custom Weather Effects (WIP)
 * Custom Footstep Surfaces (WIP)
- 
+
+**Contributing To LethalLevelLoader**
+--
+
+### Setup
+To start contributing to LLL, you can start by [forking](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) the repo.  
+Then, follow these steps:  
+1. Install [Unity Netcode Patcher](https://github.com/EvaisaDev/UnityNetcodePatcher) CLI tool: `dotnet tool install -g Evaisa.NetcodePatcher.Cli`  
+2. It's recommended to set up a `csproj.user` file based on the [LethalLevelLoader.template.csproj.user](/LethalLevelLoader/LethalLevelLoader.template.csproj.user) file to automate copying the mod's DLL file over to your location of choosing. *This file will be gitignored.*
+
+You should be now set up, and ready compile your fork of LethalLevelLoader on your machine!
+
 **Credits**
 --
 
