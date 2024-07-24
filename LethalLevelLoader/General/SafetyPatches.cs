@@ -26,7 +26,7 @@ namespace LethalLevelLoader
             }*/
         }
 
-        static List<SpawnableMapObject> tempoarySpawnableMapObjectList = new List<SpawnableMapObject>();
+        static List<SpawnableMapObject> temporarySpawnableMapObjectList = new List<SpawnableMapObject>();
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects")]
@@ -67,7 +67,7 @@ namespace LethalLevelLoader
                 spawnableMapObject.prefabToSpawn = orphanedMapObject;
                 spawnableMapObject.numberToSpawn = curve;
                 spawnableMapObjects.Add(spawnableMapObject);
-                tempoarySpawnableMapObjectList.Add(spawnableMapObject);
+                temporarySpawnableMapObjectList.Add(spawnableMapObject);
             }
             LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
 
@@ -80,10 +80,10 @@ namespace LethalLevelLoader
         internal static void RoundManagerSpawnMapObjects_Postfix()
         {
             List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects);
-            foreach (SpawnableMapObject spawnableMapObject in tempoarySpawnableMapObjectList)
+            foreach (SpawnableMapObject spawnableMapObject in temporarySpawnableMapObjectList)
                 spawnableMapObjects.Remove(spawnableMapObject);
             LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
-            tempoarySpawnableMapObjectList.Clear();
+            temporarySpawnableMapObjectList.Clear();
         }
 
 
@@ -120,13 +120,13 @@ namespace LethalLevelLoader
             {
                 if ((int)__instance.currentWeatherVariable >= (int)__instance.currentWeatherVariable2)
                 {
-                    DebugHelper.LogError("TimeOfDay Foggy CurrentWeatherVariable (Int) Was Equal Or Higher Than CurrentWeatherVariable2 (Int). Resetting For Safetey!", DebugType.User);
+                    DebugHelper.LogError("TimeOfDay Foggy CurrentWeatherVariable (Int) Was Equal Or Higher Than CurrentWeatherVariable2 (Int). Resetting For Safety!", DebugType.User);
                     __instance.currentWeatherVariable = 3f;
                     __instance.currentWeatherVariable2 = 10f;
                 }
                 else if ((int)__instance.currentWeatherVariable <= 0 || (int)__instance.currentWeatherVariable2 <= 0)
                 {
-                    DebugHelper.LogError("TimeOfDay Foggy CurrentWeatherVariable (Int) And/Or CurrentWeatherVariable2 (Int) Were 0. Resetting For Safetey!", DebugType.User);
+                    DebugHelper.LogError("TimeOfDay Foggy CurrentWeatherVariable (Int) And/Or CurrentWeatherVariable2 (Int) Were 0. Resetting For Safety!", DebugType.User);
                     __instance.currentWeatherVariable = 3f;
                     __instance.currentWeatherVariable2 = 10f;
                 }

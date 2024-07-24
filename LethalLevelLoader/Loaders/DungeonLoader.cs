@@ -51,28 +51,27 @@ namespace LethalLevelLoader
         {
             ExtendedDungeonFlow extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
             ExtendedLevel extendedLevel = LevelManager.CurrentExtendedLevel;
-            float calculatedMultiplier = CalculateDungeonMutliplier(LevelManager.CurrentExtendedLevel, DungeonManager.CurrentExtendedDungeonFlow);
+            float calculatedMultiplier = CalculateDungeonMultiplier(LevelManager.CurrentExtendedLevel, DungeonManager.CurrentExtendedDungeonFlow);
             if (DungeonManager.CurrentExtendedDungeonFlow != null && DungeonManager.CurrentExtendedDungeonFlow.IsDynamicDungeonSizeRestrictionEnabled == true)
             {
                 if (calculatedMultiplier > extendedDungeonFlow.DynamicDungeonSizeMinMax.y)
                     calculatedMultiplier = Mathf.Lerp(calculatedMultiplier, extendedDungeonFlow.DynamicDungeonSizeMinMax.y, extendedDungeonFlow.DynamicDungeonSizeLerpRate); //This is how vanilla does it.
                 else if (calculatedMultiplier < extendedDungeonFlow.DynamicDungeonSizeMinMax.x)
                     calculatedMultiplier = Mathf.Lerp(calculatedMultiplier, extendedDungeonFlow.DynamicDungeonSizeMinMax.x, extendedDungeonFlow.DynamicDungeonSizeLerpRate);//This is how vanilla does it.
-                DebugHelper.Log("Current ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " ExtendedLevel DungeonSize Is: " + LevelManager.CurrentExtendedLevel.SelectableLevel.factorySizeMultiplier + " | Overrriding DungeonSize To: " + calculatedMultiplier, DebugType.User);
+                DebugHelper.Log("Current ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " ExtendedLevel DungeonSize Is: " + LevelManager.CurrentExtendedLevel.SelectableLevel.factorySizeMultiplier + " | Overriding DungeonSize To: " + calculatedMultiplier, DebugType.User);
             }
             else
                 DebugHelper.Log("CurrentLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " DungeonSize Is: " + LevelManager.CurrentExtendedLevel.SelectableLevel.factorySizeMultiplier + " | Leaving DungeonSize As: " + calculatedMultiplier, DebugType.User);
             return (calculatedMultiplier);
         }
 
-        public static float CalculateDungeonMutliplier(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow)
+        public static float CalculateDungeonMultiplier(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow)
         {
             foreach (IndoorMapType indoorMapType in RoundManager.Instance.dungeonFlowTypes)
                 if (indoorMapType.dungeonFlow == extendedDungeonFlow.DungeonFlow)
                     return (extendedLevel.SelectableLevel.factorySizeMultiplier / indoorMapType.MapTileSize * RoundManager.Instance.mapSizeMultiplier);
-            
-            return 1f;
 
+            return 1f;
         }
 
         internal static void PatchDungeonSize(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow)
@@ -119,7 +118,7 @@ namespace LethalLevelLoader
                 foreach (GlobalPropSettings globalPropSettings in dungeonGenerator.DungeonFlow.GlobalProps)
                     if (globalPropSettings.ID == 1231)
                     {
-                        debugString += "Found Fire Escape GlobalProp: (ID: 1231), Modifying Spawnrate Count From (" + globalPropSettings.Count.Min + "," + globalPropSettings.Count.Max + ") To (" + (entranceTeleports.Count - 1) + "," + (entranceTeleports.Count - 1) + ")" + "\n";
+                        debugString += "Found Fire Escape GlobalProp: (ID: 1231), Modifying Spawn rate Count From (" + globalPropSettings.Count.Min + "," + globalPropSettings.Count.Max + ") To (" + (entranceTeleports.Count - 1) + "," + (entranceTeleports.Count - 1) + ")" + "\n";
                         globalPropSettings.Count = new IntRange(entranceTeleports.Count - 1, entranceTeleports.Count - 1); //-1 Because .Count includes the Main Entrance.
                         break;
                     }

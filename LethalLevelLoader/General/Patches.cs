@@ -90,7 +90,7 @@ namespace LethalLevelLoader
 
             if (AssetBundleLoader.CurrentLoadingStatus == AssetBundleLoader.LoadingStatus.Loading)
             {
-                DebugHelper.LogWarning("SceneManager has attempted to load " + sceneName + " Scene before AssetBundles have finished loading. Pausing request until LethalLeveLoader is ready to proceed.", DebugType.User);
+                DebugHelper.LogWarning("SceneManager has attempted to load " + sceneName + " Scene before AssetBundles have finished loading. Pausing request until LethalLevelLoader is ready to proceed.", DebugType.User);
                 delayedSceneLoadingName = sceneName;
                 AssetBundleLoader.onBundlesFinishedLoading -= LoadMainMenu;
                 AssetBundleLoader.onBundlesFinishedLoading += LoadMainMenu;
@@ -181,7 +181,7 @@ namespace LethalLevelLoader
             if (GameNetworkManager.Instance.GetComponent<NetworkManager>().IsServer)
                 GameObject.Instantiate(LethalLevelLoaderNetworkManager.networkingManagerPrefab).GetComponent<NetworkObject>().Spawn(destroyWithScene: false);
 
-            //Add the facility's firstTimeDungeonAudio additionally to RoundManager's list to fix a basegame bug.
+            //Add the facility's firstTimeDungeonAudio additionally to RoundManager's list to fix a base game bug.
             RoundManager.firstTimeDungeonAudios = RoundManager.firstTimeDungeonAudios.ToList().AddItem(RoundManager.firstTimeDungeonAudios[0]).ToArray();
             DebugStopwatch.StartStopWatch("Fix AudioSource Settings");
             //Disable Spatialization In All AudioSources To Fix Log Spam Bug.
@@ -193,7 +193,7 @@ namespace LethalLevelLoader
                 //Terminal Specific Reference Setup
                 TerminalManager.CacheTerminalReferences();
 
-                LevelManager.InitalizeShipAnimatorOverrideController();
+                LevelManager.InitializeShipAnimatorOverrideController();
 
                 DungeonLoader.defaultKeyPrefab = RoundManager.keyPrefab;
                 LevelLoader.defaultQuicksandPrefab = RoundManager.quicksandPrefab;
@@ -206,7 +206,7 @@ namespace LethalLevelLoader
                 AssetBundleLoader.CreateVanillaExtendedEnemyTypes();
                 AssetBundleLoader.CreateVanillaExtendedBuyableVehicles();
 
-                DebugStopwatch.StartStopWatch("Initalize Custom ExtendedContent");
+                DebugStopwatch.StartStopWatch("Initialize Custom ExtendedContent"); // this is not used
                 //Initialize ExtendedContent Objects For Custom Content.
                 AssetBundleLoader.InitializeBundles();
 
@@ -248,7 +248,7 @@ namespace LethalLevelLoader
                 //Apply ContentTags To Vanilla ExtendedContent Objects.
                 ContentTagParser.ApplyVanillaContentTags();
 
-                //Iterate Through All ExtendedMod Objects And Merge Any Reoccuring ContentTagName In The Same ExtendedMod.
+                //Iterate Through All ExtendedMod Objects And Merge Any Reoccurring ContentTagName In The Same ExtendedMod.
                 ContentTagManager.MergeAllExtendedModTags();
 
                 //Populate Information About All Current ContentTag's Used In ExtendedContent For Developer Use.
@@ -261,17 +261,17 @@ namespace LethalLevelLoader
             }
 
             DebugStopwatch.StartStopWatch("Bind Configs");
-            //Bind User Configation Information.
+            //Bind User Configuration Information.
             ConfigLoader.BindConfigs();
 
-            DebugStopwatch.StartStopWatch("Patch Basegame Lists");
-            //Patch The Basegame References To SelectableLevel's To Include Enabled Custom SelectableLevels.
+            DebugStopwatch.StartStopWatch("Patch Base game Lists");
+            //Patch The Base game References To SelectableLevel's To Include Enabled Custom SelectableLevels.
             LevelManager.PatchVanillaLevelLists();
 
-            //Patch The Basegame References To DungeonFlows's To Include Enabled Custom DungeonFlows.
+            //Patch The Base game References To DungeonFlows's To Include Enabled Custom DungeonFlows.
             DungeonManager.PatchVanillaDungeonLists();
 
-            //Patch The Basegame References To EnemyTypes's To Include Enabled Custom EnemyTypes.
+            //Patch The Base game References To EnemyTypes's To Include Enabled Custom EnemyTypes.
             EnemyManager.UpdateEnemyIDs(); //Might only need to do once?
 
             foreach (ExtendedEnemyType extendedEnemyType in PatchedContent.CustomExtendedEnemyTypes)
@@ -308,7 +308,7 @@ namespace LethalLevelLoader
                 foreach (CompatibleNoun routeNode in TerminalManager.routeKeyword.compatibleNouns)
                     TerminalManager.AddTerminalNodeEventListener(routeNode.result, TerminalManager.OnBeforeRouteNodeLoaded, TerminalManager.LoadNodeActionType.Before);
 
-                //Create Terminal Data For Custom StoryLog's And Patch Basegame References To StoryLog's To Include Custom StoryLogs.
+                //Create Terminal Data For Custom StoryLog's And Patch Base game References To StoryLog's To Include Custom StoryLogs.
                 TerminalManager.CreateTerminalDataForAllExtendedStoryLogs();
 
                 TerminalManager.AddTerminalNodeEventListener(TerminalManager.moonsKeyword.specialKeywordResult, TerminalManager.RefreshMoonsCataloguePage, TerminalManager.LoadNodeActionType.After);
@@ -323,14 +323,14 @@ namespace LethalLevelLoader
                 LevelManager.invalidSaveLevelID = -1;
             }*/
 
-            DebugStopwatch.StartStopWatch("Initalize Save");
+            DebugStopwatch.StartStopWatch("Initialize Save");
 
             if (LethalLevelLoaderNetworkManager.networkManager.IsServer)
             {
                 SaveManager.InitializeSave();
             }
 
-            DebugStopwatch.StopStopWatch("Initalize Save");
+            DebugStopwatch.StopStopWatch("Initialize Save");
             if (Plugin.IsSetupComplete == false)
             {
                 AssetBundleLoader.CreateVanillaExtendedWeatherEffects(StartOfRound, TimeOfDay);
@@ -372,7 +372,7 @@ namespace LethalLevelLoader
             if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false)
                 return (true);
 
-            //Because Level ID's can change between modpack adjustments and such, we save the name of the level instead and find and load that up instead of the saved ID the basegame uses.
+            //Because Level ID's can change between modpack adjustments and such, we save the name of the level instead and find and load that up instead of the saved ID the base game uses.
             if (hasInitiallyChangedLevel == false && !string.IsNullOrEmpty(SaveManager.currentSaveFile.CurrentLevelName))
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                     if (extendedLevel.SelectableLevel.name == SaveManager.currentSaveFile.CurrentLevelName)
@@ -542,7 +542,7 @@ namespace LethalLevelLoader
                 DebugHelper.LogError("Critical Failure! DungeonGenerator DungeonFlow Is Null!", DebugType.User);
         }
 
-        //Basegame has a bug where it stops listening before it gets the Complete call, so this is just a fixed version of the basegame function.
+        //Base game has a bug where it stops listening before it gets the Complete call, so this is just a fixed version of the base game function.
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(RoundManager), "Generator_OnGenerationStatusChanged")]
         [HarmonyPrefix]
@@ -655,7 +655,7 @@ namespace LethalLevelLoader
                 }
         }
 
-        static List<SpawnableMapObject> tempoarySpawnableMapObjectList = new List<SpawnableMapObject>();
+        static List<SpawnableMapObject> temporarySpawnableMapObjectList = new List<SpawnableMapObject>();
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects")]
@@ -666,7 +666,7 @@ namespace LethalLevelLoader
             foreach (SpawnableMapObject newRandomMapObject in DungeonManager.CurrentExtendedDungeonFlow.SpawnableMapObjects)
             {
                 spawnableMapObjects.Add(newRandomMapObject);
-                tempoarySpawnableMapObjectList.Add(newRandomMapObject);
+                temporarySpawnableMapObjectList.Add(newRandomMapObject);
             }
             LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
         }
@@ -677,10 +677,10 @@ namespace LethalLevelLoader
         internal static void RoundManagerSpawnMapObjects_Postfix()
         {
             List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects);
-            foreach (SpawnableMapObject spawnableMapObject in tempoarySpawnableMapObjectList)
+            foreach (SpawnableMapObject spawnableMapObject in temporarySpawnableMapObjectList)
                 spawnableMapObjects.Remove(spawnableMapObject);
             LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
-            tempoarySpawnableMapObjectList.Clear();
+            temporarySpawnableMapObjectList.Clear();
         }
 
         internal static GameObject previousHit;
@@ -722,7 +722,7 @@ namespace LethalLevelLoader
             */
         }
 
-        //DunGen Optimisation Patches (Credit To LadyRaphtalia, Author Of Scarlet Devil Mansion)
+        //DunGen Optimization Patches (Credit To LadyRaphtalia, Author Of Scarlet Devil Mansion)
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(DoorwayPairFinder), "GetDoorwayPairs")]
         [HarmonyPrefix]

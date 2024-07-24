@@ -61,11 +61,11 @@ namespace LethalLevelLoader
 
         internal static void PatchVanillaLevelLists()
         {
-            Patches.StartOfRound.levels = PatchedContent.SeletectableLevels.ToArray();
+            Patches.StartOfRound.levels = PatchedContent.SelectableLevels.ToArray();
             TerminalManager.Terminal.moonsCatalogueList = PatchedContent.MoonsCatalogue.ToArray();
         }
 
-        internal static void InitalizeShipAnimatorOverrideController()
+        internal static void InitializeShipAnimatorOverrideController()
         {
             Animator shipAnimator = Patches.StartOfRound.shipAnimator;
 

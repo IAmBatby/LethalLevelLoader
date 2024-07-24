@@ -12,7 +12,7 @@ using UnityEngine.SceneManagement;
 namespace LethalLevelLoader
 {
     //This class is dedicated to the patches needed to collect data sent to events inside the current ExtendedLevel and ExtendedDungeonFlow.
-    //They are seperated for organisation purposes and to enforce that all of these patches should only be reading information and sending it off
+    //They are separated for organisation purposes and to enforce that all of these patches should only be reading information and sending it off
     //Nothing in this class should modify the game in any way.
     internal class EventPatches
     {

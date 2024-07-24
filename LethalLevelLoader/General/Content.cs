@@ -45,7 +45,8 @@ namespace LethalLevelLoader
             }
         }
 
-        public static List<SelectableLevel> SeletectableLevels
+
+        public static List<SelectableLevel> SelectableLevels
         {
             get
             {
@@ -54,7 +55,6 @@ namespace LethalLevelLoader
                     list.Add(level.SelectableLevel);
                 return (list);
             }
-       
         }
 
         public static List<SelectableLevel> MoonsCatalogue
