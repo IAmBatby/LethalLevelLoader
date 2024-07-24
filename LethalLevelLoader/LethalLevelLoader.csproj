@@ -21,6 +21,10 @@
       <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
       <RepositoryType>git</RepositoryType>
 
+      <DebugSymbols>true</DebugSymbols>
+      <DebugType>embedded</DebugType>
+      <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
+
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
