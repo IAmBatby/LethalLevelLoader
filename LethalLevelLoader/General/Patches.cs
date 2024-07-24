@@ -18,6 +18,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Device;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using static LethalLevelLoader.AssetBundleLoader;
 using NetworkManager = Unity.Netcode.NetworkManager;
@@ -210,8 +211,37 @@ namespace LethalLevelLoader
                 //Initialize ExtendedContent Objects For Custom Content.
                 AssetBundleLoader.InitializeBundles();
 
+                PatchedContent.PopulateContentDictionaries();
+
                 foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
                     extendedLevel.SetLevelID();
+
+                foreach (WeatherEffect weatherEffect in TimeOfDay.effects)
+                {
+                    if (weatherEffect.effectObject != null && weatherEffect.effectObject.name == "DustStorm")
+                        if (weatherEffect.effectObject.TryGetComponent(out LocalVolumetricFog dustFog))
+                        {
+                            LevelLoader.dustCloudFog = dustFog;
+                            LevelLoader.defaultDustCloudFogVolumeSize = dustFog.parameters.size;
+                            break;
+                        }
+                }
+
+                LevelLoader.foggyFog = TimeOfDay.foggyWeather;
+                LevelLoader.defaultFoggyFogVolumeSize = TimeOfDay.foggyWeather.parameters.size;
+
+                foreach (ExtendedLevel vanillaLevel in PatchedContent.VanillaExtendedLevels)
+                {
+                    vanillaLevel.OverrideDustStormVolumeSize = LevelLoader.defaultDustCloudFogVolumeSize;
+                    vanillaLevel.OverrideFoggyVolumeSize = LevelLoader.defaultFoggyFogVolumeSize;
+                }
+                foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
+                {
+                    if (customLevel.OverrideDustStormVolumeSize == Vector3.zero)
+                        customLevel.OverrideDustStormVolumeSize = LevelLoader.defaultDustCloudFogVolumeSize;
+                    if (customLevel.OverrideFoggyVolumeSize == Vector3.zero)
+                        customLevel.OverrideFoggyVolumeSize = LevelLoader.defaultFoggyFogVolumeSize;
+                }
 
                 //Some Debugging.
                 string debugString = "LethalLevelLoader Loaded The Following ExtendedLevels:" + "\n";
@@ -494,7 +524,7 @@ namespace LethalLevelLoader
             if (LevelManager.CurrentExtendedLevel != null && LevelManager.CurrentExtendedLevel.IsLevelLoaded)
                 foreach (GameObject rootObject in SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.SelectableLevel.sceneName).GetRootGameObjects())
                 {
-                    LevelLoader.UpdateStoryLogs(LevelManager.CurrentExtendedLevel, rootObject);
+                    LevelLoader.RefreshFogSize(LevelManager.CurrentExtendedLevel);
                     ContentRestorer.RestoreAudioAssetReferencesInParent(rootObject);
                 }
 

@@ -123,13 +123,16 @@ namespace LethalLevelLoader
             int counter = 0;
             foreach (string file in Directory.GetFiles(pluginsFolder.FullName, specifiedFileExtension, SearchOption.AllDirectories))
             {
-                counter++;
                 FileInfo fileInfo = new FileInfo(file);
-                assetBundles.Add(fileInfo.Name, null);
-                UpdateLoadingBundlesHeaderText(null);
-
-                //preInitSceneScript.StartCoroutine(Instance.LoadBundle(file, fileInfo.Name));
-                this.StartCoroutine(Instance.LoadBundle(file, fileInfo.Name));
+                if (!assetBundles.ContainsKey(fileInfo.Name))
+                {
+                    counter++;
+                    assetBundles.Add(fileInfo.Name, null);
+                    UpdateLoadingBundlesHeaderText(null);
+                    StartCoroutine(Instance.LoadBundle(file, fileInfo.Name));
+                }
+                else
+                    DebugHelper.LogError("Failed To Load Lethalbundle: " + fileInfo.Name + ". A Lethalbundle with an indentical name has already been found.", DebugType.User);
             }
             if (counter == 0)
             {

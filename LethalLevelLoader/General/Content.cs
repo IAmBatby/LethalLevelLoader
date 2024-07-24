@@ -17,6 +17,11 @@ namespace LethalLevelLoader
 
         public static List<ExtendedMod> ExtendedMods { get; internal set; } = new List<ExtendedMod>();
 
+        internal static Dictionary<SelectableLevel, ExtendedLevel> ExtendedLevelDictionary = new Dictionary<SelectableLevel, ExtendedLevel>();
+        internal static Dictionary<DungeonFlow, ExtendedDungeonFlow> ExtendedDungeonFlowDictionary = new Dictionary<DungeonFlow, ExtendedDungeonFlow>();
+        internal static Dictionary<Item, ExtendedItem> ExtendedItemDictionary = new Dictionary<Item, ExtendedItem>();
+        internal static Dictionary<EnemyType, ExtendedEnemyType> ExtendedEnemyTypeDictionary = new Dictionary<EnemyType, ExtendedEnemyType>();
+        internal static Dictionary<BuyableVehicle, ExtendedBuyableVehicle> ExtendedBuyableVehicleDictionary = new Dictionary<BuyableVehicle, ExtendedBuyableVehicle>();
 
 
         public static List<ExtendedLevel> ExtendedLevels { get; internal set; } = new List<ExtendedLevel>();
@@ -245,10 +250,62 @@ namespace LethalLevelLoader
                 extendedMod.SortRegisteredContent();
             }
         }
+
+        internal static void PopulateContentDictionaries()
+        {
+            foreach (ExtendedLevel extendedLevel in ExtendedLevels)
+                TryAdd(ExtendedLevelDictionary, extendedLevel.SelectableLevel, extendedLevel);
+            foreach (ExtendedDungeonFlow extendedDungeonFlow in ExtendedDungeonFlows)
+                TryAdd(ExtendedDungeonFlowDictionary, extendedDungeonFlow.DungeonFlow, extendedDungeonFlow);
+            foreach (ExtendedItem extendedItem in ExtendedItems)
+                TryAdd(ExtendedItemDictionary, extendedItem.Item, extendedItem);
+            foreach (ExtendedEnemyType extendedEnemyType in ExtendedEnemyTypes)
+                TryAdd(ExtendedEnemyTypeDictionary, extendedEnemyType.EnemyType, extendedEnemyType);
+            foreach (ExtendedBuyableVehicle extendedBuyableVehicle in ExtendedBuyableVehicles)
+                TryAdd(ExtendedBuyableVehicleDictionary, extendedBuyableVehicle.BuyableVehicle, extendedBuyableVehicle);
+        }
+
+        internal static void TryAdd<T1,T2>(Dictionary<T1, T2> dict, T1 key, T2 value)
+        {
+            if (!dict.ContainsKey(key))
+                dict.Add(key, value);
+            else
+                DebugHelper.LogError("Could not add " + key.ToString() + " to dictionary.", DebugType.Developer);
+        }
+
+        public static bool TryGetExtendedContent(SelectableLevel selectableLevel, out ExtendedLevel extendedLevel)
+        {
+            return (ExtendedLevelDictionary.TryGetValue(selectableLevel, out extendedLevel));
+        }
+
+        public static bool TryGetExtendedContent(DungeonFlow dungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow)
+        {
+            return (ExtendedDungeonFlowDictionary.TryGetValue(dungeonFlow, out extendedDungeonFlow));
+        }
+
+        public static bool TryGetExtendedContent(Item item, out ExtendedItem extendedItem)
+        {
+            return (ExtendedItemDictionary.TryGetValue(item, out extendedItem));
+        }
+
+        public static bool TryGetExtendedContent(EnemyType enemyType, out ExtendedEnemyType extendedEnemyType)
+        {
+            return (ExtendedEnemyTypeDictionary.TryGetValue(enemyType, out extendedEnemyType));
+        }
+
+        public static bool TryGetExtendedContent(BuyableVehicle buyableVehicle, out ExtendedBuyableVehicle extendedBuyableVehicle)
+        {
+            return (ExtendedBuyableVehicleDictionary.TryGetValue(buyableVehicle, out extendedBuyableVehicle));
+        }
     }
 
     public static class OriginalContent
     {
+        public static StartOfRound StartOfRound => Patches.StartOfRound;
+        public static RoundManager RoundManager => Patches.RoundManager;
+        public static Terminal Terminal => Patches.Terminal;
+        public static TimeOfDay TimeOfDay => Patches.TimeOfDay;
+        
         //Levels
 
         public static List<SelectableLevel> SelectableLevels { get; internal set; } = new List<SelectableLevel>();

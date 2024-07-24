@@ -775,6 +775,7 @@ namespace LethalLevelLoader
                 terminalNodeBuyConfirm.maxCharactersToType = 35;
                 terminalNodeBuyConfirm.buyItemIndex = buyableItemIndex;
                 terminalNodeBuyConfirm.isConfirmationNode = false;
+                terminalNodeBuyConfirm.playSyncedClip = 0;
             }
 
             //Terminal Info Node
@@ -862,6 +863,7 @@ namespace LethalLevelLoader
             newVehicleBuyConfirmNode.buyVehicleIndex = extendedBuyableVehicle.VehicleID;
             newVehicleBuyConfirmNode.clearPreviousText = true;
             newVehicleBuyConfirmNode.maxCharactersToType = 35;
+            newVehicleBuyConfirmNode.playSyncedClip = 0;
             newVehicleBuyConfirmNode.displayText =
                 "Ordered the " + extendedBuyableVehicle.BuyableVehicle.vehicleDisplayName + ". Your new balance is [playerCredits]." + "\n\n" +
                 "We are so confident in the quality of this product, it comes with a life-time warranty! If your " + extendedBuyableVehicle.BuyableVehicle.vehicleDisplayName + " is lost or destroyed, you can get one free replacement. Items cannot be purchased while the vehicle is en route." + "\n\n";

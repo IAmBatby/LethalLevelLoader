@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using DunGen;
 using HarmonyLib;
@@ -16,7 +17,7 @@ using Application = UnityEngine.Application;
 namespace LethalLevelLoader
 {
     [BepInPlugin(ModGUID, ModName, ModVersion)]
-    [BepInDependency(LethalLib.Plugin.ModGUID)]
+    [BepInDependency(LethalLib.Plugin.ModGUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(LethalModDataLib.PluginInfo.PLUGIN_GUID)]
     public class Plugin : BaseUnityPlugin
     {
@@ -52,26 +53,23 @@ namespace LethalLevelLoader
             Harmony.PatchAll(typeof(Patches));
             Harmony.PatchAll(typeof(EventPatches));
             Harmony.PatchAll(typeof(SafetyPatches));
+
+            TrySoftPatch(LethalLib.Plugin.ModGUID, typeof(LethalLibPatches));
 			
             NetworkScenePatcher.Patch();
 			Patches.InitMonoModHooks();
 
             NetcodePatch();
 
-            //AssetBundleLoader.LoadBundles();
-            //AssetBundleLoader.Instance.pluginInstace = this;
-
-            GameObject test = new GameObject("LethalLevelLoader AssetBundleLoader");
-            test.AddComponent<AssetBundleLoader>().LoadBundles();
+            GameObject assetBundleLoaderObject = new GameObject("LethalLevelLoader AssetBundleLoader");
+            assetBundleLoaderObject.AddComponent<AssetBundleLoader>().LoadBundles();
             if (Application.isEditor)
-                DontDestroyOnLoad(test);
+                DontDestroyOnLoad(assetBundleLoaderObject);
             else
-                test.hideFlags = HideFlags.HideAndDontSave;
+                assetBundleLoaderObject.hideFlags = HideFlags.HideAndDontSave;
             AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
 
             ConfigLoader.BindGeneralConfigs();
-
-            //UnityEngine.Object.FindFirstObjectByType<GameObject>()
         }
 
         internal static void OnBeforeSetupInvoke()
@@ -106,8 +104,18 @@ namespace LethalLevelLoader
             }
             catch
             {
-                DebugHelper.Log("NetcodePatcher did a big fucksie wuckise!", DebugType.Developer);
+                DebugHelper.LogError("NetcodePatcher Failed! This Is Very Bad.", DebugType.Developer);
             }
+        }
+
+        internal static void TrySoftPatch(string pluginName, Type type)
+        {
+            if (Chainloader.PluginInfos.ContainsKey(pluginName))
+            {
+                Harmony.CreateClassProcessor(type, true).Patch();
+                DebugHelper.Log(pluginName + "found, enabling compatability patches.", DebugType.User);
+            }
+
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Unity.AI.Navigation;
 using UnityEngine.AI;
 using LethalLevelLoader.Tools;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace LethalLevelLoader
 {
@@ -19,6 +20,13 @@ namespace LethalLevelLoader
         internal static AnimatorOverrideController shipAnimatorOverrideController;
         internal static AnimationClip defaultShipFlyToMoonClip;
         internal static AnimationClip defaultShipFlyFromMoonClip;
+
+        internal static Vector3 defaultDustCloudFogVolumeSize;
+        internal static Vector3 defaultFoggyFogVolumeSize;
+
+        internal static LocalVolumetricFog dustCloudFog;
+        internal static LocalVolumetricFog foggyFog;
+
 
         internal static GameObject defaultQuicksandPrefab;
 
@@ -51,15 +59,17 @@ namespace LethalLevelLoader
             await Task.Yield();
         }
 
-        internal static void UpdateStoryLogs(ExtendedLevel extendedLevel, GameObject sceneRootObject)
-        {
-        }
-
         internal static void RefreshShipAnimatorClips(ExtendedLevel extendedLevel)
         {
             DebugHelper.Log("Refreshing Ship Animator Clips!", DebugType.Developer);
             shipAnimatorOverrideController["HangarShipLandB"] = extendedLevel.ShipFlyToMoonClip;
             shipAnimatorOverrideController["ShipLeave"] = extendedLevel.ShipFlyFromMoonClip;
+        }
+
+        internal static void RefreshFogSize(ExtendedLevel extendedLevel)
+        {
+            dustCloudFog.parameters.size = extendedLevel.OverrideDustStormVolumeSize;
+            foggyFog.parameters.size = extendedLevel.OverrideFoggyVolumeSize;
         }
     }
 }

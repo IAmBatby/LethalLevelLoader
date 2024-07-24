@@ -40,6 +40,13 @@ namespace LethalLevelLoader
         [field: SerializeField] public List<StringWithRarity> SceneSelections { get; set; } = new List<StringWithRarity>();
 
         [field: Space(5)]
+        [field: Header("Weather Fog Distance Override Settings")]
+
+        [field: SerializeField] public Vector3 OverrideDustStormVolumeSize { get; set; } = Vector3.zero;
+        [field: SerializeField] public Vector3 OverrideFoggyVolumeSize { get; set; } = Vector3.zero;
+
+
+        [field: Space(5)]
         [field: Header("Terminal Route Override Settings")]
 
         [field: SerializeField] [field: TextArea(2, 20)] public string OverrideInfoNodeDescription { get; set; } = string.Empty;
