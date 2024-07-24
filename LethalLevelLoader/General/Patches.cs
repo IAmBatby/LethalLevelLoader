@@ -4,6 +4,8 @@ using DunGen.Graph;
 using GameNetcodeStuff;
 using HarmonyLib;
 using LethalLevelLoader.Tools;
+using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -763,5 +765,45 @@ namespace LethalLevelLoader
             return list.OrderBy(x => x, new DoorwayPairComparer()).Take(num);
         }
 
+        //IL Hook stuff to replace Mold related save data references to a Level's ID to instead the Level's Name. Credit to Hamunii.
+        private static readonly HookHelper.DisposableHookCollection monomodHooks = new();
+        internal static void InitMonoModHooks()
+        {
+            monomodHooks.ILHook<GameNetworkManager>(nameof(GameNetworkManager.SaveGameValues), ReplaceSavedMoldLevelIDsWithLevelNames_ILHook);
+            monomodHooks.ILHook<GameNetworkManager>(nameof(GameNetworkManager.ResetSavedGameValues), ReplaceSavedMoldLevelIDsWithLevelNames_ILHook);
+            monomodHooks.ILHook<StartOfRound>(nameof(StartOfRound.LoadPlanetsMoldSpreadData), ReplaceSavedMoldLevelIDsWithLevelNames_ILHook);
+            monomodHooks.ILHook<MoldSpreadManager>(nameof(MoldSpreadManager.Start), ReplaceSavedMoldLevelIDsWithLevelNames_ILHook);
+        }
+
+        private static void ReplaceSavedMoldLevelIDsWithLevelNames_ILHook(ILContext il)
+        {
+            int dbgModificationsAmount = 0;
+            string dbgMatchedStr = "";
+
+            ILCursor c = new(il);
+            while (
+                c.TryGotoNext(MoveType.After,
+                    x => x.MatchLdstr(out dbgMatchedStr) && dbgMatchedStr.Contains("Mold"), // The save file key, e.g. "Level{0}Mold"
+                    x => true   // game has various ways of referencing StartOfRound, listed here purely for reference:
+                        || x.MatchLdloc(out _)                                                  // via local variable
+                        || x.MatchLdarg(0)                                                      // via 'this'
+                        || x.MatchCall<StartOfRound>("get_" + nameof(StartOfRound.Instance)),   // via StartOfRound.Instance
+                    x => x.MatchLdfld<StartOfRound>(nameof(StartOfRound.levels)),
+                    x => x.MatchLdloc(out _),
+                    x => x.MatchLdelemRef(),
+                    x => x.MatchLdfld<SelectableLevel>(nameof(SelectableLevel.levelID)),
+                    x => x.MatchBox<Int32>()
+                )
+            )
+            {
+                c.Index -= 2;
+                c.RemoveRange(2);
+                c.EmitDelegate<Func<SelectableLevel, object>>(selectableLevel =>
+                    { return selectableLevel.name; }
+                );
+                dbgModificationsAmount++;
+            }
+            DebugHelper.Log($"Modified {dbgModificationsAmount} save data level IDs to level names", DebugType.Developer);
+        }
     }
 }

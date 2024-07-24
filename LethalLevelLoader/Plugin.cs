@@ -52,7 +52,9 @@ namespace LethalLevelLoader
             Harmony.PatchAll(typeof(Patches));
             Harmony.PatchAll(typeof(EventPatches));
             Harmony.PatchAll(typeof(SafetyPatches));
+			
             NetworkScenePatcher.Patch();
+			Patches.InitMonoModHooks();
 
             NetcodePatch();
 
