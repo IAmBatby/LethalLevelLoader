@@ -6,3 +6,4 @@
 [Oo]bj/
 [Dd]ist/
 [Bb]ackup/
+*.csproj.user
