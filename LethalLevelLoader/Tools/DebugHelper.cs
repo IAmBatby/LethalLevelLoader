@@ -672,9 +672,13 @@ namespace LethalLevelLoader
             Log(builder.ToString(), DebugType.Developer);
         }
 
-        class CodeInstructionFormatter(int instructionCount)
+        class CodeInstructionFormatter
         {
-            private int _instructionIndexPadLength = instructionCount.ToString().Length;
+            public CodeInstructionFormatter(int instructionCount) {
+                _instructionIndexPadLength = instructionCount.ToString().Length;
+            }
+
+            private int _instructionIndexPadLength;
 
             public string Format(CodeInstruction instruction, int index)
                 => $"    IL_{index.ToString().PadLeft(_instructionIndexPadLength, '0')}: {instruction}";

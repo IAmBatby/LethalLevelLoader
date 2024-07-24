@@ -1,6 +1,24 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.3.0</summary>**
+
+**<details><summary>Features</summary>**
+
+* Added initial version of ExtendedBuyableVehicle.
+
+</details>
+
+**<details><summary>Fixes</summary>**
+
+* Updated mod for Lethal Company version 55 Beta 1.
+* Changed ExtendedLevel's to now be sorted alphabetically to improve issues with desync.
+* Fixed LevelEvents.onApparatusTaken and DungeonEvents.onApparatusTaken unintentionally running every time the Apparatus was equipped rather than only initially.
+
+</details>
+
+</details>
+
 **<details><summary>Version 1.2.3</summary>**
 
 **<details><summary>Fixes</summary>**
@@ -16,6 +34,10 @@
 * Potentially resolved issue with Route locking and hiding
 * Implemented @Sylvi's Better Item Saving pull request (Thanks for the help and sorry for the delay)
 * Added onShipLand and onShipLeave to ExtendedLevel and ExtendedDungeonFlow events
+
+</details>
+
+</details>
 
 **<details><summary>Version 1.2.2</summary>**
 

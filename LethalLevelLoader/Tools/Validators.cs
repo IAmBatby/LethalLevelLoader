@@ -22,6 +22,10 @@ namespace LethalLevelLoader
                 result = ValidateExtendedContent(extendedEnemyType);
             else if (extendedContent is ExtendedFootstepSurface extendedFootstepSurface)
                 result = ValidateExtendedContent(extendedFootstepSurface);
+            else if (extendedContent is ExtendedStoryLog extendedStoryLog)
+                result = ValidateExtendedContent(extendedStoryLog);
+            else if (extendedContent is ExtendedBuyableVehicle extendedBuyableVehicle)
+                result = ValidateExtendedContent(extendedBuyableVehicle);
 
             if (result.Item1 == false)
                 DebugHelper.Log(result.Item2, DebugType.Developer);
@@ -108,6 +112,11 @@ namespace LethalLevelLoader
             if (string.IsNullOrEmpty(extendedStoryLog.storyLogDescription))
                 return (false, "StoryLog Description Was Null Or Empty");
 
+            return (true, string.Empty);
+        }
+
+        public static (bool result, string log) ValidateExtendedContent(ExtendedBuyableVehicle extendedBuyableVehicle)
+        {
             return (true, string.Empty);
         }
     }
