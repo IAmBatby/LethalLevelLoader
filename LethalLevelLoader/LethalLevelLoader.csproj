@@ -91,19 +91,8 @@
 
     <MakeDir Directories="$(ProjectDir)../assets/bundles" Condition="!Exists('$(ProjectDir)../assets/bundles')" />
 
-    <Exec Command="dotnet tcli build --config-path $(ProjectDir)../assets/thunderstore.toml" />
+    <Exec Command="dotnet tcli build --config-path $(ProjectDir)../assets/thunderstore.toml --package-version $(PlainVersion)" />
 
-    <ItemGroup>
-      <FilesToRename Include="$(ProjectDir)dist/IAmBatby-LethalLevelLoader-0.0.1.zip" />
-    </ItemGroup>
-
-    <Message Importance="high" Text="Plain Version Is - $(PlainVersion)" />
-    <Message Importance="high" Text="MinVer Version Is - $(MinVerVersion)" />
-    <Message Importance="high" Text="ProjectDir Is - $(ProjectDir)" />
-    <Message Importance="high" Text="Dist Is - $(ProjectDir)dist/" />
-    <Message Importance="high" Text="Zip Is - @(FilesToRename)" />
-
-    <Move SourceFiles="@(FilesToRename)" DestinationFiles="@(FilesToRename->Replace('0.0.1','$(PlainVersion)'))"/>
   </Target>
 
       <!-- thunderstore publish -->

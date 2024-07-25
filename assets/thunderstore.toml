@@ -1,6 +1,6 @@
 # all directories are relative to the location of this toml file (/assets/thunderstore.toml)
 [config]
-schemaVersion = "1.3.0"
+schemaVersion = "0.0.1"
 
 [general]
 repository = "https://thunderstore.io"
