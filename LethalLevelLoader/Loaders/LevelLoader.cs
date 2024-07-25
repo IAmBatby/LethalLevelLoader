@@ -76,8 +76,10 @@ namespace LethalLevelLoader
 
         internal static void RefreshFogSize(ExtendedLevel extendedLevel)
         {
-            dustCloudFog.parameters.size = extendedLevel.OverrideDustStormVolumeSize;
-            foggyFog.parameters.size = extendedLevel.OverrideFoggyVolumeSize;
+            if (dustCloudFog != null)
+                dustCloudFog.parameters.size = extendedLevel.OverrideDustStormVolumeSize;
+            if (foggyFog != null)
+                foggyFog.parameters.size = extendedLevel.OverrideFoggyVolumeSize;
         }
 
         internal static void RefreshFootstepSurfaces()
@@ -120,9 +122,15 @@ namespace LethalLevelLoader
             {
                 if (sceneCollider.TryGetComponent(out MeshRenderer meshRenderer))
                 {
-                    if (!cachedLevelColliderMaterialDictionary.ContainsKey(sceneCollider))
-                        cachedLevelColliderMaterialDictionary.Add(sceneCollider, new List<Material>(meshRenderer.sharedMaterials));
+                    List<Material> validMaterials = new List<Material>();
                     foreach (Material material in meshRenderer.sharedMaterials)
+                        if (material != null && !string.IsNullOrEmpty(material.name))
+                            validMaterials.Add(material);
+
+                    if (!cachedLevelColliderMaterialDictionary.ContainsKey(sceneCollider))
+                        cachedLevelColliderMaterialDictionary.Add(sceneCollider, new List<Material>(validMaterials));
+
+                    foreach (Material material in validMaterials)
                     {
                         if (!cachedLevelMaterialColliderDictionary.ContainsKey(material.name))
                             cachedLevelMaterialColliderDictionary.Add(material.name, new List<Collider> { sceneCollider });
@@ -152,8 +160,9 @@ namespace LethalLevelLoader
 
             foreach (ExtendedFootstepSurface extendedFootstepSurface in LevelManager.CurrentExtendedLevel.ExtendedMod.ExtendedFootstepSurfaces)
                 foreach (Material material in extendedFootstepSurface.associatedMaterials)
-                    if (!returnDict.ContainsKey(material.name))
-                        returnDict.Add(material.name, extendedFootstepSurface.footstepSurface);
+                    if (material != null && !string.IsNullOrEmpty(material.name))
+                        if (!returnDict.ContainsKey(material.name))
+                            returnDict.Add(material.name, extendedFootstepSurface.footstepSurface);
 
 
             return (returnDict);

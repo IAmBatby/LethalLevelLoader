@@ -60,7 +60,7 @@ namespace LethalLevelLoader.Tools
 
             foreach (EnemyType vanillaEnemyType in OriginalContent.Enemies)
                 foreach (SpawnableEnemyWithRarity enemyRarityPair in extendedLevel.SelectableLevel.Enemies.Concat(extendedLevel.SelectableLevel.DaytimeEnemies).Concat(extendedLevel.SelectableLevel.OutsideEnemies))
-                    if (enemyRarityPair.enemyType != null && enemyRarityPair.enemyType.enemyName == vanillaEnemyType.enemyName)
+                    if (enemyRarityPair.enemyType != null && !string.IsNullOrEmpty(enemyRarityPair.enemyType.name) && enemyRarityPair.enemyType.name == vanillaEnemyType.name)
                         enemyRarityPair.enemyType = RestoreAsset(enemyRarityPair.enemyType, vanillaEnemyType);
 
             foreach (SpawnableMapObject spawnableMapObject in extendedLevel.SelectableLevel.spawnableMapObjects)

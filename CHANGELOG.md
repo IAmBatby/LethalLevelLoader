@@ -1,12 +1,28 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.3.5</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Added safety checks to new FootstepSurface Material cache system.
+* Added safety checks to new ExtendedLevel override fog size feature.
+* Changed ContentRestoring of EnemyType's to use ScriptableObject name rather than enemyName
+* Fixed issue where synced audio clip that plays when previewing enemy beastiary file was not playing for custom enemies
+* Fixed issue where custom Enemy beastiary files did not have Info as a default keyword
+
+</details>
+
+</details>
+
 **<details><summary>Version 1.3.4</summary>**
 
 **<details><summary>Fixes</summary>**
 
 * Updated .csproj and thunderstore.toml
 * Updated outdated README.md
+
+</details>
 
 </details>
 

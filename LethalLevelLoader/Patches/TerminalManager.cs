@@ -815,12 +815,14 @@ namespace LethalLevelLoader
             TerminalKeyword newEnemyInfoKeyword = CreateNewTerminalKeyword();
             newEnemyInfoKeyword.name = extendedEnemyType.name + "BestiaryKeyword";
             newEnemyInfoKeyword.word = extendedEnemyType.EnemyDisplayName.ToLower();
+            newEnemyInfoKeyword.defaultVerb = routeInfoKeyword;
 
             TerminalNode newEnemyInfoNode = CreateNewTerminalNode();
             newEnemyInfoNode.name = extendedEnemyType.name + "BestiaryNode";
             newEnemyInfoNode.displayText = extendedEnemyType.InfoNodeDescription;
             newEnemyInfoNode.creatureFileID = extendedEnemyType.EnemyID;
             newEnemyInfoNode.creatureName = extendedEnemyType.EnemyDisplayName;
+            newEnemyInfoNode.playSyncedClip = 2;
 
             if (extendedEnemyType.InfoNodeVideoClip != null)
             {
