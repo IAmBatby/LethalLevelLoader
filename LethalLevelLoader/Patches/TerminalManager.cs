@@ -323,7 +323,7 @@ namespace LethalLevelLoader
             return (overviewText + GetMoonCatalogDisplayListings() + "\r\n");
         }
 
-        //This is some abslolute super arbitary wizardry to replicate basegame >moons command
+        //This is some absolute super arbitrary wizardry to replicate base game >moons command
         public static string GetMoonCatalogDisplayListings()
         {
             string returnString = string.Empty;
@@ -676,7 +676,7 @@ namespace LethalLevelLoader
                 terminalNodeInfo.displayText = infoString;
             }
 
-            //Population Into Basegame
+            //Population Into Base game
 
             terminalNodeRoute.AddCompatibleNoun(routeDenyKeyword, cancelRouteNode);
             terminalNodeRoute.AddCompatibleNoun(routeConfirmKeyword, terminalNodeRouteConfirm);
@@ -775,6 +775,7 @@ namespace LethalLevelLoader
                 terminalNodeBuyConfirm.maxCharactersToType = 35;
                 terminalNodeBuyConfirm.buyItemIndex = buyableItemIndex;
                 terminalNodeBuyConfirm.isConfirmationNode = false;
+                terminalNodeBuyConfirm.playSyncedClip = 0;
             }
 
             //Terminal Info Node
@@ -794,7 +795,7 @@ namespace LethalLevelLoader
             }
 
 
-            //Population Into Basegame
+            //Population Into Base game
 
             terminalNodeBuy.AddCompatibleNoun(routeConfirmKeyword, terminalNodeBuyConfirm);
             terminalNodeBuy.AddCompatibleNoun(routeDenyKeyword, cancelPurchaseNode);
@@ -862,6 +863,7 @@ namespace LethalLevelLoader
             newVehicleBuyConfirmNode.buyVehicleIndex = extendedBuyableVehicle.VehicleID;
             newVehicleBuyConfirmNode.clearPreviousText = true;
             newVehicleBuyConfirmNode.maxCharactersToType = 35;
+            newVehicleBuyConfirmNode.playSyncedClip = 0;
             newVehicleBuyConfirmNode.displayText =
                 "Ordered the " + extendedBuyableVehicle.BuyableVehicle.vehicleDisplayName + ". Your new balance is [playerCredits]." + "\n\n" +
                 "We are so confident in the quality of this product, it comes with a life-time warranty! If your " + extendedBuyableVehicle.BuyableVehicle.vehicleDisplayName + " is lost or destroyed, you can get one free replacement. Items cannot be purchased while the vehicle is en route." + "\n\n";

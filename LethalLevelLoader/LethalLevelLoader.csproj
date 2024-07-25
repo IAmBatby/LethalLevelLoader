@@ -1,17 +1,44 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+
       <TargetFramework>netstandard2.1</TargetFramework>
       <AssemblyName>LethalLevelLoader</AssemblyName>
       <Description>A Custom API to support the manual and dynamic integration of custom levels and dungeons in Lethal Company.</Description>
-      <Version>1.1.0</Version>
+      <Version>1.3.0</Version>
       <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
       <LangVersion>preview</LangVersion>
+
+      <PackageId>IAmBatby.$(AssemblyName)</PackageId>
+      <PackageReadmeFile>README.md</PackageReadmeFile>
+      <IsPackable>true</IsPackable>
+
+      <RootNamespace>$(AssemblyName)</RootNamespace>
+      <PackageIcon>icon.png</PackageIcon>
+
+      <PackageLicenseExpression>MIT</PackageLicenseExpression>
+      <RepositoryUrl>https://github.com/IAmBatby/LethalLevelLoader/</RepositoryUrl>
+      <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
+      <RepositoryType>git</RepositoryType>
+
+      <DebugSymbols>true</DebugSymbols>
+      <DebugType>embedded</DebugType>
+      <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
+
       <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
       <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(ProjectDir)../README.md" Pack="true" PackagePath="/" />
+    <None Include="$(ProjectDir)../icon.png" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MinVer" Version="4.*" PrivateAssets="all" Private="false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,7 +54,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2">
+    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -37,16 +64,52 @@
   <ItemGroup>
     <PackageReference Include="Evaisa.LethalLib" Version="0.16.0" />
     <PackageReference Include="MaxWasUnavailable.LethalModDataLib" Version="1.2.2" />
-    <PackageReference Include="LethalCompany.GameLibs.Steam" Version="55.0.0-beta.0-ngd.0" Publicize="true" />
+    <PackageReference Include="LethalCompany.GameLibs.Steam" Version="56.0.1-ngd.0" Publicize="true" />
   </ItemGroup>
 
   <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
-  <Exec Command="netcode-patch &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies-> '&quot;%(Identity)&quot;', ' ')" />
+    <Exec Command="netcode-patch &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies-> '&quot;%(Identity)&quot;', ' ')" />
   </Target>
 
-  <Target Name="CopyToDebugProfile" AfterTargets="NetcodePatch" Condition="'$(Configuration)' == 'Debug'">
-    <Message Importance="high" Text="Copying To Lethal Company Dir" />
-    <Copy SourceFiles="$(TargetDir)LethalLevelLoader.dll" DestinationFolder="C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\plugins\LethalLevelLoader" />
+  <PropertyGroup>
+    <MinVerDefaultPreReleaseIdentifiers>dev</MinVerDefaultPreReleaseIdentifiers>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+  </PropertyGroup>
+
+  <Target Name="SetPluginVersion" BeforeTargets="AddGeneratedFile" DependsOnTargets="MinVer">
+      <PropertyGroup>
+          <PlainVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)</PlainVersion>
+          <BepInExPluginVersion>$(PlainVersion)</BepInExPluginVersion>
+      </PropertyGroup>
+  </Target>
+
+  <Target Name="SaveVersionAndNameToFiles" DependsOnTargets="SetPluginVersion">
+    <WriteLinesToFile File="$(ProjectDir)dist/name.txt" Lines="$(AssemblyName)" Overwrite="true" />
+    <WriteLinesToFile File="$(ProjectDir)dist/version.txt" Lines="$(PlainVersion)" Overwrite="true" />
+  </Target>
+
+  <Target Name="PackThunderstore" DependsOnTargets="NetcodePatch;SetPluginVersion;SaveVersionAndNameToFiles" AfterTargets="PostBuildEvent" Condition="$(Configuration) == 'Release'">
+
+    <MakeDir Directories="$(ProjectDir)../assets/bundles" Condition="!Exists('$(ProjectDir)../assets/bundles')" />
+
+    <Exec Command="dotnet tcli build --config-path $(ProjectDir)../assets/thunderstore.toml --package-version $(PlainVersion)" />
+
+  </Target>
+
+      <!-- thunderstore publish -->
+  <Target Name="PublishThunderstore" DependsOnTargets="SetPluginVersion;SaveVersionAndNameToFiles">
+      <Exec Command="dotnet tcli publish --config-path $(ProjectDir)../assets/thunderstore.toml --file $(ProjectDir)dist/*-$(MinVerVersion).zip" />
+  </Target>
+
+    <!-- zipping the .dll alone for curseforge release -->
+  <Target Name="ZipCurseForge" AfterTargets="PackThunderstore">
+    <MakeDir Directories="$(ProjectDir)dist/output/" Condition="!Exists('$(ProjectDir)dist/output/')" />
+    <Copy SourceFiles="$(ProjectDir)bin/Release/netstandard2.1/$(AssemblyName).dll" DestinationFiles="$(ProjectDir)dist/output/$(AssemblyName).dll" />
+
+    <ZipDirectory
+      SourceDirectory="$(ProjectDir)dist/output/"
+      DestinationFile="$(ProjectDir)dist/curseforge.zip"
+      Overwrite="true" />
   </Target>
   
 </Project>

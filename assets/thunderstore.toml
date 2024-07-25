@@ -1,0 +1,39 @@
+# all directories are relative to the location of this toml file (/assets/thunderstore.toml)
+[config]
+schemaVersion = "0.0.1"
+
+[general]
+repository = "https://thunderstore.io"
+
+[package]
+namespace = "IAmBatby"
+name = "LethalLevelLoader"
+description = "A Custom API to support the manual and dynamic integration of all forms of custom content in Lethal Company. (v50 Compatible)"
+websiteUrl = "https://github.com/IAmBatby/LethalLevelLoader"
+containsNsfwContent = false
+
+[package.dependencies]
+BepInEx-BepInExPack = "5.4.2100"
+Evaisa-LethalLib = "0.16.0"
+Evaisa-FixPluginTypesSerialization = "1.1.1"
+MaxWasUnavailable-LethalModDataLib = "1.2.2"
+
+[build]
+icon = "../icon.png"
+readme = "../README.md"
+outdir = "../LethalLevelLoader/dist"
+
+[[build.copy]]
+source = "../LethalLevelLoader/bin/Release/netstandard2.1/LethalLevelLoader.dll"
+target = "/"
+
+[[build.copy]]
+source = "../CHANGELOG.md"
+target = "/"
+
+[[build.copy]]
+source = "../LICENSE.md"
+target = "/"
+
+[publish]
+communities = [ "lethal-company", ]

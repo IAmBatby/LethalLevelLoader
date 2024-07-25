@@ -1,0 +1,16 @@
+<Project>
+    <!-- COPY PASTE THIS FILE AND REMOVE .template FROM THE FILE NAME
+        - This will become your personal extension to the csproj file -->
+
+    <!-- Local Variables - Modify if Needed -->
+    <PropertyGroup>
+        <!-- The path to where the DLL get copied to when building. Include the last slash '/' -->
+        <PluginsDirectory>%programfiles(x86)%/Steam/steamapps/Common/Lethal Company/BepInEx/plugins/</PluginsDirectory>
+    </PropertyGroup>
+
+    <!-- Copy to Plugin Directory for Quicker Testing -->
+    <Target Name="CopyToDebugProfile" AfterTargets="NetcodePatch">
+        <Message Importance="high" Text="Copying To Lethal Company Dir" />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginsDirectory)" />
+    </Target>
+</Project>

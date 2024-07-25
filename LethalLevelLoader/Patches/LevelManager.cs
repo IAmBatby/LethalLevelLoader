@@ -34,11 +34,6 @@ namespace LethalLevelLoader
 
         public static int invalidSaveLevelID = -1;
 
-        public static List<string> cachedFootstepSurfaceTagsList = new List<string>();
-        public static List<Material> cachedExtendedFootstepSurfaceMaterialsList = new List<Material>();
-        public static List<GameObject> cachedExtendedFootstepSurfaceGameObjectsList = new List<GameObject>(); 
-        public static Dictionary<FootstepSurface, ExtendedFootstepSurface> cachedFootstepSurfacesDictionary = new Dictionary<FootstepSurface, ExtendedFootstepSurface>();
-
         public static Dictionary<string, int> dynamicRiskLevelDictionary = new Dictionary<string, int>()
         {
             {"D-", 0},
@@ -62,11 +57,11 @@ namespace LethalLevelLoader
 
         internal static void PatchVanillaLevelLists()
         {
-            Patches.StartOfRound.levels = PatchedContent.SeletectableLevels.ToArray();
+            Patches.StartOfRound.levels = PatchedContent.SelectableLevels.ToArray();
             TerminalManager.Terminal.moonsCatalogueList = PatchedContent.MoonsCatalogue.ToArray();
         }
 
-        internal static void InitalizeShipAnimatorOverrideController()
+        internal static void InitializeShipAnimatorOverrideController()
         {
             Animator shipAnimator = Patches.StartOfRound.shipAnimator;
 

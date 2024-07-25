@@ -10,6 +10,5 @@ public class ExtendedFootstepSurface : ExtendedContent
 {
     public FootstepSurface? footstepSurface;
     public List<Material>? associatedMaterials;
-    public List<GameObject>? associatedGameObjects;
     internal int arrayIndex;
 }
