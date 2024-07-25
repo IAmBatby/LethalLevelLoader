@@ -249,9 +249,9 @@ namespace LethalLevelLoader
         [HarmonyPriority(Patches.harmonyPriority)]
         [HarmonyPatch(typeof(LungProp), "EquipItem")]
         [HarmonyPrefix]
-        internal static void LungPropEquipItem_Postfix(LungProp __instance)
+        internal static void LungPropEquipItem_Prefix(LungProp __instance)
         {
-            if (__instance.IsServer == true && __instance.isLungDockedInElevator)
+            if (__instance.IsServer == true && __instance.isLungDocked)
             {
                 if (DungeonManager.CurrentExtendedDungeonFlow != null)
                 {
