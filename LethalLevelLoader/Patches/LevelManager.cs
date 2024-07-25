@@ -33,11 +33,6 @@ namespace LethalLevelLoader
 
         public static int invalidSaveLevelID = -1;
 
-        public static List<string> cachedFootstepSurfaceTagsList = new List<string>();
-        public static List<Material> cachedExtendedFootstepSurfaceMaterialsList = new List<Material>();
-        public static List<GameObject> cachedExtendedFootstepSurfaceGameObjectsList = new List<GameObject>(); 
-        public static Dictionary<FootstepSurface, ExtendedFootstepSurface> cachedFootstepSurfacesDictionary = new Dictionary<FootstepSurface, ExtendedFootstepSurface>();
-
         public static Dictionary<string, int> dynamicRiskLevelDictionary = new Dictionary<string, int>()
         {
             {"D-", 0},

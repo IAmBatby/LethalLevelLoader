@@ -18,6 +18,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Device;
+using UnityEngine.InputSystem.Utilities;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using static LethalLevelLoader.AssetBundleLoader;
@@ -344,6 +345,7 @@ namespace LethalLevelLoader
                 TerminalManager.AddTerminalNodeEventListener(TerminalManager.moonsKeyword.specialKeywordResult, TerminalManager.RefreshMoonsCataloguePage, TerminalManager.LoadNodeActionType.After);
             }
 
+            LevelLoader.defaultFootstepSurfaces = new List<FootstepSurface>(StartOfRound.footstepSurfaces).ToArray();
             //We Might Not Need This Now
             /*if (LevelManager.invalidSaveLevelID != -1 && StartOfRound.levels.Length > LevelManager.invalidSaveLevelID)
             {
@@ -649,6 +651,15 @@ namespace LethalLevelLoader
             RoundManager.quicksandPrefab = LevelManager.CurrentExtendedLevel.OverrideQuicksandPrefab;
         }
 
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.FinishGeneratingNewLevelClientRpc))]
+        [HarmonyPostfix]
+        internal static void RoundManagerFinishGeneratingNewLevelClientRpc_Prefix()
+        {
+            LevelLoader.RefreshFootstepSurfaces();
+            LevelLoader.BakeSceneColliderMaterialData(RoundManager.dungeonGenerator.gameObject.scene);
+        }
+
         /*
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(MoldSpreadManager), nameof(MoldSpreadManager.Start))]
@@ -713,43 +724,15 @@ namespace LethalLevelLoader
             temporarySpawnableMapObjectList.Clear();
         }
 
-        internal static GameObject previousHit;
-        internal static FootstepSurface previouslyAssignedFootstepSurface;
-
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(PlayerControllerB), "GetCurrentMaterialStandingOn")]
-        [HarmonyPrefix]
-        internal static bool PlayerControllerBGetCurrentMaterialStandingOn_Prefix(PlayerControllerB __instance)
-        {
-            /*if (LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces.Count != 0)
-                if (Physics.Raycast(new Ray(__instance.thisPlayerBody.position + Vector3.up, -Vector3.up), out RaycastHit hit, 6f, Patches.StartOfRound.walkableSurfacesMask, QueryTriggerInteraction.Ignore))
-                    if (hit.collider.gameObject == previousHit)
-                        return (false);*/
-            return (true);
-        }
+        static FootstepSurface previousFootstepSurface;
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(PlayerControllerB), "GetCurrentMaterialStandingOn")]
         [HarmonyPostfix]
         internal static void PlayerControllerBGetCurrentMaterialStandingOn_Postfix(PlayerControllerB __instance)
         {
-            /*if (LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces.Count != 0)
-                if (Physics.Raycast(new Ray(__instance.thisPlayerBody.position + Vector3.up, -Vector3.up), out RaycastHit hit, 6f, Patches.StartOfRound.walkableSurfacesMask, QueryTriggerInteraction.Ignore))
-                    if (hit.collider.gameObject != previousHit || previousHit == null)
-                    {
-                        previousHit = hit.collider.gameObject;
-                        if (hit.collider.CompareTag("Untagged") || !LevelManager.cachedFootstepSurfaceTagsList.Contains(hit.collider.tag))
-                            if (hit.collider.gameObject.TryGetComponent(out MeshRenderer meshRenderer))
-                                foreach (Material material in meshRenderer.sharedMaterials)
-                                    foreach (ExtendedFootstepSurface extendedFootstepSurface in LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces)
-                                        foreach (Material associatedMaterial in extendedFootstepSurface.associatedMaterials)
-                                            if (material.name == associatedMaterial.name)
-                                            {
-                                                __instance.currentFootstepSurfaceIndex = extendedFootstepSurface.arrayIndex;
-                                                return;
-                                            }
-                    }
-            */
+            if (LevelLoader.TryGetFootstepSurface(__instance.hit.collider, out FootstepSurface footstepSurface))
+                __instance.currentFootstepSurfaceIndex = StartOfRound.footstepSurfaces.IndexOf(footstepSurface);
         }
 
         //DunGen Optimization Patches (Credit To LadyRaphtalia, Author Of Scarlet Devil Mansion)

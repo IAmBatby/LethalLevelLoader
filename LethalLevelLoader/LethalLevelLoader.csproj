@@ -94,9 +94,16 @@
     <Exec Command="dotnet tcli build --config-path $(ProjectDir)../assets/thunderstore.toml" />
 
     <ItemGroup>
-      <FilesToRename Include="$(ProjectDir)dist/*-$(PlainVersion).zip" />
+      <FilesToRename Include="$(ProjectDir)dist/IAmBatby-LethalLevelLoader-0.0.1.zip" />
     </ItemGroup>
-      <Move SourceFiles="@(FilesToRename)" DestinationFiles="@(FilesToRename -&gt; Replace($(PlainVersion), $(MinVerVersion)))" />
+
+    <Message Importance="high" Text="Plain Version Is - $(PlainVersion)" />
+    <Message Importance="high" Text="MinVer Version Is - $(MinVerVersion)" />
+    <Message Importance="high" Text="ProjectDir Is - $(ProjectDir)" />
+    <Message Importance="high" Text="Dist Is - $(ProjectDir)dist/" />
+    <Message Importance="high" Text="Zip Is - @(FilesToRename)" />
+
+    <Move SourceFiles="@(FilesToRename)" DestinationFiles="@(FilesToRename->Replace('0.0.1','$(PlainVersion)'))"/>
   </Target>
 
       <!-- thunderstore publish -->
