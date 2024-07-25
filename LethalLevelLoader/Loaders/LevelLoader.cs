@@ -24,13 +24,13 @@ namespace LethalLevelLoader
         internal static Vector3 defaultDustCloudFogVolumeSize;
         internal static Vector3 defaultFoggyFogVolumeSize;
 
-        internal static LocalVolumetricFog dustCloudFog;
-        internal static LocalVolumetricFog foggyFog;
+        internal static LocalVolumetricFog? dustCloudFog;
+        internal static LocalVolumetricFog? foggyFog;
 
 
         internal static GameObject defaultQuicksandPrefab = null!;
 
-        internal static FootstepSurface[] defaultFootstepSurfaces;
+        internal static FootstepSurface[] defaultFootstepSurfaces = null!;
 
         internal static Dictionary<Collider, List<Material>> cachedLevelColliderMaterialDictionary = new Dictionary<Collider, List<Material>>();
         internal static Dictionary<string, List<Collider>> cachedLevelMaterialColliderDictionary = new Dictionary<string, List<Collider>>();
@@ -159,7 +159,7 @@ namespace LethalLevelLoader
             return (returnDict);
         }
 
-        public static bool TryGetFootstepSurface(Collider collider, out FootstepSurface footstepSurface)
+        public static bool TryGetFootstepSurface(Collider collider, out FootstepSurface? footstepSurface)
         {
             footstepSurface = null;
 

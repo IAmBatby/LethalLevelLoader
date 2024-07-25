@@ -287,7 +287,7 @@ namespace LethalLevelLoader
         public delegate void ParameterEvent(T param);
 
         private event ParameterEvent? onParameterEvent;
-        private event Action onEvent;
+        private event Action? onEvent;
 
         public bool HasListeners => (Listeners != 0);
         public int Listeners { get; internal set; }
