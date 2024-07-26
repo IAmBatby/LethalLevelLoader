@@ -165,13 +165,13 @@ namespace LethalLevelLoader
             /*if (node != null && string.IsNullOrEmpty(node.terminalEvent) == false)
             {
                 //DebugHelper.Log("Running LLL Terminal Event: " + node.terminalEvent + "| EnumValue: " + GetTerminalEventEnum(node.terminalEvent) + " | StringValue: " + GetTerminalEventString(node.terminalEvent));
-                if (node.name.Contains("preview") && Enum.TryParse(typeof(PreviewInfoType), GetTerminalEventEnum(node.terminalEvent), out object previewEnumValue))
-                    Settings.levelPreviewInfoType = (PreviewInfoType)previewEnumValue;
-                else if (node.name.Contains("sort") && Enum.TryParse(typeof(SortInfoType), GetTerminalEventEnum(node.terminalEvent), out object sortEnumValue))
-                    Settings.levelPreviewSortType = (SortInfoType)sortEnumValue;
-                else if (node.name.Contains("filter") && Enum.TryParse(typeof(FilterInfoType), GetTerminalEventEnum(node.terminalEvent), out object filterEnumValue))
+                if (node.name.Contains("preview") && EnumUtils.TryParse<PreviewInfoType>(GetTerminalEventEnum(node.terminalEvent), out PreviewInfoType previewEnumValue))
+                    Settings.levelPreviewInfoType = previewEnumValue;
+                else if (node.name.Contains("sort") && EnumUtils.TryParse<SortInfoType>(GetTerminalEventEnum(node.terminalEvent), out SortInfoType sortEnumValue))
+                    Settings.levelPreviewSortType = sortEnumValue;
+                else if (node.name.Contains("filter") && EnumUtils.TryParse<FilterInfoType>(GetTerminalEventEnum(node.terminalEvent), out FilterInfoType filterEnumValue))
                 {
-                    Settings.levelPreviewFilterType = (FilterInfoType)filterEnumValue;
+                    Settings.levelPreviewFilterType = filterEnumValue;
                     currentTagFilter = GetTerminalEventString(node.terminalEvent);
                     DebugHelper.Log("Tag EventString: " + GetTerminalEventString(node.terminalEvent));
                 }
@@ -197,13 +197,13 @@ namespace LethalLevelLoader
         public static bool RefreshMoonsCataloguePage(ref TerminalNode currentNode, ref TerminalNode loadNode)
         {
             //DebugHelper.Log("Running LLL Terminal Event: " + node.terminalEvent + "| EnumValue: " + GetTerminalEventEnum(node.terminalEvent) + " | StringValue: " + GetTerminalEventString(node.terminalEvent));
-            if (loadNode.name.Contains("preview") && Enum.TryParse(typeof(PreviewInfoType), GetTerminalEventEnum(loadNode.terminalEvent), out object previewEnumValue))
-                Settings.levelPreviewInfoType = (PreviewInfoType)previewEnumValue;
-            else if (loadNode.name.Contains("sort") && Enum.TryParse(typeof(SortInfoType), GetTerminalEventEnum(loadNode.terminalEvent), out object sortEnumValue))
-                Settings.levelPreviewSortType = (SortInfoType)sortEnumValue;
-            else if (loadNode.name.Contains("filter") && Enum.TryParse(typeof(FilterInfoType), GetTerminalEventEnum(loadNode.terminalEvent), out object filterEnumValue))
+            if (loadNode.name.Contains("preview") && EnumUtils.TryParse<PreviewInfoType>(GetTerminalEventEnum(loadNode.terminalEvent), out PreviewInfoType previewEnumValue))
+                Settings.levelPreviewInfoType = previewEnumValue;
+            else if (loadNode.name.Contains("sort") && EnumUtils.TryParse<SortInfoType>(GetTerminalEventEnum(loadNode.terminalEvent), out SortInfoType sortEnumValue))
+                Settings.levelPreviewSortType = sortEnumValue;
+            else if (loadNode.name.Contains("filter") && EnumUtils.TryParse<FilterInfoType>(GetTerminalEventEnum(loadNode.terminalEvent), out FilterInfoType filterEnumValue))
             {
-                Settings.levelPreviewFilterType = (FilterInfoType)filterEnumValue;
+                Settings.levelPreviewFilterType = filterEnumValue;
                 currentTagFilter = GetTerminalEventString(loadNode.terminalEvent);
                 //DebugHelper.Log("Tag EventString: " + GetTerminalEventString(loadNode.terminalEvent));
             }
