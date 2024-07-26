@@ -11,6 +11,7 @@ using System.Security.Permissions;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Device;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using Application = UnityEngine.Application;
 
@@ -23,7 +24,7 @@ namespace LethalLevelLoader
     {
         public const string ModGUID = "imabatby.lethallevelloader";
         public const string ModName = "LethalLevelLoader";
-        public const string ModVersion = "1.3.5";
+        public const string ModVersion = "1.3.6";
 
         internal static Plugin Instance;
 
@@ -46,6 +47,11 @@ namespace LethalLevelLoader
             logger = Logger;
 
             Logger.LogInfo($"LethalLevelLoader loaded!!");
+
+            //We do this here to try and assure this doesn't accidently catch anything from any AssetBundles
+            LevelLoader.vanillaWaterShader = Shader.Find("Shader Graphs/WaterShaderHDRP");
+            if (LevelLoader.vanillaWaterShader == null)
+                DebugHelper.LogError("Could Not Find Water Shader", DebugType.User);
 
             Harmony.PatchAll(typeof(LethalLevelLoaderNetworkManager));
             Harmony.PatchAll(typeof(DungeonLoader));

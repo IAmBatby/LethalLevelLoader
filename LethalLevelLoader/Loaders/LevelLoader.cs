@@ -10,6 +10,7 @@ using Unity.AI.Navigation;
 using UnityEngine.AI;
 using LethalLevelLoader.Tools;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
 namespace LethalLevelLoader
 {
@@ -37,6 +38,7 @@ namespace LethalLevelLoader
         internal static Dictionary<string, FootstepSurface> activeExtendedFootstepSurfaceDictionary = new Dictionary<string, FootstepSurface>();
         internal static LayerMask triggerMask;
 
+        internal static Shader vanillaWaterShader;
 
         internal static async void EnableMeshColliders()
         {
@@ -94,6 +96,22 @@ namespace LethalLevelLoader
             Patches.StartOfRound.footstepSurfaces = activeFootstepSurfaces.ToArray();
         }
 
+        internal static void TryRestoreWaterShaders(Scene scene)
+        {
+            List<Material> uniqueMaterials = new List<Material>();
+            foreach (MeshRenderer meshRenderer in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
+                if (meshRenderer.gameObject.scene == scene)
+                    foreach (Material sharedMaterial in meshRenderer.sharedMaterials)
+                    {
+                        if (sharedMaterial != null && !string.IsNullOrEmpty(sharedMaterial.name))
+                            if (!uniqueMaterials.Contains(sharedMaterial))
+                                uniqueMaterials.Add(sharedMaterial);
+                    }
+
+            foreach (Material sharedMaterial in uniqueMaterials)
+                ContentRestorer.TryRestoreWaterShader(sharedMaterial);
+        }
+
         internal static void BakeSceneColliderMaterialData(Scene scene)
         {
             cachedLevelColliderMaterialDictionary.Clear();
@@ -102,23 +120,23 @@ namespace LethalLevelLoader
 
             triggerMask = LayerMask.NameToLayer("Triggers");
 
-            List<Collider> allSceneColliders = new List<Collider>();
+            List<Collider> allValidSceneColliders = new List<Collider>();
 
             foreach (GameObject rootObject in scene.GetRootGameObjects())
             {
                 foreach (Collider collider in rootObject.GetComponents<Collider>())
                 {
-                    if (ValidateCollider(collider) && !allSceneColliders.Contains(collider))
-                        allSceneColliders.Add(collider);
+                    if (ValidateCollider(collider) && !allValidSceneColliders.Contains(collider))
+                        allValidSceneColliders.Add(collider);
                 }
                 foreach (Collider collider in rootObject.GetComponentsInChildren<Collider>())
                 {
-                    if (ValidateCollider(collider) && !allSceneColliders.Contains(collider))
-                        allSceneColliders.Add(collider);
+                    if (ValidateCollider(collider) && !allValidSceneColliders.Contains(collider))
+                        allValidSceneColliders.Add(collider);
                 }
             }
             
-            foreach (Collider sceneCollider in allSceneColliders)
+            foreach (Collider sceneCollider in allValidSceneColliders)
             {
                 if (sceneCollider.TryGetComponent(out MeshRenderer meshRenderer))
                 {

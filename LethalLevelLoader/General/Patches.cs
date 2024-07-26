@@ -658,6 +658,8 @@ namespace LethalLevelLoader
         {
             LevelLoader.RefreshFootstepSurfaces();
             LevelLoader.BakeSceneColliderMaterialData(RoundManager.dungeonGenerator.gameObject.scene);
+            if (LevelLoader.vanillaWaterShader != null)
+                LevelLoader.TryRestoreWaterShaders(RoundManager.dungeonGenerator.gameObject.scene);
         }
 
         /*
