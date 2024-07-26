@@ -1,6 +1,16 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.3.6</summary>**
+
+**<details><summary>Features</summary>**
+
+* Added content restoration support for basegame water shader
+
+</details>
+
+</details>
+
 **<details><summary>Version 1.3.5</summary>**
 
 **<details><summary>Fixes</summary>**
@@ -31,6 +41,8 @@
 **<details><summary>Features</summary>**
 
 * Implemented ExtendedFootstepSurface
+
+</details>
 
 </details>
 
