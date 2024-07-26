@@ -592,7 +592,7 @@ namespace LethalLevelLoader
 
         internal static void CreateVanillaExtendedWeatherEffects(StartOfRound startOfRound, TimeOfDay timeOfDay)
         {
-            foreach (LevelWeatherType levelWeatherType in Enum.GetValues(typeof(LevelWeatherType)))
+            foreach (LevelWeatherType levelWeatherType in EnumUtils.GetStaticValues<LevelWeatherType>())
             {
                 ExtendedWeatherEffect newExtendedWeatherEffect;
                 if (levelWeatherType != LevelWeatherType.None)

@@ -61,6 +61,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MegaPiggy.LCEnumUtils" Version="1.0.5" />
     <PackageReference Include="Evaisa.LethalLib" Version="0.16.0" />
     <PackageReference Include="MaxWasUnavailable.LethalModDataLib" Version="1.2.2" />
     <PackageReference Include="LethalCompany.GameLibs.Steam" Version="56.0.1-ngd.0" Publicize="true" />
