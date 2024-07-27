@@ -1,6 +1,16 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.3.7</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Added additional safety checks to ExtendedFootstepSurface patches
+
+</details>
+
+</details>
+
 **<details><summary>Version 1.3.6</summary>**
 
 **<details><summary>Features</summary>**

@@ -190,9 +190,14 @@ namespace LethalLevelLoader
         {
             footstepSurface = null;
 
+            if (collider == null)
+                return (false);
+
             if (cachedLevelColliderMaterialDictionary.TryGetValue(collider, out List<Material> materials))
-                foreach (Material material in materials)
-                    activeExtendedFootstepSurfaceDictionary.TryGetValue(material.name, out footstepSurface);
+                if (materials != null)
+                    foreach (Material material in materials)
+                        if (material != null && !string.IsNullOrEmpty(material.name))
+                            activeExtendedFootstepSurfaceDictionary.TryGetValue(material.name, out footstepSurface);
 
             return (footstepSurface != null);
         }
