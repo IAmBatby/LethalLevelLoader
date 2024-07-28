@@ -33,7 +33,7 @@ namespace LethalLevelLoader
                     rarity = value;
 
                 if (clampRarity != Vector2.zero)
-                    Math.Clamp(rarity, Mathf.RoundToInt(clampRarity.x), Mathf.RoundToInt(clampRarity.y));
+                    rarity = Math.Clamp(rarity, Mathf.RoundToInt(clampRarity.x), Mathf.RoundToInt(clampRarity.y));
 
                 returnList.Add(new StringWithRarity(levelName, rarity));
             }
@@ -62,7 +62,7 @@ namespace LethalLevelLoader
                     rarity = value;
 
                 if (clampRarity != Vector2.zero)
-                    Math.Clamp(rarity, Mathf.RoundToInt(clampRarity.x), Mathf.RoundToInt(clampRarity.y));
+                    rarity = Math.Clamp(rarity, Mathf.RoundToInt(clampRarity.x), Mathf.RoundToInt(clampRarity.y));
 
                 returnList.Add(new Vector2WithRarity(new Vector2(x,y), rarity));
             }
