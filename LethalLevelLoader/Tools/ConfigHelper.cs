@@ -242,9 +242,10 @@ namespace LethalLevelLoader
             }
         }
 
+        [Obsolete("Use " + nameof(Extensions) + "." + nameof(Extensions.Sanitized))]
         public static string SanitizeString(string inputString)
         {
-            return (inputString.SkipToLetters().RemoveWhitespace().ToLower());
+            return inputString.Sanitized();
         }
     }
 }
