@@ -155,16 +155,22 @@ namespace LethalLevelLoader
 
         public static string SpawnableItemsWithRaritiesToString(List<SpawnableItemWithRarity> spawnableItemsList)
         {
-            string returnString = string.Empty;
+            var stringBuilder = new StringBuilder();
 
             foreach (SpawnableItemWithRarity spawnableItemWithRarity in spawnableItemsList)
-                returnString += spawnableItemWithRarity.spawnableItem.itemName + ConfigHelper.keyPairSeperator + spawnableItemWithRarity.rarity.ToString() + ConfigHelper.indexSeperator;
-            if (returnString.Contains(",") && returnString.LastIndexOf(",") == (returnString.Length - 1))
-                returnString = returnString.Remove(returnString.LastIndexOf(","), 1);
+            {
+                stringBuilder.Append(spawnableItemWithRarity.spawnableItem.itemName)
+                    .Append(keyPairSeperator)
+                    .AppendValue(spawnableItemWithRarity.rarity)
+                    .Append(indexSeperator);
+            }
 
-            if (returnString == string.Empty)
-                returnString = "Default Values Were Empty";
-            return (returnString);
+            stringBuilder.TrimEnd(',');
+
+            if (stringBuilder.Length == 0)
+                return "Default Values Were Empty";
+
+            return (stringBuilder.ToString());
         }
 
         public static string StringWithRaritiesToString(List<StringWithRarity> names)
