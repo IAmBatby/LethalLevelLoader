@@ -24,6 +24,11 @@ namespace LethalLevelLoader
         public static Dictionary<ExtendedLevel, ExtendedLevelLogReport> extendedLevelLogReports = new Dictionary<ExtendedLevel, ExtendedLevelLogReport>();
         public static Dictionary<ExtendedDungeonFlow, ExtendedLevelLogReport> extendedDungeonFlowLogReports = new Dictionary<ExtendedDungeonFlow, ExtendedLevelLogReport>();
 
+        public static bool ShouldLog(DebugType debugType)
+        {
+            return Settings.debugType >= debugType;
+        }
+
         public static void Log(string log, DebugType debugType)
         {
             if (!string.IsNullOrEmpty(log) && (int)Settings.debugType >= (int)debugType)
