@@ -1,7 +1,9 @@
 ﻿using BepInEx.Configuration;
 using HarmonyLib;
+using LethalLevelLoader.General;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -141,16 +143,22 @@ namespace LethalLevelLoader
 
         public static string SpawnableEnemiesWithRaritiesToString(List<SpawnableEnemyWithRarity> spawnableEnemiesList)
         {
-            string returnString = string.Empty;
+            var stringBuilder = new StringBuilder();
 
             foreach (SpawnableEnemyWithRarity spawnableEnemyWithRarity in spawnableEnemiesList)
-                returnString += spawnableEnemyWithRarity.enemyType.enemyName + ConfigHelper.keyPairSeperator + spawnableEnemyWithRarity.rarity.ToString() + ConfigHelper.indexSeperator;
-            if (returnString.Contains(",") && returnString.LastIndexOf(",") == (returnString.Length - 1))
-                returnString = returnString.Remove(returnString.LastIndexOf(","), 1);
+            {
+                stringBuilder.Append(spawnableEnemyWithRarity.enemyType.enemyName)
+                    .Append(keyPairSeperator)
+                    .AppendValue(spawnableEnemyWithRarity.rarity)
+                    .Append(indexSeperator);
+            }
 
-            if (returnString == string.Empty)
-                returnString = "Default Values Were Empty";
-            return (returnString);
+            stringBuilder.TrimEnd(',');
+
+            if (stringBuilder.Length == 0)
+                return "Default Values Were Empty";
+
+            return (stringBuilder.ToString());
         }
 
         public static string SpawnableItemsWithRaritiesToString(List<SpawnableItemWithRarity> spawnableItemsList)
