@@ -22,7 +22,7 @@ namespace LethalLevelLoader
         {
             if (newValue > currentValue)
             {
-                if (!string.IsNullOrEmpty(debugActionReason))
+                if (!string.IsNullOrEmpty(debugActionReason) && DebugHelper.ShouldLog(DebugType.Developer))
                 {
                     if (!string.IsNullOrEmpty(debugActionObject))
                         DebugHelper.Log("Raised Rarity Of: " + debugActionObject + " From (" + currentValue + ") To (" + newValue + ") Due To Matching " + debugActionReason, DebugType.Developer);
