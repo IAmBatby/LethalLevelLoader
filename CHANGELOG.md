@@ -1,6 +1,16 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.3.8</summary>**
+
+**<details><summary>Features</summary>**
+
+* Added interior selection history to DayHistory
+
+</details>
+
+</details>
+
 **<details><summary>Version 1.3.7</summary>**
 
 **<details><summary>Fixes</summary>**

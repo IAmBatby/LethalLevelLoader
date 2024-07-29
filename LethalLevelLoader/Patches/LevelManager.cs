@@ -303,6 +303,7 @@ namespace LethalLevelLoader
             DayHistory newDayHistory = new DayHistory();
             daysTotal++;
 
+            newDayHistory.allViableOptions = DungeonManager.GetValidExtendedDungeonFlows(CurrentExtendedLevel, false).Select(e => e.extendedDungeonFlow).ToList();
             newDayHistory.extendedLevel = LevelManager.CurrentExtendedLevel;
             newDayHistory.extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
             newDayHistory.day = daysTotal;
@@ -388,6 +389,7 @@ namespace LethalLevelLoader
         public int quota;
         public int day;
         public ExtendedLevel extendedLevel;
+        public List<ExtendedDungeonFlow> allViableOptions;
         public ExtendedDungeonFlow extendedDungeonFlow;
         public LevelWeatherType weatherEffect;
     }
