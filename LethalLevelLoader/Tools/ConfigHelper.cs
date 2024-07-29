@@ -185,18 +185,23 @@ namespace LethalLevelLoader
 
         public static string Vector2WithRaritiesToString(List<Vector2WithRarity> values)
         {
-            string returnString = string.Empty;
+            var stringBuilder = new StringBuilder();
 
             foreach (Vector2WithRarity vector2withRarity in values)
-                returnString += vector2withRarity.Min + vectorSeperator + vector2withRarity.Max + keyPairSeperator + vector2withRarity.Rarity + indexSeperator;
+            {
+                stringBuilder.AppendValue(vector2withRarity.Min)
+                    .Append(vectorSeperator)
+                    .AppendValue(vector2withRarity.Max)
+                    .AppendValue(vector2withRarity.Rarity)
+                    .Append(indexSeperator);
+            }
 
-            if (returnString.Contains(",") && returnString.LastIndexOf(",") == (returnString.Length - 1))
-                returnString = returnString.Remove(returnString.LastIndexOf(","), 1);
+            stringBuilder.TrimEnd(',');
 
-            if (returnString == string.Empty)
-                returnString = "Default Values Were Empty";
+            if (stringBuilder.Length == 0)
+                return "Default Values Were Empty";
 
-            return (returnString);
+            return (stringBuilder.ToString());
         }
 
         public static List<string> SplitStringsByIndexSeperator(string newInputString)
