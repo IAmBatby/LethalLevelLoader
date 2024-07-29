@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using JetBrains.Annotations;
+using LethalLevelLoader.General;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -807,7 +808,7 @@ namespace LethalLevelLoader
             extendedItem.BuyConfirmNode = terminalNodeBuyConfirm;
             extendedItem.BuyInfoNode = terminalNodeInfo;
 
-            Terminal.buyableItemsList = Terminal.buyableItemsList.AddItem(extendedItem.Item).ToArray();
+            ArrayExtensions.AddItem(ref Terminal.buyableItemsList, extendedItem.Item);
         }
 
         internal static void CreateEnemyTypeTerminalData(ExtendedEnemyType extendedEnemyType)
@@ -982,7 +983,7 @@ namespace LethalLevelLoader
 
             newTerminalKeyword.compatibleNouns = new CompatibleNoun[0];
             newTerminalKeyword.defaultVerb = null;
-            Terminal.terminalNodes.allKeywords = Terminal.terminalNodes.allKeywords.AddItem(newTerminalKeyword).ToArray();
+            ArrayExtensions.AddItem(ref Terminal.terminalNodes.allKeywords, newTerminalKeyword);
 
             return (newTerminalKeyword);
         }
