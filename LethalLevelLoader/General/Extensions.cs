@@ -118,7 +118,7 @@ namespace LethalLevelLoader
 
         public static string Sanitized(this string currentString)
         {
-            return new string(currentString.SkipToLetters().RemoveWhitespace().ToLowerInvariant());
+            return (currentString.SkipToLetters().RemoveWhitespace().ToLowerInvariant());
         }
 
         public static string RemoveWhitespace(this string input)
