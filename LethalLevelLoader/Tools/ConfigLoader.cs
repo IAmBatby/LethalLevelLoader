@@ -173,13 +173,11 @@ namespace LethalLevelLoader.Tools
                     extendedDungeonFlow.LevelMatchingProperties.currentRoutePrice = ConfigHelper.ConvertToVector2WithRarityList(dynamicRoutePrices.Value, new Vector2(0, 9999));
                     extendedDungeonFlow.LevelMatchingProperties.levelTags = ConfigHelper.ConvertToStringWithRarityList(dynamicLevelTags.Value, new Vector2(0, 9999));
 
-                    foreach (StringWithRarity stringWithRarity in ConfigHelper.ConvertToStringWithRarityList(dynamicLevelTags.Value, new Vector2(0, 9999)))
-                        DebugHelper.Log(stringWithRarity.Name + " | " + stringWithRarity.Rarity, DebugType.Developer);
-
-                    if (extendedDungeonFlow.ContentType == ContentType.Vanilla)
-                        ConfigLoader.debugDungeonsString += extendedDungeonFlow.DungeonName +  "(" + extendedDungeonFlow.DungeonFlow.name + ")" + ", ";
-                    else if (extendedDungeonFlow.ContentType == ContentType.Custom)
-                        ConfigLoader.debugDungeonsString += extendedDungeonFlow.DungeonName + ", ";
+                    if (DebugHelper.ShouldLog(DebugType.Developer))
+                    {
+                        foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.LevelMatchingProperties.levelTags)
+                            DebugHelper.Log(stringWithRarity.Name + " | " + stringWithRarity.Rarity, DebugType.Developer);
+                    }
                 }
             }
             else

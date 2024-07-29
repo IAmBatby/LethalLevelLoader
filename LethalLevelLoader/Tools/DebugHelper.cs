@@ -609,6 +609,11 @@ namespace LethalLevelLoader
 
         public static void DebugExtendedMod(ExtendedMod extendedMod)
         {
+            if (!ShouldLog(DebugType.Developer))
+            {
+                return;
+            }
+
             string debugString = "Debug Report For ExtendedMod: " + extendedMod.ModName + " by " + extendedMod.AuthorName + "\n";
 
             debugString += "\nExtendedContents: Count - " + extendedMod.ExtendedContents.Count + "\n";
@@ -620,6 +625,11 @@ namespace LethalLevelLoader
 
         public static void DebugAllContentTags()
         {
+            if (!ShouldLog(DebugType.Developer))
+            {
+                return;
+            }
+
             foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods.Concat(new List<ExtendedMod>() { PatchedContent.VanillaMod }))
             {
                 List<ContentTag> foundContentTags = new List<ContentTag>();
