@@ -153,13 +153,23 @@ namespace LethalLevelLoader
 
         public static string StripSpecialCharacters(this string input)
         {
-            string returnString = string.Empty;
+            var stringBuilder = new StringBuilder();
 
-            foreach (char charmander in input)
-                if ((!ConfigHelper.illegalCharacters.ToCharArray().Contains(charmander) && char.IsLetterOrDigit(charmander)) || charmander.ToString() == " ")
-                    returnString += charmander;
+            foreach (var chr in input)
+            {
+                if ((!ConfigHelper.illegalCharacters.Contains(chr) && char.IsLetterOrDigit(chr))
+                    || chr == ' ')
+                {
+                    stringBuilder.Append(chr);
+                }
+            }
 
-            return returnString;
+            if (input.Length == stringBuilder.Length)
+            {
+                return input;
+            }
+
+            return stringBuilder.ToString();
         }
 
         public static List<DungeonFlow> GetDungeonFlows(this RoundManager roundManager)
