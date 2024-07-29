@@ -169,18 +169,22 @@ namespace LethalLevelLoader
 
         public static string StringWithRaritiesToString(List<StringWithRarity> names)
         {
-            string returnString = string.Empty;
+            var stringBuilder = new StringBuilder();
 
             foreach (StringWithRarity name in names)
-                returnString += name.Name + ConfigHelper.keyPairSeperator + name.Rarity.ToString() + ConfigHelper.indexSeperator;
+            {
+                stringBuilder.Append(name.Name)
+                    .Append(keyPairSeperator)
+                    .AppendValue(name.Rarity)
+                    .Append(indexSeperator);
+            }
 
-            if (returnString.Contains(",") && returnString.LastIndexOf(",") == (returnString.Length - 1))
-                returnString = returnString.Remove(returnString.LastIndexOf(","), 1);
+            stringBuilder.TrimEnd(',');
 
-            if (returnString == string.Empty)
-                returnString = "Default Values Were Empty";
+            if (stringBuilder.Length == 0)
+                return "Default Values Were Empty";
 
-            return (returnString);
+            return (stringBuilder.ToString());
         }
 
         public static string Vector2WithRaritiesToString(List<Vector2WithRarity> values)
