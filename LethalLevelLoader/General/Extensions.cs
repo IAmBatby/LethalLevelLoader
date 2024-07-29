@@ -140,7 +140,15 @@ namespace LethalLevelLoader
 
         public static string SkipToLetters(this string input)
         {
-            return new string(input.SkipWhile(c => !char.IsLetter(c)).ToArray());
+            var inputSpan = input.AsSpan();
+            var trimmedSpan = inputSpan.TrimStartToLetters();
+
+            if (inputSpan.Equals(trimmedSpan, StringComparison.Ordinal))
+            {
+                return input;
+            }
+
+            return trimmedSpan.ToString();
         }
 
         public static string StripSpecialCharacters(this string input)
