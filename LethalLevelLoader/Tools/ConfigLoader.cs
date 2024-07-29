@@ -130,11 +130,14 @@ namespace LethalLevelLoader.Tools
                 minimumDungeonSizeMultiplier = BindValue("Minimum Dungeon Size Multiplier", "If The Level's Dungeon Size Multiplier Is Below This Value, The Size Multiplier Will Be Restricted Based On The RestrictDungeonSizeScaler Setting", extendedDungeonFlow.DynamicDungeonSizeMinMax.x);
                 maximumDungeonSizeMultiplier = BindValue("Maximum Dungeon Size Multiplier", "If The Level's Dungeon Size Multiplier Is Above This Value, The Size Multiplier Will Be Restricted Based On The RestrictDungeonSizeScaler Setting", extendedDungeonFlow.DynamicDungeonSizeMinMax.y);
 
-                string description = "If The Level's Dungeon Size Multiplier Is Above Or Below The Previous Two Settings, The Dungeon Size Multiplier Will Be Set To The Value Between The Level's Dungeon Size Multiplier And This Value." + "\n";
-                description += "Example #1: If Set To 0, The Dungeon Size Will Not Be Higher Than Maximum Dungeon Size Multiplier." + "\n";
-                description += "Example #2: If Set To 0.5, The Dungeon Size Will Be Between The Maxiumum Dungeon Size Multiplier And The Level's Dungeon Size Multiplier." + "\n";
-                description += "Example #3: If Set To 1, The Dungeon Size Will Be The Level's Dungeon Size Multiplier With No Changes Applied." + "\n";
-                description += "(Minimum, 0, Maximum: 1)";
+                const string description = """
+                    If The Level's Dungeon Size Multiplier Is Above Or Below The Previous Two Settings, The Dungeon Size Multiplier Will Be Set To The Value Between The Level's Dungeon Size Multiplier And This Value.
+                    Example #1: If Set To 0, The Dungeon Size Will Not Be Higher Than Maximum Dungeon Size Multiplier.
+                    Example #2: If Set To 0.5, The Dungeon Size Will Be Between The Maxiumum Dungeon Size Multiplier And The Level's Dungeon Size Multiplier.
+                    Example #3: If Set To 1, The Dungeon Size Will Be The Level's Dungeon Size Multiplier With No Changes Applied.
+                    (Minimum, 0, Maximum: 1)
+                    """;
+
                 restrictDungeonSizeScaler = BindValue("Restrict Dungeon Size Scaler", description, extendedDungeonFlow.DynamicDungeonSizeLerpRate);
 
                 // ----- Getting -----
@@ -171,8 +174,10 @@ namespace LethalLevelLoader.Tools
             }
             else
             {
-                string description = "The author of this content has chosen not to allow for LethalLevelLoader to generate a custom configuration template for them." + "\n";
-                description += "This is likely due to said content author providing alternative configuration options in their own Config.";
+                const string description = """
+                    The author of this content has chosen not to allow for LethalLevelLoader to generate a custom configuration template for them.
+                    This is likely due to said content author providing alternative configuration options in their own Config.
+                    """;
                 enableContentConfiguration = BindValue("Content Author Disabled Automatic Configuration File Warning", description, false);
             }
         }
@@ -286,9 +291,11 @@ namespace LethalLevelLoader.Tools
             }
             else
             {
-                string description = "The author of this content has chosen not to allow for LethalLevelLoader to generate a custom configuration template for them." + "\n";
-                description += "This is likely due to said content author providing alternative configuration options in their own Config.";
-                enableContentConfiguration = BindValue("Content Author Disabled Automatic Configuration File Warning", description, false);
+                const string Description = """
+                    The author of this content has chosen not to allow for LethalLevelLoader to generate a custom configuration template for them.
+                    This is likely due to said content author providing alternative configuration options in their own Config.
+                    """;
+                enableContentConfiguration = BindValue("Content Author Disabled Automatic Configuration File Warning", Description, false);
             }
         }
     }
