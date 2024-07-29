@@ -327,10 +327,13 @@ namespace LethalLevelLoader.Tools
 
         public string GetSortingSpaces()
         {
-            string returnString = string.Empty;
-            for (int i = 0; i < sortingPriority; i++)
-                returnString += "​"; //Zero Width Space In Here, Do Not Let It Escape!
-            return returnString;
+            if (sortingPriority == 0)
+            {
+                return string.Empty;
+            }
+
+            const char ZeroWidthChar = (char)0x200b;
+            return new string(ZeroWidthChar, sortingPriority);
         }
     }
 }
