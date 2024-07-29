@@ -1,10 +1,12 @@
 ﻿using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
+using LethalLevelLoader.General;
 using Mono.Cecil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -123,7 +125,17 @@ namespace LethalLevelLoader
 
         public static string RemoveWhitespace(this string input)
         {
-            return new string(input.ToCharArray().Where(c => !Char.IsWhiteSpace(c)).ToArray());
+            var inputSpan = input.AsSpan();
+            
+            if (!inputSpan.IsWhiteSpace())
+            {
+                return input;
+            }
+
+            var stringBuilder = new StringBuilder(input);
+            stringBuilder.Replace(" ", "");
+
+            return stringBuilder.ToString();
         }
 
         public static string SkipToLetters(this string input)
