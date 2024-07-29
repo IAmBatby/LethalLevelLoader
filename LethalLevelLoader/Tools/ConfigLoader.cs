@@ -12,8 +12,6 @@ namespace LethalLevelLoader.Tools
 {
     internal static class ConfigLoader
     {
-        public static string debugLevelsString = string.Empty;
-        public static string debugDungeonsString = string.Empty;
         public static ConfigFile configFile;
 
         internal static void BindConfigs()
@@ -46,15 +44,6 @@ namespace LethalLevelLoader.Tools
                 ExtendedLevelConfig newConfig = new ExtendedLevelConfig(configFile, "Custom Level:  " + extendedLevel.SelectableLevel.PlanetName.StripSpecialCharacters(), 8);
                 newConfig.BindConfigs(extendedLevel);
             }
-
-            if (debugLevelsString.Contains(", ") && debugLevelsString.LastIndexOf(", ") == (debugLevelsString.Length - 2))
-                debugLevelsString = debugLevelsString.Remove(debugLevelsString.LastIndexOf(", "), 2);
-
-            if (debugDungeonsString.Contains(", ") && debugDungeonsString.LastIndexOf(", ") == (debugDungeonsString.Length - 2))
-                debugDungeonsString = debugDungeonsString.Remove(debugDungeonsString.LastIndexOf(", "), 2);
-
-            debugLevelsString = string.Empty;
-            debugDungeonsString = string.Empty;
         }
 
         internal static void BindGeneralConfigs()
@@ -293,8 +282,6 @@ namespace LethalLevelLoader.Tools
                     selectableLevel.Enemies = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(insideEnemiesOverrides.Value, new Vector2(0, 100));
                     selectableLevel.DaytimeEnemies = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(outsideDaytimeEnemiesOverrides.Value, new Vector2(0, 100));
                     selectableLevel.OutsideEnemies = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(outsideNighttimeEnemiesOverrides.Value, new Vector2(0, 100));
-
-                    ConfigLoader.debugLevelsString += selectableLevel.PlanetName + ", ";
                 }
             }
             else
