@@ -237,6 +237,8 @@ namespace LethalLevelLoader
             ExtendedEnemyTypes.Clear();
             ExtendedWeatherEffects.Clear();
             ExtendedFootstepSurfaces.Clear();
+            ExtendedStoryLogs.Clear();
+            ExtendedBuyableVehicles.Clear();
         }
 
         internal void SortRegisteredContent()
@@ -247,6 +249,8 @@ namespace LethalLevelLoader
             ExtendedEnemyTypes.Sort((s1, s2) => s1.name.CompareTo(s2.name));
             ExtendedWeatherEffects.Sort((s1, s2) => s1.name.CompareTo(s2.name));
             ExtendedFootstepSurfaces.Sort((s1, s2) => s1.name.CompareTo(s2.name));
+            ExtendedStoryLogs.Sort((s1, s2) => s1.name.CompareTo(s2.name));
+            ExtendedBuyableVehicles.Sort((s1, s2) => s1.name.CompareTo(s2.name));
         }
 
         internal void Example()

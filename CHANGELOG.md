@@ -1,6 +1,50 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.3.8</summary>**
+
+**<details><summary>Features</summary>**
+
+* Added interior selection history to DayHistory
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.3.7</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Added additional safety checks to ExtendedFootstepSurface patches
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.3.6</summary>**
+
+**<details><summary>Features</summary>**
+
+* Added content restoration support for basegame water shader
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.3.5</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Added safety checks to new FootstepSurface Material cache system.
+* Added safety checks to new ExtendedLevel override fog size feature.
+* Changed ContentRestoring of EnemyType's to use ScriptableObject name rather than enemyName
+* Fixed issue where synced audio clip that plays when previewing enemy beastiary file was not playing for custom enemies
+* Fixed issue where custom Enemy beastiary files did not have Info as a default keyword
+
+</details>
+
+</details>
+
 **<details><summary>Version 1.3.4</summary>**
 
 **<details><summary>Fixes</summary>**
@@ -10,11 +54,15 @@
 
 </details>
 
+</details>
+
 **<details><summary>Version 1.3.3</summary>**
 
 **<details><summary>Features</summary>**
 
 * Implemented ExtendedFootstepSurface
+
+</details>
 
 </details>
 

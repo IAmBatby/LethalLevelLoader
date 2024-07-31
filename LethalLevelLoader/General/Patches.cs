@@ -656,8 +656,13 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         internal static void RoundManagerFinishGeneratingNewLevelClientRpc_Prefix()
         {
-            LevelLoader.RefreshFootstepSurfaces();
-            LevelLoader.BakeSceneColliderMaterialData(RoundManager.dungeonGenerator.gameObject.scene);
+            if (TimeOfDay.sunAnimator != null)
+            {
+                LevelLoader.RefreshFootstepSurfaces();
+                LevelLoader.BakeSceneColliderMaterialData(TimeOfDay.sunAnimator.gameObject.scene);
+                if (LevelLoader.vanillaWaterShader != null)
+                    LevelLoader.TryRestoreWaterShaders(TimeOfDay.sunAnimator.gameObject.scene);
+            }
         }
 
         /*

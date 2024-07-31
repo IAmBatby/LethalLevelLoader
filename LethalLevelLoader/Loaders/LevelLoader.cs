@@ -10,6 +10,7 @@ using Unity.AI.Navigation;
 using UnityEngine.AI;
 using LethalLevelLoader.Tools;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
 namespace LethalLevelLoader
 {
@@ -37,6 +38,7 @@ namespace LethalLevelLoader
         internal static Dictionary<string, FootstepSurface> activeExtendedFootstepSurfaceDictionary = new Dictionary<string, FootstepSurface>();
         internal static LayerMask triggerMask;
 
+        internal static Shader vanillaWaterShader;
 
         internal static async void EnableMeshColliders()
         {
@@ -76,8 +78,10 @@ namespace LethalLevelLoader
 
         internal static void RefreshFogSize(ExtendedLevel extendedLevel)
         {
-            dustCloudFog.parameters.size = extendedLevel.OverrideDustStormVolumeSize;
-            foggyFog.parameters.size = extendedLevel.OverrideFoggyVolumeSize;
+            if (dustCloudFog != null)
+                dustCloudFog.parameters.size = extendedLevel.OverrideDustStormVolumeSize;
+            if (foggyFog != null)
+                foggyFog.parameters.size = extendedLevel.OverrideFoggyVolumeSize;
         }
 
         internal static void RefreshFootstepSurfaces()
@@ -92,6 +96,22 @@ namespace LethalLevelLoader
             Patches.StartOfRound.footstepSurfaces = activeFootstepSurfaces.ToArray();
         }
 
+        internal static void TryRestoreWaterShaders(Scene scene)
+        {
+            List<Material> uniqueMaterials = new List<Material>();
+            foreach (MeshRenderer meshRenderer in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
+                if (meshRenderer.gameObject.scene == scene)
+                    foreach (Material sharedMaterial in meshRenderer.sharedMaterials)
+                    {
+                        if (sharedMaterial != null && !string.IsNullOrEmpty(sharedMaterial.name))
+                            if (!uniqueMaterials.Contains(sharedMaterial))
+                                uniqueMaterials.Add(sharedMaterial);
+                    }
+
+            foreach (Material sharedMaterial in uniqueMaterials)
+                ContentRestorer.TryRestoreWaterShader(sharedMaterial);
+        }
+
         internal static void BakeSceneColliderMaterialData(Scene scene)
         {
             cachedLevelColliderMaterialDictionary.Clear();
@@ -100,29 +120,35 @@ namespace LethalLevelLoader
 
             triggerMask = LayerMask.NameToLayer("Triggers");
 
-            List<Collider> allSceneColliders = new List<Collider>();
+            List<Collider> allValidSceneColliders = new List<Collider>();
 
             foreach (GameObject rootObject in scene.GetRootGameObjects())
             {
                 foreach (Collider collider in rootObject.GetComponents<Collider>())
                 {
-                    if (ValidateCollider(collider) && !allSceneColliders.Contains(collider))
-                        allSceneColliders.Add(collider);
+                    if (ValidateCollider(collider) && !allValidSceneColliders.Contains(collider))
+                        allValidSceneColliders.Add(collider);
                 }
                 foreach (Collider collider in rootObject.GetComponentsInChildren<Collider>())
                 {
-                    if (ValidateCollider(collider) && !allSceneColliders.Contains(collider))
-                        allSceneColliders.Add(collider);
+                    if (ValidateCollider(collider) && !allValidSceneColliders.Contains(collider))
+                        allValidSceneColliders.Add(collider);
                 }
             }
             
-            foreach (Collider sceneCollider in allSceneColliders)
+            foreach (Collider sceneCollider in allValidSceneColliders)
             {
                 if (sceneCollider.TryGetComponent(out MeshRenderer meshRenderer))
                 {
-                    if (!cachedLevelColliderMaterialDictionary.ContainsKey(sceneCollider))
-                        cachedLevelColliderMaterialDictionary.Add(sceneCollider, new List<Material>(meshRenderer.sharedMaterials));
+                    List<Material> validMaterials = new List<Material>();
                     foreach (Material material in meshRenderer.sharedMaterials)
+                        if (material != null && !string.IsNullOrEmpty(material.name))
+                            validMaterials.Add(material);
+
+                    if (!cachedLevelColliderMaterialDictionary.ContainsKey(sceneCollider))
+                        cachedLevelColliderMaterialDictionary.Add(sceneCollider, new List<Material>(validMaterials));
+
+                    foreach (Material material in validMaterials)
                     {
                         if (!cachedLevelMaterialColliderDictionary.ContainsKey(material.name))
                             cachedLevelMaterialColliderDictionary.Add(material.name, new List<Collider> { sceneCollider });
@@ -152,8 +178,9 @@ namespace LethalLevelLoader
 
             foreach (ExtendedFootstepSurface extendedFootstepSurface in LevelManager.CurrentExtendedLevel.ExtendedMod.ExtendedFootstepSurfaces)
                 foreach (Material material in extendedFootstepSurface.associatedMaterials)
-                    if (!returnDict.ContainsKey(material.name))
-                        returnDict.Add(material.name, extendedFootstepSurface.footstepSurface);
+                    if (material != null && !string.IsNullOrEmpty(material.name))
+                        if (!returnDict.ContainsKey(material.name))
+                            returnDict.Add(material.name, extendedFootstepSurface.footstepSurface);
 
 
             return (returnDict);
@@ -163,9 +190,14 @@ namespace LethalLevelLoader
         {
             footstepSurface = null;
 
+            if (collider == null)
+                return (false);
+
             if (cachedLevelColliderMaterialDictionary.TryGetValue(collider, out List<Material> materials))
-                foreach (Material material in materials)
-                    activeExtendedFootstepSurfaceDictionary.TryGetValue(material.name, out footstepSurface);
+                if (materials != null)
+                    foreach (Material material in materials)
+                        if (material != null && !string.IsNullOrEmpty(material.name))
+                            activeExtendedFootstepSurfaceDictionary.TryGetValue(material.name, out footstepSurface);
 
             return (footstepSurface != null);
         }
