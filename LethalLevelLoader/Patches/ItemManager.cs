@@ -21,7 +21,7 @@ namespace LethalLevelLoader
                 if (extendedItem.Item.isScrap)
                 {
                     string debugString = string.Empty;
-                    SpawnableItemWithRarity alreadyInjectedItem = null;
+                    SpawnableItemWithRarity? alreadyInjectedItem = null;
                     foreach (SpawnableItemWithRarity spawnableItem in extendedLevel.SelectableLevel.spawnableScrap)
                         if (spawnableItem.spawnableItem == extendedItem)
                             alreadyInjectedItem = spawnableItem;

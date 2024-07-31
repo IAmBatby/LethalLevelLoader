@@ -10,15 +10,15 @@ namespace LethalLevelLoader
     {
         [field: Header("General Settings")]
 
-        [field: SerializeField] public Item Item { get; set; }
+        [field: SerializeField] public Item Item { get; set; } = null!;
         [field: SerializeField] public string PluralisedItemName { get; set; } = string.Empty;
         [field: SerializeField] public bool IsBuyableItem { get; set; }
 
         [field: Space(5)]
         [field: Header("Dynamic Injection Matching Settings")]
 
-        [field: SerializeField] public LevelMatchingProperties LevelMatchingProperties { get; set; }
-        [field: SerializeField] public DungeonMatchingProperties DungeonMatchingProperties { get; set; }
+        [field: SerializeField] public LevelMatchingProperties LevelMatchingProperties { get; set; } = null!;
+        [field: SerializeField] public DungeonMatchingProperties DungeonMatchingProperties { get; set; } = null!;
 
         [field: Space(5)]
         [field: Header("Terminal Store & Info Override Settings")]
@@ -27,9 +27,9 @@ namespace LethalLevelLoader
         [field: SerializeField] public string OverrideBuyNodeDescription { get; set; } = string.Empty;
         [field: SerializeField] public string OverrideBuyConfirmNodeDescription { get; set; } = string.Empty;
 
-        public TerminalNode BuyNode { get; internal set; }
-        public TerminalNode BuyConfirmNode { get; internal set; }
-        public TerminalNode BuyInfoNode { get; internal set; }
+        public TerminalNode? BuyNode { get; internal set; }
+        public TerminalNode? BuyConfirmNode { get; internal set; }
+        public TerminalNode? BuyInfoNode { get; internal set; }
 
         public int CreditsWorth
         {

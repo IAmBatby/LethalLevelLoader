@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using DunGen;
 using HarmonyLib;
@@ -10,32 +11,33 @@ using System.Security.Permissions;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Device;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using Application = UnityEngine.Application;
 
 namespace LethalLevelLoader
 {
     [BepInPlugin(ModGUID, ModName, ModVersion)]
-    [BepInDependency(LethalLib.Plugin.ModGUID)]
+    [BepInDependency(LethalLib.Plugin.ModGUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(LethalModDataLib.PluginInfo.PLUGIN_GUID)]
     public class Plugin : BaseUnityPlugin
     {
         public const string ModGUID = "imabatby.lethallevelloader";
         public const string ModName = "LethalLevelLoader";
-        public const string ModVersion = "1.3.0";
+        public const string ModVersion = "1.3.8";
 
-        internal static Plugin Instance;
+        internal static Plugin Instance = null!;
 
-        internal static AssetBundle MainAssets;
+        internal static AssetBundle? MainAssets;
         internal static readonly Harmony Harmony = new Harmony(ModGUID);
 
-        internal static BepInEx.Logging.ManualLogSource logger;
+        internal static BepInEx.Logging.ManualLogSource logger = null!;
 
-        public static event Action onBeforeSetup;
-        public static event Action onSetupComplete;
+        public static event Action? onBeforeSetup;
+        public static event Action? onSetupComplete;
         public static bool IsSetupComplete { get; private set; } = false;
 
-        internal static GameObject networkManagerPrefab;
+        internal static GameObject? networkManagerPrefab;
 
         private void Awake()
         {
@@ -46,32 +48,34 @@ namespace LethalLevelLoader
 
             Logger.LogInfo($"LethalLevelLoader loaded!!");
 
+            //We do this here to try and assure this doesn't accidently catch anything from any AssetBundles
+            LevelLoader.vanillaWaterShader = Shader.Find("Shader Graphs/WaterShaderHDRP");
+            if (LevelLoader.vanillaWaterShader == null)
+                DebugHelper.LogError("Could Not Find Water Shader", DebugType.User);
+
             Harmony.PatchAll(typeof(LethalLevelLoaderNetworkManager));
             Harmony.PatchAll(typeof(DungeonLoader));
 
             Harmony.PatchAll(typeof(Patches));
             Harmony.PatchAll(typeof(EventPatches));
             Harmony.PatchAll(typeof(SafetyPatches));
+
+            TrySoftPatch(LethalLib.Plugin.ModGUID, typeof(LethalLibPatches));
 			
             NetworkScenePatcher.Patch();
 			Patches.InitMonoModHooks();
 
             NetcodePatch();
 
-            //AssetBundleLoader.LoadBundles();
-            //AssetBundleLoader.Instance.pluginInstace = this;
-
-            GameObject test = new GameObject("LethalLevelLoader AssetBundleLoader");
-            test.AddComponent<AssetBundleLoader>().LoadBundles();
+            GameObject assetBundleLoaderObject = new GameObject("LethalLevelLoader AssetBundleLoader");
+            assetBundleLoaderObject.AddComponent<AssetBundleLoader>().LoadBundles();
             if (Application.isEditor)
-                DontDestroyOnLoad(test);
+                DontDestroyOnLoad(assetBundleLoaderObject);
             else
-                test.hideFlags = HideFlags.HideAndDontSave;
+                assetBundleLoaderObject.hideFlags = HideFlags.HideAndDontSave;
             AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
 
             ConfigLoader.BindGeneralConfigs();
-
-            //UnityEngine.Object.FindFirstObjectByType<GameObject>()
         }
 
         internal static void OnBeforeSetupInvoke()
@@ -106,8 +110,18 @@ namespace LethalLevelLoader
             }
             catch
             {
-                DebugHelper.Log("NetcodePatcher did a big fucksie wuckise!", DebugType.Developer);
+                DebugHelper.LogError("NetcodePatcher Failed! This Is Very Bad.", DebugType.Developer);
             }
+        }
+
+        internal static void TrySoftPatch(string pluginName, Type type)
+        {
+            if (Chainloader.PluginInfos.ContainsKey(pluginName))
+            {
+                Harmony.CreateClassProcessor(type, true).Patch();
+                DebugHelper.Log(pluginName + "found, enabling compatability patches.", DebugType.User);
+            }
+
         }
     }
 }

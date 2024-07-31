@@ -9,7 +9,7 @@ namespace LethalLevelLoader
 {
     internal class WeatherManager
     {
-        public static ExtendedWeatherEffect CurrentExtendedWeatherEffect;
+        public static ExtendedWeatherEffect? CurrentExtendedWeatherEffect; // temporarily marked as nullable since no usage
 
         public static Dictionary<LevelWeatherType, ExtendedWeatherEffect> vanillaExtendedWeatherEffectsDictionary = new Dictionary<LevelWeatherType, ExtendedWeatherEffect>();
 
@@ -111,7 +111,7 @@ namespace LethalLevelLoader
                     if (extendedWeatherEffect.BaseWeatherType == levelWeatherType)
                         return (extendedWeatherEffect);
 
-            return (null);
+            return (null!);
         }
     }
 }

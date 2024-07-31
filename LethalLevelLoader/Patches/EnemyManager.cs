@@ -20,9 +20,9 @@ namespace LethalLevelLoader
             foreach (ExtendedEnemyType extendedEnemyType in PatchedContent.CustomExtendedEnemyTypes)
             {
                 string debugString = string.Empty;
-                SpawnableEnemyWithRarity alreadyInjectedInsideEnemy = null;
-                SpawnableEnemyWithRarity alreadyInjectedOutsideEnemy = null;
-                SpawnableEnemyWithRarity alreadyInjectedDaytimeEnemy = null;
+                SpawnableEnemyWithRarity? alreadyInjectedInsideEnemy;
+                SpawnableEnemyWithRarity? alreadyInjectedOutsideEnemy;
+                SpawnableEnemyWithRarity? alreadyInjectedDaytimeEnemy;
 
                 foreach (SpawnableEnemyWithRarity spawnableEnemyWithRarity in extendedLevel.SelectableLevel.Enemies)
                     if (spawnableEnemyWithRarity.enemyType == extendedEnemyType)
@@ -56,7 +56,7 @@ namespace LethalLevelLoader
 
         internal static bool TryInjectEnemyIntoPool(List<SpawnableEnemyWithRarity> enemyPool, ExtendedEnemyType extendedEnemy, int newRarity, out SpawnableEnemyWithRarity spawnableEnemyWithRarity)
         {
-            spawnableEnemyWithRarity = null;
+            spawnableEnemyWithRarity = null!;
             foreach (SpawnableEnemyWithRarity currentSpawnableEnemyWithRarity in enemyPool)
                 if (currentSpawnableEnemyWithRarity.enemyType == extendedEnemy.EnemyType)
                     spawnableEnemyWithRarity = currentSpawnableEnemyWithRarity;

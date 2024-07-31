@@ -1,5 +1,5 @@
 ,Is Automatically Applied:,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Yes,,Yes,Yes,,Yes,No,No,No,No,No,No,No,No,No,No,No,No
-Item Name,Total Tags,13,51,41,26,27,5,20,56,9,10,39,25,3,26,24,3,29,21,13,10,7,5,5,4,3,0,3,3
+Item Name,Total Tags,14,51,41,27,27,5,21,57,9,10,40,25,3,26,24,3,29,21,13,10,8,5,5,4,3,0,3,3
 ,,Buyable,Scrap,Non-Interactable,Interactable,Conductive,Chargable,Tool,One-Handed,Two-Handed,Noisy,Light-Weight,Medium-Weight,Heavy-Weight,Low-Value,Medium-Value,High-Value,Household,Metal,Harmful,Weapon,Consumable,Machine Part,Luminescent,Transportation,Communicative,Information,Natural,Beast Byproduct
 Airhorn,8,,Scrap,,Interactable,,,,One-Handed,,Noisy,Light-Weight,,,,Medium-Value,,Household,Metal,,,,,,,,,,
 Apparatus,9,,Scrap,Non-Interactable,,Conductive,,,,Two-Handed,,Light-Weight,,,,,High-Value,,Metal,,,,Machine Part,Luminescent,,,,,
@@ -68,3 +68,4 @@ Walkie-Talkie,7,Buyable,,,Interactable,,Chargable,Tool,One-Handed,,,Light-Weight
 Whoopie Cushion,8,,Scrap,Non-Interactable,,Conductive,,,One-Handed,,Noisy,Light-Weight,,,Low-Value,,,Household,,,,,,,,,,,
 Yield Sign,10,,Scrap,,Interactable,Conductive,,Tool,One-Handed,,,,Medium-Weight,,Low-Value,,,,Metal,Harmful,Weapon,,,,,,,,
 Zap Gun,9,Buyable,,,Interactable,Conductive,Chargable,Tool,One-Handed,,,Light-Weight,,,,,,,,Harmful,Weapon,,,,,,,,
+Weed Killer,6,Buyable,,,Interactable,,,Tool,One-Handed,,,Light-Weight,,,,,,,,,,Consumable,,,,,,,

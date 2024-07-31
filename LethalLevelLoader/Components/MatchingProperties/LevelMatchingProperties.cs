@@ -35,7 +35,7 @@ namespace LethalLevelLoader
             return (returnRarity);
         }
 
-        public void ApplyValues(List<StringWithRarity> newModNames = null, List<StringWithRarity> newAuthorNames = null, List<StringWithRarity> newLevelTags = null, List<Vector2WithRarity> newRoutePrices = null, List<StringWithRarity> newCurrentWeathers = null, List<StringWithRarity> newPlanetNames = null)
+        public void ApplyValues(List<StringWithRarity>? newModNames = null, List<StringWithRarity>? newAuthorNames = null, List<StringWithRarity>? newLevelTags = null, List<Vector2WithRarity>? newRoutePrices = null, List<StringWithRarity>? newCurrentWeathers = null, List<StringWithRarity>? newPlanetNames = null)
         {
             if (newModNames != null && newModNames.Count != 0)
                 modNames = new List<StringWithRarity>(newModNames);

@@ -14,7 +14,7 @@ namespace LethalLevelLoader
     public class ExtendedLevel : ExtendedContent
     {
         [field: Header("General Settings")]
-        [field: SerializeField] public SelectableLevel SelectableLevel { get; set; }
+        [field: SerializeField] public SelectableLevel SelectableLevel { get; set; } = null!;
         [Space(5)] [SerializeField] private int routePrice = 0;
 
         [field: Header("Extended Feature Settings")]
@@ -22,7 +22,7 @@ namespace LethalLevelLoader
 
         [field: Space(5)]
 
-        [field: SerializeField] public GameObject OverrideQuicksandPrefab { get; set; }
+        [field: SerializeField] public GameObject OverrideQuicksandPrefab { get; set; } = null!;
 
         [field: Space(5)]
 
@@ -32,12 +32,19 @@ namespace LethalLevelLoader
 
         [field: Space(5)]
 
-        [field: SerializeField] public AnimationClip ShipFlyToMoonClip { get; set; }
-        [field: SerializeField] public AnimationClip ShipFlyFromMoonClip { get; set; }
+        [field: SerializeField] public AnimationClip ShipFlyToMoonClip { get; set; } = null!;
+        [field: SerializeField] public AnimationClip ShipFlyFromMoonClip { get; set; } = null!;
 
         [field: Space(5)]
 
         [field: SerializeField] public List<StringWithRarity> SceneSelections { get; set; } = new List<StringWithRarity>();
+
+        [field: Space(5)]
+        [field: Header("Weather Fog Distance Override Settings")]
+
+        [field: SerializeField] public Vector3 OverrideDustStormVolumeSize { get; set; } = Vector3.zero;
+        [field: SerializeField] public Vector3 OverrideFoggyVolumeSize { get; set; } = Vector3.zero;
+
 
         [field: Space(5)]
         [field: Header("Terminal Route Override Settings")]
@@ -53,7 +60,7 @@ namespace LethalLevelLoader
 
         [Space(25)]
         [Header("Obsolete (Legacy Fields, Will Be Removed In The Future)")]
-        [Obsolete] public SelectableLevel selectableLevel;
+        [Obsolete] public SelectableLevel? selectableLevel;
         [Obsolete][Space(5)] public string contentSourceName = string.Empty; //Levels from AssetBundles will have this as their Assembly Name.
         [Obsolete][Space(5)] public List<string> levelTags = new List<string>();
 
@@ -94,13 +101,13 @@ namespace LethalLevelLoader
 
         [HideInInspector] public LevelEvents LevelEvents { get; internal set; } = new LevelEvents();
 
-        public TerminalNode RouteNode { get; internal set; }
-        public TerminalNode RouteConfirmNode { get; internal set; }
-        public TerminalNode InfoNode { get; internal set; }
+        public TerminalNode RouteNode { get; internal set; } = null!;
+        public TerminalNode RouteConfirmNode { get; internal set; } = null!;
+        public TerminalNode InfoNode { get; internal set; } = null!;
 
         //Dunno about these yet
         public List<ExtendedWeatherEffect> EnabledExtendedWeatherEffects { get; set; } = new List<ExtendedWeatherEffect>();
-        public ExtendedWeatherEffect CurrentExtendedWeatherEffect { get; set; }
+        public ExtendedWeatherEffect? CurrentExtendedWeatherEffect { get; set; }
 
         internal static ExtendedLevel Create(SelectableLevel newSelectableLevel)
         {
@@ -199,14 +206,14 @@ namespace LethalLevelLoader
         internal void SetExtendedDungeonFlowMatches()
         {
             foreach (IntWithRarity intWithRarity in SelectableLevel.dungeonFlowTypes)
-                if (DungeonManager.TryGetExtendedDungeonFlow(Patches.RoundManager.dungeonFlowTypes[intWithRarity.id].dungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
+                if (DungeonManager.TryGetExtendedDungeonFlow(Patches.RoundManager.dungeonFlowTypes[intWithRarity.id].dungeonFlow, out ExtendedDungeonFlow? extendedDungeonFlow))
                     extendedDungeonFlow.LevelMatchingProperties.planetNames.Add(new StringWithRarity(NumberlessPlanetName, intWithRarity.rarity));
 
 
             if (SelectableLevel.sceneName == "Level4March")
                 foreach (IndoorMapType indoorMapType in Patches.RoundManager.dungeonFlowTypes)
                     if (indoorMapType.dungeonFlow.name == "Level1Flow3Exits")
-                        if (DungeonManager.TryGetExtendedDungeonFlow(indoorMapType.dungeonFlow, out ExtendedDungeonFlow marchDungeonFlow))
+                        if (DungeonManager.TryGetExtendedDungeonFlow(indoorMapType.dungeonFlow, out ExtendedDungeonFlow? marchDungeonFlow))
                             marchDungeonFlow.LevelMatchingProperties.planetNames.Add(new StringWithRarity(NumberlessPlanetName, 300));
         }
 

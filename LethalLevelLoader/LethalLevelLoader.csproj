@@ -25,6 +25,7 @@
       <DebugType>embedded</DebugType>
       <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
 
+      <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
@@ -91,12 +92,24 @@
 
     <MakeDir Directories="$(ProjectDir)../assets/bundles" Condition="!Exists('$(ProjectDir)../assets/bundles')" />
 
-    <Exec Command="dotnet tcli build --config-path $(ProjectDir)../assets/thunderstore.toml" />
+    <Exec Command="dotnet tcli build --config-path $(ProjectDir)../assets/thunderstore.toml --package-version $(PlainVersion)" />
 
-    <ItemGroup>
-        <FilesToRename Include="$(ProjectDir)dist/*IAmBatby-$(AssemblyName)-$(PlainVersion).zip" />
-    </ItemGroup>
+  </Target>
 
+      <!-- thunderstore publish -->
+  <Target Name="PublishThunderstore" DependsOnTargets="SetPluginVersion;SaveVersionAndNameToFiles">
+      <Exec Command="dotnet tcli publish --config-path $(ProjectDir)../assets/thunderstore.toml --file $(ProjectDir)dist/*-$(MinVerVersion).zip" />
+  </Target>
+
+    <!-- zipping the .dll alone for curseforge release -->
+  <Target Name="ZipCurseForge" AfterTargets="PackThunderstore">
+    <MakeDir Directories="$(ProjectDir)dist/output/" Condition="!Exists('$(ProjectDir)dist/output/')" />
+    <Copy SourceFiles="$(ProjectDir)bin/Release/netstandard2.1/$(AssemblyName).dll" DestinationFiles="$(ProjectDir)dist/output/$(AssemblyName).dll" />
+
+    <ZipDirectory
+      SourceDirectory="$(ProjectDir)dist/output/"
+      DestinationFile="$(ProjectDir)dist/curseforge.zip"
+      Overwrite="true" />
   </Target>
   
 </Project>

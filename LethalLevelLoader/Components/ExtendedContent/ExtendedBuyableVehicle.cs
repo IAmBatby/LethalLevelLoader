@@ -8,14 +8,14 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedBuyableVehicle", menuName = "Lethal Level Loader/Extended Content/ExtendedBuyableVehicle", order = 21)]
     public class ExtendedBuyableVehicle : ExtendedContent
     {
-        [field: SerializeField] public BuyableVehicle BuyableVehicle { get; set; }
+        [field: SerializeField] public BuyableVehicle BuyableVehicle { get; set; } = null!;
         [field: SerializeField] public string TerminalKeywordName { get; set; } = string.Empty;
 
         public int VehicleID { get; set; }
 
-        public TerminalNode VehicleBuyNode { get; set; }
-        public TerminalNode VehicleBuyConfirmNode { get; set; }
-        public TerminalNode VehicleInfoNode { get; set; }
+        public TerminalNode VehicleBuyNode { get; set; } = null!;
+        public TerminalNode VehicleBuyConfirmNode { get; set; } = null!;
+        public TerminalNode VehicleInfoNode { get; set; } = null!;
 
         internal static ExtendedBuyableVehicle Create(BuyableVehicle newBuyableVehicle)
         {

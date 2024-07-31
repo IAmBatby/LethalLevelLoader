@@ -2,6 +2,7 @@
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using Unity.AI.Navigation;
@@ -14,13 +15,13 @@ namespace LethalLevelLoader
 {
     public class LevelManager
     {
-        public static ExtendedLevel CurrentExtendedLevel
+        public static ExtendedLevel? CurrentExtendedLevel
         {
             get
             {
-                ExtendedLevel returnLevel = null;
+                ExtendedLevel? returnLevel = null;
                 if (Patches.StartOfRound != null)
-                    if (TryGetExtendedLevel(Patches.StartOfRound.currentLevel, out ExtendedLevel level))
+                    if (TryGetExtendedLevel(Patches.StartOfRound.currentLevel, out ExtendedLevel? level))
                         returnLevel = level;
                 return returnLevel;
             }
@@ -32,11 +33,6 @@ namespace LethalLevelLoader
         public static int quotasTotal;
 
         public static int invalidSaveLevelID = -1;
-
-        public static List<string> cachedFootstepSurfaceTagsList = new List<string>();
-        public static List<Material> cachedExtendedFootstepSurfaceMaterialsList = new List<Material>();
-        public static List<GameObject> cachedExtendedFootstepSurfaceGameObjectsList = new List<GameObject>(); 
-        public static Dictionary<FootstepSurface, ExtendedFootstepSurface> cachedFootstepSurfacesDictionary = new Dictionary<FootstepSurface, ExtendedFootstepSurface>();
 
         public static Dictionary<string, int> dynamicRiskLevelDictionary = new Dictionary<string, int>()
         {
@@ -88,10 +84,10 @@ namespace LethalLevelLoader
             //shipAnimator.enabled = false;
         }
 
-        public static bool TryGetExtendedLevel(SelectableLevel selectableLevel, out ExtendedLevel returnExtendedLevel, ContentType levelType = ContentType.Any)
+        public static bool TryGetExtendedLevel(SelectableLevel selectableLevel, [NotNullWhen(returnValue: true)] out ExtendedLevel? returnExtendedLevel, ContentType levelType = ContentType.Any)
         {
             returnExtendedLevel = null;
-            List<ExtendedLevel> extendedLevelsList = null;
+            List<ExtendedLevel> extendedLevelsList = null!;
 
             if (selectableLevel == null) return false;
 
@@ -111,7 +107,7 @@ namespace LethalLevelLoader
 
         public static ExtendedLevel GetExtendedLevel(SelectableLevel selectableLevel)
         {
-            ExtendedLevel returnExtendedLevel = null;
+            ExtendedLevel returnExtendedLevel = null!;
 
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                 if (extendedLevel.SelectableLevel == selectableLevel)
@@ -308,6 +304,7 @@ namespace LethalLevelLoader
             DayHistory newDayHistory = new DayHistory();
             daysTotal++;
 
+            newDayHistory.allViableOptions = DungeonManager.GetValidExtendedDungeonFlows(CurrentExtendedLevel, false).Select(e => e.extendedDungeonFlow).ToList();
             newDayHistory.extendedLevel = LevelManager.CurrentExtendedLevel;
             newDayHistory.extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
             newDayHistory.day = daysTotal;
@@ -392,8 +389,9 @@ namespace LethalLevelLoader
     {
         public int quota;
         public int day;
-        public ExtendedLevel extendedLevel;
-        public ExtendedDungeonFlow extendedDungeonFlow;
+        public ExtendedLevel? extendedLevel;
+        public List<ExtendedDungeonFlow>? allViableOptions; // this whole class should have a constructor that set all these variables
+        public ExtendedDungeonFlow? extendedDungeonFlow;
         public LevelWeatherType weatherEffect;
     }
 }

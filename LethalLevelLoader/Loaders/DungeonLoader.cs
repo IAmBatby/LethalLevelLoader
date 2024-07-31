@@ -27,7 +27,7 @@ namespace LethalLevelLoader
 
     public static class DungeonLoader
     {
-        internal static GameObject defaultKeyPrefab;
+        internal static GameObject defaultKeyPrefab = null!;
         
         internal static void SelectDungeon()
         {
@@ -39,8 +39,8 @@ namespace LethalLevelLoader
         internal static void PrepareDungeon()
         {
             DungeonGenerator dungeonGenerator = Patches.RoundManager.dungeonGenerator.Generator;
-            ExtendedLevel currentExtendedLevel = LevelManager.CurrentExtendedLevel;
-            ExtendedDungeonFlow currentExtendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
+            ExtendedLevel currentExtendedLevel = LevelManager.CurrentExtendedLevel!; // checked for null in calling method
+            ExtendedDungeonFlow currentExtendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow!;
 
             //PatchDungeonSize(dungeonGenerator, currentExtendedLevel, currentExtendedDungeonFlow);
             PatchFireEscapes(dungeonGenerator, currentExtendedLevel, SceneManager.GetSceneByName(currentExtendedLevel.SelectableLevel.sceneName));
@@ -49,8 +49,8 @@ namespace LethalLevelLoader
 
         public static float GetClampedDungeonSize()
         {
-            ExtendedDungeonFlow extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
-            ExtendedLevel extendedLevel = LevelManager.CurrentExtendedLevel;
+            ExtendedDungeonFlow? extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
+            ExtendedLevel? extendedLevel = LevelManager.CurrentExtendedLevel;
             float calculatedMultiplier = CalculateDungeonMultiplier(LevelManager.CurrentExtendedLevel, DungeonManager.CurrentExtendedDungeonFlow);
             if (DungeonManager.CurrentExtendedDungeonFlow != null && DungeonManager.CurrentExtendedDungeonFlow.IsDynamicDungeonSizeRestrictionEnabled == true)
             {
@@ -99,7 +99,7 @@ namespace LethalLevelLoader
         {
             string debugString = "Fire Exit Patch Report, Details Below;" + "\n" + "\n";
 
-            if (DungeonManager.TryGetExtendedDungeonFlow(dungeonGenerator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
+            if (DungeonManager.TryGetExtendedDungeonFlow(dungeonGenerator.DungeonFlow, out ExtendedDungeonFlow? extendedDungeonFlow))
             {
                 List<EntranceTeleport> entranceTeleports = GetEntranceTeleports(scene).OrderBy(o => o.entranceId).ToList();
 

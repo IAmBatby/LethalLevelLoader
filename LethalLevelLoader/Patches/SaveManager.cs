@@ -10,7 +10,7 @@ namespace LethalLevelLoader
 {
     internal static class SaveManager
     {
-        public static LLLSaveFile currentSaveFile;
+        public static LLLSaveFile currentSaveFile = null!;
         public static bool parityCheck;
 
         internal static void InitializeSave()
@@ -392,10 +392,10 @@ namespace LethalLevelLoader
 
             string currentSaveFileName = GameNetworkManager.Instance.currentSaveFileName;
 
-            List<int> shipGrabbableItemIDs = null;
-            List<Vector3> shipGrabbableItemPos = null;
-            List<int> shipScrapValues = null;
-            List<int> shipItemSaveData = null;
+            List<int> shipGrabbableItemIDs;
+            List<Vector3> shipGrabbableItemPos;
+            List<int> shipScrapValues;
+            List<int> shipItemSaveData;
 
             if (ES3.KeyExists("shipGrabbableItemIDs", currentSaveFileName))
                 shipGrabbableItemIDs = ES3.Load<int[]>("shipGrabbableItemIDs", currentSaveFileName).ToList();

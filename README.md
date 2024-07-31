@@ -10,7 +10,7 @@
 **Description**
 --
 
-### **1.2.0 for Lethal Company v50 Has Released!**
+### **1.3.0 for Lethal Company v55 Has Released!**
 
 **LethalLevelLoader** is a custom API to support the manual and dynamic integration of custom levels and dungeons in Lethal Company.  
 Mod Developers can provide LethalLevelLoader with their custom content via code or via automatic AssetBundle detection, and from there LethalLevelLoader will seamlessly load the content into the game.
@@ -70,5 +70,6 @@ You should be now set up, and ready compile your fork of LethalLevelLoader on yo
 * **Maxwasunavailable** *(For creating LethalModDataLib and assisting me with it’s usage.)*
 * **Mrov** *(For collaborating with me on initial Custom weather support related code, assisting in fixes related to the Config file and a bunch of miscellaneous assistance.)*
 * **LadyRaphtalia**, **Xu Xiaolan**, **Badhamknibbs**, **Mrov**, **sfDesat**, **AboveFire**, **Autumnis The Everchanging**, **RosiePies**, **Drako** & **Audio Knight** *(For testing development on experimental 1.2.0 builds.)*
-* **狐萝卜呀**, **tumbleweed**, **Corey**, **Ritskee**, **Altan**, **qxZap**, **Salamander**, **Chiseled Cactus**, **Phantom139**, **ImmaBawss**, **takeothewolf**, **zuzaratrust**, **Hackattack242**, **Mail Me Dabs**, **Kyros**, **SourceShard** & **Chupacabra** *(For playtesting and reporting bugs on experimental 1.2.0 builds.*
-* **Lunxara** *For the heavy, rapid testing throughout all the experimental 1.2.0 builds.*)
+* **狐萝卜呀**, **tumbleweed**, **Corey**, **Ritskee**, **Altan**, **qxZap**, **Salamander**, **Chiseled Cactus**, **Phantom139**, **ImmaBawss**, **takeothewolf**, **zuzaratrust**, **Hackattack242**, **Mail Me Dabs**, **Kyros**, **SourceShard** & **Chupacabra** *(For playtesting and reporting bugs on experimental 1.2.0 builds.)*
+* **Lunxara** *(For the heavy, rapid testing throughout all the experimental 1.2.0 builds.)*
+* **Adi**, **Hamunii**, **Xu Xiaolan & **Wherget** *F(or various new contributions in the forms of direct suggestions and pull requests.)*

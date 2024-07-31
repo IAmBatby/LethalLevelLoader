@@ -14,8 +14,8 @@ namespace LethalLevelLoader
         [field: SerializeField] public LevelWeatherType BaseWeatherType { get; set; } = LevelWeatherType.None;
         [field: SerializeField] public string WeatherDisplayName { get; set; } = string.Empty;
 
-        [field: SerializeField] public GameObject WorldObject { get; set; }
-        [field: SerializeField] public GameObject GlobalObject { get; set; }
+        [field: SerializeField] public GameObject? WorldObject { get; set; }
+        [field: SerializeField] public GameObject? GlobalObject { get; set; }
 
         public ContentType contentType;
 
@@ -29,7 +29,7 @@ namespace LethalLevelLoader
             return (ExtendedWeatherEffect.Create(levelWeatherType, weatherEffect.effectObject, weatherEffect.effectPermanentObject, weatherDisplayName, newContentType));
         }
 
-        internal static ExtendedWeatherEffect Create(LevelWeatherType levelWeatherType, GameObject worldObject, GameObject globalObject, string newWeatherDisplayName, ContentType newContentType)
+        internal static ExtendedWeatherEffect Create(LevelWeatherType levelWeatherType, GameObject? worldObject, GameObject? globalObject, string newWeatherDisplayName, ContentType newContentType)
         {
             ExtendedWeatherEffect newExtendedWeatherEffect = ScriptableObject.CreateInstance<ExtendedWeatherEffect>();
 

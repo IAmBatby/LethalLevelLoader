@@ -18,6 +18,8 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Device;
+using UnityEngine.InputSystem.Utilities;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using static LethalLevelLoader.AssetBundleLoader;
 using NetworkManager = Unity.Netcode.NetworkManager;
@@ -33,10 +35,10 @@ namespace LethalLevelLoader
         internal static List<string> allSceneNamesCalledToLoad = new List<string>();
 
         //Singletons and such for these are set in each classes Awake function, But they all are accessible on the first awake function of the earliest one of these four managers awake function, so i grab them directly via findobjectoftype to safely access them as early as possible.
-        public static StartOfRound StartOfRound { get; internal set; }
-        public static RoundManager RoundManager { get; internal set; }
-        public static Terminal Terminal { get; internal set; }
-        public static TimeOfDay TimeOfDay { get; internal set; }
+        public static StartOfRound StartOfRound { get; internal set; } = null!;
+        public static RoundManager RoundManager { get; internal set; } = null!;
+        public static Terminal Terminal { get; internal set; } = null!;
+        public static TimeOfDay TimeOfDay { get; internal set; } = null!;
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(PreInitSceneScript), "Awake")]
@@ -210,8 +212,37 @@ namespace LethalLevelLoader
                 //Initialize ExtendedContent Objects For Custom Content.
                 AssetBundleLoader.InitializeBundles();
 
+                PatchedContent.PopulateContentDictionaries();
+
                 foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
                     extendedLevel.SetLevelID();
+
+                foreach (WeatherEffect weatherEffect in TimeOfDay.effects)
+                {
+                    if (weatherEffect.effectObject != null && weatherEffect.effectObject.name == "DustStorm")
+                        if (weatherEffect.effectObject.TryGetComponent(out LocalVolumetricFog dustFog))
+                        {
+                            LevelLoader.dustCloudFog = dustFog;
+                            LevelLoader.defaultDustCloudFogVolumeSize = dustFog.parameters.size;
+                            break;
+                        }
+                }
+
+                LevelLoader.foggyFog = TimeOfDay.foggyWeather;
+                LevelLoader.defaultFoggyFogVolumeSize = TimeOfDay.foggyWeather.parameters.size;
+
+                foreach (ExtendedLevel vanillaLevel in PatchedContent.VanillaExtendedLevels)
+                {
+                    vanillaLevel.OverrideDustStormVolumeSize = LevelLoader.defaultDustCloudFogVolumeSize;
+                    vanillaLevel.OverrideFoggyVolumeSize = LevelLoader.defaultFoggyFogVolumeSize;
+                }
+                foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
+                {
+                    if (customLevel.OverrideDustStormVolumeSize == Vector3.zero)
+                        customLevel.OverrideDustStormVolumeSize = LevelLoader.defaultDustCloudFogVolumeSize;
+                    if (customLevel.OverrideFoggyVolumeSize == Vector3.zero)
+                        customLevel.OverrideFoggyVolumeSize = LevelLoader.defaultFoggyFogVolumeSize;
+                }
 
                 //Some Debugging.
                 string debugString = "LethalLevelLoader Loaded The Following ExtendedLevels:" + "\n";
@@ -314,6 +345,7 @@ namespace LethalLevelLoader
                 TerminalManager.AddTerminalNodeEventListener(TerminalManager.moonsKeyword.specialKeywordResult, TerminalManager.RefreshMoonsCataloguePage, TerminalManager.LoadNodeActionType.After);
             }
 
+            LevelLoader.defaultFootstepSurfaces = new List<FootstepSurface>(StartOfRound.footstepSurfaces).ToArray();
             //We Might Not Need This Now
             /*if (LevelManager.invalidSaveLevelID != -1 && StartOfRound.levels.Length > LevelManager.invalidSaveLevelID)
             {
@@ -427,7 +459,7 @@ namespace LethalLevelLoader
         {
             if (__result != null)
             {
-                TerminalKeyword newKeyword = TerminalManager.TryFindAlternativeNoun(__instance, __result, playerWord);
+                TerminalKeyword? newKeyword = TerminalManager.TryFindAlternativeNoun(__instance, __result, playerWord);
                 if (newKeyword != null)
                     __result = newKeyword;
             }
@@ -494,7 +526,7 @@ namespace LethalLevelLoader
             if (LevelManager.CurrentExtendedLevel != null && LevelManager.CurrentExtendedLevel.IsLevelLoaded)
                 foreach (GameObject rootObject in SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.SelectableLevel.sceneName).GetRootGameObjects())
                 {
-                    LevelLoader.UpdateStoryLogs(LevelManager.CurrentExtendedLevel, rootObject);
+                    LevelLoader.RefreshFogSize(LevelManager.CurrentExtendedLevel);
                     ContentRestorer.RestoreAudioAssetReferencesInParent(rootObject);
                 }
 
@@ -508,7 +540,7 @@ namespace LethalLevelLoader
             if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false)
                 return;
 
-            ExtendedLevel extendedLevel = LevelManager.CurrentExtendedLevel;
+            ExtendedLevel? extendedLevel = LevelManager.CurrentExtendedLevel;
 
             if (extendedLevel == null) return;
 
@@ -517,7 +549,7 @@ namespace LethalLevelLoader
             RoundManager.InitializeRandomNumberGenerators();
 
             int counter = 1;
-            foreach (StringWithRarity sceneSelection in LevelManager.CurrentExtendedLevel.SceneSelections)
+            foreach (StringWithRarity sceneSelection in LevelManager.CurrentExtendedLevel!.SceneSelections)
             {
                 DebugHelper.Log("Scene Selection #" + counter + " \"" + sceneSelection.Name + "\" (" + sceneSelection.Rarity + ")", DebugType.Developer);
                 counter++;
@@ -619,6 +651,20 @@ namespace LethalLevelLoader
             RoundManager.quicksandPrefab = LevelManager.CurrentExtendedLevel.OverrideQuicksandPrefab;
         }
 
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.FinishGeneratingNewLevelClientRpc))]
+        [HarmonyPostfix]
+        internal static void RoundManagerFinishGeneratingNewLevelClientRpc_Prefix()
+        {
+            if (TimeOfDay.sunAnimator != null)
+            {
+                LevelLoader.RefreshFootstepSurfaces();
+                LevelLoader.BakeSceneColliderMaterialData(TimeOfDay.sunAnimator.gameObject.scene);
+                if (LevelLoader.vanillaWaterShader != null)
+                    LevelLoader.TryRestoreWaterShaders(TimeOfDay.sunAnimator.gameObject.scene);
+            }
+        }
+
         /*
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(MoldSpreadManager), nameof(MoldSpreadManager.Start))]
@@ -683,43 +729,15 @@ namespace LethalLevelLoader
             temporarySpawnableMapObjectList.Clear();
         }
 
-        internal static GameObject previousHit;
-        internal static FootstepSurface previouslyAssignedFootstepSurface;
-
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(PlayerControllerB), "GetCurrentMaterialStandingOn")]
-        [HarmonyPrefix]
-        internal static bool PlayerControllerBGetCurrentMaterialStandingOn_Prefix(PlayerControllerB __instance)
-        {
-            /*if (LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces.Count != 0)
-                if (Physics.Raycast(new Ray(__instance.thisPlayerBody.position + Vector3.up, -Vector3.up), out RaycastHit hit, 6f, Patches.StartOfRound.walkableSurfacesMask, QueryTriggerInteraction.Ignore))
-                    if (hit.collider.gameObject == previousHit)
-                        return (false);*/
-            return (true);
-        }
+        static FootstepSurface? previousFootstepSurface;
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(PlayerControllerB), "GetCurrentMaterialStandingOn")]
         [HarmonyPostfix]
         internal static void PlayerControllerBGetCurrentMaterialStandingOn_Postfix(PlayerControllerB __instance)
         {
-            /*if (LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces.Count != 0)
-                if (Physics.Raycast(new Ray(__instance.thisPlayerBody.position + Vector3.up, -Vector3.up), out RaycastHit hit, 6f, Patches.StartOfRound.walkableSurfacesMask, QueryTriggerInteraction.Ignore))
-                    if (hit.collider.gameObject != previousHit || previousHit == null)
-                    {
-                        previousHit = hit.collider.gameObject;
-                        if (hit.collider.CompareTag("Untagged") || !LevelManager.cachedFootstepSurfaceTagsList.Contains(hit.collider.tag))
-                            if (hit.collider.gameObject.TryGetComponent(out MeshRenderer meshRenderer))
-                                foreach (Material material in meshRenderer.sharedMaterials)
-                                    foreach (ExtendedFootstepSurface extendedFootstepSurface in LevelManager.CurrentExtendedLevel.extendedFootstepSurfaces)
-                                        foreach (Material associatedMaterial in extendedFootstepSurface.associatedMaterials)
-                                            if (material.name == associatedMaterial.name)
-                                            {
-                                                __instance.currentFootstepSurfaceIndex = extendedFootstepSurface.arrayIndex;
-                                                return;
-                                            }
-                    }
-            */
+            if (LevelLoader.TryGetFootstepSurface(__instance.hit.collider, out FootstepSurface footstepSurface))
+                __instance.currentFootstepSurfaceIndex = StartOfRound.footstepSurfaces.IndexOf(footstepSurface);
         }
 
         //DunGen Optimization Patches (Credit To LadyRaphtalia, Author Of Scarlet Devil Mansion)

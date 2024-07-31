@@ -14,7 +14,7 @@ namespace LethalLevelLoader.Tools
     {
         public static string debugLevelsString = string.Empty;
         public static string debugDungeonsString = string.Empty;
-        public static ConfigFile configFile;
+        public static ConfigFile configFile = null!;
 
         internal static void BindConfigs()
         {
@@ -74,14 +74,14 @@ namespace LethalLevelLoader.Tools
 
     public class GeneralSettingsConfig : ConfigTemplate
     {
-        private ConfigEntry<PreviewInfoType> previewInfoTypeToggle;
-        private ConfigEntry<SortInfoType> sortInfoTypeToggle;
-        private ConfigEntry<FilterInfoType> filterInfoTypeToggle;
-        private ConfigEntry<SimulateInfoType> simulateInfoTypeToggle;
-        private ConfigEntry<DebugType> debugTypeToggle;
+        private ConfigEntry<PreviewInfoType> previewInfoTypeToggle = null!;
+        private ConfigEntry<SortInfoType> sortInfoTypeToggle = null!;
+        private ConfigEntry<FilterInfoType> filterInfoTypeToggle = null!;
+        private ConfigEntry<SimulateInfoType> simulateInfoTypeToggle = null!;
+        private ConfigEntry<DebugType> debugTypeToggle = null!;
 
-        private ConfigEntry<int> moonsCatalogueSplitCount;
-        private ConfigEntry<bool> requireMatchesOnAllDungeonFlows;
+        private ConfigEntry<int> moonsCatalogueSplitCount = null!;
+        private ConfigEntry<bool> requireMatchesOnAllDungeonFlows = null!;
 
         public GeneralSettingsConfig(ConfigFile newConfigFile, string newCategory, int newSortingPriority) : base(newConfigFile, newCategory, newSortingPriority) { }
 
@@ -113,20 +113,20 @@ namespace LethalLevelLoader.Tools
 
     public class ExtendedDungeonConfig : ConfigTemplate
     {
-        public ConfigEntry<bool> enableContentConfiguration;
+        public ConfigEntry<bool> enableContentConfiguration = null!;
 
-        public ConfigEntry<string> manualLevelNames;
-        public ConfigEntry<string> manualModNames;
+        public ConfigEntry<string>? manualLevelNames;
+        public ConfigEntry<string>? manualModNames;
 
-        public ConfigEntry<bool> enableDynamicDungeonSizeRestriction;
-        public ConfigEntry<float> minimumDungeonSizeMultiplier;
-        public ConfigEntry<float> maximumDungeonSizeMultiplier;
-        public ConfigEntry<float> restrictDungeonSizeScaler;
+        public ConfigEntry<bool>? enableDynamicDungeonSizeRestriction;
+        public ConfigEntry<float>? minimumDungeonSizeMultiplier;
+        public ConfigEntry<float>? maximumDungeonSizeMultiplier;
+        public ConfigEntry<float>? restrictDungeonSizeScaler;
 
-        public ConfigEntry<string> dynamicLevelTags;
-        public ConfigEntry<string> dynamicRoutePrices;
+        public ConfigEntry<string>? dynamicLevelTags;
+        public ConfigEntry<string>? dynamicRoutePrices;
 
-        public ConfigEntry<bool> disabledWarning;
+        public ConfigEntry<bool>? disabledWarning;
 
         public ExtendedDungeonConfig(ConfigFile newConfigFile, string newCategory, int sortingPriority) : base(newConfigFile, newCategory, sortingPriority) { }
 
@@ -194,33 +194,33 @@ namespace LethalLevelLoader.Tools
     public class ExtendedLevelConfig : ConfigTemplate
     {
         //General
-        public ConfigEntry<bool> enableContentConfiguration;
+        public ConfigEntry<bool> enableContentConfiguration = null!;
 
-        public ConfigEntry<int> routePrice;
-        public ConfigEntry<float> daySpeedMultiplier;
-        public ConfigEntry<bool> doesPlanetHaveTime;
-        public ConfigEntry<bool> isLevelHidden;
-        public ConfigEntry<bool> isLevelRegistered;
+        public ConfigEntry<int>? routePrice;
+        public ConfigEntry<float>? daySpeedMultiplier;
+        public ConfigEntry<bool>? doesPlanetHaveTime;
+        public ConfigEntry<bool>? isLevelHidden;
+        public ConfigEntry<bool>? isLevelRegistered;
 
         //Scrap
-        public ConfigEntry<int> minScrapItemSpawns;
-        public ConfigEntry<int> maxScrapItemSpawns;
+        public ConfigEntry<int>? minScrapItemSpawns;
+        public ConfigEntry<int>? maxScrapItemSpawns;
 
-        public ConfigEntry<int> minTotalScrapValue;
-        public ConfigEntry<int> maxTotalScrapValue;
+        public ConfigEntry<int>? minTotalScrapValue;
+        public ConfigEntry<int>? maxTotalScrapValue;
 
-        public ConfigEntry<string> scrapOverrides;
+        public ConfigEntry<string>? scrapOverrides;
 
         //Enemies
-        public ConfigEntry<int> maxInsideEnemyPowerCount;
-        public ConfigEntry<int> maxOutsideDaytimeEnemyPowerCount;
-        public ConfigEntry<int> maxOutsideNighttimeEnemyPowerCount;
+        public ConfigEntry<int>? maxInsideEnemyPowerCount;
+        public ConfigEntry<int>? maxOutsideDaytimeEnemyPowerCount;
+        public ConfigEntry<int>? maxOutsideNighttimeEnemyPowerCount;
 
-        public ConfigEntry<string> insideEnemiesOverrides;
-        public ConfigEntry<string> outsideDaytimeEnemiesOverrides;
-        public ConfigEntry<string> outsideNighttimeEnemiesOverrides;
+        public ConfigEntry<string>? insideEnemiesOverrides;
+        public ConfigEntry<string>? outsideDaytimeEnemiesOverrides;
+        public ConfigEntry<string>? outsideNighttimeEnemiesOverrides;
 
-        public ConfigEntry<bool> disabledWarning;
+        public ConfigEntry<bool>? disabledWarning;
 
         public ExtendedLevelConfig(ConfigFile newConfigFile, string newCategory, int sortingPriority) : base(newConfigFile, newCategory, sortingPriority) { }
 

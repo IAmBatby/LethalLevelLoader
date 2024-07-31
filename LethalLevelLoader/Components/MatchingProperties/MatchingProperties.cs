@@ -18,7 +18,7 @@ namespace LethalLevelLoader
             return (matchingProperties);
         }
 
-        internal static bool UpdateRarity(ref int currentValue, int newValue, string debugActionObject = null, string debugActionReason = null)
+        internal static bool UpdateRarity(ref int currentValue, int newValue, string? debugActionObject = null, string? debugActionReason = null)
         {
             if (newValue > currentValue)
             {
