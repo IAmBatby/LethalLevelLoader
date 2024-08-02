@@ -91,13 +91,13 @@
 
     <MakeDir Directories="$(ProjectDir)../assets/bundles" Condition="!Exists('$(ProjectDir)../assets/bundles')" />
 
-    <Exec Command="dotnet tcli build --config-path $(ProjectDir)../assets/thunderstore.toml --package-version $(PlainVersion)" />
+    <Exec Command="dotnet tcli build --config-path &quot;$(ProjectDir)../assets/thunderstore.toml&quot; --package-version $(PlainVersion)" />
 
   </Target>
 
       <!-- thunderstore publish -->
   <Target Name="PublishThunderstore" DependsOnTargets="SetPluginVersion;SaveVersionAndNameToFiles">
-      <Exec Command="dotnet tcli publish --config-path $(ProjectDir)../assets/thunderstore.toml --file $(ProjectDir)dist/*-$(MinVerVersion).zip" />
+      <Exec Command="dotnet tcli publish --config-path &quot;$(ProjectDir)../assets/thunderstore.toml&quot; --file &quot;$(ProjectDir)dist/*-$(MinVerVersion).zip&quot;" />
   </Target>
 
     <!-- zipping the .dll alone for curseforge release -->
