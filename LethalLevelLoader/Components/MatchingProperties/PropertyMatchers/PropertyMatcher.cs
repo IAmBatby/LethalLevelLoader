@@ -9,6 +9,9 @@ namespace LethalLevelLoader.Components.MatchingProperties.PropertyMatchers;
 /// The default property matcher used by LLL is <see cref="HighestRarityPropertyMatcher"/>,<br/>
 /// with <see cref="MultiplierPropertyMatcher"/> as an alternative implementation.
 /// </summary>
+/// <remarks>
+/// Custom PropertyMatchers aren't supported.
+/// </remarks>
 public abstract class PropertyMatcher
 {
     /// <summary>
