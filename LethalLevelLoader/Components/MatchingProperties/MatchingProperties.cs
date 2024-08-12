@@ -26,12 +26,23 @@ namespace LethalLevelLoader
             if (_propertyMatcher is not null)
                 return _propertyMatcher;
 
-            _propertyMatcher = propertyMatcherType switch
+            switch (propertyMatcherType)
             {
-                PropertyMatcherType.HighestRarity => new HighestRarityPropertyMatcher(),
-                PropertyMatcherType.Multiplier => new MultiplierPropertyMatcher(),
-                _ => throw new NotImplementedException(
-                    $"Only PropertyMatchers of type {nameof(PropertyMatcherType.HighestRarity)} and {nameof(PropertyMatcherType.Multiplier)} are supported."),
+                case PropertyMatcherType.HighestRarity:
+                    _propertyMatcher = new HighestRarityPropertyMatcher();
+                    break;
+
+                case PropertyMatcherType.Multiplier:
+                    _propertyMatcher = new MultiplierPropertyMatcher();
+                    break;
+
+                default:
+                    DebugHelper.LogWarning(
+                        $"Only PropertyMatchers of type {nameof(PropertyMatcherType.HighestRarity)} and {nameof(PropertyMatcherType.Multiplier)} are supported. " +
+                        $"Continuing by using {nameof(HighestRarityPropertyMatcher)}.",
+                        DebugType.User);
+                    _propertyMatcher = new HighestRarityPropertyMatcher();
+                    break;
             };
 
             return _propertyMatcher;
