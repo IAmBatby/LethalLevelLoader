@@ -2,7 +2,7 @@
 
 namespace LethalLevelLoader.Components.MatchingProperties.PropertyMatchers;
 
-public class MultiplierPropertyMatcher : PropertyMatcher
+internal class MultiplierPropertyMatcher : PropertyMatcher
 {
     public override bool UpdateRarity(ref int currentValue, int newValue, string debugActionObject = null, string debugActionReason = null)
     {

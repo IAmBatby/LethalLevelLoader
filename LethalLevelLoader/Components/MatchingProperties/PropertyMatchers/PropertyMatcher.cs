@@ -12,7 +12,7 @@ namespace LethalLevelLoader.Components.MatchingProperties.PropertyMatchers;
 /// <remarks>
 /// Custom PropertyMatchers aren't supported.
 /// </remarks>
-public abstract class PropertyMatcher
+internal abstract class PropertyMatcher
 {
     /// <summary>
     /// Processes updating rarity value using the property matcher's rules.
