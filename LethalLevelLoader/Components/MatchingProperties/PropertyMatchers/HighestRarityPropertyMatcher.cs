@@ -11,9 +11,9 @@ public class HighestRarityPropertyMatcher : PropertyMatcher
             if (!string.IsNullOrEmpty(debugActionReason))
             {
                 if (!string.IsNullOrEmpty(debugActionObject))
-                    DebugHelper.Log("Raised Rarity Of: " + debugActionObject + " From (" + currentValue + ") To (" + newValue + ") Due To Matching " + debugActionReason, DebugType.Developer);
+                    DebugHelper.Log($"Raised Rarity Of: {debugActionObject} From ({currentValue}) To ({newValue}) Due To Matching {debugActionReason}", DebugType.Developer);
                 else
-                    DebugHelper.Log("Raised Rarity From (" + currentValue + ") To (" + newValue + ") Due To Matching " + debugActionReason, DebugType.Developer);
+                    DebugHelper.Log($"Raised Rarity From ({currentValue}) To ({newValue}) Due To Matching {debugActionReason}", DebugType.Developer);
             }
             currentValue = newValue;
             return true;
