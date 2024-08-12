@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using LethalLevelLoader.Components.MatchingProperties.PropertyMatchers;
 using UnityEngine;
 
 namespace LethalLevelLoader
@@ -17,18 +18,27 @@ namespace LethalLevelLoader
             dungeonMatchingProperties.name = extendedContent.name + "DungeonMatchingProperties";
             return (dungeonMatchingProperties);
         }
+
         public int GetDynamicRarity(ExtendedDungeonFlow extendedDungeonFlow)
         {
-            int returnRarity = 0;
+            activePropertyMatcher ??= new HighestRarityPropertyMatcher();
 
-            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedTags(extendedDungeonFlow.ContentTags, dungeonNames), extendedDungeonFlow.name, "Content Tags");
-            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedDungeonFlow.AuthorName, authorNames), extendedDungeonFlow.name, "Author Name");
-            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedStrings(extendedDungeonFlow.ExtendedMod.ModNameAliases, modNames), extendedDungeonFlow.name, "Mod Name Name");
-            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedDungeonFlow.DungeonFlow.name, dungeonNames), extendedDungeonFlow.name, "Dungeon Name");
+            int returnRarity = baseRarity;
+
+            foreach (int value in activePropertyMatcher.GetRaritiesViaMatchingNormalizedTags(extendedDungeonFlow.ContentTags, dungeonNames))
+                activePropertyMatcher.UpdateRarity(ref returnRarity, value, extendedDungeonFlow.name, "Content Tags");
+
+            foreach (int value in activePropertyMatcher.GetRaritiesViaMatchingNormalizedString(extendedDungeonFlow.AuthorName, authorNames))
+                activePropertyMatcher.UpdateRarity(ref returnRarity, value, extendedDungeonFlow.name, "Author Name");
+
+            foreach (int value in activePropertyMatcher.GetRaritiesViaMatchingNormalizedStrings(extendedDungeonFlow.ExtendedMod.ModNameAliases, modNames))
+                activePropertyMatcher.UpdateRarity(ref returnRarity, value, extendedDungeonFlow.name, "Mod Name Name");
+
+            foreach (int value in activePropertyMatcher.GetRaritiesViaMatchingNormalizedString(extendedDungeonFlow.DungeonFlow.name, dungeonNames))
+                activePropertyMatcher.UpdateRarity(ref returnRarity, value, extendedDungeonFlow.name, "Dungeon Name");
 
             return (returnRarity);
         }
-
 
         public void ApplyValues(List<StringWithRarity> newModNames = null, List<StringWithRarity> newAuthorNames = null, List<StringWithRarity> newDungeonTags = null, List<StringWithRarity> newDungeonNames = null)
         {
