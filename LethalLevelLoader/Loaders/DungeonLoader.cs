@@ -106,14 +106,14 @@ namespace LethalLevelLoader
                 foreach (EntranceTeleport entranceTeleport in entranceTeleports)
                 {
                     entranceTeleport.entranceId = entranceTeleports.IndexOf(entranceTeleport);
-                    entranceTeleport.dungeonFlowId = extendedDungeonFlow.DungeonID; //I'm pretty sure this is fine but this would be something to check if stuff goes weird.
+                    //entranceTeleport.dungeonFlowId = extendedDungeonFlow.DungeonID; //I'm pretty sure this is fine but this would be something to check if stuff goes weird.
                 }
 
                 debugString += "EntranceTeleport's Found, " + extendedLevel.NumberlessPlanetName + " Contains " + (entranceTeleports.Count) + " Entrances! ( " + (entranceTeleports.Count - 1) + " Fire Escapes) " + "\n";
-                debugString += "Main Entrance: " + entranceTeleports[0].gameObject.name + " (Entrance ID: " + entranceTeleports[0].entranceId + ")" + " (Dungeon ID: " + entranceTeleports[0].dungeonFlowId + ")" + "\n";
+                debugString += "Main Entrance: " + entranceTeleports[0].gameObject.name + " (Entrance ID: " + entranceTeleports[0].entranceId + ")" + "\n";
                 foreach (EntranceTeleport entranceTeleport in entranceTeleports)
                     if (entranceTeleport.entranceId != 0)
-                        debugString += "Alternate Entrance: " + entranceTeleport.gameObject.name + " (Entrance ID: " + entranceTeleport.entranceId + ")" + " (Dungeon ID: " + entranceTeleport.dungeonFlowId + ")" + "\n";
+                        debugString += "Alternate Entrance: " + entranceTeleport.gameObject.name + " (Entrance ID: " + entranceTeleport.entranceId + ")" + "\n";
 
                 foreach (GlobalPropSettings globalPropSettings in dungeonGenerator.DungeonFlow.GlobalProps)
                     if (globalPropSettings.ID == 1231)
