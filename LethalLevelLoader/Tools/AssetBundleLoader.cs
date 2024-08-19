@@ -620,6 +620,10 @@ namespace LethalLevelLoader
                 dungeonDisplayName = "Haunted Mansion";
                 firstTimeDungeonAudio = Patches.RoundManager.firstTimeDungeonAudios[1];
             }
+            else if (dungeonFlow.name.Contains("Level3"))
+            {
+                dungeonDisplayName = "Mineshaft";
+            }
 
             ExtendedDungeonFlow extendedDungeonFlow = ExtendedDungeonFlow.Create(dungeonFlow, firstTimeDungeonAudio);
             extendedDungeonFlow.DungeonName = dungeonDisplayName;
