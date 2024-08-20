@@ -92,17 +92,50 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static bool RoundManagerSpawnScrapInLevel_Prefix()
         {
+            List<SpawnableItemWithRarity> scrapList = LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap;
+
+            DebugHelper.Log("scrap IDs and rarities", DebugType.User);
+            int scrapID = 0;
+            foreach (SpawnableItemWithRarity spawnableScrap in scrapList)
+            {
+                DebugHelper.Log(scrapID + ". " + spawnableScrap.spawnableItem.itemName + " [" + spawnableScrap.spawnableItem.name + "] => " + spawnableScrap.rarity, DebugType.User);
+                scrapID++;
+            }
+
+            if (Settings.allowModConfigOverwrite)
+            {
+                DebugHelper.Log("allowModConfigOverwrite is enabled - Overloading scrap spawn rarities.", DebugType.User);
+
+                List<SpawnableItemWithRarity> overrideList = new List<SpawnableItemWithRarity>();
+                if (Settings.scrapOverrides.TryGetValue(LevelManager.CurrentExtendedLevel.SelectableLevel.levelID, out overrideList))
+                {
+                    DebugHelper.Log("Overload list:", DebugType.User);
+                    int scrapID_test = 0;
+                    foreach (SpawnableItemWithRarity spawnableScrap in overrideList)
+                    {
+                        DebugHelper.Log(scrapID_test + ". " + spawnableScrap.spawnableItem.itemName + " [" + spawnableScrap.spawnableItem.name + "] => " + spawnableScrap.rarity, DebugType.User);
+                        scrapID_test++;
+                    }
+
+                    scrapList = overrideList;
+                }
+                else
+                {
+                    DebugHelper.LogWarning("allowModConfigOverwrite is enabled - But no level setting was found, enableContentConfiguration is likely disabled on this moon.", DebugType.User);
+                }
+            }
+
             List<SpawnableItemWithRarity> invalidSpawnableItemWithRarity = new List<SpawnableItemWithRarity>();
-            foreach (SpawnableItemWithRarity spawnableScrap in LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap)
+            foreach (SpawnableItemWithRarity spawnableScrap in scrapList)
                 if (spawnableScrap.spawnableItem == null || spawnableScrap.rarity == 0)
                     invalidSpawnableItemWithRarity.Add(spawnableScrap);
 
             if (invalidSpawnableItemWithRarity.Count != 0)
                 DebugHelper.LogError("Removed: " + invalidSpawnableItemWithRarity.Count + " SpawnableItemWithRarities From CurrentLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Due To Invalid Properties To Prevent Errors.", DebugType.User);
             foreach (SpawnableItemWithRarity invalidItem in invalidSpawnableItemWithRarity)
-                LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap.Remove(invalidItem);
+                scrapList.Remove(invalidItem);
 
-            if (LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap.Count == 0)
+            if (scrapList.Count == 0)
             {
                 DebugHelper.LogError("Current ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Requested 0 SpawnableScrap, Returning Early To Prevent Errors", DebugType.User);
                 return (false);

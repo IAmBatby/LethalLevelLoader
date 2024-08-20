@@ -83,6 +83,8 @@ namespace LethalLevelLoader.Tools
         private ConfigEntry<int> moonsCatalogueSplitCount;
         private ConfigEntry<bool> requireMatchesOnAllDungeonFlows;
 
+        private ConfigEntry<bool> allowModConfigOverwrite;
+
         public GeneralSettingsConfig(ConfigFile newConfigFile, string newCategory, int newSortingPriority) : base(newConfigFile, newCategory, newSortingPriority) { }
 
         public void BindConfigs()
@@ -98,6 +100,8 @@ namespace LethalLevelLoader.Tools
 
             requireMatchesOnAllDungeonFlows = BindValue("Require Matches On All Possible DungeonFlows", "By default any Dungeons requested by the loading level will skip the matching process and be in the possible selection pool, Set this to false to disable this feature", true);
 
+            allowModConfigOverwrite = BindValue("Overwrite Moon Spawn Rates and Rarities", "Allow LethalLevelLoader Moon configurations to override mod spawn rates and rarities for custom scrap and custom enemies from their respective configuration files.", false);
+
             Settings.debugType = debugTypeToggle.Value;
             Settings.levelPreviewInfoType = previewInfoTypeToggle.Value;
             Settings.levelPreviewSortType = sortInfoTypeToggle.Value;
@@ -108,6 +112,8 @@ namespace LethalLevelLoader.Tools
                 Settings.moonsCatalogueSplitCount = moonsCatalogueSplitCount.Value;
 
             Settings.allDungeonFlowsRequireMatching = requireMatchesOnAllDungeonFlows.Value;
+
+            Settings.allowModConfigOverwrite = allowModConfigOverwrite.Value;
         }
     }
 
@@ -293,10 +299,15 @@ namespace LethalLevelLoader.Tools
                     selectableLevel.maxOutsideEnemyPowerCount = maxOutsideNighttimeEnemyPowerCount.Value;
 
                     selectableLevel.Enemies = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(insideEnemiesOverrides.Value, new Vector2(0, 100));
-                    selectableLevel.DaytimeEnemies = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(outsideDaytimeEnemiesOverrides.Value, new Vector2(0, 100));
+                    selectableLevel.DaytimeEnemies = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(outsideDaytimeEnemiesOverrides.Value, new Vector2(0, 100)); ;
                     selectableLevel.OutsideEnemies = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(outsideNighttimeEnemiesOverrides.Value, new Vector2(0, 100));
 
                     ConfigLoader.debugLevelsString += selectableLevel.PlanetName + ", ";
+
+                    Settings.scrapOverrides.TryAdd(selectableLevel.levelID, ConfigHelper.ConvertToSpawnableItemWithRarityList(scrapOverrides.Value, new Vector2(0, 100)));
+                    Settings.enemyOverrides.TryAdd(selectableLevel.levelID, ConfigHelper.ConvertToSpawnableEnemyWithRarityList(insideEnemiesOverrides.Value, new Vector2(0, 100)));
+                    Settings.daytimeEnemyOverrides.TryAdd(selectableLevel.levelID, ConfigHelper.ConvertToSpawnableEnemyWithRarityList(outsideDaytimeEnemiesOverrides.Value, new Vector2(0, 100)));
+                    Settings.outdoorEnemyOverrides.TryAdd(selectableLevel.levelID, ConfigHelper.ConvertToSpawnableEnemyWithRarityList(outsideNighttimeEnemiesOverrides.Value, new Vector2(0, 100)));
                 }
             }
             else
