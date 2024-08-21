@@ -30,10 +30,10 @@ namespace LethalLevelLoader
         }
 
 
-        public static ConcurrentDictionary<int, List<SpawnableItemWithRarity>> scrapOverrides;
-        public static ConcurrentDictionary<int, List<SpawnableEnemyWithRarity>> enemyOverrides;
-        public static ConcurrentDictionary<int, List<SpawnableEnemyWithRarity>> daytimeEnemyOverrides;
-        public static ConcurrentDictionary<int, List<SpawnableEnemyWithRarity>> outdoorEnemyOverrides;
+        public static ConcurrentDictionary<int, String> scrapOverrides = new ConcurrentDictionary<int, String>();
+        public static ConcurrentDictionary<int, String> enemyOverrides = new ConcurrentDictionary<int, String>();
+        public static ConcurrentDictionary<int, String> daytimeEnemyOverrides = new ConcurrentDictionary<int, String>();
+        public static ConcurrentDictionary<int, String> outdoorEnemyOverrides = new ConcurrentDictionary<int, String>();
 
     }
 }

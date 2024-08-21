@@ -304,10 +304,10 @@ namespace LethalLevelLoader.Tools
 
                     ConfigLoader.debugLevelsString += selectableLevel.PlanetName + ", ";
 
-                    Settings.scrapOverrides.TryAdd(selectableLevel.levelID, ConfigHelper.ConvertToSpawnableItemWithRarityList(scrapOverrides.Value, new Vector2(0, 100)));
-                    Settings.enemyOverrides.TryAdd(selectableLevel.levelID, ConfigHelper.ConvertToSpawnableEnemyWithRarityList(insideEnemiesOverrides.Value, new Vector2(0, 100)));
-                    Settings.daytimeEnemyOverrides.TryAdd(selectableLevel.levelID, ConfigHelper.ConvertToSpawnableEnemyWithRarityList(outsideDaytimeEnemiesOverrides.Value, new Vector2(0, 100)));
-                    Settings.outdoorEnemyOverrides.TryAdd(selectableLevel.levelID, ConfigHelper.ConvertToSpawnableEnemyWithRarityList(outsideNighttimeEnemiesOverrides.Value, new Vector2(0, 100)));
+                    Settings.scrapOverrides.TryAdd(selectableLevel.levelID, scrapOverrides.Value);
+                    Settings.enemyOverrides.TryAdd(selectableLevel.levelID, insideEnemiesOverrides.Value);
+                    Settings.daytimeEnemyOverrides.TryAdd(selectableLevel.levelID, outsideDaytimeEnemiesOverrides.Value);
+                    Settings.outdoorEnemyOverrides.TryAdd(selectableLevel.levelID, outsideNighttimeEnemiesOverrides.Value);
                 }
             }
             else

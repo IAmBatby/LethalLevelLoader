@@ -270,6 +270,11 @@ namespace LethalLevelLoader
                 TryAdd(ExtendedEnemyTypeDictionary, extendedEnemyType.EnemyType, extendedEnemyType);
             foreach (ExtendedBuyableVehicle extendedBuyableVehicle in ExtendedBuyableVehicles)
                 TryAdd(ExtendedBuyableVehicleDictionary, extendedBuyableVehicle.BuyableVehicle, extendedBuyableVehicle);
+
+            foreach(ExtendedItem extendedItem in CustomExtendedItems)
+            {
+                Items.Add(extendedItem.Item);
+            }
         }
 
         internal static void TryAdd<T1,T2>(Dictionary<T1, T2> dict, T1 key, T2 value)

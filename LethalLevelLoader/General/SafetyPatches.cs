@@ -92,32 +92,24 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static bool RoundManagerSpawnScrapInLevel_Prefix()
         {
-            List<SpawnableItemWithRarity> scrapList = LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap;
-
-            DebugHelper.Log("scrap IDs and rarities", DebugType.User);
-            int scrapID = 0;
-            foreach (SpawnableItemWithRarity spawnableScrap in scrapList)
-            {
-                DebugHelper.Log(scrapID + ". " + spawnableScrap.spawnableItem.itemName + " [" + spawnableScrap.spawnableItem.name + "] => " + spawnableScrap.rarity, DebugType.User);
-                scrapID++;
-            }
-
             if (Settings.allowModConfigOverwrite)
             {
-                DebugHelper.Log("allowModConfigOverwrite is enabled - Overloading scrap spawn rarities.", DebugType.User);
+                DebugHelper.Log("allowModConfigOverwrite is enabled - Overloading scrap spawn rarities for " + LevelManager.CurrentExtendedLevel.SelectableLevel.PlanetName + " [" + LevelManager.CurrentExtendedLevel.SelectableLevel.levelID + "].", DebugType.User);
 
-                List<SpawnableItemWithRarity> overrideList = new List<SpawnableItemWithRarity>();
+                String overrideList;
                 if (Settings.scrapOverrides.TryGetValue(LevelManager.CurrentExtendedLevel.SelectableLevel.levelID, out overrideList))
                 {
+                    DebugHelper.Log(overrideList, DebugType.User);
                     DebugHelper.Log("Overload list:", DebugType.User);
+                    List<SpawnableItemWithRarity> overrideScrapList = ConfigHelper.ConvertToSpawnableItemWithRarityList(overrideList, new Vector2(0, 100));
                     int scrapID_test = 0;
-                    foreach (SpawnableItemWithRarity spawnableScrap in overrideList)
+                    foreach (SpawnableItemWithRarity spawnableScrapID2 in overrideScrapList)
                     {
-                        DebugHelper.Log(scrapID_test + ". " + spawnableScrap.spawnableItem.itemName + " [" + spawnableScrap.spawnableItem.name + "] => " + spawnableScrap.rarity, DebugType.User);
+                        DebugHelper.Log(scrapID_test + ". " + spawnableScrapID2.spawnableItem.itemName + " [" + spawnableScrapID2.spawnableItem.name + "] => " + spawnableScrapID2.rarity, DebugType.User);
                         scrapID_test++;
                     }
 
-                    scrapList = overrideList;
+                    LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap = overrideScrapList;
                 }
                 else
                 {
@@ -126,16 +118,16 @@ namespace LethalLevelLoader
             }
 
             List<SpawnableItemWithRarity> invalidSpawnableItemWithRarity = new List<SpawnableItemWithRarity>();
-            foreach (SpawnableItemWithRarity spawnableScrap in scrapList)
+            foreach (SpawnableItemWithRarity spawnableScrap in LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap)
                 if (spawnableScrap.spawnableItem == null || spawnableScrap.rarity == 0)
                     invalidSpawnableItemWithRarity.Add(spawnableScrap);
 
             if (invalidSpawnableItemWithRarity.Count != 0)
                 DebugHelper.LogError("Removed: " + invalidSpawnableItemWithRarity.Count + " SpawnableItemWithRarities From CurrentLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Due To Invalid Properties To Prevent Errors.", DebugType.User);
             foreach (SpawnableItemWithRarity invalidItem in invalidSpawnableItemWithRarity)
-                scrapList.Remove(invalidItem);
+                LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap.Remove(invalidItem);
 
-            if (scrapList.Count == 0)
+            if (LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap.Count == 0)
             {
                 DebugHelper.LogError("Current ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Requested 0 SpawnableScrap, Returning Early To Prevent Errors", DebugType.User);
                 return (false);
