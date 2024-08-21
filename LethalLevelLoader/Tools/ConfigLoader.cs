@@ -299,7 +299,7 @@ namespace LethalLevelLoader.Tools
                     selectableLevel.maxOutsideEnemyPowerCount = maxOutsideNighttimeEnemyPowerCount.Value;
 
                     selectableLevel.Enemies = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(insideEnemiesOverrides.Value, new Vector2(0, 100));
-                    selectableLevel.DaytimeEnemies = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(outsideDaytimeEnemiesOverrides.Value, new Vector2(0, 100)); ;
+                    selectableLevel.DaytimeEnemies = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(outsideDaytimeEnemiesOverrides.Value, new Vector2(0, 100));
                     selectableLevel.OutsideEnemies = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(outsideNighttimeEnemiesOverrides.Value, new Vector2(0, 100));
 
                     ConfigLoader.debugLevelsString += selectableLevel.PlanetName + ", ";

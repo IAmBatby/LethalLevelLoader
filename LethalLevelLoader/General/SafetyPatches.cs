@@ -99,16 +99,7 @@ namespace LethalLevelLoader
                 String overrideList;
                 if (Settings.scrapOverrides.TryGetValue(LevelManager.CurrentExtendedLevel.SelectableLevel.levelID, out overrideList))
                 {
-                    DebugHelper.Log(overrideList, DebugType.User);
-                    DebugHelper.Log("Overload list:", DebugType.User);
                     List<SpawnableItemWithRarity> overrideScrapList = ConfigHelper.ConvertToSpawnableItemWithRarityList(overrideList, new Vector2(0, 100));
-                    int scrapID_test = 0;
-                    foreach (SpawnableItemWithRarity spawnableScrapID2 in overrideScrapList)
-                    {
-                        DebugHelper.Log(scrapID_test + ". " + spawnableScrapID2.spawnableItem.itemName + " [" + spawnableScrapID2.spawnableItem.name + "] => " + spawnableScrapID2.rarity, DebugType.User);
-                        scrapID_test++;
-                    }
-
                     LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap = overrideScrapList;
                 }
                 else
