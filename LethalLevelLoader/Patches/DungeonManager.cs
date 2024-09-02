@@ -65,7 +65,7 @@ namespace LethalLevelLoader
                 debugString += "Info For ExtendedLevel: " + extendedLevel.name + " | Planet Name: " + extendedLevel.NumberlessPlanetName + " | Content Tags: ";
                 foreach (ContentTag tag in extendedLevel.ContentTags)
                     debugString += tag.contentTagName + ", ";
-                debugString = debugString.Remove(debugString.LastIndexOf(", "));
+                debugString = debugString.TrimEnd([',', ' ']);
                 debugString += " | Route Price: " + extendedLevel.RoutePrice + " | Current Weather: " + extendedLevel.SelectableLevel.currentWeather.ToString();
                 debugString += "\n";
 
@@ -74,7 +74,7 @@ namespace LethalLevelLoader
                 foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowWithRarity in potentialExtendedDungeonFlowsList)
                     if (!viableDungeonFlows.Contains(extendedDungeonFlowWithRarity.extendedDungeonFlow))
                         debugString += extendedDungeonFlowWithRarity.extendedDungeonFlow.DungeonName + ", ";
-                debugString = debugString.Remove(debugString.LastIndexOf(", "));
+                debugString = debugString.TrimEnd([',', ' ']);
                 debugString += "\n";
 
                 returnExtendedDungeonFlowsList = returnExtendedDungeonFlowsList.OrderBy(e => e.rarity).Reverse().ToList();
@@ -82,7 +82,7 @@ namespace LethalLevelLoader
                 debugString += "Viable ExtendedDungeonFlows: ";
                 foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowWithRarity in returnExtendedDungeonFlowsList)
                     debugString += extendedDungeonFlowWithRarity.extendedDungeonFlow.DungeonName + " (" + extendedDungeonFlowWithRarity.rarity + ")" + ", ";
-                debugString = debugString.Remove(debugString.LastIndexOf(", "));
+                debugString = debugString.TrimEnd([',', ' ']);
 
                 DebugHelper.Log(debugString + "\n", DebugType.User);
             }
