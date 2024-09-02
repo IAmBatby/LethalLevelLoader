@@ -42,7 +42,7 @@ namespace LethalLevelLoader
 
         internal static string currentTagFilter;
 
-        internal static float defaultTerminalFontSize;
+        public static float defaultTerminalFontSize; //allow for other mods to access this variable/change it
 
         internal static TerminalKeyword lastParsedVerbKeyword;
 
