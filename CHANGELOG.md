@@ -1,6 +1,120 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.3.8</summary>**
+
+**<details><summary>Features</summary>**
+
+* Added interior selection history to DayHistory
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.3.7</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Added additional safety checks to ExtendedFootstepSurface patches
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.3.6</summary>**
+
+**<details><summary>Features</summary>**
+
+* Added content restoration support for basegame water shader
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.3.5</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Added safety checks to new FootstepSurface Material cache system.
+* Added safety checks to new ExtendedLevel override fog size feature.
+* Changed ContentRestoring of EnemyType's to use ScriptableObject name rather than enemyName
+* Fixed issue where synced audio clip that plays when previewing enemy beastiary file was not playing for custom enemies
+* Fixed issue where custom Enemy beastiary files did not have Info as a default keyword
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.3.4</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Updated .csproj and thunderstore.toml
+* Updated outdated README.md
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.3.3</summary>**
+
+**<details><summary>Features</summary>**
+
+* Implemented ExtendedFootstepSurface
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.3.2</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Updated onApparatusTaken ExtendedEvent
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.3.1</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Fixed issue regarding deprecated Level list.
+
+</details>
+
+</details>
+
+
+**<details><summary>Version 1.3.0</summary>**
+
+**<details><summary>Features</summary>**
+
+* Updated mod for Lethal Company version 56
+* Added initial ExtendedBuyableVehicle implementation
+* Added LevelEvents.onShipLand ExtendedEvent
+* Added LevelEvents.onShipLeave ExtendedEvent
+* Added ExtendedLevel.OverrideDustStormVolumeSize Value
+* Added ExtendedLevel.OverrideFoggyVolumeSize Value
+* Added PatchedContent.TryGetExtendedContent() Function.
+* Added public references to basegame manager instances to OriginalContent
+* Updated ContentTag's for new Version 55/56 content
+
+</details>
+
+**<details><summary>Fixes</summary>**
+
+* Fixed issue with onApparatusTaken event running at unintended moments
+* Added safeguard to prevent multiple Lethalbundles with identical names from causing a gamebreaking error
+* Moved LethalLib from a Hard Dependency to a Soft Dependency
+* Fixed ExtendedItem's not correctly playing the purchased SFX when purchased from Terminal
+* Merged various pull requests to improve the workflow and deployment of further LethalLevelLoader development
+
+</details>
+
+</details>
+
 **<details><summary>Version 1.2.2</summary>**
 
 **<details><summary>Fixes</summary>**

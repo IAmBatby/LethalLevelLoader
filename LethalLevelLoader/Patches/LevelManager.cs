@@ -33,11 +33,6 @@ namespace LethalLevelLoader
 
         public static int invalidSaveLevelID = -1;
 
-        public static List<string> cachedFootstepSurfaceTagsList = new List<string>();
-        public static List<Material> cachedExtendedFootstepSurfaceMaterialsList = new List<Material>();
-        public static List<GameObject> cachedExtendedFootstepSurfaceGameObjectsList = new List<GameObject>(); 
-        public static Dictionary<FootstepSurface, ExtendedFootstepSurface> cachedFootstepSurfacesDictionary = new Dictionary<FootstepSurface, ExtendedFootstepSurface>();
-
         public static Dictionary<string, int> dynamicRiskLevelDictionary = new Dictionary<string, int>()
         {
             {"D-", 0},
@@ -308,6 +303,7 @@ namespace LethalLevelLoader
             DayHistory newDayHistory = new DayHistory();
             daysTotal++;
 
+            newDayHistory.allViableOptions = DungeonManager.GetValidExtendedDungeonFlows(CurrentExtendedLevel, false).Select(e => e.extendedDungeonFlow).ToList();
             newDayHistory.extendedLevel = LevelManager.CurrentExtendedLevel;
             newDayHistory.extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
             newDayHistory.day = daysTotal;
@@ -393,6 +389,7 @@ namespace LethalLevelLoader
         public int quota;
         public int day;
         public ExtendedLevel extendedLevel;
+        public List<ExtendedDungeonFlow> allViableOptions;
         public ExtendedDungeonFlow extendedDungeonFlow;
         public LevelWeatherType weatherEffect;
     }

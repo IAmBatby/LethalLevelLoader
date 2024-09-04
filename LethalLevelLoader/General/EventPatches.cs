@@ -249,9 +249,9 @@ namespace LethalLevelLoader
         [HarmonyPriority(Patches.harmonyPriority)]
         [HarmonyPatch(typeof(LungProp), "EquipItem")]
         [HarmonyPrefix]
-        internal static void LungPropEquipItem_Postfix(LungProp __instance)
+        internal static void LungPropEquipItem_Prefix(LungProp __instance)
         {
-            if (__instance.IsServer == true && __instance.isLungDockedInElevator)
+            if (__instance.IsServer == true && __instance.isLungDocked)
             {
                 if (DungeonManager.CurrentExtendedDungeonFlow != null)
                 {
@@ -285,12 +285,21 @@ namespace LethalLevelLoader
     public class ExtendedEvent<T>
     {
         public delegate void ParameterEvent(T param);
+
         private event ParameterEvent onParameterEvent;
+        private event Action onEvent;
+
         public bool HasListeners => (Listeners != 0);
         public int Listeners { get; internal set; }
-        public void Invoke(T param) { onParameterEvent?.Invoke(param); }
+
+        public void Invoke(T param) { onParameterEvent?.Invoke(param); onEvent?.Invoke(); }
+        public void Invoke() {  onEvent?.Invoke(); }
+
         public void AddListener(ParameterEvent listener) { onParameterEvent += listener; Listeners++; }
+        public void AddListener(Action listener) { onEvent += listener; Listeners++; }
+
         public void RemoveListener(ParameterEvent listener) { onParameterEvent -= listener; Listeners--; }
+        public void RemoveListener(Action listener) { onEvent -= listener; Listeners--; }
     }
 
     public class ExtendedEvent
