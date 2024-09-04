@@ -52,7 +52,7 @@ namespace LethalLevelLoader
 
         internal static int GetHighestRarityViaMatchingNormalizedTags(List<ContentTag> comparingTags, List<StringWithRarity> matchingStrings)
         {
-            List<string> contentTagStrings = comparingTags.Select(t => t.contentTagName).ToList();
+            List<string> contentTagStrings = comparingTags.Select(t => t.TagName).ToList();
             return GetHighestRarityViaMatchingNormalizedStrings(contentTagStrings, matchingStrings);
         }
 

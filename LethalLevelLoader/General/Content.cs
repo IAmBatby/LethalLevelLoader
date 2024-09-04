@@ -1,6 +1,7 @@
 ﻿using DunGen.Graph;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,17 @@ namespace LethalLevelLoader
 
         public static List<ExtendedMod> ExtendedMods { get; internal set; } = new List<ExtendedMod>();
 
+<<<<<<< Updated upstream
+=======
+        public static List<ExtendedContent> ExtendedContents { get; internal set; } = new List<ExtendedContent>();
+
+        internal static Dictionary<string, ExtendedContent> UniqueIdentifiersDictionary = new Dictionary<string, ExtendedContent>();
+        internal static Dictionary<SelectableLevel, ExtendedLevel> ExtendedLevelDictionary = new Dictionary<SelectableLevel, ExtendedLevel>();
+        internal static Dictionary<DungeonFlow, ExtendedDungeonFlow> ExtendedDungeonFlowDictionary = new Dictionary<DungeonFlow, ExtendedDungeonFlow>();
+        internal static Dictionary<Item, ExtendedItem> ExtendedItemDictionary = new Dictionary<Item, ExtendedItem>();
+        internal static Dictionary<EnemyType, ExtendedEnemyType> ExtendedEnemyTypeDictionary = new Dictionary<EnemyType, ExtendedEnemyType>();
+        internal static Dictionary<BuyableVehicle, ExtendedBuyableVehicle> ExtendedBuyableVehicleDictionary = new Dictionary<BuyableVehicle, ExtendedBuyableVehicle>();
+>>>>>>> Stashed changes
 
 
         public static List<ExtendedLevel> ExtendedLevels { get; internal set; } = new List<ExtendedLevel>();
@@ -171,6 +183,16 @@ namespace LethalLevelLoader
             }
         }
 
+
+        public static List<ExtendedStoryLog> ExtendedStoryLogs { get; internal set; } = new List<ExtendedStoryLog>();
+
+        public static List<ExtendedFootstepSurface> ExtendedFootstepSurfaces { get; internal set; } = new List<ExtendedFootstepSurface>();
+
+
+
+
+
+
         public static List<ExtendedBuyableVehicle> ExtendedBuyableVehicles { get; internal set; } = new List<ExtendedBuyableVehicle>();
 
         public static List<ExtendedBuyableVehicle> CustomExtendedBuyableVehicles
@@ -204,36 +226,22 @@ namespace LethalLevelLoader
 
         public static List<AudioMixerSnapshot> AudioMixerSnapshots { get; internal set; } = new List<AudioMixerSnapshot>();
 
-
-        //Items
-
-        public static List<Item> Items { get; internal set; } = new List<Item>();
-
-        //Enemies
-
-        public static List<EnemyType> Enemies { get; internal set; } = new List<EnemyType>();
-
-
-        public static void RegisterExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
+        private static Dictionary<Type, IList> _extendedContentListsDict;
+        internal static Dictionary<Type, IList> ExtendedContentsLists
         {
-            extendedDungeonFlow.ConvertObsoleteValues();
-            if (string.IsNullOrEmpty(extendedDungeonFlow.name))
+            get
             {
-                DebugHelper.LogWarning("Tried to register ExtendedDungeonFlow with missing name! Setting to DungeonFlow name for safety!", DebugType.Developer);
-                extendedDungeonFlow.name = extendedDungeonFlow.DungeonFlow.name;
+                if (_extendedContentListsDict == null)
+                    PopulateExtendedContentsListDict();
+                return (_extendedContentListsDict);
             }
-            AssetBundleLoader.RegisterNewExtendedContent(extendedDungeonFlow, extendedDungeonFlow.name);
         }
 
-        public static void RegisterExtendedLevel(ExtendedLevel extendedLevel)
-        {
-            AssetBundleLoader.RegisterNewExtendedContent(extendedLevel, extendedLevel.name);
-        }
 
         public static void RegisterExtendedMod(ExtendedMod extendedMod)
         {
             DebugHelper.Log("Registering ExtendedMod: " + extendedMod.ModName + " Manually.", DebugType.Developer);
-            AssetBundleLoader.RegisterExtendedMod(extendedMod);
+            ContentManager.RegisterExtendedMod(extendedMod);
         }
 
         internal static void SortExtendedMods()
@@ -241,10 +249,76 @@ namespace LethalLevelLoader
             ExtendedMods = new List<ExtendedMod>(ExtendedMods.OrderBy(o => o.ModName).ToList());
 
             foreach (ExtendedMod extendedMod in ExtendedMods)
-            {
                 extendedMod.SortRegisteredContent();
-            }
         }
+<<<<<<< Updated upstream
+=======
+
+        internal static void PopulateContentDictionaries()
+        {
+            foreach (ExtendedContent extendedContent in ExtendedContents)
+                TryAdd(UniqueIdentifiersDictionary, extendedContent.UniqueIdentificationName, extendedContent);
+        }
+
+        internal static void TryAdd<T1,T2>(Dictionary<T1, T2> dict, T1 key, T2 value)
+        {
+            if (!dict.ContainsKey(key))
+                dict.Add(key, value);
+            else
+                DebugHelper.LogError("Could not add " + key.ToString() + " to dictionary.", DebugType.Developer);
+        }
+
+        public static bool TryGetExtendedContent(SelectableLevel selectableLevel, out ExtendedLevel extendedLevel)
+        {
+            return (ExtendedLevelDictionary.TryGetValue(selectableLevel, out extendedLevel));
+        }
+
+        public static bool TryGetExtendedContent(DungeonFlow dungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow)
+        {
+            return (ExtendedDungeonFlowDictionary.TryGetValue(dungeonFlow, out extendedDungeonFlow));
+        }
+
+        public static bool TryGetExtendedContent(Item item, out ExtendedItem extendedItem)
+        {
+            return (ExtendedItemDictionary.TryGetValue(item, out extendedItem));
+        }
+
+        public static bool TryGetExtendedContent(EnemyType enemyType, out ExtendedEnemyType extendedEnemyType)
+        {
+            return (ExtendedEnemyTypeDictionary.TryGetValue(enemyType, out extendedEnemyType));
+        }
+
+        public static bool TryGetExtendedContent(BuyableVehicle buyableVehicle, out ExtendedBuyableVehicle extendedBuyableVehicle)
+        {
+            return (ExtendedBuyableVehicleDictionary.TryGetValue(buyableVehicle, out extendedBuyableVehicle));
+        }
+
+        public static bool TryGetExtendedContent<T>(string uniqueIdentifierName, out T extendedContent) where T : ExtendedContent
+        {
+            extendedContent = null;
+            if (UniqueIdentifiersDictionary.TryGetValue(uniqueIdentifierName, out ExtendedContent result))
+                extendedContent = result as T;
+            return (extendedContent != null);
+        }
+
+        private static void PopulateExtendedContentsListDict()
+        {
+            _extendedContentListsDict = new Dictionary<Type, IList>();
+            AddExtendedContentsListToDict(ExtendedLevels);
+            AddExtendedContentsListToDict(ExtendedDungeonFlows);
+            AddExtendedContentsListToDict(ExtendedItems);
+            AddExtendedContentsListToDict(ExtendedEnemyTypes);
+            AddExtendedContentsListToDict(ExtendedWeatherEffects);
+            AddExtendedContentsListToDict(ExtendedStoryLogs);
+            AddExtendedContentsListToDict(ExtendedFootstepSurfaces);
+            AddExtendedContentsListToDict(ExtendedBuyableVehicles);
+        }
+
+        private static void AddExtendedContentsListToDict<T>(List<T> extendedContentsList) where T : ExtendedContent
+        {
+            _extendedContentListsDict.Add(typeof(T), extendedContentsList);
+        }
+>>>>>>> Stashed changes
     }
 
     public static class OriginalContent
@@ -269,9 +343,11 @@ namespace LethalLevelLoader
 
         public static List<EnemyType> Enemies { get; internal set; } = new List<EnemyType>();
 
+        public static List<BuyableVehicle> BuyableVehicles { get; internal set; } = new List<BuyableVehicle>();
+
         //Spawnable Objects
 
-        public static List<SpawnableOutsideObject> SpawnableOutsideObjects { get; internal set; } = new List<SpawnableOutsideObject>();
+        public static List<GameObject> SpawnableOutsideObjects { get; internal set; } = new List<GameObject>();
 
         public static List<GameObject> SpawnableMapObjects { get; internal set; } = new List<GameObject>();
 

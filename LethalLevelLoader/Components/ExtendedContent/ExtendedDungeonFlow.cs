@@ -37,6 +37,11 @@ namespace LethalLevelLoader
         [field: SerializeField] public Vector2 DynamicDungeonSizeMinMax { get; set; } = new Vector2(1, 1);
         [field: SerializeField][field: Range(0, 1)] public float DynamicDungeonSizeLerpRate { get; set; } = 1f;
 
+        [field: Space(5)]
+        [field: Tooltip("Overrides vanilla camera Far Plane Clip Distance, The highest value between current Level and Interior will be used.")]
+        [field: Range(0f, 10000f)]
+        [field: SerializeField] public float OverrideCameraMaxDistance = 400;
+
 
         [field: Space(10)][field: Header("Misc. Settings")]
         [field: SerializeField] public bool GenerateAutomaticConfigurationOptions { get; set; } = true;
@@ -76,7 +81,7 @@ namespace LethalLevelLoader
             return (newExtendedDungeonFlow);
         }
 
-        internal void Initialize()
+        internal override void Initialize()
         {
             if (LevelMatchingProperties == null)
                 LevelMatchingProperties = LevelMatchingProperties.Create(this);
@@ -115,7 +120,7 @@ namespace LethalLevelLoader
             LevelMatchingProperties.ApplyValues(newAuthorNames: manualContentSourceNameReferenceList, newPlanetNames: manualPlanetNameReferenceList, newLevelTags: dynamicLevelTagsList, newRoutePrices: dynamicRoutePricesList, newCurrentWeathers: dynamicCurrentWeatherList);
         }
 
-        internal void ConvertObsoleteValues()
+        internal override void TryRecoverObsoleteValues()
         {
             if (DungeonFlow == null && dungeonFlow != null)
             {
@@ -159,6 +164,11 @@ namespace LethalLevelLoader
                 DebugHelper.LogWarning("ExtendedDungeonFlow.generateAutomaticConfigurationOptions Is Obsolete and will be removed in following releases, Please use ExtendedDungeonFlow.GenerateAutomaticConfigurationOptions instead.", DebugType.Developer);
                 GenerateAutomaticConfigurationOptions = generateAutomaticConfigurationOptions;
             }
+        }
+
+        internal override (bool result, string log) Validate()
+        {
+            return (true, string.Empty);
         }
     }
 

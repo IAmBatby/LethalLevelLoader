@@ -64,8 +64,13 @@ namespace LethalLevelLoader
 
                 debugString += "Info For ExtendedLevel: " + extendedLevel.name + " | Planet Name: " + extendedLevel.NumberlessPlanetName + " | Content Tags: ";
                 foreach (ContentTag tag in extendedLevel.ContentTags)
+<<<<<<< Updated upstream
                     debugString += tag.contentTagName + ", ";
                 debugString = debugString.Remove(debugString.LastIndexOf(", "));
+=======
+                    debugString += tag.TagName + ", ";
+                debugString = debugString.TrimEnd([',', ' ']);
+>>>>>>> Stashed changes
                 debugString += " | Route Price: " + extendedLevel.RoutePrice + " | Current Weather: " + extendedLevel.SelectableLevel.currentWeather.ToString();
                 debugString += "\n";
 

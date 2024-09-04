@@ -97,6 +97,20 @@
         <FilesToRename Include="$(ProjectDir)dist/*IAmBatby-$(AssemblyName)-$(PlainVersion).zip" />
     </ItemGroup>
 
+<<<<<<< Updated upstream
+=======
+      <!-- thunderstore publish -->
+  <Target Name="PublishThunderstore" DependsOnTargets="SetPluginVersion;SaveVersionAndNameToFiles">
+      <Exec Command="dotnet tcli publish --config-path &quot;$(ProjectDir)../assets/thunderstore.toml&quot; --file &quot;$(ProjectDir)dist/*-$(MinVerVersion).zip&quot;" />
+  </Target>
+
+    <!-- zipping the .dll alone for curseforge release -->
+  <Target Name="ZipCurseForge" DependsOnTargets="PackThunderstore">
+    <MakeDir Directories="$(ProjectDir)dist/output/" Condition="!Exists('$(ProjectDir)dist/output/')" />
+    <Copy SourceFiles="$(ProjectDir)bin/Release/netstandard2.1/$(AssemblyName).dll" DestinationFiles="$(ProjectDir)dist/output/$(AssemblyName).dll" />
+
+    <ZipDirectory SourceDirectory="$(ProjectDir)dist/output/" DestinationFile="$(ProjectDir)dist/curseforge.zip" Overwrite="true" />
+>>>>>>> Stashed changes
   </Target>
   
 </Project>

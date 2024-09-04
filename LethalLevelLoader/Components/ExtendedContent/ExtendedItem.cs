@@ -60,20 +60,17 @@ namespace LethalLevelLoader
             }
         }
 
-        public static ExtendedItem Create(Item newItem, ExtendedMod extendedMod, ContentType contentType)
+        public static ExtendedItem Create(Item newItem)
         {
             ExtendedItem extendedItem = ScriptableObject.CreateInstance<ExtendedItem>();
             extendedItem.Item = newItem;
             extendedItem.name = newItem.itemName.SkipToLetters().RemoveWhitespace() + "ExtendedItem";
-            extendedItem.ContentType = contentType;
-            extendedMod.RegisterExtendedContent(extendedItem);
-
             extendedItem.TryCreateMatchingProperties();
 
             return (extendedItem);
         }
 
-        public void Initialize()
+        internal override void Initialize()
         {
             DebugHelper.Log("Initializing Custom Item: " + Item.itemName + ". Is Buyable: " + IsBuyableItem + ". Is Scrap: " + Item.isScrap, DebugType.Developer);
 
@@ -97,6 +94,16 @@ namespace LethalLevelLoader
             if (Plugin.Instance != null)
                 Debug.LogError("SetLevelMatchingProperties() Should Only Be Used In Editor!");
             LevelMatchingProperties = newLevelMatchingProperties;
+        }
+
+        internal override (bool result, string log) Validate()
+        {
+            if (Item == null)
+                return (false, "Item Was Null");
+            else if (Item.spawnPrefab == null)
+                return (false, "SpawnPrefab Was Null");
+            else
+                return (true, string.Empty);
         }
     }
 }

@@ -40,6 +40,21 @@ namespace LethalLevelLoader
         [field: SerializeField] public List<StringWithRarity> SceneSelections { get; set; } = new List<StringWithRarity>();
 
         [field: Space(5)]
+<<<<<<< Updated upstream
+=======
+        [field: Tooltip("Overrides vanilla camera Far Plane Clip Distance, The highest value between current Level and Interior will be used.")]
+        [field: Range(0f, 10000f)]
+        [field: SerializeField] public float OverrideCameraMaxDistance = 400;
+
+        [field: Space(5)]
+        [field: Header("Weather Fog Distance Override Settings")]
+
+        [field: SerializeField] public Vector3 OverrideDustStormVolumeSize { get; set; } = Vector3.zero;
+        [field: SerializeField] public Vector3 OverrideFoggyVolumeSize { get; set; } = Vector3.zero;
+
+
+        [field: Space(5)]
+>>>>>>> Stashed changes
         [field: Header("Terminal Route Override Settings")]
 
         [field: SerializeField] [field: TextArea(2, 20)] public string OverrideInfoNodeDescription { get; set; } = string.Empty;
@@ -109,7 +124,7 @@ namespace LethalLevelLoader
 
             return (newExtendedLevel);
         }
-        internal void Initialize(string newContentSourceName, bool generateTerminalAssets)
+        internal override void Initialize()
         {
             bool mainSceneRegistered = false;
 
@@ -138,15 +153,12 @@ namespace LethalLevelLoader
             if (OverrideQuicksandPrefab == null)
                 OverrideQuicksandPrefab = LevelLoader.defaultQuicksandPrefab;
 
+            name = NumberlessPlanetName.StripSpecialCharacters() + "ExtendedLevel";
+
             if (ContentType == ContentType.Custom)
             {
-                name = NumberlessPlanetName.StripSpecialCharacters() + "ExtendedLevel";
                 SelectableLevel.name = NumberlessPlanetName.StripSpecialCharacters() + "Level";
-                if (generateTerminalAssets == true) //Needs to be after levelID setting above.
-                {
-                    //DebugHelper.Log("Generating Terminal Assets For: " + NumberlessPlanetName);
-                    TerminalManager.CreateLevelTerminalData(this, routePrice);
-                }
+                TerminalManager.CreateLevelTerminalData(this, routePrice);
             }
 
             if (ContentType == ContentType.Vanilla)
@@ -156,7 +168,7 @@ namespace LethalLevelLoader
             //Obsolete
         }
 
-        internal void ConvertObsoleteValues()
+        internal override void TryRecoverObsoleteValues()
         {
             if (levelTags.Count > 0 && ContentTags.Count == 0)
             {
@@ -225,6 +237,22 @@ namespace LethalLevelLoader
             if (Plugin.Instance != null)
                 Debug.LogWarning("ForceSetRoutePrice Should Only Be Used In Editor! Consider Using RoutePrice Property To Sync TerminalNode's With New Value.");
             routePrice = newValue;
+        }
+
+        internal override (bool result, string log) Validate()
+        {
+            if (SelectableLevel == null)
+                return ((false, "SelectableLevel Was Null"));
+            else if (string.IsNullOrEmpty(SelectableLevel.sceneName))
+                return ((false, "SelectableLevel SceneName Was Null Or Empty"));
+            else if (SelectableLevel.planetPrefab == null)
+                return ((false, "SelectableLevel PlanetPrefab Was Null"));
+            else if (SelectableLevel.planetPrefab.GetComponent<Animator>() == null)
+                return ((false, "SelectableLevel PlanetPrefab Animator Was Null"));
+            else if (SelectableLevel.planetPrefab.GetComponent<Animator>().runtimeAnimatorController == null)
+                return ((false, "SelectableLevel PlanetPrefab Animator AnimatorController Was Null"));
+            else
+                return (true, string.Empty);
         }
     }
         

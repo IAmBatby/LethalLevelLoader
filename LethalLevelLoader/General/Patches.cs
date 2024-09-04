@@ -38,6 +38,13 @@ namespace LethalLevelLoader
         public static Terminal Terminal { get; internal set; }
         public static TimeOfDay TimeOfDay { get; internal set; }
 
+        public static ExtendedEvent OnBeforeVanillaContentCollected = new ExtendedEvent();
+        public static ExtendedEvent OnAfterVanillaContentCollected = new ExtendedEvent();
+
+        public static ExtendedEvent OnAfterCustomContentRestored = new ExtendedEvent();
+
+        internal static Dictionary<Camera, float> playerCameras = new Dictionary<Camera, float>();
+
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(PreInitSceneScript), "Awake")]
         [HarmonyPrefix]
@@ -172,9 +179,14 @@ namespace LethalLevelLoader
                 StartOfRound.allItemsList.itemsList.RemoveAt(2);
 
                 DebugStopwatch.StartStopWatch("Scrape Vanilla Content");
+
+                OnBeforeVanillaContentCollected.Invoke();
+
                 ContentExtractor.TryScrapeVanillaItems(StartOfRound);
                 ContentExtractor.TryScrapeVanillaContent(StartOfRound, RoundManager);
                 ContentExtractor.ObtainSpecialItemReferences();
+
+                OnAfterCustomContentRestored.Invoke();
             }
 
             //Startup LethalLevelLoader's Network Manager Instance
@@ -188,6 +200,11 @@ namespace LethalLevelLoader
             foreach (AudioSource audioSource in Resources.FindObjectsOfTypeAll<AudioSource>())
                 audioSource.spatialize = false;
 
+            playerCameras.Clear();
+            foreach (Camera camera in UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsSortMode.None))
+                if (camera.targetTexture != null && camera.targetTexture.name == "PlayerScreen")
+                    playerCameras.Add(camera, camera.farClipPlane);
+
             if (Plugin.IsSetupComplete == false)
             {
                 //Terminal Specific Reference Setup
@@ -200,15 +217,16 @@ namespace LethalLevelLoader
 
                 DebugStopwatch.StartStopWatch("Create Vanilla ExtendedContent");
                 //Create & Initialize ExtendedContent Objects For Vanilla Content.
-                AssetBundleLoader.CreateVanillaExtendedDungeonFlows();
-                AssetBundleLoader.CreateVanillaExtendedLevels(StartOfRound);
-                AssetBundleLoader.CreateVanillaExtendedItems();
-                AssetBundleLoader.CreateVanillaExtendedEnemyTypes();
-                AssetBundleLoader.CreateVanillaExtendedBuyableVehicles();
+                //AssetBundleLoader.CreateVanillaExtendedDungeonFlows();
+                //AssetBundleLoader.CreateVanillaExtendedLevels(StartOfRound);
+                //AssetBundleLoader.CreateVanillaExtendedItems();
+                //AssetBundleLoader.CreateVanillaExtendedEnemyTypes();
+                //AssetBundleLoader.CreateVanillaExtendedBuyableVehicles();
 
                 DebugStopwatch.StartStopWatch("Initialize Custom ExtendedContent"); // this is not used
                 //Initialize ExtendedContent Objects For Custom Content.
-                AssetBundleLoader.InitializeBundles();
+                //AssetBundleLoader.InitializeBundles();
+                ContentManager.InitializeMods();
 
                 foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
                     extendedLevel.SetLevelID();
@@ -225,12 +243,15 @@ namespace LethalLevelLoader
                 DebugHelper.Log(debugString, DebugType.User);
 
                 DebugStopwatch.StartStopWatch("Restore Content");
+
                 //Restore Custom Content References To Vanilla Content
                 foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
                     ContentRestorer.RestoreVanillaLevelAssetReferences(customLevel);
 
                 foreach (ExtendedDungeonFlow customDungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
                     ContentRestorer.RestoreVanillaDungeonAssetReferences(customDungeonFlow);
+
+                OnAfterCustomContentRestored.Invoke();
 
                 //Destroy Placeholder Custom Content References That Have Now Been Restored
                 ContentRestorer.DestroyRestoredAssets();
@@ -333,7 +354,7 @@ namespace LethalLevelLoader
             DebugStopwatch.StopStopWatch("Initialize Save");
             if (Plugin.IsSetupComplete == false)
             {
-                AssetBundleLoader.CreateVanillaExtendedWeatherEffects(StartOfRound, TimeOfDay);
+                //AssetBundleLoader.CreateVanillaExtendedWeatherEffects(StartOfRound, TimeOfDay);
                 WeatherManager.PopulateVanillaExtendedWeatherEffectsDictionary();
                 WeatherManager.PopulateExtendedLevelEnabledExtendedWeatherEffects();
                 Plugin.CompleteSetup();
@@ -394,7 +415,7 @@ namespace LethalLevelLoader
 
 
         [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartOfRound), "ChangeLevel")]
+        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.ChangeLevel))]
         [HarmonyPostfix]
         public static void StartOfRoundChangeLevel_Postfix(int levelID)
         {
@@ -440,29 +461,6 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static bool TerminalRunTerminalEvents_Prefix(Terminal __instance, TerminalNode node)
         {
-            /*
-            bool returnBool = true;
-            if (node.terminalEvent.Contains("simulate"))
-            {
-                ranLethalLevelLoaderTerminalEvent = false;
-                //TerminalManager.SetSimulationResultsText(node);
-                returnBool = true;
-            }
-            else if (__instance.currentNode != TerminalManager.moonsKeyword.specialKeywordResult)
-            {
-                ranLethalLevelLoaderTerminalEvent = false;
-                returnBool = true;
-            }
-            else
-            {
-                ranLethalLevelLoaderTerminalEvent = !TerminalManager.RunLethalLevelLoaderTerminalEvents(node);
-                returnBool = !ranLethalLevelLoaderTerminalEvent;
-            }
-
-            returnBool = TerminalManager.OnBeforeLoadNewNode(node);
-
-            return (returnBool);*/
-
             return (TerminalManager.OnBeforeLoadNewNode(ref node));
         }
 
@@ -473,9 +471,6 @@ namespace LethalLevelLoader
         {
             Terminal.screenText.textComponent.fontSize = TerminalManager.defaultTerminalFontSize;
             return (TerminalManager.OnBeforeLoadNewNode(ref node));
-                /*foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                    if (extendedLevel.RouteNode == node && extendedLevel.IsRouteLocked == true)
-                        TerminalManager.SwapRouteNodeToLockedNode(extendedLevel, ref node);*/
         }
 
         [HarmonyPriority(harmonyPriority)]
@@ -484,8 +479,6 @@ namespace LethalLevelLoader
         internal static void TerminalLoadNewNode_Postfix(Terminal __instance, ref TerminalNode node)
         {
             TerminalManager.OnLoadNewNode(ref node);
-            //if (ranLethalLevelLoaderTerminalEvent == true)
-                //__instance.currentNode = TerminalManager.moonsKeyword.specialKeywordResult;
         }
 
         //Called via SceneManager event.
@@ -619,6 +612,44 @@ namespace LethalLevelLoader
             RoundManager.quicksandPrefab = LevelManager.CurrentExtendedLevel.OverrideQuicksandPrefab;
         }
 
+<<<<<<< Updated upstream
+=======
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.FinishGeneratingNewLevelClientRpc))]
+        [HarmonyPostfix]
+        internal static void RoundManagerFinishGeneratingNewLevelClientRpc_Prefix()
+        {
+            if (TimeOfDay.sunAnimator != null)
+            {
+                LevelLoader.RefreshFootstepSurfaces();
+                LevelLoader.BakeSceneColliderMaterialData(TimeOfDay.sunAnimator.gameObject.scene);
+                if (LevelLoader.vanillaWaterShader != null)
+                    LevelLoader.TryRestoreWaterShaders(TimeOfDay.sunAnimator.gameObject.scene);
+                ApplyCamerDistanceOverride();
+            }
+        }
+
+        internal static void ApplyCamerDistanceOverride()
+        {
+            float newDistance = 0;
+            if (LevelManager.CurrentExtendedLevel.OverrideCameraMaxDistance > 400f || (DungeonManager.CurrentExtendedDungeonFlow != null && DungeonManager.CurrentExtendedDungeonFlow.OverrideCameraMaxDistance > 400f))
+            {
+                if (LevelManager.CurrentExtendedLevel.OverrideCameraMaxDistance > DungeonManager.CurrentExtendedDungeonFlow.OverrideCameraMaxDistance)
+                    newDistance = LevelManager.CurrentExtendedLevel.OverrideCameraMaxDistance;
+                else
+                    newDistance = DungeonManager.CurrentExtendedDungeonFlow.OverrideCameraMaxDistance;
+            }
+
+            foreach (KeyValuePair<Camera, float> cameraPair in playerCameras)
+            {
+                if (newDistance > cameraPair.Value)
+                    cameraPair.Key.farClipPlane = newDistance;
+                else
+                    cameraPair.Key.farClipPlane = cameraPair.Value;
+            }
+        }
+
+>>>>>>> Stashed changes
         /*
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(MoldSpreadManager), nameof(MoldSpreadManager.Start))]

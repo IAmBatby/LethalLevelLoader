@@ -152,6 +152,25 @@ namespace LethalLevelLoader
             Patches.RoundManager.dungeonGenerator.Generate();
         }
 
+        [ServerRpc]
+        internal void SetExtendedLevelValuesServerRpc(ExtendedLevelData extendedLevelData)
+        {
+            DebugHelper.Log("Sending Level Info Server Rpc: " + extendedLevelData.UniqueIdentifier, DebugType.User);
+            if (PatchedContent.TryGetExtendedContent(extendedLevelData.UniqueIdentifier, out ExtendedLevel extendedLevel))
+                SetExtendedLevelValuesClientRpc(extendedLevelData);
+            else
+                DebugHelper.Log("Failed To Send Level Info!", DebugType.User);
+
+        }
+
+        [ClientRpc]
+        internal void SetExtendedLevelValuesClientRpc(ExtendedLevelData extendedLevelData)
+        {
+            DebugHelper.Log("Loading Level Info Server Rpc: " + extendedLevelData.UniqueIdentifier, DebugType.User);
+            if (PatchedContent.TryGetExtendedContent(extendedLevelData.UniqueIdentifier, out ExtendedLevel extendedLevel))
+                extendedLevelData.ApplySavedValues(extendedLevel);
+        }
+
 
         public static void RegisterNetworkPrefab(GameObject prefab)
         {
