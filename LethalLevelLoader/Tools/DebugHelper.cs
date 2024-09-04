@@ -635,7 +635,7 @@ namespace LethalLevelLoader
 
                     foreach (KeyValuePair<ContentTag, List<ExtendedContent>> contentTagPair in foundContentTagsDict)
                     {
-                        debugString += "\n" + "Tag: " + contentTagPair.Key.TagName + " | Associated Contents: ";
+                        debugString += "\n" + "Tag: " + contentTagPair.Key.contentTagName + " | Associated Contents: ";
                         int counter = 0;
                         foreach (ExtendedContent extendedContent in contentTagPair.Value)
                         {

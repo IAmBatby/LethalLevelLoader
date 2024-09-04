@@ -25,10 +25,10 @@ namespace LethalLevelLoader
 
             foreach (ContentTag contentTag in allContentTagsList)
             {
-                if (contentTagDictionary.TryGetValue(contentTag.TagName, out List<ContentTag> contentTagsList))
+                if (contentTagDictionary.TryGetValue(contentTag.contentTagName, out List<ContentTag> contentTagsList))
                     contentTagsList.Add(contentTag);
                 else
-                    contentTagDictionary.Add(contentTag.TagName, new List<ContentTag>{contentTag});
+                    contentTagDictionary.Add(contentTag.contentTagName, new List<ContentTag>{contentTag});
             }
 
             globalContentTagDictionary = new Dictionary<string, List<ContentTag>>(contentTagDictionary);
@@ -37,10 +37,10 @@ namespace LethalLevelLoader
                 foreach (ExtendedContent extendedContent in extendedMod.ExtendedContents)
                     foreach (ContentTag contentTag in extendedContent.ContentTags)
                     {
-                        if (globalcontentTagExtendedContentDictionary.TryGetValue(contentTag.TagName, out List<ExtendedContent> extendedContentList))
+                        if (globalcontentTagExtendedContentDictionary.TryGetValue(contentTag.contentTagName, out List<ExtendedContent> extendedContentList))
                             extendedContentList.Add(extendedContent);
                         else
-                            globalcontentTagExtendedContentDictionary.Add(contentTag.TagName, new List<ExtendedContent>{extendedContent});
+                            globalcontentTagExtendedContentDictionary.Add(contentTag.contentTagName, new List<ExtendedContent>{extendedContent});
                     }    
                     string debugString = "Global Tag Dictionary Report" + "\n\n";
 
@@ -56,7 +56,7 @@ namespace LethalLevelLoader
 
             foreach (string tag in tags)
                 if (!string.IsNullOrEmpty(tag))
-                    returnList.Add(ContentTag.Create<ContentTag>(tag, Color.white));
+                    returnList.Add(ContentTag.Create(tag));
 
             return (returnList);
         }
@@ -73,9 +73,9 @@ namespace LethalLevelLoader
         {
             color = Color.white;
             foreach (ContentTag contentTag in extendedContent.ContentTags)
-                if (contentTag.TagName == tag)
+                if (contentTag.contentTagName == tag)
                 {
-                    color = contentTag.TagValue;
+                    color = contentTag.contentTagColor;
                     return (true);
                 }
             return (false);
@@ -92,14 +92,8 @@ namespace LethalLevelLoader
             Dictionary<ContentTag, List<ExtendedContent>> foundContentTagsDict = new Dictionary<ContentTag, List<ExtendedContent>>();
             Dictionary<ContentTag, ContentTag> replaceContentTagDict = new Dictionary<ContentTag, ContentTag>();
             foreach (ExtendedContent extendedContent in extendedMod.ExtendedContents)
-                foreach (ContentTag contentTag in new List<ContentTag>(extendedContent.ContentTags))
+                foreach (ContentTag contentTag in extendedContent.ContentTags)
                 {
-                    if (contentTag.TagName == null)
-                    {
-                        extendedContent.ContentTags.Remove(contentTag);
-                        DebugHelper.Log("Removed Broken ContentTag: " + contentTag.name, DebugType.User);
-                        continue;
-                    }
                     if (foundContentTagsDict.TryGetValue(contentTag, out List<ExtendedContent> foundContentTagsList))
                         foundContentTagsList.Add(extendedContent);
                     else
@@ -108,12 +102,11 @@ namespace LethalLevelLoader
 
             foreach (ContentTag validContentTag in foundContentTagsDict.Keys)
                 foreach (ContentTag invalidContentTag in foundContentTagsDict.Keys)
-                    if (validContentTag.TagName != null && invalidContentTag.TagName != null)
-                        if (validContentTag.TagName.ToLower() == invalidContentTag.TagName.ToLower())
-                        {
-                            if (!replaceContentTagDict.ContainsKey(invalidContentTag))
-                                replaceContentTagDict.Add(invalidContentTag, validContentTag);
-                        }
+                    if (validContentTag.contentTagName.ToLower() == invalidContentTag.contentTagName.ToLower())
+                    {
+                        if (!replaceContentTagDict.ContainsKey(invalidContentTag))
+                            replaceContentTagDict.Add(invalidContentTag, validContentTag);
+                    }
 
             foreach (ExtendedContent extendedContent in extendedMod.ExtendedContents)
             {

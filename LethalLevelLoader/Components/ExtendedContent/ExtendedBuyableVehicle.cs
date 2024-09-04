@@ -25,10 +25,5 @@ namespace LethalLevelLoader
 
             return (newExtendedBuyableVehicle);
         }
-
-        internal override (bool result, string log) Validate()
-        {
-            return (true, string.Empty);
-        }
     }
 }

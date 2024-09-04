@@ -42,7 +42,7 @@ namespace LethalLevelLoader
 
         internal static string currentTagFilter;
 
-        public static float defaultTerminalFontSize;
+        internal static float defaultTerminalFontSize;
 
         internal static TerminalKeyword lastParsedVerbKeyword;
 
@@ -902,8 +902,8 @@ namespace LethalLevelLoader
             List<string> allLevelTags = new List<string>();
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                 foreach (ContentTag contentTag in extendedLevel.ContentTags)
-                    if (!allLevelTags.Contains(contentTag.TagName))
-                        allLevelTags.Add(contentTag.TagName);
+                    if (!allLevelTags.Contains(contentTag.contentTagName))
+                        allLevelTags.Add(contentTag.contentTagName);
             foreach (string levelTag in allLevelTags)
             {
                 tagMoonWordsList.Add(levelTag);

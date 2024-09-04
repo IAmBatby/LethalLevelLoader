@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Unity.Netcode;
-using UnityEngine;
 
 namespace LethalLevelLoader
 {
@@ -13,7 +11,6 @@ namespace LethalLevelLoader
 
         public int parityStepsTaken;
         public Dictionary<int, AllItemsListItemData> itemSaveData = new Dictionary<int, AllItemsListItemData>();
-        public List<ExtendedLevelData> extendedLevelSaveData = new List<ExtendedLevelData>();
 
         public LLLSaveFile()
         {
@@ -25,7 +22,6 @@ namespace LethalLevelLoader
             CurrentLevelName = string.Empty;
             parityStepsTaken = 0;
             itemSaveData = new Dictionary<int, AllItemsListItemData>();
-            extendedLevelSaveData = new List<ExtendedLevelData>();
         }
     }
 
@@ -52,35 +48,6 @@ namespace LethalLevelLoader
             itemNameDuplicateIndex = newItemNameDuplicateIndex;
             isScrap = newIsScrap;
             saveItemVariable = newSaveItemVariable;
-        }
-    }
-
-    public struct ExtendedLevelData : INetworkSerializable
-    {
-        public string UniqueIdentifier => uniqueIdentifier;
-        public string uniqueIdentifier = string.Empty;
-        public bool isHidden;
-        public bool isLocked;
-
-
-        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
-        {
-            serializer.SerializeValue(ref uniqueIdentifier);
-            serializer.SerializeValue(ref isHidden);
-            serializer.SerializeValue(ref isLocked);
-        }
-
-        public ExtendedLevelData(ExtendedLevel extendedLevel)
-        {
-            uniqueIdentifier = extendedLevel.UniqueIdentificationName;
-            isHidden = extendedLevel.IsRouteHidden;
-            isLocked = extendedLevel.IsRouteLocked;
-        }
-
-        public void ApplySavedValues(ExtendedLevel extendedLevel)
-        {
-            extendedLevel.IsRouteHidden = isHidden;
-            extendedLevel.IsRouteLocked = isLocked;
         }
     }
 }

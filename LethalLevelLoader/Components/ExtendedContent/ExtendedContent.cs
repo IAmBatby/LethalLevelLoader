@@ -6,27 +6,26 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    public abstract class ExtendedContent : ScriptableObject
+    public class ExtendedContent : ScriptableObject
     {
         public ExtendedMod ExtendedMod { get; internal set; }
         public ContentType ContentType { get; internal set; } = ContentType.Vanilla;
         /*Obsolete*/ public List<string> ContentTagStrings { get; internal set; } = new List<string>();
         [field: SerializeField] public List<ContentTag> ContentTags { get; internal set; } = new List<ContentTag>();
-        [field: SerializeField] public List<DataTag> DataTags { get; internal set; } = new List<DataTag>();
         //public List<string> ContentTagsAsStrings => ContentTags.Select(t => t.contentTagName).ToList();
 
         public string ModName => ExtendedMod.ModName;
         public string AuthorName => ExtendedMod.AuthorName;
 
-        public string UniqueIdentificationName => AuthorName + "." + ModName + "." + name;
+        internal virtual void TryCreateMatchingProperties()
+        {
 
-        internal virtual void TryCreateMatchingProperties() { }
-        internal virtual void Initialize() { }
+        }
 
         public bool TryGetTag(string tag)
         {
             foreach (ContentTag contentTag in ContentTags)
-                if (contentTag.TagName == tag)
+                if (contentTag.contentTagName == tag)
                     return (true);
             return (false);
         }
@@ -35,7 +34,7 @@ namespace LethalLevelLoader
         {
             returnTag = null;
             foreach (ContentTag contentTag in ContentTags)
-                if (contentTag.TagName == tag)
+                if (contentTag.contentTagName == tag)
                 {
                     returnTag = contentTag;
                     return (true);
@@ -47,15 +46,11 @@ namespace LethalLevelLoader
         {
             if (TryGetTag(tag) == false)
             {
-                ContentTags.Add(ContentTag.Create<ContentTag>(tag, Color.white));
+                ContentTags.Add(ContentTag.Create(tag));
                 return (true);
             }
             return (false);
         }
-
-        internal abstract (bool result, string log) Validate();
-
-        internal virtual void TryRecoverObsoleteValues() { }
     }
 
     [Serializable]

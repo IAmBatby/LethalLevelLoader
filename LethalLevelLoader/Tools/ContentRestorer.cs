@@ -69,9 +69,9 @@ namespace LethalLevelLoader.Tools
                         spawnableMapObject.prefabToSpawn = RestoreAsset(spawnableMapObject.prefabToSpawn, vanillaSpawnableMapObject);
 
             foreach (SpawnableOutsideObjectWithRarity spawnableOutsideObject in extendedLevel.SelectableLevel.spawnableOutsideObjects)
-                foreach (GameObject vanillaSpawnableOutsideObject in OriginalContent.SpawnableOutsideObjects)
+                foreach (SpawnableOutsideObject vanillaSpawnableOutsideObject in OriginalContent.SpawnableOutsideObjects)
                     if (spawnableOutsideObject.spawnableObject != null && spawnableOutsideObject.spawnableObject.name == vanillaSpawnableOutsideObject.name)
-                        spawnableOutsideObject.spawnableObject.prefabToSpawn = RestoreAsset(spawnableOutsideObject.spawnableObject.prefabToSpawn, vanillaSpawnableOutsideObject);
+                        spawnableOutsideObject.spawnableObject = RestoreAsset(spawnableOutsideObject.spawnableObject, vanillaSpawnableOutsideObject);
 
             foreach (LevelAmbienceLibrary vanillaAmbienceLibrary in OriginalContent.LevelAmbienceLibraries)
                 if (extendedLevel.SelectableLevel.levelAmbienceClips != null && extendedLevel.SelectableLevel.levelAmbienceClips.name == vanillaAmbienceLibrary.name)

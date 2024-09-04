@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Unity.Netcode;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Video;
@@ -35,18 +34,20 @@ namespace LethalLevelLoader
         public int EnemyID { get; internal set; }
         public TerminalNode EnemyInfoNode { get; internal set; }
 
-        public static ExtendedEnemyType Create(EnemyType enemyType)
+        public static ExtendedEnemyType Create(EnemyType enemyType, ExtendedMod extendedMod, ContentType contentType)
         {
             ExtendedEnemyType extendedEnemyType = ScriptableObject.CreateInstance<ExtendedEnemyType>();
             extendedEnemyType.EnemyType = enemyType;
             extendedEnemyType.name = enemyType.enemyName.SkipToLetters().RemoveWhitespace() + "ExtendedEnemyType";
+            extendedEnemyType.ContentType = contentType;
+            extendedMod.RegisterExtendedContent(extendedEnemyType);
 
             extendedEnemyType.TryCreateMatchingProperties();
 
             return (extendedEnemyType);
         }
 
-        internal override void Initialize()
+        public void Initalize()
         {
             DebugHelper.Log("Initializing Custom Enemy: " + EnemyType.enemyName, DebugType.Developer);
 
@@ -63,27 +64,6 @@ namespace LethalLevelLoader
                 OutsideLevelMatchingProperties = LevelMatchingProperties.Create(this);
             if (DaytimeLevelMatchingProperties == null)
                 DaytimeLevelMatchingProperties = LevelMatchingProperties.Create(this);
-        }
-
-        internal override (bool result, string log) Validate()
-        {
-            if (EnemyType == null)
-                return ((false, "EnemyType Was Null"));
-            if (EnemyType.enemyPrefab == null)
-                return ((false, "EnemyPrefab Was Null"));
-            if (EnemyType.enemyPrefab.GetComponent<NetworkObject>() == false)
-                return ((false, "EnemyPrefab Did Not Contain A NetworkObject"));
-            EnemyAI enemyAI = EnemyType.enemyPrefab.GetComponent<EnemyAI>();
-            if (enemyAI == null)
-                enemyAI = EnemyType.enemyPrefab.GetComponentInChildren<EnemyAI>();
-            if (enemyAI == null)
-                return ((false, "EnemyPrefab Did Not Contain A Component Deriving From EnemyAI"));
-            if (enemyAI.enemyType == null)
-                return ((false, "EnemyAI.enemyType Was Null"));
-            if (enemyAI.enemyType != EnemyType)
-                return ((false, "EnemyAI.enemyType Did Not Match ExtendedEnemyType.EnemyType"));
-
-            return (true, string.Empty);
         }
     }
 }

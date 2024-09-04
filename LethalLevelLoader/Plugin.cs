@@ -66,13 +66,8 @@ namespace LethalLevelLoader
             if (Application.isEditor)
                 DontDestroyOnLoad(test);
             else
-<<<<<<< Updated upstream
                 test.hideFlags = HideFlags.HideAndDontSave;
             AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
-=======
-                assetBundleLoaderObject.hideFlags = HideFlags.HideAndDontSave;
-            AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.NetworkRegisterLevelContent;
->>>>>>> Stashed changes
 
             ConfigLoader.BindGeneralConfigs();
 
