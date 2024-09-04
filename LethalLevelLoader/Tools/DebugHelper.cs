@@ -635,7 +635,7 @@ namespace LethalLevelLoader
 
                     foreach (KeyValuePair<ContentTag, List<ExtendedContent>> contentTagPair in foundContentTagsDict)
                     {
-                        debugString += "\n" + "Tag: " + contentTagPair.Key.contentTagName + " | Associated Contents: ";
+                        debugString += "\n" + "Tag: " + contentTagPair.Key.TagName + " | Associated Contents: ";
                         int counter = 0;
                         foreach (ExtendedContent extendedContent in contentTagPair.Value)
                         {
@@ -674,7 +674,8 @@ namespace LethalLevelLoader
 
         class CodeInstructionFormatter
         {
-            public CodeInstructionFormatter(int instructionCount) {
+            public CodeInstructionFormatter(int instructionCount)
+            {
                 _instructionIndexPadLength = instructionCount.ToString().Length;
             }
 

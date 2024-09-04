@@ -67,6 +67,9 @@ namespace LethalLevelLoader
                 foreach (TerminalNode terminalNode in TerminalManager.Terminal.logEntryFiles)
                     TryAddReference(OriginalContent.TerminalNodes, terminalNode);
 
+                foreach (BuyableVehicle buyableVehicle in TerminalManager.Terminal.buyableVehicles)
+                    TryAddReference(OriginalContent.BuyableVehicles, buyableVehicle);
+
 
                 foreach (TerminalNode terminalNode in TerminalManager.Terminal.ShipDecorSelection)
                     TryAddReference(OriginalContent.TerminalNodes, terminalNode);
@@ -139,7 +142,7 @@ namespace LethalLevelLoader
                 {
                     RedLocustBees beesEnemy = enemyType.enemyPrefab.GetComponent<RedLocustBees>();
                     if (beesEnemy != null)
-                        OriginalContent.Items.Add(beesEnemy.hivePrefab.GetComponent<GrabbableObject>().itemProperties); 
+                        OriginalContent.Items.Add(beesEnemy.hivePrefab.GetComponent<GrabbableObject>().itemProperties);
                 }
             }
         }
@@ -172,6 +175,8 @@ namespace LethalLevelLoader
 
         internal static void ExtractSelectableLevelReferences(SelectableLevel selectableLevel)
         {
+            PatchedContent.AllLevelSceneNames.Add(selectableLevel.sceneName);
+
             foreach (SpawnableEnemyWithRarity enemyWithRarity in selectableLevel.Enemies)
                 TryAddReference(OriginalContent.Enemies, enemyWithRarity.enemyType);
 
@@ -185,7 +190,7 @@ namespace LethalLevelLoader
                 TryAddReference(OriginalContent.SpawnableMapObjects, spawnableMapObject.prefabToSpawn);
 
             foreach (SpawnableOutsideObjectWithRarity spawnableOutsideObject in selectableLevel.spawnableOutsideObjects)
-                TryAddReference(OriginalContent.SpawnableOutsideObjects, spawnableOutsideObject.spawnableObject);
+                TryAddReference(OriginalContent.SpawnableOutsideObjects, spawnableOutsideObject.spawnableObject.prefabToSpawn);
 
             TryAddReference(OriginalContent.LevelAmbienceLibraries, selectableLevel.levelAmbienceClips);
         }
@@ -197,7 +202,7 @@ namespace LethalLevelLoader
                     TryAddReference(OriginalContent.ItemGroups, randomScrapSpawn.spawnableItems);*/
         }
 
-        internal static void TryAddReference<T>(List<T> referenceList, T reference) where T : UnityEngine.Object
+        internal static void TryAddReference<T>(List<T> referenceList, T reference)
         {
             if (!referenceList.Contains(reference))
                 referenceList.Add(reference);

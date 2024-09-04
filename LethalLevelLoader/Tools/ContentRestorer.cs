@@ -22,7 +22,7 @@ namespace LethalLevelLoader.Tools
             }
             if (extendedDungeonFlow.DungeonFlow == null)
             {
-                DebugHelper.LogError("Tried To Restore Null Vanilla ExtendedDungeonFlow " + extendedDungeonFlow.DungeonName +  " But DungeonFlow Was Null! Returning!", DebugType.User);
+                DebugHelper.LogError("Tried To Restore Null Vanilla ExtendedDungeonFlow " + extendedDungeonFlow.DungeonName + " But DungeonFlow Was Null! Returning!", DebugType.User);
                 return;
             }
 
@@ -39,7 +39,7 @@ namespace LethalLevelLoader.Tools
             {
                 foreach (GameObject spawnablePrefab in new List<GameObject>(randomMapObject.spawnablePrefabs))
                     foreach (GameObject vanillaPrefab in OriginalContent.SpawnableMapObjects)
-                        if (vanillaPrefab != null && spawnablePrefab != null && spawnablePrefab.name != null &&  vanillaPrefab.name != null && spawnablePrefab.name == vanillaPrefab.name)
+                        if (vanillaPrefab != null && spawnablePrefab != null && spawnablePrefab.name != null && vanillaPrefab.name != null && spawnablePrefab.name == vanillaPrefab.name)
                             randomMapObject.spawnablePrefabs[randomMapObject.spawnablePrefabs.IndexOf(spawnablePrefab)] = RestoreAsset(randomMapObject.spawnablePrefabs[randomMapObject.spawnablePrefabs.IndexOf(spawnablePrefab)], vanillaPrefab, destroyOnReplace: false);
             }
             foreach (Tile tile in extendedDungeonFlow.DungeonFlow.GetTiles())
@@ -69,9 +69,9 @@ namespace LethalLevelLoader.Tools
                         spawnableMapObject.prefabToSpawn = RestoreAsset(spawnableMapObject.prefabToSpawn, vanillaSpawnableMapObject);
 
             foreach (SpawnableOutsideObjectWithRarity spawnableOutsideObject in extendedLevel.SelectableLevel.spawnableOutsideObjects)
-                foreach (SpawnableOutsideObject vanillaSpawnableOutsideObject in OriginalContent.SpawnableOutsideObjects)
+                foreach (GameObject vanillaSpawnableOutsideObject in OriginalContent.SpawnableOutsideObjects)
                     if (spawnableOutsideObject.spawnableObject != null && spawnableOutsideObject.spawnableObject.name == vanillaSpawnableOutsideObject.name)
-                        spawnableOutsideObject.spawnableObject = RestoreAsset(spawnableOutsideObject.spawnableObject, vanillaSpawnableOutsideObject);
+                        spawnableOutsideObject.spawnableObject.prefabToSpawn = RestoreAsset(spawnableOutsideObject.spawnableObject.prefabToSpawn, vanillaSpawnableOutsideObject);
 
             foreach (LevelAmbienceLibrary vanillaAmbienceLibrary in OriginalContent.LevelAmbienceLibraries)
                 if (extendedLevel.SelectableLevel.levelAmbienceClips != null && extendedLevel.SelectableLevel.levelAmbienceClips.name == vanillaAmbienceLibrary.name)
@@ -139,10 +139,28 @@ namespace LethalLevelLoader.Tools
             if (restoredMixerGroup != null && restoredMixer != null)
             {
                 //if (audioSource.clip != null)
-                    //DebugHelper.Log("Restoring Audio Assets On AudioSource: " + audioSource.gameObject.name + ", AudioSource contained AudioClip: " + audioSource.clip.name);
+                //DebugHelper.Log("Restoring Audio Assets On AudioSource: " + audioSource.gameObject.name + ", AudioSource contained AudioClip: " + audioSource.clip.name);
                 //else
-                    //DebugHelper.Log("Restoring Audio Assets On AudioSource: " + audioSource.gameObject.name);
+                //DebugHelper.Log("Restoring Audio Assets On AudioSource: " + audioSource.gameObject.name);
                 audioSource.outputAudioMixerGroup = restoredMixerGroup;
+            }
+        }
+
+        internal static void TryRestoreWaterShader(Material customMaterial)
+        {
+            if (customMaterial == null || customMaterial.shader == null || string.IsNullOrEmpty(customMaterial.shader.name))
+                return;
+
+            if (customMaterial.shader == LevelLoader.vanillaWaterShader)
+                return;
+
+            if (customMaterial.shader.name == LevelLoader.vanillaWaterShader.name)
+            {
+                customMaterial.shader = LevelLoader.vanillaWaterShader;
+                customMaterial.DisableKeyword("_BLENDMODE_ALPHA");
+                customMaterial.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                customMaterial.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
+                customMaterial.EnableKeyword("_DISABLE_SSR_TRANSPARENT");
             }
         }
 

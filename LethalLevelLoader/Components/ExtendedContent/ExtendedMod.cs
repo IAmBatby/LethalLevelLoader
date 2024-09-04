@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace LethalLevelLoader
 {
@@ -65,201 +68,123 @@ namespace LethalLevelLoader
             }
         }
 
-        internal static ExtendedMod Create(string modName)
+        private Dictionary<Type, IList> _extendedContentListsDict;
+        private Dictionary<Type, IList> ExtendedContentsLists
         {
-            ExtendedMod newExtendedMod = ScriptableObject.CreateInstance<ExtendedMod>();
-            newExtendedMod.ModName = modName;
-            newExtendedMod.name = modName.Sanitized() + "Mod";
-            DebugHelper.Log("Created New ExtendedMod: " + newExtendedMod.ModName, DebugType.Developer);
-            return (newExtendedMod);
+            get
+            {
+                if (_extendedContentListsDict == null)
+                    PopulateExtendedContentsListDict();
+                return (_extendedContentListsDict);
+            }
         }
 
-        public static ExtendedMod Create(string modName, string authorName)
-        {
-            ExtendedMod newExtendedMod = ScriptableObject.CreateInstance<ExtendedMod>();
-            newExtendedMod.ModName = modName;
-            newExtendedMod.name = modName.SkipToLetters().RemoveWhitespace() + "Mod";
-            newExtendedMod.AuthorName = authorName;
-            if (Plugin.Instance != null)
-                DebugHelper.Log("Created New ExtendedMod: " + newExtendedMod.ModName + " by " + authorName, DebugType.Developer);
-            return (newExtendedMod);
-        }
+        private ContentTag customTag;
 
-        public static ExtendedMod Create(string modName, string authorName, ExtendedContent[] extendedContents)
+        internal static ExtendedMod Create(string modName = null, string authorName = null, ExtendedContent[] extendedContents = null)
         {
-            ExtendedMod newExtendedMod = ScriptableObject.CreateInstance<ExtendedMod>();
-            newExtendedMod.ModName = modName;
-            newExtendedMod.name = modName.SkipToLetters().RemoveWhitespace() + "Mod";
-            newExtendedMod.AuthorName = authorName;
+            ExtendedMod newExtendedMod = CreateInstance<ExtendedMod>();
 
-            foreach (ExtendedContent extendedContent in extendedContents)
-                newExtendedMod.RegisterExtendedContent(extendedContent);
+            if (!string.IsNullOrEmpty(modName))
+                newExtendedMod.ModName = modName;
+            if (!string.IsNullOrEmpty(authorName))
+                newExtendedMod.AuthorName = authorName;
+            if (extendedContents != null)
+                foreach (ExtendedContent content in extendedContents)
+                    newExtendedMod.ExtendedContentsLists[content.GetType()].Add(content);
+
+            newExtendedMod.name = newExtendedMod.ModName.SkipToLetters().RemoveWhitespace() + "Mod";
 
             if (Plugin.Instance != null)
-                DebugHelper.Log("Created New ExtendedMod: " + newExtendedMod.ModName + " by " + authorName, DebugType.Developer);
+                DebugHelper.Log("Created New ExtendedMod: " + newExtendedMod.ModName + " by " + newExtendedMod.AuthorName, DebugType.Developer);
 
             return (newExtendedMod);
         }
 
         internal void RegisterExtendedContent(ExtendedContent newExtendedContent)
         {
-            if (newExtendedContent != null)
-            {
-                if (!ExtendedContents.Contains(newExtendedContent))
-                {
-                    if (newExtendedContent is ExtendedLevel extendedLevel)
-                        RegisterExtendedContent(extendedLevel);
-                    else if (newExtendedContent is ExtendedDungeonFlow extendedDungeonFlow)
-                        RegisterExtendedContent(extendedDungeonFlow);
-                    else if (newExtendedContent is ExtendedItem extendedItem)
-                        RegisterExtendedContent(extendedItem);
-                    else if (newExtendedContent is ExtendedEnemyType extendedEnemyType)
-                        RegisterExtendedContent(extendedEnemyType);
-                    else if (newExtendedContent is ExtendedWeatherEffect extendedWeatherEffect)
-                        RegisterExtendedContent(extendedWeatherEffect);
-                    else if (newExtendedContent is ExtendedFootstepSurface extendedFootstepSurface)
-                        RegisterExtendedContent(extendedFootstepSurface);
-                    else if (newExtendedContent is ExtendedStoryLog extendedStoryLog)
-                        RegisterExtendedContent(extendedStoryLog);
-                    else
-                        throw new ArgumentException(nameof(newExtendedContent), newExtendedContent.name + " (" + newExtendedContent.GetType().Name + ") " + " Could Not Be Registered To ExtendedMod: " + ModName + " Due To Unimplemented Registration Check!");
-                }
-                else
-                    throw new ArgumentException(nameof(newExtendedContent), newExtendedContent.name + " (" + newExtendedContent.GetType().Name + ") " + " Could Not Be Registered To ExtendedMod: " + ModName + " Due To Already Being Registered To This Mod!");
-            }
-            else
+            if (newExtendedContent == null)
                 throw new ArgumentNullException(nameof(newExtendedContent), "Null ExtendedContent Could Not Be Registered To ExtendedMod: " + ModName + " Due To Failed Validation Check!");
+            if (ExtendedContents.Contains(newExtendedContent))
+                throw new ArgumentException(nameof(newExtendedContent), newExtendedContent.name + " (" + newExtendedContent.GetType().Name + ") " + " Could Not Be Registered To ExtendedMod: " + ModName + " Due To Already Being Registered To This Mod!");
+
+            ProcessExtendedContent(newExtendedContent);
         }
 
-        internal void RegisterExtendedContent(ExtendedLevel extendedLevel)
+        private void ProcessExtendedContent(ExtendedContent newExtendedContent)
         {
-            extendedLevel.ConvertObsoleteValues();
-            TryThrowInvalidContentException(extendedLevel, Validators.ValidateExtendedContent(extendedLevel));
-
-            ExtendedLevels.Add(extendedLevel);
-            extendedLevel.ContentTags.Add(ContentTag.Create("Custom"));
-            extendedLevel.ExtendedMod = this;
+            newExtendedContent.TryRecoverObsoleteValues();
+            TryThrowInvalidContentException(newExtendedContent, newExtendedContent.Validate());
+            newExtendedContent.ContentTags.Add(GetOrCreateCustomTag());
+            AddExtendedContent(newExtendedContent);
+            newExtendedContent.ExtendedMod = this;
+            DebugHelper.Log("Successfully Registed ExtendedContent: " + newExtendedContent.UniqueIdentificationName, DebugType.User);
         }
 
-        internal void RegisterExtendedContent(ExtendedDungeonFlow extendedDungeonFlow)
+        private void AddExtendedContent(ExtendedContent newExtendedContent)
         {
-            extendedDungeonFlow.ConvertObsoleteValues();
-            TryThrowInvalidContentException(extendedDungeonFlow, Validators.ValidateExtendedContent(extendedDungeonFlow));
-
-            ExtendedDungeonFlows.Add(extendedDungeonFlow);
-            extendedDungeonFlow.ContentTags.Add(ContentTag.Create("Custom"));
-            extendedDungeonFlow.ExtendedMod = this;
+            ExtendedContentsLists[newExtendedContent.GetType()].Add(newExtendedContent); //This looks unsafe but I'm happy for this to hard crash because this needs to go right.
         }
 
-        internal void RegisterExtendedContent(ExtendedItem extendedItem)
+        internal ContentTag GetOrCreateCustomTag()
         {
-            TryThrowInvalidContentException(extendedItem, Validators.ValidateExtendedContent(extendedItem));
-
-            ExtendedItems.Add(extendedItem);
-            extendedItem.ContentTags.Add(ContentTag.Create("Custom"));
-            extendedItem.ExtendedMod = this;
+            if (customTag == null)
+                customTag = ContentTag.Create<ContentTag>("Custom", Color.white);
+            return (customTag);
         }
 
-        internal void RegisterExtendedContent(ExtendedEnemyType extendedEnemyType)
+        internal void TryThrowInvalidContentException(ExtendedContent extendedContent, (bool, string) result)
         {
-            TryThrowInvalidContentException(extendedEnemyType, Validators.ValidateExtendedContent(extendedEnemyType));
-
-            ExtendedEnemyTypes.Add(extendedEnemyType);
-            extendedEnemyType.ContentTags.Add(ContentTag.Create("Custom"));
-            extendedEnemyType.ExtendedMod = this;
-        }
-
-        internal void RegisterExtendedContent(ExtendedWeatherEffect extendedWeatherEffect)
-        {
-            TryThrowInvalidContentException(extendedWeatherEffect, Validators.ValidateExtendedContent(extendedWeatherEffect));
-
-            ExtendedWeatherEffects.Add(extendedWeatherEffect);
-            extendedWeatherEffect.ContentTags.Add(ContentTag.Create("Custom"));
-            extendedWeatherEffect.ExtendedMod = this;
-        }
-
-        internal void RegisterExtendedContent(ExtendedFootstepSurface extendedFootstepSurface)
-        {
-            TryThrowInvalidContentException(extendedFootstepSurface, Validators.ValidateExtendedContent(extendedFootstepSurface));
-
-            ExtendedFootstepSurfaces.Add(extendedFootstepSurface);
-            extendedFootstepSurface.ContentTags.Add(ContentTag.Create("Custom"));
-            extendedFootstepSurface.ExtendedMod = this;
-        }
-
-        internal void RegisterExtendedContent(ExtendedStoryLog extendedStoryLog)
-        {
-            TryThrowInvalidContentException(extendedStoryLog, Validators.ValidateExtendedContent(extendedStoryLog));
-
-            ExtendedStoryLogs.Add(extendedStoryLog);
-            extendedStoryLog.ContentTags.Add(ContentTag.Create("Custom"));
-            extendedStoryLog.ExtendedMod = this;
-        }
-
-        internal void RegisterExtendedContent(ExtendedBuyableVehicle extendedBuyableVehicle)
-        {
-            TryThrowInvalidContentException(extendedBuyableVehicle, Validators.ValidateExtendedContent(extendedBuyableVehicle));
-
-            ExtendedBuyableVehicles.Add(extendedBuyableVehicle);
-            extendedBuyableVehicle.ContentTags.Add(ContentTag.Create("Custom"));
-            extendedBuyableVehicle.ExtendedMod = this;
-        }
-
-        internal void TryThrowInvalidContentException(ExtendedContent extendedContent, (bool,string) result)
-        {
-            if (result.Item1 == false)
-            {
-                if (extendedContent == null)
-                    throw new ArgumentNullException(nameof(extendedContent), "Null ExtendedContent Could Not Be Registered To ExtendedMod: " + ModName + " Due To Failed Validation Check! " + result.Item2);
-
+            if (result.Item1 == false && extendedContent == null)
+                throw new ArgumentNullException(nameof(extendedContent), "Null ExtendedContent Could Not Be Registered To ExtendedMod: " + ModName + " Due To Failed Validation Check! " + result.Item2);
+            else if (result.Item1 == false)
                 throw new ArgumentException(nameof(extendedContent), extendedContent.name + " (" + extendedContent.GetType().Name + ") " + " Could Not Be Registered To ExtendedMod: " + ModName + " Due To Failed Validation Check! " + result.Item2);
-            }
         }
 
         internal void UnregisterExtendedContent(ExtendedContent currentExtendedContent)
         {
-            if (currentExtendedContent is ExtendedLevel extendedLevel)
-                ExtendedLevels.Remove(extendedLevel);
-            else if (currentExtendedContent is ExtendedDungeonFlow extendedDungeonFlow)
-                ExtendedDungeonFlows.Remove(extendedDungeonFlow);
-            else if (currentExtendedContent is ExtendedItem extendedItem)
-                ExtendedItems.Remove(extendedItem);
-
+            ExtendedContentsLists[currentExtendedContent.GetType()].Remove(currentExtendedContent);
+            //ExtendedContents.Remove(currentExtendedContent);
             currentExtendedContent.ExtendedMod = null;
             DebugHelper.LogWarning("Unregistered ExtendedContent: " + currentExtendedContent.name + " In ExtendedMod: " + ModName, DebugType.Developer);
         }
 
-        internal void UnregisterAllExtendedContent()
+        internal List<T> GetExtendedContentList<T>()
         {
-            ExtendedLevels.Clear();
-            ExtendedDungeonFlows.Clear();
-            ExtendedItems.Clear();
-            ExtendedEnemyTypes.Clear();
-            ExtendedWeatherEffects.Clear();
-            ExtendedFootstepSurfaces.Clear();
+            ExtendedContentsLists.TryGetValue(typeof(T), out IList value);
+            return (value as List<T>);
+        }
+
+        internal void PopulateExtendedContentsListDict()
+        {
+            _extendedContentListsDict = new Dictionary<Type, IList>();
+            AddExtendedContentsListToDict(ExtendedLevels);
+            AddExtendedContentsListToDict(ExtendedDungeonFlows);
+            AddExtendedContentsListToDict(ExtendedItems);
+            AddExtendedContentsListToDict(ExtendedEnemyTypes);
+            AddExtendedContentsListToDict(ExtendedWeatherEffects);
+            AddExtendedContentsListToDict(ExtendedStoryLogs);
+            AddExtendedContentsListToDict(ExtendedFootstepSurfaces);
+            AddExtendedContentsListToDict(ExtendedBuyableVehicles);
+        }
+
+        internal void AddExtendedContentsListToDict<T>(List<T> extendedContentsList) where T : ExtendedContent
+        {
+            _extendedContentListsDict.Add(typeof(T), extendedContentsList);
+        }
+
+
+        internal void ClearAllExtendedContent()
+        {
+            foreach (IList extendedContentList in ExtendedContentsLists.Values)
+                extendedContentList.Clear();
         }
 
         internal void SortRegisteredContent()
         {
-            ExtendedLevels.Sort((s1, s2) => s1.name.CompareTo(s2.name)); 
-            ExtendedDungeonFlows.Sort((s1, s2) => s1.name.CompareTo(s2.name));
-            ExtendedItems.Sort((s1, s2) => s1.name.CompareTo(s2.name));
-            ExtendedEnemyTypes.Sort((s1, s2) => s1.name.CompareTo(s2.name));
-            ExtendedWeatherEffects.Sort((s1, s2) => s1.name.CompareTo(s2.name));
-            ExtendedFootstepSurfaces.Sort((s1, s2) => s1.name.CompareTo(s2.name));
-        }
-
-        internal void Example()
-        {
-            AssetBundle assetBundle = null;
-
-            ExtendedDungeonFlow myMainExtendedDungeonFlow = assetBundle.LoadAsset<ExtendedDungeonFlow>("Assets/CoolDungeonFlow");
-
-            ExtendedEnemyType mySpookyEnemyType = assetBundle.LoadAsset<ExtendedEnemyType>("Assets/Ghost");
-
-            ExtendedMod extendedMod = ExtendedMod.Create("BatbysMod", "IAmBatby", new ExtendedContent[2] { myMainExtendedDungeonFlow, mySpookyEnemyType });
-
-            LethalLevelLoader.PatchedContent.RegisterExtendedMod(extendedMod);
+            foreach (IList extendedContentList in ExtendedContentsLists.Values)
+                if (extendedContentList is List<ExtendedContent> castedList)
+                    castedList.Sort((s1, s2) => s1.name.CompareTo(s2.name));
         }
     }
 }

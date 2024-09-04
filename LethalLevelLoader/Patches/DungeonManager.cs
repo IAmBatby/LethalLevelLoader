@@ -64,8 +64,12 @@ namespace LethalLevelLoader
 
                 debugString += "Info For ExtendedLevel: " + extendedLevel.name + " | Planet Name: " + extendedLevel.NumberlessPlanetName + " | Content Tags: ";
                 foreach (ContentTag tag in extendedLevel.ContentTags)
-                    debugString += tag.contentTagName + ", ";
-                debugString = debugString.Remove(debugString.LastIndexOf(", "));
+                {
+                    debugString += tag.TagName + ", ";
+                    debugString = debugString.TrimEnd([',', ' ']);
+                }
+
+
                 debugString += " | Route Price: " + extendedLevel.RoutePrice + " | Current Weather: " + extendedLevel.SelectableLevel.currentWeather.ToString();
                 debugString += "\n";
 
@@ -95,7 +99,7 @@ namespace LethalLevelLoader
         internal static void RefreshDungeonFlowIDs()
         {
             //DebugHelper.Log("Re-Adjusting DungeonFlowTypes Array For Late Arriving Vanilla DungeonFlow", DebugType.User);
-            
+
             List<DungeonFlow> cachedDungeonFlowTypes = new List<DungeonFlow>();
             List<IndoorMapType> indoorMapTypes = new List<IndoorMapType>();
             foreach (ExtendedDungeonFlow vanillaDungeonFlow in PatchedContent.VanillaExtendedDungeonFlows)

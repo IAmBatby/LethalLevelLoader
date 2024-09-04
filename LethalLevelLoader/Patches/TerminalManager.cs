@@ -42,7 +42,7 @@ namespace LethalLevelLoader
 
         internal static string currentTagFilter;
 
-        internal static float defaultTerminalFontSize;
+        public static float defaultTerminalFontSize;
 
         internal static TerminalKeyword lastParsedVerbKeyword;
 
@@ -51,7 +51,7 @@ namespace LethalLevelLoader
 
         //internal static Dictionary<TerminalNode, Action<TerminalNode, TerminalNode>> terminalNodeRegisteredEventDictionary = new Dictionary<TerminalNode, Action<TerminalNode, TerminalNode>>();
 
-        public enum LoadNodeActionType { Before,  After }
+        public enum LoadNodeActionType { Before, After }
         public delegate bool LoadNodeAction(ref TerminalNode currentNode, ref TerminalNode loadNode);
 
         internal static Dictionary<TerminalNode, LoadNodeAction> onBeforeLoadNewNodeRegisteredEventsDictionary = new Dictionary<TerminalNode, LoadNodeAction>();
@@ -112,7 +112,7 @@ namespace LethalLevelLoader
 
             terminalNode = lockedNode;
         }
-        
+
         internal static void RefreshExtendedLevelGroups()
         {
             currentMoonsCataloguePage.ExtendedLevelGroups.Clear();
@@ -523,7 +523,7 @@ namespace LethalLevelLoader
 
         internal static void CreateExtendedLevelGroups()
         {
-            List<ExtendedLevel> hiddenVanillaLevels = new List<ExtendedLevel>();    
+            List<ExtendedLevel> hiddenVanillaLevels = new List<ExtendedLevel>();
             foreach (ExtendedLevel extendedLevel in PatchedContent.VanillaExtendedLevels)
             {
                 if (!moonsKeyword.specialKeywordResult.displayText.Contains(extendedLevel.NumberlessPlanetName))
@@ -550,7 +550,7 @@ namespace LethalLevelLoader
                 if (extendedLevelsContentSourceNameDictionary.TryGetValue(customExtendedLevel.ModName, out List<ExtendedLevel> extendedLevels))
                     extendedLevels.Add(customExtendedLevel);
                 else
-                    extendedLevelsContentSourceNameDictionary.Add(customExtendedLevel.ModName, new List<ExtendedLevel> { customExtendedLevel });                 
+                    extendedLevelsContentSourceNameDictionary.Add(customExtendedLevel.ModName, new List<ExtendedLevel> { customExtendedLevel });
             }
 
             List<ExtendedLevelGroup> defaultVanillaExtendedLevelGroups = new List<ExtendedLevelGroup>() { vanillaGroupA, vanillaGroupB, vanillaGroupC, vanillaGroupD };
@@ -852,8 +852,8 @@ namespace LethalLevelLoader
                 "You have requested to order the " + extendedBuyableVehicle.BuyableVehicle.vehicleDisplayName + "." + "\n" +
                 "[warranty] Total cost of items: [totalCost]." + "\n\n" +
                 "Please CONFIRM or DENY." + "\n\n";
-                
-            
+
+
 
 
             TerminalNode newVehicleBuyConfirmNode = CreateNewTerminalNode();
@@ -902,8 +902,8 @@ namespace LethalLevelLoader
             List<string> allLevelTags = new List<string>();
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                 foreach (ContentTag contentTag in extendedLevel.ContentTags)
-                    if (!allLevelTags.Contains(contentTag.contentTagName))
-                        allLevelTags.Add(contentTag.contentTagName);
+                    if (!allLevelTags.Contains(contentTag.TagName))
+                        allLevelTags.Add(contentTag.TagName);
             foreach (string levelTag in allLevelTags)
             {
                 tagMoonWordsList.Add(levelTag);
@@ -940,7 +940,7 @@ namespace LethalLevelLoader
             else
                 foreach (TerminalKeyword terminalKeyword in Terminal.terminalNodes.allKeywords)
                     if (terminalKeyword.isVerb == true && terminalKeyword.word == newVerbKeywordWord.ToLower())
-                        verbKeyword = terminalKeyword;  
+                        verbKeyword = terminalKeyword;
             verbKeyword.word = newVerbKeywordWord.ToLower();
             verbKeyword.name = newVerbKeywordWord.ToLower() + "Keyword";
             verbKeyword.isVerb = true;
@@ -949,7 +949,7 @@ namespace LethalLevelLoader
                 terminalEventStrings = nounWords;
 
             foreach (string newNode in nounWords)
-                    newTerminalNodes.Add(CreateTerminalEventNode(verbKeyword, newNode, terminalEventStrings[nounWords.IndexOf(newNode)]));
+                newTerminalNodes.Add(CreateTerminalEventNode(verbKeyword, newNode, terminalEventStrings[nounWords.IndexOf(newNode)]));
 
             return (newTerminalNodes);
         }

@@ -119,14 +119,14 @@ namespace LethalLevelLoader
             DebugHelper.Log("Setting Random DungeonFlows!", DebugType.User);
             List<IntWithRarity> dungeonFlowsList = new List<IntWithRarity>();
             List<IntWithRarity> cachedDungeonFlowsList = new List<IntWithRarity>();
-            
+
             Dictionary<string, int> dungeonFlowIds = new Dictionary<string, int>();
             int counter = 0;
             foreach (DungeonFlow dungeonFlow in Patches.RoundManager.GetDungeonFlows())
             {
                 dungeonFlowIds.Add(dungeonFlow.name, counter);
                 counter++;
-            }    
+            }
             for (int i = 0; i < dungeonFlowNames.Length; i++)
             {
                 IntWithRarity intWithRarity = new IntWithRarity();
@@ -150,6 +150,25 @@ namespace LethalLevelLoader
         {
             Patches.RoundManager.dungeonGenerator.Generator.LengthMultiplier = hostSize;
             Patches.RoundManager.dungeonGenerator.Generate();
+        }
+
+        [ServerRpc]
+        internal void SetExtendedLevelValuesServerRpc(ExtendedLevelData extendedLevelData)
+        {
+            DebugHelper.Log("Sending Level Info Server Rpc: " + extendedLevelData.UniqueIdentifier, DebugType.User);
+            if (PatchedContent.TryGetExtendedContent(extendedLevelData.UniqueIdentifier, out ExtendedLevel extendedLevel))
+                SetExtendedLevelValuesClientRpc(extendedLevelData);
+            else
+                DebugHelper.Log("Failed To Send Level Info!", DebugType.User);
+
+        }
+
+        [ClientRpc]
+        internal void SetExtendedLevelValuesClientRpc(ExtendedLevelData extendedLevelData)
+        {
+            DebugHelper.Log("Loading Level Info Server Rpc: " + extendedLevelData.UniqueIdentifier, DebugType.User);
+            if (PatchedContent.TryGetExtendedContent(extendedLevelData.UniqueIdentifier, out ExtendedLevel extendedLevel))
+                extendedLevelData.ApplySavedValues(extendedLevel);
         }
 
 
@@ -187,7 +206,7 @@ namespace LethalLevelLoader
             DebugHelper.Log("Skipped Registering " + debugCounter + " NetworkObjects As They Were Already Registered.", DebugType.User);
 
             networkHasStarted = true;
-            
+
         }
 
         public class StringContainer : INetworkSerializable

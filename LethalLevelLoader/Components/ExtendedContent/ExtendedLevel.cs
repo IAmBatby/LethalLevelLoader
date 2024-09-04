@@ -1,4 +1,5 @@
-﻿using GameNetcodeStuff;
+﻿using DunGen.Graph;
+using GameNetcodeStuff;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace LethalLevelLoader
     {
         [field: Header("General Settings")]
         [field: SerializeField] public SelectableLevel SelectableLevel { get; set; }
-        [Space(5)] [SerializeField] private int routePrice = 0;
+        [Space(5)][SerializeField] private int routePrice = 0;
 
         [field: Header("Extended Feature Settings")]
         [field: SerializeField] public bool OverrideDynamicRiskLevelAssignment { get; set; } = false;
@@ -40,11 +41,23 @@ namespace LethalLevelLoader
         [field: SerializeField] public List<StringWithRarity> SceneSelections { get; set; } = new List<StringWithRarity>();
 
         [field: Space(5)]
+        [field: Tooltip("Overrides vanilla camera Far Plane Clip Distance, The highest value between current Level and Interior will be used.")]
+        [field: Range(0f, 10000f)]
+        [field: SerializeField] public float OverrideCameraMaxDistance = 400;
+
+        [field: Space(5)]
+        [field: Header("Weather Fog Distance Override Settings")]
+
+        [field: SerializeField] public Vector3 OverrideDustStormVolumeSize { get; set; } = Vector3.zero;
+        [field: SerializeField] public Vector3 OverrideFoggyVolumeSize { get; set; } = Vector3.zero;
+
+
+        [field: Space(5)]
         [field: Header("Terminal Route Override Settings")]
 
-        [field: SerializeField] [field: TextArea(2, 20)] public string OverrideInfoNodeDescription { get; set; } = string.Empty;
-        [field: SerializeField] [field: TextArea(2, 20)] public string OverrideRouteNodeDescription { get; set; } = string.Empty;
-        [field: SerializeField] [field: TextArea(2, 20)] public string OverrideRouteConfirmNodeDescription { get; set; } = string.Empty;
+        [field: SerializeField][field: TextArea(2, 20)] public string OverrideInfoNodeDescription { get; set; } = string.Empty;
+        [field: SerializeField][field: TextArea(2, 20)] public string OverrideRouteNodeDescription { get; set; } = string.Empty;
+        [field: SerializeField][field: TextArea(2, 20)] public string OverrideRouteConfirmNodeDescription { get; set; } = string.Empty;
 
         [field: Space(10)]
         [field: Header("Misc. Settings")]
@@ -109,7 +122,7 @@ namespace LethalLevelLoader
 
             return (newExtendedLevel);
         }
-        internal void Initialize(string newContentSourceName, bool generateTerminalAssets)
+        internal override void Initialize()
         {
             bool mainSceneRegistered = false;
 
@@ -138,15 +151,12 @@ namespace LethalLevelLoader
             if (OverrideQuicksandPrefab == null)
                 OverrideQuicksandPrefab = LevelLoader.defaultQuicksandPrefab;
 
+            name = NumberlessPlanetName.StripSpecialCharacters() + "ExtendedLevel";
+
             if (ContentType == ContentType.Custom)
             {
-                name = NumberlessPlanetName.StripSpecialCharacters() + "ExtendedLevel";
                 SelectableLevel.name = NumberlessPlanetName.StripSpecialCharacters() + "Level";
-                if (generateTerminalAssets == true) //Needs to be after levelID setting above.
-                {
-                    //DebugHelper.Log("Generating Terminal Assets For: " + NumberlessPlanetName);
-                    TerminalManager.CreateLevelTerminalData(this, routePrice);
-                }
+                TerminalManager.CreateLevelTerminalData(this, routePrice);
             }
 
             if (ContentType == ContentType.Vanilla)
@@ -156,7 +166,7 @@ namespace LethalLevelLoader
             //Obsolete
         }
 
-        internal void ConvertObsoleteValues()
+        internal override void TryRecoverObsoleteValues()
         {
             if (levelTags.Count > 0 && ContentTags.Count == 0)
             {
@@ -198,16 +208,18 @@ namespace LethalLevelLoader
 
         internal void SetExtendedDungeonFlowMatches()
         {
+            List<(DungeonFlow, int)> dungeonFlowMatches = new List<(DungeonFlow, int)>();
             foreach (IntWithRarity intWithRarity in SelectableLevel.dungeonFlowTypes)
-                if (DungeonManager.TryGetExtendedDungeonFlow(Patches.RoundManager.dungeonFlowTypes[intWithRarity.id].dungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
-                    extendedDungeonFlow.LevelMatchingProperties.planetNames.Add(new StringWithRarity(NumberlessPlanetName, intWithRarity.rarity));
-
+                dungeonFlowMatches.Add((Patches.RoundManager.dungeonFlowTypes[intWithRarity.id].dungeonFlow, intWithRarity.rarity));
 
             if (SelectableLevel.sceneName == "Level4March")
                 foreach (IndoorMapType indoorMapType in Patches.RoundManager.dungeonFlowTypes)
                     if (indoorMapType.dungeonFlow.name == "Level1Flow3Exits")
-                        if (DungeonManager.TryGetExtendedDungeonFlow(indoorMapType.dungeonFlow, out ExtendedDungeonFlow marchDungeonFlow))
-                            marchDungeonFlow.LevelMatchingProperties.planetNames.Add(new StringWithRarity(NumberlessPlanetName, 300));
+                        dungeonFlowMatches.Add((indoorMapType.dungeonFlow, 300));
+
+            foreach ((DungeonFlow, int) vanillaDefinedDungeonMatches in dungeonFlowMatches)
+                if (PatchedContent.TryGetExtendedContent(vanillaDefinedDungeonMatches.Item1, out ExtendedDungeonFlow extendedFlow))
+                    extendedFlow.LevelMatchingProperties.planetNames.Add(new(NumberlessPlanetName, vanillaDefinedDungeonMatches.Item2));
         }
 
         internal void GetVanillaInfoNode()
@@ -226,8 +238,24 @@ namespace LethalLevelLoader
                 Debug.LogWarning("ForceSetRoutePrice Should Only Be Used In Editor! Consider Using RoutePrice Property To Sync TerminalNode's With New Value.");
             routePrice = newValue;
         }
+
+        internal override (bool result, string log) Validate()
+        {
+            if (SelectableLevel == null)
+                return ((false, "SelectableLevel Was Null"));
+            else if (string.IsNullOrEmpty(SelectableLevel.sceneName))
+                return ((false, "SelectableLevel SceneName Was Null Or Empty"));
+            else if (SelectableLevel.planetPrefab == null)
+                return ((false, "SelectableLevel PlanetPrefab Was Null"));
+            else if (SelectableLevel.planetPrefab.GetComponent<Animator>() == null)
+                return ((false, "SelectableLevel PlanetPrefab Animator Was Null"));
+            else if (SelectableLevel.planetPrefab.GetComponent<Animator>().runtimeAnimatorController == null)
+                return ((false, "SelectableLevel PlanetPrefab Animator AnimatorController Was Null"));
+            else
+                return (true, string.Empty);
+        }
     }
-        
+
 
     [System.Serializable]
     public class LevelEvents

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Rendering.UI;
 
 namespace LethalLevelLoader
 {
@@ -43,13 +44,19 @@ namespace LethalLevelLoader
 
                 parityCheck = false;
             }
+
+            if (currentSaveFile.extendedLevelSaveData != null)
+            {
+                foreach (ExtendedLevelData extendedLevelData in currentSaveFile.extendedLevelSaveData)
+                    LethalLevelLoaderNetworkManager.Instance.SetExtendedLevelValuesServerRpc(extendedLevelData);
+            }
         }
 
         internal static void SaveGameValues()
         {
             currentSaveFile.itemSaveData = GetAllItemsListItemDataDict();
             currentSaveFile.parityStepsTaken = Patches.StartOfRound.gameStats.allStepsTaken;
-
+            SaveAllLevels();
             currentSaveFile.Save();
         }
 
@@ -61,6 +68,20 @@ namespace LethalLevelLoader
             currentSaveFile.CurrentLevelName = selectableLevel.name;
             currentSaveFile.Save();
             */
+        }
+
+        internal static void SaveAllLevels()
+        {
+            currentSaveFile.extendedLevelSaveData.Clear();
+            foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
+            {
+                DebugHelper.Log("Saving Level: " + extendedLevel.UniqueIdentificationName, DebugType.User);
+                currentSaveFile.extendedLevelSaveData.Add(new ExtendedLevelData(extendedLevel));
+            }
+
+            DebugHelper.Log("Saved The Following", DebugType.User);
+            foreach (ExtendedLevelData levelData in currentSaveFile.extendedLevelSaveData)
+                DebugHelper.Log(levelData.UniqueIdentifier, DebugType.User);
         }
 
         internal static void LoadShipGrabbableItems()
@@ -152,7 +173,7 @@ namespace LethalLevelLoader
                     if (oldIndex != newIndex)
                     {
                         DebugHelper.Log($"Fixing Item ┌ {savedShipItemData.itemAllItemsListData.modName} ┬ {savedShipItemData.itemAllItemsListData.itemName} ┬ {savedShipItemData.itemAllItemsListData.itemObjectName} ┬ #{oldIndex}", DebugType.User);
-                        DebugHelper.Log($"     -----> └ {newItemData.modName                           } ┴ {newItemData.itemName                           } ┴ {newItemData.itemObjectName                           } ┴ #{newIndex}", DebugType.User);
+                        DebugHelper.Log($"     -----> └ {newItemData.modName} ┴ {newItemData.itemName} ┴ {newItemData.itemObjectName} ┴ #{newIndex}", DebugType.User);
                     }
 
                     savedShipItemData.itemAllItemsListData = newItemData;
