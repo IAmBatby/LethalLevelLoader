@@ -91,10 +91,14 @@
 
     <MakeDir Directories="$(ProjectDir)../assets/bundles" Condition="!Exists('$(ProjectDir)../assets/bundles')" />
 
-    <Exec Command="dotnet tcli build --config-path &quot;$(ProjectDir)../assets/thunderstore.toml&quot; --package-version $(PlainVersion)" />
+    <Exec Command="dotnet tcli build --config-path $(ProjectDir)../assets/thunderstore.toml" />
 
-  </Target>
+    <ItemGroup>
+        <FilesToRename Include="$(ProjectDir)dist/*IAmBatby-$(AssemblyName)-$(PlainVersion).zip" />
+    </ItemGroup>
 
+<<<<<<< Updated upstream
+=======
       <!-- thunderstore publish -->
   <Target Name="PublishThunderstore" DependsOnTargets="SetPluginVersion;SaveVersionAndNameToFiles">
       <Exec Command="dotnet tcli publish --config-path &quot;$(ProjectDir)../assets/thunderstore.toml&quot; --file &quot;$(ProjectDir)dist/*-$(MinVerVersion).zip&quot;" />
@@ -105,10 +109,8 @@
     <MakeDir Directories="$(ProjectDir)dist/output/" Condition="!Exists('$(ProjectDir)dist/output/')" />
     <Copy SourceFiles="$(ProjectDir)bin/Release/netstandard2.1/$(AssemblyName).dll" DestinationFiles="$(ProjectDir)dist/output/$(AssemblyName).dll" />
 
-    <ZipDirectory
-      SourceDirectory="$(ProjectDir)dist/output/"
-      DestinationFile="$(ProjectDir)dist/curseforge.zip"
-      Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(ProjectDir)dist/output/" DestinationFile="$(ProjectDir)dist/curseforge.zip" Overwrite="true" />
+>>>>>>> Stashed changes
   </Target>
   
 </Project>

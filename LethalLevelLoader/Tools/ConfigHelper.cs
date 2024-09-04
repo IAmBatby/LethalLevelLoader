@@ -33,7 +33,7 @@ namespace LethalLevelLoader
                     rarity = value;
 
                 if (clampRarity != Vector2.zero)
-                    rarity = Math.Clamp(rarity, Mathf.RoundToInt(clampRarity.x), Mathf.RoundToInt(clampRarity.y));
+                    Math.Clamp(rarity, Mathf.RoundToInt(clampRarity.x), Mathf.RoundToInt(clampRarity.y));
 
                 returnList.Add(new StringWithRarity(levelName, rarity));
             }
@@ -62,7 +62,7 @@ namespace LethalLevelLoader
                     rarity = value;
 
                 if (clampRarity != Vector2.zero)
-                    rarity = Math.Clamp(rarity, Mathf.RoundToInt(clampRarity.x), Mathf.RoundToInt(clampRarity.y));
+                    Math.Clamp(rarity, Mathf.RoundToInt(clampRarity.x), Mathf.RoundToInt(clampRarity.y));
 
                 returnList.Add(new Vector2WithRarity(new Vector2(x,y), rarity));
             }
@@ -74,9 +74,8 @@ namespace LethalLevelLoader
             List<StringWithRarity> stringList = ConvertToStringWithRarityList(newInputString, clampRarity);
             List<SpawnableEnemyWithRarity> returnList = new List<SpawnableEnemyWithRarity>();
 
-            foreach (ExtendedEnemyType extendedEnemyType in PatchedContent.ExtendedEnemyTypes)
+            foreach (EnemyType enemyType in OriginalContent.Enemies.Concat(PatchedContent.Enemies))
             {
-                EnemyType enemyType = extendedEnemyType.EnemyType;
                 foreach (StringWithRarity stringString in new List<StringWithRarity>(stringList))
                 {
                     if (enemyType.enemyName.ToLower().Contains(stringString.Name.ToLower()))
@@ -91,9 +90,8 @@ namespace LethalLevelLoader
             }
 
             //Incase the user put in the real name (eg. Bracken) instead of the internal name (Flowerman) we go through the scannode texts which has the more updated name.
-            foreach (ExtendedEnemyType extendedEnemyType in PatchedContent.ExtendedEnemyTypes)
+            foreach (EnemyType enemyType in OriginalContent.Enemies.Concat(PatchedContent.Enemies))
             {
-                EnemyType enemyType = extendedEnemyType.EnemyType;
                 foreach (StringWithRarity stringString in new List<StringWithRarity>(stringList))
                 {
                     if (enemyType.enemyPrefab != null)
@@ -121,9 +119,8 @@ namespace LethalLevelLoader
             List<StringWithRarity> stringList = ConvertToStringWithRarityList(newInputString, clampRarity);
             List<SpawnableItemWithRarity> returnList = new List<SpawnableItemWithRarity>();
 
-            foreach (ExtendedItem extendedItem in PatchedContent.ExtendedItems)
+            foreach (Item item in OriginalContent.Items.Concat(PatchedContent.Items))
             {
-                Item item = extendedItem.Item;
                 foreach (StringWithRarity stringString in new List<StringWithRarity>(stringList))
                 {
                     if (SanitizeString(item.itemName).Contains(SanitizeString(stringString.Name)) || SanitizeString(stringString.Name).Contains(SanitizeString(item.itemName)))

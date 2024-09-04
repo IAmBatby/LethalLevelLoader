@@ -1,6 +1,44 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.3.0</summary>**
+
+**<details><summary>Features</summary>**
+
+* Added initial version of ExtendedBuyableVehicle.
+
+</details>
+
+**<details><summary>Fixes</summary>**
+
+* Updated mod for Lethal Company version 55 Beta 1.
+* Changed ExtendedLevel's to now be sorted alphabetically to improve issues with desync.
+* Fixed LevelEvents.onApparatusTaken and DungeonEvents.onApparatusTaken unintentionally running every time the Apparatus was equipped rather than only initially.
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.2.3</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Fixed issue regarding routing to Company
+* Changed ExtendedDungeonFlow.dungeonEvents to ExtendedDungeonFlow.DungeonEvents (Sorry to PoolRooms which likely needs an update)
+* Changed TerminalNode parameters used in TerminalManager functions to be ref values (Possibly breaks mrov related mods)
+* Added Custom EnemyTypes to debug spawn menus
+* Potentially fixed issue where Custom EnemyType Beastiary TerminalNode's had default values
+* Potentially fixed issues running the mod in editor by changing GameObject flags to a DontDestroyOnLoad call (Thanks nomnom)
+* Fixed issue with mods with matching author and mod names not receiving requested calls (May break custom enemy and item mods with custom code)
+* Potentially resolved issue with additional scenes listed in ExtendedLevel's not loading correctly
+* Potentially resolved issue with Route locking and hiding
+* Implemented @Sylvi's Better Item Saving pull request (Thanks for the help and sorry for the delay)
+* Added onShipLand and onShipLeave to ExtendedLevel and ExtendedDungeonFlow events
+
+</details>
+
+</details>
+
 **<details><summary>Version 1.2.2</summary>**
 
 **<details><summary>Fixes</summary>**

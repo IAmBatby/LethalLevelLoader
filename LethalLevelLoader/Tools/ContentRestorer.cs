@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Audio;
-using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 namespace LethalLevelLoader.Tools
@@ -61,7 +60,7 @@ namespace LethalLevelLoader.Tools
 
             foreach (EnemyType vanillaEnemyType in OriginalContent.Enemies)
                 foreach (SpawnableEnemyWithRarity enemyRarityPair in extendedLevel.SelectableLevel.Enemies.Concat(extendedLevel.SelectableLevel.DaytimeEnemies).Concat(extendedLevel.SelectableLevel.OutsideEnemies))
-                    if (enemyRarityPair.enemyType != null && !string.IsNullOrEmpty(enemyRarityPair.enemyType.name) && enemyRarityPair.enemyType.name == vanillaEnemyType.name)
+                    if (enemyRarityPair.enemyType != null && enemyRarityPair.enemyType.enemyName == vanillaEnemyType.enemyName)
                         enemyRarityPair.enemyType = RestoreAsset(enemyRarityPair.enemyType, vanillaEnemyType);
 
             foreach (SpawnableMapObject spawnableMapObject in extendedLevel.SelectableLevel.spawnableMapObjects)
@@ -156,24 +155,6 @@ namespace LethalLevelLoader.Tools
                 UnityEngine.Object.DestroyImmediate(objectToDestroy);
             }
             objectsToDestroy.Clear();
-        }
-
-        internal static void TryRestoreWaterShader(Material customMaterial)
-        {
-            if (customMaterial == null || customMaterial.shader == null || string.IsNullOrEmpty(customMaterial.shader.name))
-                return;
-
-            if (customMaterial.shader == LevelLoader.vanillaWaterShader)
-                return;
-
-            if (customMaterial.shader.name == LevelLoader.vanillaWaterShader.name)
-            {
-                customMaterial.shader = LevelLoader.vanillaWaterShader;
-                customMaterial.DisableKeyword("_BLENDMODE_ALPHA");
-                customMaterial.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                customMaterial.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
-                customMaterial.EnableKeyword("_DISABLE_SSR_TRANSPARENT");
-            }
         }
 
 

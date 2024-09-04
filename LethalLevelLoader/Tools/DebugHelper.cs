@@ -653,32 +653,6 @@ namespace LethalLevelLoader
             }
         }
 
-        public static void DebugCachedLevelColliderData()
-        {
-            string debugString = "Cached Level Collider-Material Data" + "\n\n";
-
-            foreach (KeyValuePair<Collider, List<Material>> kvp in LevelLoader.cachedLevelColliderMaterialDictionary)
-            {
-                debugString += "\n" + "Collider: " + kvp.Key.gameObject.name + " - Materials: ";
-                foreach (Material material in kvp.Value)
-                {
-                    debugString += material.name;
-                    if (material != kvp.Value.Last())
-                        debugString += ", ";
-                }
-            }
-
-            DebugHelper.Log(debugString, DebugType.User);
-
-            debugString = "Cached Level Material-Collider Data" + "\n\n";
-
-            foreach (KeyValuePair<string, List<Collider>> kvp in LevelLoader.cachedLevelMaterialColliderDictionary)
-                debugString += "\n" + kvp.Key+ " (" + kvp.Value.Count + ")";
-
-            DebugHelper.Log(debugString, DebugType.User);
-
-        }
-
         public static void LogDebugInstructionsFrom(CodeMatcher matcher)
         {
             var methodName = new StackTrace().GetFrame(1).GetMethod().Name;
