@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Text;
 
 namespace LethalLevelLoader
@@ -19,6 +20,7 @@ namespace LethalLevelLoader
         public static DebugType debugType = DebugType.User;
         public static bool allDungeonFlowsRequireMatching = false;
         public static int moonsCatalogueSplitCount = 3;
+        public static bool allowModConfigOverwrite = false;
 
         public static string GetOverridePreviewInfo(ExtendedLevel extendedLevel)
         {
@@ -26,6 +28,12 @@ namespace LethalLevelLoader
 
             return (returnString);
         }
+
+
+        public static ConcurrentDictionary<int, String> scrapOverrides = new ConcurrentDictionary<int, String>();
+        public static ConcurrentDictionary<int, String> enemyOverrides = new ConcurrentDictionary<int, String>();
+        public static ConcurrentDictionary<int, String> daytimeEnemyOverrides = new ConcurrentDictionary<int, String>();
+        public static ConcurrentDictionary<int, String> outdoorEnemyOverrides = new ConcurrentDictionary<int, String>();
 
     }
 }

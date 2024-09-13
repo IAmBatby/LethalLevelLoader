@@ -92,6 +92,22 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static bool RoundManagerSpawnScrapInLevel_Prefix()
         {
+            if (Settings.allowModConfigOverwrite)
+            {
+                DebugHelper.Log("allowModConfigOverwrite is enabled - Overloading scrap spawn rarities for " + LevelManager.CurrentExtendedLevel.SelectableLevel.PlanetName + " [" + LevelManager.CurrentExtendedLevel.SelectableLevel.levelID + "].", DebugType.User);
+
+                String overrideList;
+                if (Settings.scrapOverrides.TryGetValue(LevelManager.CurrentExtendedLevel.SelectableLevel.levelID, out overrideList))
+                {
+                    List<SpawnableItemWithRarity> overrideScrapList = ConfigHelper.ConvertToSpawnableItemWithRarityList(overrideList, new Vector2(0, 100));
+                    LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap = overrideScrapList;
+                }
+                else
+                {
+                    DebugHelper.LogWarning("allowModConfigOverwrite is enabled - But no level setting was found, enableContentConfiguration is likely disabled on this moon.", DebugType.User);
+                }
+            }
+
             List<SpawnableItemWithRarity> invalidSpawnableItemWithRarity = new List<SpawnableItemWithRarity>();
             foreach (SpawnableItemWithRarity spawnableScrap in LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap)
                 if (spawnableScrap.spawnableItem == null || spawnableScrap.rarity == 0)
