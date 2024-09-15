@@ -12,8 +12,6 @@ namespace LethalLevelLoader.Tools
 {
     internal static class ConfigLoader
     {
-        public static string debugLevelsString = string.Empty;
-        public static string debugDungeonsString = string.Empty;
         public static ConfigFile configFile;
 
         internal static void BindConfigs()
@@ -46,15 +44,6 @@ namespace LethalLevelLoader.Tools
                 ExtendedLevelConfig newConfig = new ExtendedLevelConfig(configFile, "Custom Level:  " + extendedLevel.SelectableLevel.PlanetName.StripSpecialCharacters(), 8);
                 newConfig.BindConfigs(extendedLevel);
             }
-
-            if (debugLevelsString.Contains(", ") && debugLevelsString.LastIndexOf(", ") == (debugLevelsString.Length - 2))
-                debugLevelsString = debugLevelsString.Remove(debugLevelsString.LastIndexOf(", "), 2);
-
-            if (debugDungeonsString.Contains(", ") && debugDungeonsString.LastIndexOf(", ") == (debugDungeonsString.Length - 2))
-                debugDungeonsString = debugDungeonsString.Remove(debugDungeonsString.LastIndexOf(", "), 2);
-
-            debugLevelsString = string.Empty;
-            debugDungeonsString = string.Empty;
         }
 
         internal static void BindGeneralConfigs()
@@ -141,11 +130,14 @@ namespace LethalLevelLoader.Tools
                 minimumDungeonSizeMultiplier = BindValue("Minimum Dungeon Size Multiplier", "If The Level's Dungeon Size Multiplier Is Below This Value, The Size Multiplier Will Be Restricted Based On The RestrictDungeonSizeScaler Setting", extendedDungeonFlow.DynamicDungeonSizeMinMax.x);
                 maximumDungeonSizeMultiplier = BindValue("Maximum Dungeon Size Multiplier", "If The Level's Dungeon Size Multiplier Is Above This Value, The Size Multiplier Will Be Restricted Based On The RestrictDungeonSizeScaler Setting", extendedDungeonFlow.DynamicDungeonSizeMinMax.y);
 
-                string description = "If The Level's Dungeon Size Multiplier Is Above Or Below The Previous Two Settings, The Dungeon Size Multiplier Will Be Set To The Value Between The Level's Dungeon Size Multiplier And This Value." + "\n";
-                description += "Example #1: If Set To 0, The Dungeon Size Will Not Be Higher Than Maximum Dungeon Size Multiplier." + "\n";
-                description += "Example #2: If Set To 0.5, The Dungeon Size Will Be Between The Maxiumum Dungeon Size Multiplier And The Level's Dungeon Size Multiplier." + "\n";
-                description += "Example #3: If Set To 1, The Dungeon Size Will Be The Level's Dungeon Size Multiplier With No Changes Applied." + "\n";
-                description += "(Minimum, 0, Maximum: 1)";
+                const string description = """
+                    If The Level's Dungeon Size Multiplier Is Above Or Below The Previous Two Settings, The Dungeon Size Multiplier Will Be Set To The Value Between The Level's Dungeon Size Multiplier And This Value.
+                    Example #1: If Set To 0, The Dungeon Size Will Not Be Higher Than Maximum Dungeon Size Multiplier.
+                    Example #2: If Set To 0.5, The Dungeon Size Will Be Between The Maxiumum Dungeon Size Multiplier And The Level's Dungeon Size Multiplier.
+                    Example #3: If Set To 1, The Dungeon Size Will Be The Level's Dungeon Size Multiplier With No Changes Applied.
+                    (Minimum, 0, Maximum: 1)
+                    """;
+
                 restrictDungeonSizeScaler = BindValue("Restrict Dungeon Size Scaler", description, extendedDungeonFlow.DynamicDungeonSizeLerpRate);
 
                 // ----- Getting -----
@@ -173,19 +165,19 @@ namespace LethalLevelLoader.Tools
                     extendedDungeonFlow.LevelMatchingProperties.currentRoutePrice = ConfigHelper.ConvertToVector2WithRarityList(dynamicRoutePrices.Value, new Vector2(0, 9999));
                     extendedDungeonFlow.LevelMatchingProperties.levelTags = ConfigHelper.ConvertToStringWithRarityList(dynamicLevelTags.Value, new Vector2(0, 9999));
 
-                    foreach (StringWithRarity stringWithRarity in ConfigHelper.ConvertToStringWithRarityList(dynamicLevelTags.Value, new Vector2(0, 9999)))
-                        DebugHelper.Log(stringWithRarity.Name + " | " + stringWithRarity.Rarity, DebugType.Developer);
-
-                    if (extendedDungeonFlow.ContentType == ContentType.Vanilla)
-                        ConfigLoader.debugDungeonsString += extendedDungeonFlow.DungeonName +  "(" + extendedDungeonFlow.DungeonFlow.name + ")" + ", ";
-                    else if (extendedDungeonFlow.ContentType == ContentType.Custom)
-                        ConfigLoader.debugDungeonsString += extendedDungeonFlow.DungeonName + ", ";
+                    if (DebugHelper.ShouldLog(DebugType.Developer))
+                    {
+                        foreach (StringWithRarity stringWithRarity in extendedDungeonFlow.LevelMatchingProperties.levelTags)
+                            DebugHelper.Log(stringWithRarity.Name + " | " + stringWithRarity.Rarity, DebugType.Developer);
+                    }
                 }
             }
             else
             {
-                string description = "The author of this content has chosen not to allow for LethalLevelLoader to generate a custom configuration template for them." + "\n";
-                description += "This is likely due to said content author providing alternative configuration options in their own Config.";
+                const string description = """
+                    The author of this content has chosen not to allow for LethalLevelLoader to generate a custom configuration template for them.
+                    This is likely due to said content author providing alternative configuration options in their own Config.
+                    """;
                 enableContentConfiguration = BindValue("Content Author Disabled Automatic Configuration File Warning", description, false);
             }
         }
@@ -295,15 +287,15 @@ namespace LethalLevelLoader.Tools
                     selectableLevel.Enemies = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(insideEnemiesOverrides.Value, new Vector2(0, 100));
                     selectableLevel.DaytimeEnemies = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(outsideDaytimeEnemiesOverrides.Value, new Vector2(0, 100));
                     selectableLevel.OutsideEnemies = ConfigHelper.ConvertToSpawnableEnemyWithRarityList(outsideNighttimeEnemiesOverrides.Value, new Vector2(0, 100));
-
-                    ConfigLoader.debugLevelsString += selectableLevel.PlanetName + ", ";
                 }
             }
             else
             {
-                string description = "The author of this content has chosen not to allow for LethalLevelLoader to generate a custom configuration template for them." + "\n";
-                description += "This is likely due to said content author providing alternative configuration options in their own Config.";
-                enableContentConfiguration = BindValue("Content Author Disabled Automatic Configuration File Warning", description, false);
+                const string Description = """
+                    The author of this content has chosen not to allow for LethalLevelLoader to generate a custom configuration template for them.
+                    This is likely due to said content author providing alternative configuration options in their own Config.
+                    """;
+                enableContentConfiguration = BindValue("Content Author Disabled Automatic Configuration File Warning", Description, false);
             }
         }
     }
@@ -335,10 +327,13 @@ namespace LethalLevelLoader.Tools
 
         public string GetSortingSpaces()
         {
-            string returnString = string.Empty;
-            for (int i = 0; i < sortingPriority; i++)
-                returnString += "​"; //Zero Width Space In Here, Do Not Let It Escape!
-            return returnString;
+            if (sortingPriority == 0)
+            {
+                return string.Empty;
+            }
+
+            const char ZeroWidthChar = (char)0x200b;
+            return new string(ZeroWidthChar, sortingPriority);
         }
     }
 }

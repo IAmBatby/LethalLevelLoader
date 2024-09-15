@@ -1,6 +1,7 @@
 ﻿using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
+using LethalLevelLoader.General;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,9 +33,9 @@ namespace LethalLevelLoader
                 IndoorMapType newIndoorMapType = new IndoorMapType();
                 newIndoorMapType.dungeonFlow = extendedDungeonFlow.DungeonFlow;
                 newIndoorMapType.MapTileSize = extendedDungeonFlow.MapTileSize;
-                Patches.RoundManager.dungeonFlowTypes = Patches.RoundManager.dungeonFlowTypes.AddItem(newIndoorMapType).ToArray();
+                ArrayExtensions.AddItem(ref Patches.RoundManager.dungeonFlowTypes, newIndoorMapType);
                 if (extendedDungeonFlow.FirstTimeDungeonAudio != null)
-                    Patches.RoundManager.firstTimeDungeonAudios = Patches.RoundManager.firstTimeDungeonAudios.AddItem(extendedDungeonFlow.FirstTimeDungeonAudio).ToArray();
+                    ArrayExtensions.AddItem(ref Patches.RoundManager.firstTimeDungeonAudios, extendedDungeonFlow.FirstTimeDungeonAudio);
             }
         }
 

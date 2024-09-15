@@ -1,4 +1,5 @@
 ﻿using GameNetcodeStuff;
+using LethalLevelLoader.General;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -185,10 +186,20 @@ namespace LethalLevelLoader
 
         internal static string GetNumberlessPlanetName(SelectableLevel selectableLevel)
         {
-            if (selectableLevel != null)
-                return new string(selectableLevel.PlanetName.SkipWhile(c => !char.IsLetter(c)).ToArray());
-            else
+            if (selectableLevel == null)
+            {
                 return string.Empty;
+            }
+
+            var planetNameSpan = selectableLevel.PlanetName.AsSpan();
+            var trimmedName = planetNameSpan.TrimStartToLetters();
+
+            if (trimmedName.Equals(planetNameSpan, StringComparison.Ordinal))
+            {
+                return selectableLevel.PlanetName;
+            }
+
+            return trimmedName.ToString();
         }
 
         internal void SetLevelID()

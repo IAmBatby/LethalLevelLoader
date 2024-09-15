@@ -12,6 +12,11 @@ namespace LethalLevelLoader
 
         internal static void StartStopWatch(string newStopWatchText, bool stopPreviousStopWatch = true)
         {
+            if (Settings.debugType < DebugType.IAmBatby)
+            {
+                return;
+            }
+
             if (!stopWatchDict.ContainsKey(newStopWatchText))
             {
                 if (stopPreviousStopWatch == true && stopWatchDict.Count > 0)

@@ -1,7 +1,9 @@
 ﻿using BepInEx.Configuration;
 using HarmonyLib;
+using LethalLevelLoader.General;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -144,62 +146,83 @@ namespace LethalLevelLoader
 
         public static string SpawnableEnemiesWithRaritiesToString(List<SpawnableEnemyWithRarity> spawnableEnemiesList)
         {
-            string returnString = string.Empty;
+            var stringBuilder = new StringBuilder();
 
             foreach (SpawnableEnemyWithRarity spawnableEnemyWithRarity in spawnableEnemiesList)
-                returnString += spawnableEnemyWithRarity.enemyType.enemyName + ConfigHelper.keyPairSeperator + spawnableEnemyWithRarity.rarity.ToString() + ConfigHelper.indexSeperator;
-            if (returnString.Contains(",") && returnString.LastIndexOf(",") == (returnString.Length - 1))
-                returnString = returnString.Remove(returnString.LastIndexOf(","), 1);
+            {
+                stringBuilder.Append(spawnableEnemyWithRarity.enemyType.enemyName)
+                    .Append(keyPairSeperator)
+                    .AppendValue(spawnableEnemyWithRarity.rarity)
+                    .Append(indexSeperator);
+            }
 
-            if (returnString == string.Empty)
-                returnString = "Default Values Were Empty";
-            return (returnString);
+            stringBuilder.TrimEnd(',');
+
+            if (stringBuilder.Length == 0)
+                return "Default Values Were Empty";
+
+            return (stringBuilder.ToString());
         }
 
         public static string SpawnableItemsWithRaritiesToString(List<SpawnableItemWithRarity> spawnableItemsList)
         {
-            string returnString = string.Empty;
+            var stringBuilder = new StringBuilder();
 
             foreach (SpawnableItemWithRarity spawnableItemWithRarity in spawnableItemsList)
-                returnString += spawnableItemWithRarity.spawnableItem.itemName + ConfigHelper.keyPairSeperator + spawnableItemWithRarity.rarity.ToString() + ConfigHelper.indexSeperator;
-            if (returnString.Contains(",") && returnString.LastIndexOf(",") == (returnString.Length - 1))
-                returnString = returnString.Remove(returnString.LastIndexOf(","), 1);
+            {
+                stringBuilder.Append(spawnableItemWithRarity.spawnableItem.itemName)
+                    .Append(keyPairSeperator)
+                    .AppendValue(spawnableItemWithRarity.rarity)
+                    .Append(indexSeperator);
+            }
 
-            if (returnString == string.Empty)
-                returnString = "Default Values Were Empty";
-            return (returnString);
+            stringBuilder.TrimEnd(',');
+
+            if (stringBuilder.Length == 0)
+                return "Default Values Were Empty";
+
+            return (stringBuilder.ToString());
         }
 
         public static string StringWithRaritiesToString(List<StringWithRarity> names)
         {
-            string returnString = string.Empty;
+            var stringBuilder = new StringBuilder();
 
             foreach (StringWithRarity name in names)
-                returnString += name.Name + ConfigHelper.keyPairSeperator + name.Rarity.ToString() + ConfigHelper.indexSeperator;
+            {
+                stringBuilder.Append(name.Name)
+                    .Append(keyPairSeperator)
+                    .AppendValue(name.Rarity)
+                    .Append(indexSeperator);
+            }
 
-            if (returnString.Contains(",") && returnString.LastIndexOf(",") == (returnString.Length - 1))
-                returnString = returnString.Remove(returnString.LastIndexOf(","), 1);
+            stringBuilder.TrimEnd(',');
 
-            if (returnString == string.Empty)
-                returnString = "Default Values Were Empty";
+            if (stringBuilder.Length == 0)
+                return "Default Values Were Empty";
 
-            return (returnString);
+            return (stringBuilder.ToString());
         }
 
         public static string Vector2WithRaritiesToString(List<Vector2WithRarity> values)
         {
-            string returnString = string.Empty;
+            var stringBuilder = new StringBuilder();
 
             foreach (Vector2WithRarity vector2withRarity in values)
-                returnString += vector2withRarity.Min + vectorSeperator + vector2withRarity.Max + keyPairSeperator + vector2withRarity.Rarity + indexSeperator;
+            {
+                stringBuilder.AppendValue(vector2withRarity.Min)
+                    .Append(vectorSeperator)
+                    .AppendValue(vector2withRarity.Max)
+                    .AppendValue(vector2withRarity.Rarity)
+                    .Append(indexSeperator);
+            }
 
-            if (returnString.Contains(",") && returnString.LastIndexOf(",") == (returnString.Length - 1))
-                returnString = returnString.Remove(returnString.LastIndexOf(","), 1);
+            stringBuilder.TrimEnd(',');
 
-            if (returnString == string.Empty)
-                returnString = "Default Values Were Empty";
+            if (stringBuilder.Length == 0)
+                return "Default Values Were Empty";
 
-            return (returnString);
+            return (stringBuilder.ToString());
         }
 
         public static List<string> SplitStringsByIndexSeperator(string newInputString)
@@ -245,9 +268,10 @@ namespace LethalLevelLoader
             }
         }
 
+        [Obsolete("Use " + nameof(Extensions) + "." + nameof(Extensions.Sanitized))]
         public static string SanitizeString(string inputString)
         {
-            return (inputString.SkipToLetters().RemoveWhitespace().ToLower());
+            return inputString.Sanitized();
         }
     }
 }

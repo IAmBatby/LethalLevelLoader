@@ -1,10 +1,12 @@
 ﻿using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
+using LethalLevelLoader.General;
 using Mono.Cecil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -90,22 +92,24 @@ namespace LethalLevelLoader
 
         public static void AddCompatibleNoun(this TerminalKeyword terminalKeyword, TerminalKeyword newNoun,  TerminalNode newResult)
         {
-            if (terminalKeyword.compatibleNouns == null)
-                terminalKeyword.compatibleNouns = new CompatibleNoun[0];
-            CompatibleNoun newCompataibleNoun = new CompatibleNoun();
-            newCompataibleNoun.noun = newNoun;
-            newCompataibleNoun.result = newResult;
-            terminalKeyword.compatibleNouns = terminalKeyword.compatibleNouns.AddItem(newCompataibleNoun).ToArray();
+            CompatibleNoun newCompataibleNoun = new CompatibleNoun
+            {
+                noun = newNoun,
+                result = newResult
+            };
+
+            ArrayExtensions.AddItem(ref terminalKeyword.compatibleNouns, newCompataibleNoun);
         }
 
         public static void AddCompatibleNoun(this TerminalNode terminalNode, TerminalKeyword newNoun, TerminalNode newResult)
         {
-            if (terminalNode.terminalOptions == null)
-                terminalNode.terminalOptions = new CompatibleNoun[0];
-            CompatibleNoun newCompataibleNoun = new CompatibleNoun();
-            newCompataibleNoun.noun = newNoun;
-            newCompataibleNoun.result = newResult;
-            terminalNode.terminalOptions = terminalNode.terminalOptions.AddItem(newCompataibleNoun).ToArray();
+            CompatibleNoun newCompataibleNoun = new CompatibleNoun
+            {
+                noun = newNoun,
+                result = newResult
+            };
+
+            ArrayExtensions.AddItem(ref terminalNode.terminalOptions, newCompataibleNoun);
         }
 
         public static void Add(this IntWithRarity intWithRarity, int id, int rarity)
@@ -116,28 +120,56 @@ namespace LethalLevelLoader
 
         public static string Sanitized(this string currentString)
         {
-            return new string(currentString.SkipToLetters().RemoveWhitespace().ToLowerInvariant());
+            return (currentString.SkipToLetters().RemoveWhitespace().ToLowerInvariant());
         }
 
         public static string RemoveWhitespace(this string input)
         {
-            return new string(input.ToCharArray().Where(c => !Char.IsWhiteSpace(c)).ToArray());
+            var inputSpan = input.AsSpan();
+            
+            if (!inputSpan.IsWhiteSpace())
+            {
+                return input;
+            }
+
+            var stringBuilder = new StringBuilder(input);
+            stringBuilder.Replace(" ", "");
+
+            return stringBuilder.ToString();
         }
 
         public static string SkipToLetters(this string input)
         {
-            return new string(input.SkipWhile(c => !char.IsLetter(c)).ToArray());
+            var inputSpan = input.AsSpan();
+            var trimmedSpan = inputSpan.TrimStartToLetters();
+
+            if (inputSpan.Equals(trimmedSpan, StringComparison.Ordinal))
+            {
+                return input;
+            }
+
+            return trimmedSpan.ToString();
         }
 
         public static string StripSpecialCharacters(this string input)
         {
-            string returnString = string.Empty;
+            var stringBuilder = new StringBuilder();
 
-            foreach (char charmander in input)
-                if ((!ConfigHelper.illegalCharacters.ToCharArray().Contains(charmander) && char.IsLetterOrDigit(charmander)) || charmander.ToString() == " ")
-                    returnString += charmander;
+            foreach (var chr in input)
+            {
+                if ((!ConfigHelper.illegalCharacters.Contains(chr) && char.IsLetterOrDigit(chr))
+                    || chr == ' ')
+                {
+                    stringBuilder.Append(chr);
+                }
+            }
 
-            return returnString;
+            if (input.Length == stringBuilder.Length)
+            {
+                return input;
+            }
+
+            return stringBuilder.ToString();
         }
 
         public static List<DungeonFlow> GetDungeonFlows(this RoundManager roundManager)

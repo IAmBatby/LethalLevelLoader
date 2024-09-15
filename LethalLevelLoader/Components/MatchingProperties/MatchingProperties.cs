@@ -22,7 +22,7 @@ namespace LethalLevelLoader
         {
             if (newValue > currentValue)
             {
-                if (!string.IsNullOrEmpty(debugActionReason))
+                if (!string.IsNullOrEmpty(debugActionReason) && DebugHelper.ShouldLog(DebugType.Developer))
                 {
                     if (!string.IsNullOrEmpty(debugActionObject))
                         DebugHelper.Log("Raised Rarity Of: " + debugActionObject + " From (" + currentValue + ") To (" + newValue + ") Due To Matching " + debugActionReason, DebugType.Developer);
@@ -60,10 +60,26 @@ namespace LethalLevelLoader
         {
             int returnInt = 0;
             foreach (StringWithRarity stringWithRarity in matchingStrings)
-                foreach (string comparingString in new List<string>(comparingStrings))
-                    if (stringWithRarity.Rarity >= returnInt)
-                        if (stringWithRarity.Name.Sanitized().Contains(comparingString.Sanitized()) || comparingString.Sanitized().Contains(stringWithRarity.Name.Sanitized()))
-                            returnInt = stringWithRarity.Rarity;
+            {
+                if (stringWithRarity.Rarity < returnInt)
+                {
+                    continue;
+                }
+
+                var stringNameSanitized = stringWithRarity.Name.Sanitized();
+                foreach (string comparingString in comparingStrings)
+                {
+                    var comparingStringSanitized = comparingString.Sanitized();
+
+                    if (stringNameSanitized.Contains(comparingStringSanitized)
+                        || comparingStringSanitized.Contains(stringNameSanitized))
+                    {
+                        returnInt = stringWithRarity.Rarity;
+                        break;
+                    }
+                }
+            }
+
             return (returnInt);
         }
     }

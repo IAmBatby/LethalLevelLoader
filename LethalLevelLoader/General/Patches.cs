@@ -3,6 +3,7 @@ using DunGen;
 using DunGen.Graph;
 using GameNetcodeStuff;
 using HarmonyLib;
+using LethalLevelLoader.General;
 using LethalLevelLoader.Tools;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
@@ -184,7 +185,7 @@ namespace LethalLevelLoader
                 GameObject.Instantiate(LethalLevelLoaderNetworkManager.networkingManagerPrefab).GetComponent<NetworkObject>().Spawn(destroyWithScene: false);
 
             //Add the facility's firstTimeDungeonAudio additionally to RoundManager's list to fix a base game bug.
-            RoundManager.firstTimeDungeonAudios = RoundManager.firstTimeDungeonAudios.ToList().AddItem(RoundManager.firstTimeDungeonAudios[0]).ToArray();
+            ArrayExtensions.AddItem(ref RoundManager.firstTimeDungeonAudios, RoundManager.firstTimeDungeonAudios[0]);
             DebugStopwatch.StartStopWatch("Fix AudioSource Settings");
             //Disable Spatialization In All AudioSources To Fix Log Spam Bug.
             foreach (AudioSource audioSource in Resources.FindObjectsOfTypeAll<AudioSource>())
