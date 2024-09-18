@@ -171,7 +171,6 @@ namespace LethalLevelLoader
                 extendedLevelData.ApplySavedValues(extendedLevel);
         }
 
-
         public static void RegisterNetworkPrefab(GameObject prefab)
         {
             if (networkHasStarted == false)

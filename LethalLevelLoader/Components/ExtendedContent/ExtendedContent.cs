@@ -57,6 +57,18 @@ namespace LethalLevelLoader
         internal abstract (bool result, string log) Validate();
 
         internal virtual void TryRecoverObsoleteValues() { }
+
+        private void Awake()
+        {
+            int counter = 0;
+            foreach (ContentTag contentTag in new List<ContentTag>(ContentTags))
+            {
+                if (contentTag == null)
+                    ContentTags.RemoveAt(counter);
+                counter++;
+            }
+                
+        }
     }
 
     [Serializable]

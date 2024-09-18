@@ -72,9 +72,14 @@ namespace LethalLevelLoader
             List<int> appliedIndexes = new List<int>();
             foreach (KeyValuePair<string, List<string>> importedItemData in importedItemContentTagDictionary)
             {
+                if (string.IsNullOrEmpty(importedItemData.Key)) continue;
                 foreach (ExtendedItem extendedItem in PatchedContent.VanillaMod.ExtendedItems)
                 {
-                    if (extendedItem.Item.name.RemoveWhitespace().StripSpecialCharacters().ToLower() == importedItemData.Key.RemoveWhitespace().StripSpecialCharacters().ToLower() || extendedItem.Item.itemName.RemoveWhitespace().StripSpecialCharacters().ToLower() == importedItemData.Key.RemoveWhitespace().StripSpecialCharacters().ToLower())
+                    if (extendedItem == null || extendedItem.Item == null || extendedItem.name == null || extendedItem.Item.name == null || extendedItem.Item.itemName == null) continue;
+                    string sanitisedItemName = extendedItem.Item.name.Sanitized().StripSpecialCharacters();
+                    string sanitisedImport = importedItemData.Key.Sanitized().StripSpecialCharacters();
+                    if (sanitisedItemName == null || sanitisedImport == null) continue;
+                    if (sanitisedImport == sanitisedItemName)
                     {
                         DebugHelper.Log("Applying CSV Tags For Imported Item #" + (counter + 1) + " / " + (importedItemContentTagDictionary.Count - 1) + ": " + importedItemData.Key + " To ExtendedItem: " + extendedItem.Item.itemName + "(" + extendedItem.Item.name + ")", DebugType.Developer);
                         extendedItem.ContentTags = ContentTagManager.CreateNewContentTags(importedItemData.Value.Concat(new List<string>() { "Vanilla" }).ToList());
@@ -85,10 +90,11 @@ namespace LethalLevelLoader
                 counter++;
             }
 
-            for (int i = 0; i < importedItemContentTagDictionary.Count; i++)
+            List<string> unappliedItems = importedItemContentTagDictionary.Keys.ToList();
+            for (int i = 0; i < unappliedItems.Count; i++)
             {
-                if (!appliedIndexes.Contains(i) && importedItemContentTagDictionary.Keys.ToList()[i] != string.Empty)
-                    DebugHelper.LogWarning("Could Not Apply CSV Tags For Imported Item: " + importedItemContentTagDictionary.Keys.ToList()[i], DebugType.Developer);
+                if (!appliedIndexes.Contains(i) && !string.IsNullOrEmpty(unappliedItems[i]))
+                    DebugHelper.LogWarning("Could Not Apply CSV Tags For Imported Item: " + unappliedItems[i], DebugType.Developer);
             }
         }
 
@@ -126,6 +132,11 @@ namespace LethalLevelLoader
             {
                 foreach (ExtendedEnemyType extendedEnemyType in PatchedContent.VanillaMod.ExtendedEnemyTypes)
                 {
+                    if (extendedEnemyType.EnemyType == null)
+                    {
+                        DebugHelper.LogError(extendedEnemyType.name + " Was Null!", DebugType.User);
+                        continue;
+                    }
                     if (extendedEnemyType.EnemyType.name.RemoveWhitespace().StripSpecialCharacters().ToLower() == importedItemData.Key.RemoveWhitespace().StripSpecialCharacters().ToLower() || extendedEnemyType.EnemyType.enemyName.RemoveWhitespace().StripSpecialCharacters().ToLower() == importedItemData.Key.RemoveWhitespace().StripSpecialCharacters().ToLower())
                     {
                         DebugHelper.Log("Applying CSV Tags For Imported Enemy #" + (counter + 1) + " / " + (importedEnemyContentTagDictionary.Count - 1) + ": " + importedItemData.Key + " To EnemyType: " + extendedEnemyType.EnemyType.enemyName + "(" + extendedEnemyType.EnemyType.name + ")", DebugType.Developer);

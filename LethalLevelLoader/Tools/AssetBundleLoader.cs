@@ -175,14 +175,11 @@ namespace LethalLevelLoader
                 if (newBundle.isStreamedSceneAssetBundle == false)
                 {
                     ExtendedMod[] extendedMods = newBundle.LoadAllAssets<ExtendedMod>();
-                    if (extendedMods.Length > 0)
-                        foreach (ExtendedMod extendedMod in extendedMods)
-                            ContentManager.RegisterExtendedMod(extendedMod);
-                    else
-                    {
-                        DebugHelper.Log("No ExtendedMod Found In Bundle: " + newBundle.name + ". Forcefully Loading ExtendedContent!", DebugType.User);
-                        ContentManager.RegisterExtendedMod(ExtendedMod.Create(newBundle.name, extendedContents: newBundle.LoadAllAssets<ExtendedContent>()));
-                    }
+                    foreach (ExtendedMod extendedMod in extendedMods)
+                        ContentManager.RegisterExtendedMod(extendedMod);
+
+                    if (TryCreateLegacyExtendedMod(newBundle, out ExtendedMod legacyMod))
+                        ContentManager.RegisterExtendedMod(legacyMod);
                 }
 
                 onBundleFinishedLoading?.Invoke(newBundle);
@@ -209,6 +206,34 @@ namespace LethalLevelLoader
             {
                 DebugHelper.LogError(ex, DebugType.User);
             }
+        }
+
+        public static bool TryCreateLegacyExtendedMod(AssetBundle bundle, out ExtendedMod legacyMod)
+        {
+            legacyMod = null;
+
+            ExtendedMod[] allExtendedMods = bundle.LoadAllAssets<ExtendedMod>();
+            ExtendedContent[] allExtendedContents = bundle.LoadAllAssets<ExtendedContent>();
+            List<ExtendedContent> legacyContent = new List<ExtendedContent>(allExtendedContents);
+
+            foreach (ExtendedContent extendedContent in allExtendedContents)
+                foreach (ExtendedMod extendedMod in allExtendedMods.Concat(obtainedExtendedModsDictionary.Values))
+                    if (extendedMod.GetOwnership(extendedContent) == true)
+                        legacyContent.Remove(extendedContent);
+
+            if (legacyContent.Count != 0)
+            {
+                string debugString = "Found ExtendedContent In LethalBundle: " + bundle.name + " That Was Not Associated With A ExtendedMod. Creating Legacy ExtendedMod With The Following Assets: " + "\n";
+
+                foreach (ExtendedContent extendedContent in legacyContent)
+                    debugString += extendedContent.name + ", ";
+                if (debugString.Contains(", "))
+                    debugString = debugString.Remove(debugString.LastIndexOf(", "), 2);
+                DebugHelper.LogWarning(debugString, DebugType.User);
+                legacyMod = ExtendedMod.Create(bundle.name.Replace(".lethalbundle", string.Empty), bundle.name.Replace(".lethalbundle", string.Empty), extendedContents: legacyContent.ToArray());
+            }
+
+            return (legacyMod != null);
         }
 
         public static void AddOnLethalBundleLoadedListener(Action<AssetBundle> invokedFunction, string lethalBundleFileName)

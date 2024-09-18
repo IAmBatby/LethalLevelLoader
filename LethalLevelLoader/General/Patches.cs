@@ -216,16 +216,9 @@ namespace LethalLevelLoader
                 LevelLoader.defaultQuicksandPrefab = RoundManager.quicksandPrefab;
 
                 DebugStopwatch.StartStopWatch("Create Vanilla ExtendedContent");
-                //Create & Initialize ExtendedContent Objects For Vanilla Content.
-                //AssetBundleLoader.CreateVanillaExtendedDungeonFlows();
-                //AssetBundleLoader.CreateVanillaExtendedLevels(StartOfRound);
-                //AssetBundleLoader.CreateVanillaExtendedItems();
-                //AssetBundleLoader.CreateVanillaExtendedEnemyTypes();
-                //AssetBundleLoader.CreateVanillaExtendedBuyableVehicles();
 
                 DebugStopwatch.StartStopWatch("Initialize Custom ExtendedContent"); // this is not used
                 //Initialize ExtendedContent Objects For Custom Content.
-                //AssetBundleLoader.InitializeBundles();
                 ContentManager.InitializeMods();
 
                 foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)

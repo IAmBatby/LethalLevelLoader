@@ -176,6 +176,8 @@ namespace LethalLevelLoader
 
         internal void ClearAllExtendedContent()
         {
+            foreach (ExtendedContent extendedContent in ExtendedContents)
+                extendedContent.ExtendedMod = null;
             foreach (IList extendedContentList in ExtendedContentsLists.Values)
                 extendedContentList.Clear();
         }
@@ -185,6 +187,20 @@ namespace LethalLevelLoader
             foreach (IList extendedContentList in ExtendedContentsLists.Values)
                 if (extendedContentList is List<ExtendedContent> castedList)
                     castedList.Sort((s1, s2) => s1.name.CompareTo(s2.name));
+        }
+
+        public bool GetOwnership(ExtendedContent extendedContent)
+        {
+            if (extendedContent == null) return (false);
+
+            if (extendedContent.ExtendedMod != null)
+                return (extendedContent.ExtendedMod == this);
+
+            foreach (IList list in ExtendedContentsLists.Values)
+                if (list.Contains(extendedContent))
+                    return (true);
+
+            return (false);
         }
     }
 }

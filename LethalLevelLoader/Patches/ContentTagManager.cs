@@ -20,7 +20,7 @@ namespace LethalLevelLoader
             foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods.Concat(new List<ExtendedMod>(){PatchedContent.VanillaMod}))
                 foreach (ExtendedContent extendedContent in extendedMod.ExtendedContents)
                     foreach (ContentTag contentTag in extendedContent.ContentTags)
-                        if (!allContentTagsList.Contains(contentTag))
+                        if (contentTag != null && !allContentTagsList.Contains(contentTag))
                             allContentTagsList.Add(contentTag);
 
             foreach (ContentTag contentTag in allContentTagsList)
@@ -37,6 +37,7 @@ namespace LethalLevelLoader
                 foreach (ExtendedContent extendedContent in extendedMod.ExtendedContents)
                     foreach (ContentTag contentTag in extendedContent.ContentTags)
                     {
+                        if (contentTag == null) continue;
                         if (globalcontentTagExtendedContentDictionary.TryGetValue(contentTag.TagName, out List<ExtendedContent> extendedContentList))
                             extendedContentList.Add(extendedContent);
                         else
@@ -92,13 +93,23 @@ namespace LethalLevelLoader
             Dictionary<ContentTag, List<ExtendedContent>> foundContentTagsDict = new Dictionary<ContentTag, List<ExtendedContent>>();
             Dictionary<ContentTag, ContentTag> replaceContentTagDict = new Dictionary<ContentTag, ContentTag>();
             foreach (ExtendedContent extendedContent in extendedMod.ExtendedContents)
-                foreach (ContentTag contentTag in extendedContent.ContentTags)
+            {
+                int counter = 0;
+                foreach (ContentTag contentTag in new List<ContentTag>(extendedContent.ContentTags))
                 {
-                    if (foundContentTagsDict.TryGetValue(contentTag, out List<ExtendedContent> foundContentTagsList))
-                        foundContentTagsList.Add(extendedContent);
+                    if (contentTag == null)
+                        extendedContent.ContentTags.RemoveAt(counter);
                     else
-                        foundContentTagsDict.Add(contentTag, new List<ExtendedContent>() { extendedContent });
+                    {
+                        if (foundContentTagsDict.TryGetValue(contentTag, out List<ExtendedContent> foundContentTagsList))
+                            foundContentTagsList.Add(extendedContent);
+                        else
+                            foundContentTagsDict.Add(contentTag, new List<ExtendedContent>() { extendedContent });
+                    }
+                    counter++;
                 }
+            }
+
 
             foreach (ContentTag validContentTag in foundContentTagsDict.Keys)
                 foreach (ContentTag invalidContentTag in foundContentTagsDict.Keys)

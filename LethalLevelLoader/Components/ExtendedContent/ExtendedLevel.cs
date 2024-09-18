@@ -110,6 +110,7 @@ namespace LethalLevelLoader
         public TerminalNode RouteNode { get; internal set; }
         public TerminalNode RouteConfirmNode { get; internal set; }
         public TerminalNode InfoNode { get; internal set; }
+        public TerminalNode SimulateNode { get; internal set; }
 
         //Dunno about these yet
         public List<ExtendedWeatherEffect> EnabledExtendedWeatherEffects { get; set; } = new List<ExtendedWeatherEffect>();

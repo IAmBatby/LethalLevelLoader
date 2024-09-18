@@ -102,6 +102,12 @@ namespace LethalLevelLoader
                 return (false, "Item Was Null");
             else if (Item.spawnPrefab == null)
                 return (false, "SpawnPrefab Was Null");
+            else if (name == null)
+                return (false, "ExtendedItem Name Was Null");
+            else if (Item.name == null)
+                return (false, "Item Name Was Null");
+            else if (Item.itemName == null)
+                return (false, "Item itemName Was Null");
             else
                 return (true, string.Empty);
         }

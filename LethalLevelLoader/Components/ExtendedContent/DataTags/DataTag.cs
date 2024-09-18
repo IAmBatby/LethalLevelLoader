@@ -47,14 +47,20 @@ namespace LethalLevelLoader
         }
     }
 
-    [CreateAssetMenu(fileName = "Positions Tag", menuName = "Lethal Level Loader/Utility/Data Tags/Positions Tag", order = 11)]
-    public class Vector3Tag : DataTag<List<Vector3>> { }
-
     [CreateAssetMenu(fileName = "Color Tag", menuName = "Lethal Level Loader/Utility/Data Tags/Color Tag", order = 11)]
     public class ColorTag : DataTag<Color> { }
 
     [CreateAssetMenu(fileName = "Float Tag", menuName = "Lethal Level Loader/Utility/Data Tags/Float Tag", order = 11)]
     public class FloatTag : DataTag<float> { }
+
+    [CreateAssetMenu(fileName = "Vector2 Tag", menuName = "Lethal Level Loader/Utility/Data Tags/Vector2 Tag", order = 11)]
+    public class Vector2Tag : DataTag<float> { }
+
+    [CreateAssetMenu(fileName = "Vector3 Tag", menuName = "Lethal Level Loader/Utility/Data Tags/Vector3 Tag", order = 11)]
+    public class Vector3Tag : DataTag<float> { }
+
+    [CreateAssetMenu(fileName = "Positions Tag", menuName = "Lethal Level Loader/Utility/Data Tags/Positions Tag", order = 11)]
+    public class Vector3CollectionTag : DataTag<List<Vector3>> { }
 
     [CreateAssetMenu(fileName = "String Tag", menuName = "Lethal Level Loader/Utility/Data Tags/String Tag", order = 11)]
     public class StringTag : DataTag<string> { }
