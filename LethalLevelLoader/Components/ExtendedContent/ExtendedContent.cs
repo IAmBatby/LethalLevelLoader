@@ -60,9 +60,11 @@ namespace LethalLevelLoader
 
         private void Awake()
         {
+            if (ContentTags == null) return;
             int counter = 0;
             foreach (ContentTag contentTag in new List<ContentTag>(ContentTags))
             {
+                if (counter >= ContentTags.Count) break;
                 if (contentTag == null)
                     ContentTags.RemoveAt(counter);
                 counter++;

@@ -39,6 +39,11 @@ namespace LethalLevelLoader
 
         internal static GameObject networkManagerPrefab;
 
+        internal static bool enableHotloading = true;
+
+        internal enum LoadType { Old, Hotload, Refacor }
+        internal LoadType loadType = LoadType.Refacor;
+
         private void Awake()
         {
             if (Instance == null)
@@ -68,11 +73,18 @@ namespace LethalLevelLoader
             NetcodePatch();
 
             GameObject assetBundleLoaderObject = new GameObject("LethalLevelLoader AssetBundleLoader");
-            assetBundleLoaderObject.AddComponent<AssetBundleLoader>().LoadBundles();
+            if (loadType == LoadType.Old)
+                assetBundleLoaderObject.AddComponent<AssetBundleLoader>().LoadBundles();
+            else if (loadType == LoadType.Hotload)
+                assetBundleLoaderObject.AddComponent<TestAssetBundleLoader>().LoadAllBundles();
+            else
+                assetBundleLoaderObject.AddComponent<AssetBundleManager>().Load();
+
             if (Application.isEditor)
                 DontDestroyOnLoad(assetBundleLoaderObject);
             else
                 assetBundleLoaderObject.hideFlags = HideFlags.HideAndDontSave;
+
 
             ConfigLoader.BindGeneralConfigs();
         }

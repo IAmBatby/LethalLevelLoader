@@ -159,6 +159,9 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void StartOfRoundAwake_Prefix(StartOfRound __instance)
         {
+            Resources.UnloadUnusedAssets();
+            Caching.ClearCache();
+            Caching.CleanCache();
             Plugin.OnBeforeSetupInvoke();
             //Reference Setup
             StartOfRound = __instance;
@@ -412,6 +415,8 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         public static void StartOfRoundChangeLevel_Postfix(int levelID)
         {
+            if (Plugin.enableHotloading && LevelManager.CurrentExtendedLevel.ContentType == ContentType.Custom)
+                TestAssetBundleLoader.Instance.TryLoadSceneBundle(LevelManager.CurrentExtendedLevel.SelectableLevel.sceneName);
             if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false)
                 return;
 

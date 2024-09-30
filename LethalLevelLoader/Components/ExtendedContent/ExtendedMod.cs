@@ -84,7 +84,6 @@ namespace LethalLevelLoader
         internal static ExtendedMod Create(string modName = null, string authorName = null, ExtendedContent[] extendedContents = null)
         {
             ExtendedMod newExtendedMod = CreateInstance<ExtendedMod>();
-
             if (!string.IsNullOrEmpty(modName))
                 newExtendedMod.ModName = modName;
             if (!string.IsNullOrEmpty(authorName))

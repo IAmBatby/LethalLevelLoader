@@ -250,8 +250,8 @@ namespace LethalLevelLoader
                 return ((false, "SelectableLevel PlanetPrefab Was Null"));
             else if (SelectableLevel.planetPrefab.GetComponent<Animator>() == null)
                 return ((false, "SelectableLevel PlanetPrefab Animator Was Null"));
-            else if (SelectableLevel.planetPrefab.GetComponent<Animator>().runtimeAnimatorController == null)
-                return ((false, "SelectableLevel PlanetPrefab Animator AnimatorController Was Null"));
+            //else if (SelectableLevel.planetPrefab.GetComponent<Animator>().runtimeAnimatorController == null)
+                //return ((false, "SelectableLevel PlanetPrefab Animator AnimatorController Was Null"));
             else
                 return (true, string.Empty);
         }

@@ -16,6 +16,7 @@ using Unity.Services.Relay.RelayAllocations;
 using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.InputSystem.Utilities;
 using UnityEngine.SceneManagement;
 using UnityEngine.Windows;
 using static LethalLevelLoader.ExtendedContent;
@@ -36,6 +37,11 @@ namespace LethalLevelLoader
         public void SetAssetBundle(AssetBundle bundle)
         {
             LethalAssetBundle = bundle;
+        }
+
+        public void Clear()
+        {
+            LethalAssetBundle = null;
         }
     }
     public class AssetBundleLoader : MonoBehaviour
@@ -61,6 +67,7 @@ namespace LethalLevelLoader
         internal static List<(string bundleFileName, List<Action<AssetBundle>> bundleActions)> onLethalBundleLoadedRequestDictionary = new List<(string bundleFileName, List<Action<AssetBundle>> actions)>();
         internal static List<(string bundleFileName, List<Action<ExtendedMod>> modActions)> onExtendedModLoadedRequestDictionary = new List<(string bundleFileName, List<Action<ExtendedMod>> modActions)>();
 
+        internal static Dictionary<string, AssetBundle> sceneBundlesDict = new Dictionary<string, AssetBundle>();
         internal static bool HaveBundlesFinishedLoading
         {
             get
@@ -134,6 +141,7 @@ namespace LethalLevelLoader
             pluginsFolder = lethalLibFile.Parent.Parent;
 
             int counter = 0;
+            
             foreach (string file in Directory.GetFiles(pluginsFolder.FullName, specifiedFileExtension, SearchOption.AllDirectories))
             {
                 FileInfo fileInfo = new FileInfo(file);
@@ -286,6 +294,32 @@ namespace LethalLevelLoader
                     if (extendedMod.ModNameAliases.Contains(kvp.Item1))
                         foreach (Action<ExtendedMod> action in kvp.Item2)
                             action(extendedMod);
+
+            //UnloadSceneBundles();
+        }
+
+        internal static void UnloadSceneBundles()
+        {
+            onLethalBundleLoadedRequestDictionary.Clear();
+            for (int i = 0; i < assetBundles.Count; i++)
+                assetBundles[i].Clear();
+
+            assetBundles.Clear();
+            AssetBundle[] sceneBundles = sceneBundlesDict.Values.ToArray();
+            for (int i = 0; i < sceneBundles.Length; i++)
+                if (sceneBundles[i] != null)
+                {
+                    DebugHelper.Log("Unloading Scene Bundle: " + sceneBundles[i].name, DebugType.User);
+                    sceneBundles[i].Unload(true);
+                    Resources.UnloadAsset(sceneBundles[i]);
+                    UnityEngine.Object.Destroy(sceneBundles[i]);
+                }
+            sceneBundles = null;
+            sceneBundlesDict.Clear();
+            //AssetBundle.UnloadAllAssetBundles(true);
+            Resources.UnloadUnusedAssets();
+            Caching.ClearCache();
+            Caching.CleanCache();
         }
 
         internal static void NetworkRegisterLevelContent()
@@ -319,22 +353,30 @@ namespace LethalLevelLoader
                                 {
                                     //DebugHelper.Log("Found Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ". Scene Path Is: " + scenePath);
                                     foundExtendedLevelScene = true;
-                                    NetworkScenePatcher.AddScenePath(GetSceneName(scenePath));
-                                    if (!PatchedContent.AllLevelSceneNames.Contains(GetSceneName(scenePath)))
-                                        PatchedContent.AllLevelSceneNames.Add(GetSceneName(scenePath));
+                                    TryRegisterSceneName(scenePath, assetBundle.LethalAssetBundle);
                                 }
                             }
 
                     if (foundExtendedLevelScene == false)
                     {
-                        DebugHelper.LogError(debugString, DebugType.User);
-                        extendedMod.UnregisterExtendedContent(extendedLevel);
+                        //DebugHelper.LogError(debugString, DebugType.User);
+                        //extendedMod.UnregisterExtendedContent(extendedLevel);
                     }
                 }
             }
 
             foreach (string loadedSceneName in PatchedContent.AllLevelSceneNames)
                 DebugHelper.Log("Loaded SceneName: " + loadedSceneName, DebugType.Developer);
+        }
+
+        internal static void TryRegisterSceneName(string scenePath, AssetBundle bundle)
+        {
+            string sceneName = GetSceneName(scenePath);
+            NetworkScenePatcher.AddScenePath(sceneName);
+            if (!PatchedContent.AllLevelSceneNames.Contains(sceneName))
+                PatchedContent.AllLevelSceneNames.Add(sceneName);
+            if (!sceneBundlesDict.ContainsKey(scenePath))
+                sceneBundlesDict.Add(scenePath, bundle);
         }
 
         internal static void NetworkRegisterDungeonContent(ExtendedDungeonFlow extendedDungeonFlow, NetworkManager networkManager)

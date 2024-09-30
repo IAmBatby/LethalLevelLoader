@@ -173,6 +173,8 @@ namespace LethalLevelLoader
 
         public static void RegisterNetworkPrefab(GameObject prefab)
         {
+            if (prefab == null) return;
+            if (prefab.GetComponent<NetworkObject>() == null) return;
             if (networkHasStarted == false)
                 queuedNetworkPrefabs.Add(prefab);
             else
