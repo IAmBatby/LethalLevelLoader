@@ -31,6 +31,11 @@ namespace LethalLevelLoader
                         tilesList.AddRange(GetTilesInTileSet(dungeonTileSet));
                 }
 
+            foreach (TileSet injectedTileSet in dungeonFlow.TileInjectionRules.Select(x => x.TileSet))
+            {
+                tilesList.AddRange(GetTilesInTileSet(injectedTileSet));
+            }
+
             foreach (Tile tile in new List<Tile>(tilesList))
                 if (tile == null)
                     tilesList.Remove(tile);
