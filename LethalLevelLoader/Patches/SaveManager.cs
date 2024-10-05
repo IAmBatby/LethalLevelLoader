@@ -50,6 +50,17 @@ namespace LethalLevelLoader
                 foreach (ExtendedLevelData extendedLevelData in currentSaveFile.extendedLevelSaveData)
                     LethalLevelLoaderNetworkManager.Instance.SetExtendedLevelValuesServerRpc(extendedLevelData);
             }
+            else
+            {
+                // currentSaveFile.Load() makes collections null if not present
+                currentSaveFile.extendedLevelSaveData = [];
+            }
+
+            if (currentSaveFile.itemSaveData == null)
+            {
+                // currentSaveFile.Load() makes collections null if not present
+                currentSaveFile.itemSaveData = [];
+            }
         }
 
         internal static void SaveGameValues()

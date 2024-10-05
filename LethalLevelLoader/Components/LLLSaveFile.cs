@@ -12,8 +12,8 @@ namespace LethalLevelLoader
         public string CurrentLevelName { get; internal set; } = string.Empty;
 
         public int parityStepsTaken;
-        public Dictionary<int, AllItemsListItemData> itemSaveData = new Dictionary<int, AllItemsListItemData>();
-        public List<ExtendedLevelData> extendedLevelSaveData = new List<ExtendedLevelData>();
+        public Dictionary<int, AllItemsListItemData> itemSaveData = [];
+        public List<ExtendedLevelData> extendedLevelSaveData = [];
 
         public LLLSaveFile()
         {
@@ -24,8 +24,8 @@ namespace LethalLevelLoader
         {
             CurrentLevelName = string.Empty;
             parityStepsTaken = 0;
-            itemSaveData = new Dictionary<int, AllItemsListItemData>();
-            extendedLevelSaveData = new List<ExtendedLevelData>();
+            itemSaveData.Clear();
+            extendedLevelSaveData.Clear();
         }
     }
 
