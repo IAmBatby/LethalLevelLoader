@@ -7,5 +7,9 @@
         "MaxWasUnavailable-LethalModDataLib-1.2.2",
         "Evaisa-FixPluginTypesSerialization-1.1.1",
         "BepInEx-BepInExPack-5.4.2100"
+    ],
+    "incompatibilities":[
+        "HolographicWings-LethalExpansion-1.3.45",
+        "jockie-LethalExpansionCore-1.3.15"
     ]
 }

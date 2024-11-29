@@ -121,6 +121,8 @@ namespace LethalLevelLoader
                         RegisterExtendedContent(extendedFootstepSurface);
                     else if (newExtendedContent is ExtendedStoryLog extendedStoryLog)
                         RegisterExtendedContent(extendedStoryLog);
+                    else if (newExtendedContent is ExtendedBuyableVehicle extendedBuyableVehicle)
+                        RegisterExtendedContent(extendedBuyableVehicle);
                     else
                         throw new ArgumentException(nameof(newExtendedContent), newExtendedContent.name + " (" + newExtendedContent.GetType().Name + ") " + " Could Not Be Registered To ExtendedMod: " + ModName + " Due To Unimplemented Registration Check!");
                 }

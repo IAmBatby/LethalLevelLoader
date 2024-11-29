@@ -34,11 +34,17 @@ namespace LethalLevelLoader
 
         internal static List<string> allSceneNamesCalledToLoad = new List<string>();
 
+        internal static Dictionary<Camera, float> playerCameras = new Dictionary<Camera, float>();
+
         //Singletons and such for these are set in each classes Awake function, But they all are accessible on the first awake function of the earliest one of these four managers awake function, so i grab them directly via findobjectoftype to safely access them as early as possible.
         public static StartOfRound StartOfRound { get; internal set; }
         public static RoundManager RoundManager { get; internal set; }
         public static Terminal Terminal { get; internal set; }
         public static TimeOfDay TimeOfDay { get; internal set; }
+
+        public static ExtendedEvent OnBeforeVanillaContentCollected = new ExtendedEvent();
+        public static ExtendedEvent OnAfterVanillaContentCollected = new ExtendedEvent();
+        public static ExtendedEvent OnAfterCustomContentRestored = new ExtendedEvent();
 
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(PreInitSceneScript), "Awake")]
@@ -173,10 +179,14 @@ namespace LethalLevelLoader
             {
                 StartOfRound.allItemsList.itemsList.RemoveAt(2);
 
+                OnBeforeVanillaContentCollected.Invoke();
+
                 DebugStopwatch.StartStopWatch("Scrape Vanilla Content");
                 ContentExtractor.TryScrapeVanillaItems(StartOfRound);
                 ContentExtractor.TryScrapeVanillaContent(StartOfRound, RoundManager);
                 ContentExtractor.ObtainSpecialItemReferences();
+
+                OnAfterVanillaContentCollected.Invoke();
             }
 
             //Startup LethalLevelLoader's Network Manager Instance
@@ -189,6 +199,11 @@ namespace LethalLevelLoader
             //Disable Spatialization In All AudioSources To Fix Log Spam Bug.
             foreach (AudioSource audioSource in Resources.FindObjectsOfTypeAll<AudioSource>())
                 audioSource.spatialize = false;
+
+            playerCameras.Clear();
+            foreach (Camera camera in UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsSortMode.None))
+                if (camera.targetTexture != null && camera.targetTexture.name == "PlayerScreen")
+                    playerCameras.Add(camera, camera.farClipPlane);
 
             if (Plugin.IsSetupComplete == false)
             {
@@ -255,6 +270,8 @@ namespace LethalLevelLoader
                     debugString += (PatchedContent.ExtendedDungeonFlows.IndexOf(extendedDungeonFlow) + 1) + ". " + extendedDungeonFlow.DungeonName + " (" + extendedDungeonFlow.DungeonFlow.name + ") (" + extendedDungeonFlow.ContentType + ")" + "\n";
                 DebugHelper.Log(debugString, DebugType.User);
 
+                
+
                 DebugStopwatch.StartStopWatch("Restore Content");
                 //Restore Custom Content References To Vanilla Content
                 foreach (ExtendedLevel customLevel in PatchedContent.CustomExtendedLevels)
@@ -265,6 +282,8 @@ namespace LethalLevelLoader
 
                 //Destroy Placeholder Custom Content References That Have Now Been Restored
                 ContentRestorer.DestroyRestoredAssets();
+
+                OnAfterCustomContentRestored.Invoke();
 
                 DebugStopwatch.StartStopWatch("Dynamic Risk Level");
 
@@ -662,9 +681,28 @@ namespace LethalLevelLoader
                 LevelLoader.BakeSceneColliderMaterialData(TimeOfDay.sunAnimator.gameObject.scene);
                 if (LevelLoader.vanillaWaterShader != null)
                     LevelLoader.TryRestoreWaterShaders(TimeOfDay.sunAnimator.gameObject.scene);
+                ApplyCamerDistanceOverride();
             }
         }
 
+        internal static void ApplyCamerDistanceOverride()
+        {
+            float newDistance = 0;
+            if (LevelManager.CurrentExtendedLevel.OverrideCameraMaxDistance > 400f || (DungeonManager.CurrentExtendedDungeonFlow != null && DungeonManager.CurrentExtendedDungeonFlow.OverrideCameraMaxDistance > 400f))
+            {
+                if (LevelManager.CurrentExtendedLevel.OverrideCameraMaxDistance > DungeonManager.CurrentExtendedDungeonFlow.OverrideCameraMaxDistance)
+                    newDistance = LevelManager.CurrentExtendedLevel.OverrideCameraMaxDistance;
+                else
+                    newDistance = DungeonManager.CurrentExtendedDungeonFlow.OverrideCameraMaxDistance;
+            }
+            foreach (KeyValuePair<Camera, float> cameraPair in playerCameras)
+            {
+                if (newDistance > cameraPair.Value)
+                    cameraPair.Key.farClipPlane = newDistance;
+                else
+                    cameraPair.Key.farClipPlane = cameraPair.Value;
+            }
+        }
         /*
         [HarmonyPriority(harmonyPriority)]
         [HarmonyPatch(typeof(MoldSpreadManager), nameof(MoldSpreadManager.Start))]
