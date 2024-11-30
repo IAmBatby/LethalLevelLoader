@@ -63,7 +63,7 @@ namespace LethalLevelLoader
 
         internal static void SaveAllLevels()
         {
-            currentSaveFile.extendedLevelSaveData.Clear();
+            currentSaveFile.extendedLevelSaveData = new List<ExtendedLevelData>();
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                 currentSaveFile.extendedLevelSaveData.Add(new ExtendedLevelData(extendedLevel));
         }

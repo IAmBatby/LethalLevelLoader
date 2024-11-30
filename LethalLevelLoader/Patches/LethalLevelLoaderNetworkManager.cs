@@ -176,6 +176,26 @@ namespace LethalLevelLoader
                 DebugHelper.LogWarning("Attempted To Register NetworkPrefab: " + prefab + " After GameNetworkManager Has Started!", DebugType.User);
         }
 
+        public static T SetupNetworkManagerObject<T>() where T : NetworkBehaviour
+        {
+            GameObject newPrefab = new GameObject(nameof(T));
+            newPrefab.hideFlags = HideFlags.HideAndDontSave;
+
+            T instancedBehaviour = newPrefab.AddComponent<T>();
+
+            NetworkObject networkObject = newPrefab.AddComponent<NetworkObject>();
+            byte[] hash = MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(Assembly.GetCallingAssembly().GetName().Name + nameof(T)));
+            networkObject.GlobalObjectIdHash = BitConverter.ToUInt32(hash, 0);
+            networkObject.DontDestroyWithOwner = true;
+            networkObject.SceneMigrationSynchronization = true;
+            networkObject.DestroyWithScene = true;
+            GameObject.DontDestroyOnLoad(newPrefab);
+
+            NetworkManager.Singleton.AddNetworkPrefab(newPrefab);
+
+            return (instancedBehaviour);
+        }
+
         internal static void RegisterPrefabs(NetworkManager networkManager)
         {
             //DebugHelper.Log("Game NetworkManager Start");
@@ -204,6 +224,7 @@ namespace LethalLevelLoader
             networkHasStarted = true;
             
         }
+
 
         public class StringContainer : INetworkSerializable
         {
