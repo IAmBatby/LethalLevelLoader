@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using LethalLevelLoader.Components.MatchingProperties.PropertyMatchers;
 using UnityEngine;
 
 namespace LethalLevelLoader
 {
     public class MatchingProperties : ScriptableObject
     {
+        [Space(5)] public int baseRarity = 0;
+        [Space(5)] public PropertyMatcherType propertyMatcherType = PropertyMatcherType.HighestRarity;
         [Space(5)] public List<StringWithRarity> modNames = new List<StringWithRarity>();
         [Space(5)] public List<StringWithRarity> authorNames = new List<StringWithRarity>();
+
+        private PropertyMatcher _propertyMatcher;
 
         public static MatchingProperties Create(ExtendedContent extendedContent)
         {
@@ -18,53 +21,31 @@ namespace LethalLevelLoader
             return (matchingProperties);
         }
 
-        internal static bool UpdateRarity(ref int currentValue, int newValue, string debugActionObject = null, string debugActionReason = null)
+        internal PropertyMatcher GetPropertyMatcher()
         {
-            if (newValue > currentValue)
+            if (_propertyMatcher is not null)
+                return _propertyMatcher;
+
+            switch (propertyMatcherType)
             {
-                if (!string.IsNullOrEmpty(debugActionReason))
-                {
-                    if (!string.IsNullOrEmpty(debugActionObject))
-                        DebugHelper.Log("Raised Rarity Of: " + debugActionObject + " From (" + currentValue + ") To (" + newValue + ") Due To Matching " + debugActionReason, DebugType.Developer);
-                    else
-                        DebugHelper.Log("Raised Rarity From (" + currentValue + ") To (" + newValue + ") Due To Matching " + debugActionReason, DebugType.Developer);
-                }
-                currentValue = newValue;
-                return (true);
-            }
-            return (false);
-        }
+                case PropertyMatcherType.HighestRarity:
+                    _propertyMatcher = new HighestRarityPropertyMatcher();
+                    break;
 
-        internal static int GetHighestRarityViaMatchingWithinRanges(int comparingValue, List<Vector2WithRarity> matchingVectors)
-        {
-            int returnInt = 0;
-            foreach (Vector2WithRarity vectorWithRarity in matchingVectors)
-                if (vectorWithRarity.Rarity >= returnInt)
-                    if ((comparingValue >= vectorWithRarity.Min) && (comparingValue <= vectorWithRarity.Max))
-                        returnInt = vectorWithRarity.Rarity;
-            return (returnInt);
-        }
+                case PropertyMatcherType.Multiplier:
+                    _propertyMatcher = new MultiplierPropertyMatcher();
+                    break;
 
-        internal static int GetHighestRarityViaMatchingNormalizedString(string comparingString, List<StringWithRarity> matchingStrings)
-        {
-            return (GetHighestRarityViaMatchingNormalizedStrings(new List<string>() { comparingString }, matchingStrings));
-        }
+                default:
+                    DebugHelper.LogWarning(
+                        $"Only PropertyMatchers of type {nameof(PropertyMatcherType.HighestRarity)} and {nameof(PropertyMatcherType.Multiplier)} are supported. " +
+                        $"Continuing by using {nameof(HighestRarityPropertyMatcher)}.",
+                        DebugType.User);
+                    _propertyMatcher = new HighestRarityPropertyMatcher();
+                    break;
+            };
 
-        internal static int GetHighestRarityViaMatchingNormalizedTags(List<ContentTag> comparingTags, List<StringWithRarity> matchingStrings)
-        {
-            List<string> contentTagStrings = comparingTags.Select(t => t.contentTagName).ToList();
-            return GetHighestRarityViaMatchingNormalizedStrings(contentTagStrings, matchingStrings);
-        }
-
-        internal static int GetHighestRarityViaMatchingNormalizedStrings(List<string> comparingStrings, List<StringWithRarity> matchingStrings)
-        {
-            int returnInt = 0;
-            foreach (StringWithRarity stringWithRarity in matchingStrings)
-                foreach (string comparingString in new List<string>(comparingStrings))
-                    if (stringWithRarity.Rarity >= returnInt)
-                        if (stringWithRarity.Name.Sanitized().Contains(comparingString.Sanitized()) || comparingString.Sanitized().Contains(stringWithRarity.Name.Sanitized()))
-                            returnInt = stringWithRarity.Rarity;
-            return (returnInt);
+            return _propertyMatcher;
         }
     }
 }
