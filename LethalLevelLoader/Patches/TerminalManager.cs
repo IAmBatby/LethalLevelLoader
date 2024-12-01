@@ -42,7 +42,7 @@ namespace LethalLevelLoader
 
         internal static string currentTagFilter;
 
-        internal static float defaultTerminalFontSize;
+        public static float defaultTerminalFontSize;
 
         internal static TerminalKeyword lastParsedVerbKeyword;
 
@@ -922,8 +922,13 @@ namespace LethalLevelLoader
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
                 simulateMoonsKeywords.Add(extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized());
 
+            int counter = 0;
             foreach (TerminalNode simulateNode in CreateTerminalEventNodes("simulate", simulateMoonsKeywords))
+            {
                 AddTerminalNodeEventListener(simulateNode, SetSimulationResultsText, LoadNodeActionType.Before);
+                PatchedContent.ExtendedLevels[counter].SimulateNode = simulateNode;
+                counter++;
+            }
         }
 
         internal static List<TerminalNode> CreateTerminalEventNodes(string newVerbKeywordWord, List<Enum> terminalEventEnumStrings)

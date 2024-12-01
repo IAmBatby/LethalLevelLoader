@@ -152,6 +152,21 @@ namespace LethalLevelLoader
             Patches.RoundManager.dungeonGenerator.Generate();
         }
 
+        [ServerRpc]
+        internal void SetExtendedLevelValuesServerRpc(ExtendedLevelData extendedLevelData)
+        {
+            if (PatchedContent.TryGetExtendedContent(extendedLevelData.UniqueIdentifier, out ExtendedLevel extendedLevel))
+                SetExtendedLevelValuesClientRpc(extendedLevelData);
+            else
+                DebugHelper.Log("Failed To Send Level Info!", DebugType.User);
+        }
+        [ClientRpc]
+        internal void SetExtendedLevelValuesClientRpc(ExtendedLevelData extendedLevelData)
+        {
+            if (PatchedContent.TryGetExtendedContent(extendedLevelData.UniqueIdentifier, out ExtendedLevel extendedLevel))
+                extendedLevelData.ApplySavedValues(extendedLevel);
+        }
+
 
         public static void RegisterNetworkPrefab(GameObject prefab)
         {
@@ -159,6 +174,26 @@ namespace LethalLevelLoader
                 queuedNetworkPrefabs.Add(prefab);
             else
                 DebugHelper.LogWarning("Attempted To Register NetworkPrefab: " + prefab + " After GameNetworkManager Has Started!", DebugType.User);
+        }
+
+        public static T SetupNetworkManagerObject<T>() where T : NetworkBehaviour
+        {
+            GameObject newPrefab = new GameObject(nameof(T));
+            newPrefab.hideFlags = HideFlags.HideAndDontSave;
+
+            T instancedBehaviour = newPrefab.AddComponent<T>();
+
+            NetworkObject networkObject = newPrefab.AddComponent<NetworkObject>();
+            byte[] hash = MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(Assembly.GetCallingAssembly().GetName().Name + nameof(T)));
+            networkObject.GlobalObjectIdHash = BitConverter.ToUInt32(hash, 0);
+            networkObject.DontDestroyWithOwner = true;
+            networkObject.SceneMigrationSynchronization = true;
+            networkObject.DestroyWithScene = true;
+            GameObject.DontDestroyOnLoad(newPrefab);
+
+            NetworkManager.Singleton.AddNetworkPrefab(newPrefab);
+
+            return (instancedBehaviour);
         }
 
         internal static void RegisterPrefabs(NetworkManager networkManager)
@@ -189,6 +224,7 @@ namespace LethalLevelLoader
             networkHasStarted = true;
             
         }
+
 
         public class StringContainer : INetworkSerializable
         {

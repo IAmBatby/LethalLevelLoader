@@ -40,6 +40,11 @@ namespace LethalLevelLoader
         [field: SerializeField] public List<StringWithRarity> SceneSelections { get; set; } = new List<StringWithRarity>();
 
         [field: Space(5)]
+        [field: Tooltip("Overrides vanilla camera Far Plane Clip Distance, The highest value between current Level and Interior will be used.")]
+        [field: Range(0f, 10000f)]
+        [field: SerializeField] public float OverrideCameraMaxDistance = 400;
+
+        [field: Space(5)]
         [field: Header("Weather Fog Distance Override Settings")]
 
         [field: SerializeField] public Vector3 OverrideDustStormVolumeSize { get; set; } = Vector3.zero;
@@ -104,6 +109,7 @@ namespace LethalLevelLoader
         public TerminalNode RouteNode { get; internal set; }
         public TerminalNode RouteConfirmNode { get; internal set; }
         public TerminalNode InfoNode { get; internal set; }
+        public TerminalNode SimulateNode { get; internal set; }
 
         //Dunno about these yet
         public List<ExtendedWeatherEffect> EnabledExtendedWeatherEffects { get; set; } = new List<ExtendedWeatherEffect>();

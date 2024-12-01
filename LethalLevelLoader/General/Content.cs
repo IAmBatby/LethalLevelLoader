@@ -16,7 +16,7 @@ namespace LethalLevelLoader
         public static List<string> AllLevelSceneNames { get; internal set; } = new List<string>();
 
         public static List<ExtendedMod> ExtendedMods { get; internal set; } = new List<ExtendedMod>();
-
+        internal static Dictionary<string, ExtendedContent> UniqueIdentifiersDictionary = new Dictionary<string, ExtendedContent>();
         internal static Dictionary<SelectableLevel, ExtendedLevel> ExtendedLevelDictionary = new Dictionary<SelectableLevel, ExtendedLevel>();
         internal static Dictionary<DungeonFlow, ExtendedDungeonFlow> ExtendedDungeonFlowDictionary = new Dictionary<DungeonFlow, ExtendedDungeonFlow>();
         internal static Dictionary<Item, ExtendedItem> ExtendedItemDictionary = new Dictionary<Item, ExtendedItem>();
@@ -261,23 +261,50 @@ namespace LethalLevelLoader
         internal static void PopulateContentDictionaries()
         {
             foreach (ExtendedLevel extendedLevel in ExtendedLevels)
+            {
                 TryAdd(ExtendedLevelDictionary, extendedLevel.SelectableLevel, extendedLevel);
+                TryAddUUID(extendedLevel);
+            }
             foreach (ExtendedDungeonFlow extendedDungeonFlow in ExtendedDungeonFlows)
+            {
                 TryAdd(ExtendedDungeonFlowDictionary, extendedDungeonFlow.DungeonFlow, extendedDungeonFlow);
+                TryAddUUID(extendedDungeonFlow);
+            }
             foreach (ExtendedItem extendedItem in ExtendedItems)
+            {
                 TryAdd(ExtendedItemDictionary, extendedItem.Item, extendedItem);
+                TryAddUUID(extendedItem);
+            }
             foreach (ExtendedEnemyType extendedEnemyType in ExtendedEnemyTypes)
+            {
                 TryAdd(ExtendedEnemyTypeDictionary, extendedEnemyType.EnemyType, extendedEnemyType);
+                TryAddUUID(extendedEnemyType);
+            }
             foreach (ExtendedBuyableVehicle extendedBuyableVehicle in ExtendedBuyableVehicles)
+            {
                 TryAdd(ExtendedBuyableVehicleDictionary, extendedBuyableVehicle.BuyableVehicle, extendedBuyableVehicle);
+                TryAddUUID(extendedBuyableVehicle);
+            }
         }
 
-        internal static void TryAdd<T1,T2>(Dictionary<T1, T2> dict, T1 key, T2 value)
+        internal static void TryAddUUID(ExtendedContent extendedContent)
+        {
+            TryAdd(UniqueIdentifiersDictionary, extendedContent.UniqueIdentificationName, extendedContent);
+        }
+
+        internal static bool TryAdd<T1,T2>(Dictionary<T1, T2> dict, T1 key, T2 value)
         {
             if (!dict.ContainsKey(key))
+            {
                 dict.Add(key, value);
+                return (true);
+            }
             else
+            {
                 DebugHelper.LogError("Could not add " + key.ToString() + " to dictionary.", DebugType.Developer);
+                return (false);
+            }
+
         }
 
         public static bool TryGetExtendedContent(SelectableLevel selectableLevel, out ExtendedLevel extendedLevel)
@@ -303,6 +330,14 @@ namespace LethalLevelLoader
         public static bool TryGetExtendedContent(BuyableVehicle buyableVehicle, out ExtendedBuyableVehicle extendedBuyableVehicle)
         {
             return (ExtendedBuyableVehicleDictionary.TryGetValue(buyableVehicle, out extendedBuyableVehicle));
+        }
+
+        public static bool TryGetExtendedContent<T>(string uniqueIdentifierName, out T extendedContent) where T : ExtendedContent
+        {
+            extendedContent = null;
+            if (UniqueIdentifiersDictionary.TryGetValue(uniqueIdentifierName, out ExtendedContent result))
+                extendedContent = result as T;
+            return (extendedContent != null);
         }
     }
 

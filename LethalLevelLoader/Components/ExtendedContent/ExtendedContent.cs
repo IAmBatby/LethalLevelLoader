@@ -17,6 +17,8 @@ namespace LethalLevelLoader
         public string ModName => ExtendedMod.ModName;
         public string AuthorName => ExtendedMod.AuthorName;
 
+        public string UniqueIdentificationName => AuthorName.ToLowerInvariant() + "." + ModName.ToLowerInvariant() + "." + name.ToLowerInvariant();
+
         internal virtual void TryCreateMatchingProperties()
         {
 

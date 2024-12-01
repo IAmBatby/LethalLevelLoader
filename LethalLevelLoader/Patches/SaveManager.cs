@@ -43,6 +43,12 @@ namespace LethalLevelLoader
 
                 parityCheck = false;
             }
+
+            if (currentSaveFile.extendedLevelSaveData != null)
+            {
+                foreach (ExtendedLevelData extendedLevelData in currentSaveFile.extendedLevelSaveData)
+                    LethalLevelLoaderNetworkManager.Instance.SetExtendedLevelValuesServerRpc(extendedLevelData);
+            }
         }
 
         internal static void SaveGameValues()
@@ -50,7 +56,16 @@ namespace LethalLevelLoader
             currentSaveFile.itemSaveData = GetAllItemsListItemDataDict();
             currentSaveFile.parityStepsTaken = Patches.StartOfRound.gameStats.allStepsTaken;
 
+            SaveAllLevels();
+
             currentSaveFile.Save();
+        }
+
+        internal static void SaveAllLevels()
+        {
+            currentSaveFile.extendedLevelSaveData = new List<ExtendedLevelData>();
+            foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
+                currentSaveFile.extendedLevelSaveData.Add(new ExtendedLevelData(extendedLevel));
         }
 
         internal static void SaveCurrentSelectableLevel(SelectableLevel selectableLevel)
