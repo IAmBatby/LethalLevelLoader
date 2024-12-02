@@ -98,9 +98,6 @@ namespace LethalLevelLoader
                 DebugHelper.LogWarning("Custom Dungeon: " + DungeonName + " Is Missing A DungeonFirstTimeAudio Reference! Assigning Facility Audio To Prevent Errors.", DebugType.Developer);
                 FirstTimeDungeonAudio = Patches.RoundManager.firstTimeDungeonAudios[0];
             }
-
-            if (OverrideKeyPrefab == null)
-                OverrideKeyPrefab = DungeonLoader.defaultKeyPrefab;
         }
 
         private void GetDungeonFlowID()

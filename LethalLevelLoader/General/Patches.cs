@@ -327,7 +327,8 @@ namespace LethalLevelLoader
             foreach (ExtendedEnemyType extendedEnemyType in PatchedContent.CustomExtendedEnemyTypes)
                 TerminalManager.CreateEnemyTypeTerminalData(extendedEnemyType); //Might only need to do once?
 
-            EnemyManager.AddCustomEnemyTypesToTestAllEnemiesLevel(); //Might only need to do once?
+            if (Plugin.IsSetupComplete == false)
+                EnemyManager.AddCustomEnemyTypesToTestAllEnemiesLevel(); //Might only need to do once?
 
             DebugStopwatch.StartStopWatch("ExtendedItem Injection");
 
@@ -659,7 +660,7 @@ namespace LethalLevelLoader
         [HarmonyPrefix]
         internal static void RoundManagerSetLockedDoors_Prefix()
         {
-            RoundManager.keyPrefab = DungeonManager.CurrentExtendedDungeonFlow.OverrideKeyPrefab;
+            RoundManager.keyPrefab = DungeonManager.CurrentExtendedDungeonFlow.OverrideKeyPrefab != null ? DungeonManager.CurrentExtendedDungeonFlow.OverrideKeyPrefab : DungeonLoader.defaultKeyPrefab;
         }
 
         [HarmonyPriority(harmonyPriority)]
