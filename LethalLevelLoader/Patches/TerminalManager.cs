@@ -76,6 +76,7 @@ namespace LethalLevelLoader
             lockedNode = CreateNewTerminalNode();
             lockedNode.name = "lockedLevelNode";
             lockedNode.clearPreviousText = true;
+            lockedNode.acceptAnything = false;
         }
 
         internal static bool OnBeforeRouteNodeLoaded(ref TerminalNode currentNode, ref TerminalNode loadNode)
