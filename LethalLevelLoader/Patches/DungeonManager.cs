@@ -32,6 +32,8 @@ namespace LethalLevelLoader
                 IndoorMapType newIndoorMapType = new IndoorMapType();
                 newIndoorMapType.dungeonFlow = extendedDungeonFlow.DungeonFlow;
                 newIndoorMapType.MapTileSize = extendedDungeonFlow.MapTileSize;
+                if (extendedDungeonFlow.FirstTimeDungeonAudio != null)
+                    newIndoorMapType.firstTimeAudio = extendedDungeonFlow.FirstTimeDungeonAudio;
                 Patches.RoundManager.dungeonFlowTypes = Patches.RoundManager.dungeonFlowTypes.AddItem(newIndoorMapType).ToArray();
                 if (extendedDungeonFlow.FirstTimeDungeonAudio != null)
                     Patches.RoundManager.firstTimeDungeonAudios = Patches.RoundManager.firstTimeDungeonAudios.AddItem(extendedDungeonFlow.FirstTimeDungeonAudio).ToArray();

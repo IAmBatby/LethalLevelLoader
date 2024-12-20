@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
 
@@ -63,7 +63,7 @@
   <ItemGroup>
     <PackageReference Include="Evaisa.LethalLib" Version="0.16.0" />
     <PackageReference Include="MaxWasUnavailable.LethalModDataLib" Version="1.2.2" />
-    <PackageReference Include="LethalCompany.GameLibs.Steam" Version="56.0.1-ngd.0" Publicize="true" />
+    <PackageReference Include="LethalCompany.GameLibs.Steam" Version="67.0.0-ngd.0" Publicize="true" />
   </ItemGroup>
 
   <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
@@ -105,10 +105,7 @@
     <MakeDir Directories="$(ProjectDir)dist/output/" Condition="!Exists('$(ProjectDir)dist/output/')" />
     <Copy SourceFiles="$(ProjectDir)bin/Release/netstandard2.1/$(AssemblyName).dll" DestinationFiles="$(ProjectDir)dist/output/$(AssemblyName).dll" />
 
-    <ZipDirectory
-      SourceDirectory="$(ProjectDir)dist/output/"
-      DestinationFile="$(ProjectDir)dist/curseforge.zip"
-      Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(ProjectDir)dist/output/" DestinationFile="$(ProjectDir)dist/curseforge.zip" Overwrite="true" />
   </Target>
   
 </Project>
