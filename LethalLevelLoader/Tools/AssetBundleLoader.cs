@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using TMPro;
 using Unity.Netcode;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.SceneManagement;
@@ -141,6 +142,51 @@ namespace LethalLevelLoader
                 CurrentLoadingStatus = LoadingStatus.Complete;
                 onBundlesFinishedLoading?.Invoke();
             }
+
+            try
+            {
+                LoadAssetsInEditor();
+            }
+            catch (FileNotFoundException) { }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void LoadAssetsInEditor()
+        {
+            if (!Application.isEditor)
+                return;
+
+            var modAssets = AssetDatabase.FindAssets("t:ExtendedMod");
+            var extendedMods = new HashSet<ExtendedMod>(obtainedExtendedModsDictionary.Values);
+
+            foreach (var modAsset in modAssets)
+            {
+                var modPath = AssetDatabase.GUIDToAssetPath(modAsset);
+                var mod = AssetDatabase.LoadAssetAtPath<ExtendedMod>(modPath);
+                if (extendedMods.Contains(mod))
+                {
+                    DebugHelper.Log($"Skipping already-registered extended mod in editor: {modPath}", DebugType.Developer);
+                    continue;
+                }
+                DebugHelper.Log($"Loading extended mod in editor: {modPath}", DebugType.Developer);
+                RegisterExtendedMod(mod);
+            }
+
+            var contentAssets = AssetDatabase.FindAssets("t:ExtendedContent");
+            var extendedContents = new HashSet<ExtendedContent>(obtainedExtendedModsDictionary.Values.SelectMany(m => m.ExtendedContents));
+
+            foreach (var contentAsset in contentAssets)
+            {
+                var contentPath = AssetDatabase.GUIDToAssetPath(contentAsset);
+                var content = AssetDatabase.LoadAssetAtPath<ExtendedContent>(contentPath);
+                if (extendedContents.Contains(content))
+                {
+                    DebugHelper.Log($"Skipping already-registered extended content in editor: {contentPath}", DebugType.Developer);
+                    continue;
+                }
+                DebugHelper.Log($"Loading extended content in editor: {contentPath}", DebugType.Developer);
+                RegisterNewExtendedContent(content, "EditorContent");
+            }
         }
 
         internal static void OnBundlesFinishedLoadingInvoke()
@@ -215,6 +261,11 @@ namespace LethalLevelLoader
             ExtendedMod matchingExtendedMod = null;
             foreach (ExtendedMod registeredExtendedMod in obtainedExtendedModsDictionary.Values)
             {
+                if (extendedMod == registeredExtendedMod)
+                {
+                    DebugHelper.Log($"Skipping registration of duplicate extended mod {extendedMod.ModName}!", DebugType.Developer);
+                    return;
+                }
                 if (extendedMod.ModMergeSetting == ModMergeSetting.MatchingModName && registeredExtendedMod.ModMergeSetting == ModMergeSetting.MatchingModName)
                 {
                     if (registeredExtendedMod.ModName == extendedMod.ModName)
@@ -309,10 +360,10 @@ namespace LethalLevelLoader
             //foreach (KeyValuePair<string, string> loadedAssetBundles in assetBundleLoadTimes)
                 //DebugHelper.Log(loadedAssetBundles.Key + " Loaded In " + loadedAssetBundles.Value, DebugType.User);
 
-            foreach (KeyValuePair<string, ExtendedMod> obtainedExtendedMod in obtainedExtendedModsDictionary)
+            foreach (ExtendedMod obtainedExtendedMod in obtainedExtendedModsDictionary.Values)
             {
-                PatchedContent.ExtendedMods.Add(obtainedExtendedMod.Value);
-                DebugHelper.DebugExtendedMod(obtainedExtendedMod.Value);
+                PatchedContent.ExtendedMods.Add(obtainedExtendedMod);
+                DebugHelper.DebugExtendedMod(obtainedExtendedMod);
             }
 
             PatchedContent.ExtendedMods = new List<ExtendedMod>(PatchedContent.ExtendedMods.OrderBy(o => o.ModName).ToList());
@@ -403,7 +454,7 @@ namespace LethalLevelLoader
         //This function should probably just be in NetworkRegisterContent
         internal static void LoadContentInBundles()
         {
-            bool foundExtendedLevelScene;
+            DebugHelper.Log($"Finding scenes to patch into NetworkSceneManager.", DebugType.Developer);
             List<ExtendedMod> obtainedExtendedModsList = obtainedExtendedModsDictionary.Values.OrderBy(o => o.ModName).ToList();
             List<string> sceneNames = new List<string>();
 
@@ -417,37 +468,74 @@ namespace LethalLevelLoader
                             sceneNames.Add(sceneName.Name);
                 }
 
+            IEnumerable<AssetBundle> allSceneBundles = assetBundles.Values.Where(b => b.isStreamedSceneAssetBundle);
+            IEnumerable<string> allEditorScenes = GetAllScenePathsInEditor();
+
+            DebugHelper.Log($"All bundle scenes:\n{allSceneBundles.SelectMany(b => b.GetAllScenePaths()).Join(p => p, "\n")}", DebugType.Developer);
+            DebugHelper.Log($"All editor scenes:\n{allEditorScenes.Join(p => p, "\n")}", DebugType.Developer);
+
+            var sceneNamesAndPaths = new Dictionary<string, string>();
+
+            foreach (var assetBundle in allSceneBundles)
+            {
+                foreach (var scenePath in assetBundle.GetAllScenePaths())
+                {
+                    var sceneName = GetSceneName(scenePath);
+                    if (!sceneNamesAndPaths.TryAdd(sceneName, scenePath))
+                        DebugHelper.LogWarning($"Duplicate scene name {sceneName} found in asset bundle {assetBundle.name}", DebugType.Developer);
+                }
+            }
+
+            foreach (var scenePath in allEditorScenes)
+            {
+                var sceneName = GetSceneName(scenePath);
+                if (!sceneNamesAndPaths.TryAdd(sceneName, scenePath))
+                    DebugHelper.LogWarning($"Duplicate scene name {sceneName} found in editor scenes", DebugType.Developer);
+            }
+
             foreach (ExtendedMod extendedMod in obtainedExtendedModsList)
             {
                 foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(extendedMod.ExtendedLevels))
                 {
-                    foundExtendedLevelScene = false;
-                    string debugString = "Could Not Find Scene File For ExtendedLevel: " + extendedLevel.SelectableLevel.name + ", Unregistering Early. \nSelectable Scene Name Is: " + extendedLevel.SelectableLevel.sceneName + ". Scenes Found In Bundles Are: " + "\n";
-                    foreach (KeyValuePair<string, AssetBundle> assetBundle in assetBundles)
-                        if (assetBundle.Value != null && assetBundle.Value.isStreamedSceneAssetBundle)
-                            foreach (string scenePath in assetBundle.Value.GetAllScenePaths())
-                            {
-                                debugString += ", " + GetSceneName(scenePath);
-                                if (sceneNames.Contains(GetSceneName(scenePath)))
-                                {
-                                    //DebugHelper.Log("Found Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ". Scene Path Is: " + scenePath);
-                                    foundExtendedLevelScene = true;
-                                    NetworkScenePatcher.AddScenePath(GetSceneName(scenePath));
-                                    if (!PatchedContent.AllLevelSceneNames.Contains(GetSceneName(scenePath)))
-                                        PatchedContent.AllLevelSceneNames.Add(GetSceneName(scenePath));
-                                }
-                            }
-
-                    if (foundExtendedLevelScene == false)
+                    if (!sceneNamesAndPaths.TryGetValue(extendedLevel.SelectableLevel.sceneName, out string path))
                     {
-                        DebugHelper.LogError(debugString, DebugType.User);
+                        DebugHelper.LogError($"Could not find scene {extendedLevel.SelectableLevel.sceneName} for level {extendedLevel.SelectableLevel.name}. Scene names are: {sceneNamesAndPaths.Keys.Join(s => s, ", ")}", DebugType.User);
                         extendedMod.UnregisterExtendedContent(extendedLevel);
+                        continue;
                     }
+
+                    DebugHelper.LogError($"Found scene with name {extendedLevel.SelectableLevel.sceneName} and path {path}", DebugType.Developer);
+                    NetworkScenePatcher.AddScenePath(extendedLevel.SelectableLevel.sceneName, path);
+                    if (!PatchedContent.AllLevelSceneNames.Contains(extendedLevel.SelectableLevel.sceneName))
+                        PatchedContent.AllLevelSceneNames.Add(extendedLevel.SelectableLevel.sceneName);
                 }
             }
 
             foreach (string loadedSceneName in PatchedContent.AllLevelSceneNames)
                 DebugHelper.Log("Loaded SceneName: " + loadedSceneName, DebugType.Developer);
+        }
+
+        private static string[] GetAllScenePathsInEditor()
+        {
+            try
+            {
+                return GetAllScenePathsInEditorImpl();
+            }
+            catch (FileNotFoundException)
+            {
+                return [];
+            }
+        }
+
+        private static string[] GetAllScenePathsInEditorImpl()
+        {
+            var sceneGUIDs = AssetDatabase.FindAssets("t:Scene");
+            var scenePaths = new string[sceneGUIDs.Length];
+
+            for (var i = 0; i < scenePaths.Length; i++)
+                scenePaths[i] = AssetDatabase.GUIDToAssetPath(sceneGUIDs[i]);
+
+            return scenePaths;
         }
 
         internal static void InitializeBundles()

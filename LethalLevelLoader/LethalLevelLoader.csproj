@@ -64,6 +64,7 @@
     <PackageReference Include="Evaisa.LethalLib" Version="0.16.0" />
     <PackageReference Include="MaxWasUnavailable.LethalModDataLib" Version="1.2.2" />
     <PackageReference Include="LethalCompany.GameLibs.Steam" Version="56.0.1-ngd.0" Publicize="true" />
+    <PackageReference Include="Unity3D.SDK" Version="2021.1.14.1" IncludeAssets="compile" />
   </ItemGroup>
 
   <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">

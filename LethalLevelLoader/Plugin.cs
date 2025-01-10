@@ -48,6 +48,8 @@ namespace LethalLevelLoader
 
             Logger.LogInfo($"LethalLevelLoader loaded!!");
 
+            ConfigLoader.BindGeneralConfigs();
+
             //We do this here to try and assure this doesn't accidently catch anything from any AssetBundles
             LevelLoader.vanillaWaterShader = Shader.Find("Shader Graphs/WaterShaderHDRP");
             if (LevelLoader.vanillaWaterShader == null)
@@ -74,8 +76,6 @@ namespace LethalLevelLoader
             else
                 assetBundleLoaderObject.hideFlags = HideFlags.HideAndDontSave;
             AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
-
-            ConfigLoader.BindGeneralConfigs();
         }
 
         internal static void OnBeforeSetupInvoke()

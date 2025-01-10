@@ -3,11 +3,13 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Netcode;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using static HookHelper;
@@ -15,21 +17,23 @@ using static HookHelper;
 public static class NetworkScenePatcher
 {
     // start of script
-    static List<string> scenePaths = new();
+    static List<string> sceneNames = new();
+    static Dictionary<string, string> scenePaths = new();
     
     static Dictionary<string, int> scenePathToBuildIndex = new();
     static Dictionary<int, string> buildIndexToScenePath = new();
     static Dictionary<uint, string> sceneHashToScenePath = new();
 
-    public static void AddScenePath(string scenePath)
+    public static void AddScenePath(string sceneName, string scenePath)
     {
-        if (scenePaths.Contains(scenePath))
+        if (sceneNames.Contains(sceneName))
         {
             //Debug.LogError($"Can not add scene path {scenePath} to the network scene patcher! (already exists in scene paths list)");
             return;
         }
-        DebugHelper.Log("Adding ScenePath: " + scenePath, DebugType.User);
-        scenePaths.Add(scenePath);
+        DebugHelper.Log("Adding ScenePath: " + sceneName, DebugType.User);
+        sceneNames.Add(sceneName);
+        scenePaths.TryAdd(sceneName, scenePath);
     }
 
 
@@ -48,6 +52,8 @@ public static class NetworkScenePatcher
         hooks.ILHook<NetworkSceneManager>("SceneHashFromNameOrPath", ReplaceBuildIndexByScenePath);
         hooks.ILHook<NetworkSceneManager>("ValidateSceneEvent", ReplaceBuildIndexByScenePath);
         hooks.ILHook<NetworkSceneManager>("ScenePathFromHash", ReplaceScenePathByBuildIndex);
+
+        hooks.ILHook<DefaultSceneManagerHandler>("LoadSceneAsync", ReplaceLoadSceneAsync);
     }
     internal static void Unpatch()
     {
@@ -95,6 +101,47 @@ public static class NetworkScenePatcher
         }
         return val;
     }
+
+    static void ReplaceLoadSceneAsync(ILContext il)
+    {
+        ILCursor script = new(il);
+        MethodInfo replacement = methodof(LoadSceneAsync);
+
+        while (script.TryGotoNext(instr => instr.MatchCall(typeof(SceneManager), "LoadSceneAsync")))
+        {
+            script.Remove();
+            script.Emit(OpCodes.Call, replacement);
+        }
+    }
+
+    static AsyncOperation LoadSceneAsync(string sceneName, LoadSceneMode mode)
+    {
+        DebugHelper.Log($"Loading scene {sceneName}.", DebugType.Developer);
+        var result = SceneManager.LoadSceneAsync(sceneName, mode);
+
+        if (result == null)
+        {
+            try
+            {
+                return LoadSceneInEditorAsync(sceneName, mode);
+            }
+            catch (FileNotFoundException) { }
+        }
+
+        return result;
+    }
+
+    static AsyncOperation LoadSceneInEditorAsync(string sceneName, LoadSceneMode mode)
+    {
+        DebugHelper.Log($"Trying to load scene {sceneName} through EditorSceneManager.", DebugType.Developer);
+        if (!scenePaths.TryGetValue(sceneName, out var path))
+        {
+            DebugHelper.Log($"Failed to find scene path for scene {sceneName} to load in editor.", DebugType.Developer);
+            return null;
+        }
+        return EditorSceneManager.LoadSceneAsyncInPlayMode(path, new LoadSceneParameters(mode));
+    }
+
     static void GenerateScenesInBuild_Hook(Action<NetworkSceneManager> orig, NetworkSceneManager self)
     {
         scenePathToBuildIndex.Clear();
@@ -104,10 +151,10 @@ public static class NetworkScenePatcher
         orig(self);
 
         int count = SceneManager.sceneCountInBuildSettings;
-        for (int i = 0; i < scenePaths.Count; i++)
+        for (int i = 0; i < sceneNames.Count; i++)
         {
             int buildIndex = count + i;
-            string scenePath = scenePaths[i];
+            string scenePath = sceneNames[i];
             uint hash = scenePath.Hash32();
 
             self.HashToBuildIndex.Add(hash, buildIndex);
