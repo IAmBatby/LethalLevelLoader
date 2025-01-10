@@ -1,4 +1,4 @@
-﻿using DunGen;
+using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
 using System;
@@ -251,11 +251,12 @@ namespace LethalLevelLoader
             }
             else
             {
-                obtainedExtendedModsDictionary.Add(extendedMod.AuthorName, extendedMod);
+                obtainedExtendedModsDictionary.Add(extendedMod.ModName, extendedMod);
                 List<ExtendedContent> serializedExtendedContents = new List<ExtendedContent>(extendedMod.ExtendedContents);
                 extendedMod.UnregisterAllExtendedContent();
                 foreach (ExtendedContent extendedContent in serializedExtendedContents)
                 {
+                    DebugHelper.Log($"Registering {extendedContent} to {extendedMod.ModName}", DebugType.Developer);
                     try
                     {
                         extendedMod.RegisterExtendedContent(extendedContent);
