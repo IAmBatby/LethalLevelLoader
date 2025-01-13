@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using LethalLevelLoader.Components.MatchingProperties.PropertyMatchers;
 using UnityEngine;
 
 namespace LethalLevelLoader
@@ -22,15 +21,27 @@ namespace LethalLevelLoader
 
         public int GetDynamicRarity(ExtendedLevel extendedLevel)
         {
-            int returnRarity = 0;
+            PropertyMatcher propertyMatcher = GetPropertyMatcher();
 
-            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedTags(extendedLevel.ContentTags, levelTags), extendedLevel.name, "Content Tags");
-            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.AuthorName, authorNames), extendedLevel.name, "Author Name");
-            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedStrings(extendedLevel.ExtendedMod.ModNameAliases, modNames), extendedLevel.name, "Mod Name");
-            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingWithinRanges(extendedLevel.RoutePrice, currentRoutePrice), extendedLevel.name, "Route Price");
-            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.NumberlessPlanetName, planetNames), extendedLevel.name, "Planet Name");
-            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.SelectableLevel.currentWeather.ToString(), currentWeather), extendedLevel.name, "Current Weather");
+            int returnRarity = baseRarity;
 
+            foreach (int value in propertyMatcher.GetRaritiesViaMatchingNormalizedTags(extendedLevel.ContentTags, levelTags))
+                propertyMatcher.UpdateRarity(ref returnRarity, value, extendedLevel.name, "Content Tags");
+
+            foreach (int value in propertyMatcher.GetRaritiesViaMatchingNormalizedString(extendedLevel.AuthorName, authorNames))
+                propertyMatcher.UpdateRarity(ref returnRarity, value, extendedLevel.name, "Author Name");
+
+            foreach (int value in propertyMatcher.GetRaritiesViaMatchingNormalizedStrings(extendedLevel.ExtendedMod.ModNameAliases, modNames))
+                propertyMatcher.UpdateRarity(ref returnRarity, value, extendedLevel.name, "Mod Name");
+
+            foreach (int value in propertyMatcher.GetRaritiesViaMatchingWithinRanges(extendedLevel.RoutePrice, currentRoutePrice))
+                propertyMatcher.UpdateRarity(ref returnRarity, value, extendedLevel.name, "Route Price");
+            
+            foreach (int value in propertyMatcher.GetRaritiesViaMatchingNormalizedString(extendedLevel.NumberlessPlanetName, planetNames))
+                propertyMatcher.UpdateRarity(ref returnRarity, value, extendedLevel.name, "Planet Name");
+            
+            foreach (int value in propertyMatcher.GetRaritiesViaMatchingNormalizedString(extendedLevel.SelectableLevel.currentWeather.ToString(), currentWeather))
+                propertyMatcher.UpdateRarity(ref returnRarity, value, extendedLevel.name, "Current Weather");
 
             return (returnRarity);
         }
