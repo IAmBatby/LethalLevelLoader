@@ -282,34 +282,65 @@ namespace LethalLevelLoader
         }
     }
 
-    public class ExtendedEvent<T>
+    public delegate void ParameterEvent<T>(T param);
+    public class ExtendedEvent<T> : ExtendedEvent
     {
-        public delegate void ParameterEvent(T param);
+        public override int Listeners => base.Listeners + paramListeners.Count;
+        private event ParameterEvent<T> onParameterEvent;
+        private List<ParameterEvent<T>> paramListeners = new List<ParameterEvent<T>>();
 
-        private event ParameterEvent onParameterEvent;
-        private event Action onEvent;
+        public void Invoke(T param)
+        {
+            onParameterEvent?.Invoke(param);
+            Invoke();
+        }
 
-        public bool HasListeners => (Listeners != 0);
-        public int Listeners { get; internal set; }
+        public void AddListener(ParameterEvent<T> listener)
+        {
+            onParameterEvent += listener;
+            paramListeners.Add(listener);
+        }
+        public void RemoveListener(ParameterEvent<T> listener)
+        {
+            onParameterEvent -= listener;
+            paramListeners.Remove(listener);
+        }
 
-        public void Invoke(T param) { onParameterEvent?.Invoke(param); onEvent?.Invoke(); }
-        public void Invoke() {  onEvent?.Invoke(); }
-
-        public void AddListener(ParameterEvent listener) { onParameterEvent += listener; Listeners++; }
-        public void AddListener(Action listener) { onEvent += listener; Listeners++; }
-
-        public void RemoveListener(ParameterEvent listener) { onParameterEvent -= listener; Listeners--; }
-        public void RemoveListener(Action listener) { onEvent -= listener; Listeners--; }
+        public override void ClearListeners()
+        {
+            base.ClearListeners();
+            foreach (ParameterEvent<T> listener in paramListeners)
+                onParameterEvent -= listener;
+            paramListeners.Clear();
+        }
     }
 
     public class ExtendedEvent
     {
-        public delegate void Event();
-        private event Event onEvent;
+        protected event Action onEvent;
         public bool HasListeners => (Listeners != 0);
-        public int Listeners { get; internal set; }
+
+        public virtual int Listeners => listeners.Count;
+        private List<Action> listeners = new List<Action>();
+
         public void Invoke() { onEvent?.Invoke(); }
-        public void AddListener(Event listener) { onEvent += listener; Listeners++; }
-        public void RemoveListener(Event listener) { onEvent -= listener; Listeners--; }
+
+        public void AddListener(Action listener)
+        {
+            onEvent += listener;
+            listeners.Add(listener);
+        }
+        public void RemoveListener(Action listener)
+        {
+            onEvent -= listener;
+            listeners.Remove(listener);
+        }
+
+        public virtual void ClearListeners()
+        {
+            foreach (Action listener in listeners)
+                onEvent -= listener;
+            listeners.Clear();
+        }
     }
 }

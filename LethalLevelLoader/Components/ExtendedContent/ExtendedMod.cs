@@ -39,6 +39,9 @@ namespace LethalLevelLoader
         [field: SerializeField]
         public List<ExtendedBuyableVehicle> ExtendedBuyableVehicles { get; private set; } = new List<ExtendedBuyableVehicle>();
 
+        [field: SerializeField]
+        public List<string> StreamingLethalBundleNames { get; private set; } = new List<string>();
+
         public List<ExtendedContent> ExtendedContents
         {
             get
@@ -253,19 +256,6 @@ namespace LethalLevelLoader
             ExtendedFootstepSurfaces.Sort((s1, s2) => s1.name.CompareTo(s2.name));
             ExtendedStoryLogs.Sort((s1, s2) => s1.name.CompareTo(s2.name));
             ExtendedBuyableVehicles.Sort((s1, s2) => s1.name.CompareTo(s2.name));
-        }
-
-        internal void Example()
-        {
-            AssetBundle assetBundle = null;
-
-            ExtendedDungeonFlow myMainExtendedDungeonFlow = assetBundle.LoadAsset<ExtendedDungeonFlow>("Assets/CoolDungeonFlow");
-
-            ExtendedEnemyType mySpookyEnemyType = assetBundle.LoadAsset<ExtendedEnemyType>("Assets/Ghost");
-
-            ExtendedMod extendedMod = ExtendedMod.Create("BatbysMod", "IAmBatby", new ExtendedContent[2] { myMainExtendedDungeonFlow, mySpookyEnemyType });
-
-            LethalLevelLoader.PatchedContent.RegisterExtendedMod(extendedMod);
         }
     }
 }

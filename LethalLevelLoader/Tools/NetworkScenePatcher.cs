@@ -5,10 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Unity.Netcode;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 using static HookHelper;
 
@@ -17,10 +14,15 @@ public static class NetworkScenePatcher
     // start of script
     static List<string> scenePaths = new();
     
-    static Dictionary<string, int> scenePathToBuildIndex = new();
-    static Dictionary<int, string> buildIndexToScenePath = new();
+    internal static Dictionary<string, int> scenePathToBuildIndex = new();
+    internal static Dictionary<int, string> buildIndexToScenePath = new();
     static Dictionary<uint, string> sceneHashToScenePath = new();
 
+    private static Dictionary<int, string> levelSceneDict = new();
+    private static Dictionary<int, string> fullSceneIndexToPathDict = new();
+    private static Dictionary<string, int> fullScenePathToIndexDict = new();
+
+    public static Dictionary<int, string> GetLevelSceneDict() => new Dictionary<int, string>(levelSceneDict);
     public static void AddScenePath(string scenePath)
     {
         if (scenePaths.Contains(scenePath))
@@ -28,10 +30,35 @@ public static class NetworkScenePatcher
             //Debug.LogError($"Can not add scene path {scenePath} to the network scene patcher! (already exists in scene paths list)");
             return;
         }
-        DebugHelper.Log("Adding ScenePath: " + scenePath, DebugType.User);
+        DebugHelper.Log("Adding ScenePath: " + scenePath, DebugType.Developer);
         scenePaths.Add(scenePath);
     }
 
+    public static bool TryGetSceneIndex(int levelSceneIndex, string levelScenePath, out int sceneIndex)
+    {
+        sceneIndex = -1;
+        int[] levelSceneIndexes = levelSceneDict.Keys.ToArray();
+        if (levelSceneDict.TryGetValue(levelSceneIndexes[levelSceneIndex], out string path))
+        {
+            if (path == levelScenePath)
+            {
+                if (fullScenePathToIndexDict.TryGetValue(levelScenePath, out int realIndex))
+                {
+                    sceneIndex = realIndex;
+                }
+                else
+                    DebugHelper.LogError("Failed At Full Scene Path", DebugType.User);
+            }
+            else
+                DebugHelper.LogError("Failed At Path. Path 1: " + levelScenePath + ", Path 2: " + path, DebugType.User);
+
+        }
+        else
+            DebugHelper.LogError("Failed At Level Scene Dict", DebugType.User);
+
+
+        return (sceneIndex != -1);
+    }
 
     // where the patching starts >:3c
     static DisposableHookCollection hooks = new();
@@ -100,8 +127,20 @@ public static class NetworkScenePatcher
         scenePathToBuildIndex.Clear();
         buildIndexToScenePath.Clear();
         sceneHashToScenePath.Clear();
+        fullScenePathToIndexDict.Clear();
+        fullSceneIndexToPathDict.Clear();
+        levelSceneDict.Clear();
 
         orig(self);
+
+        for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
+        {
+            string path = SceneUtility.GetScenePathByBuildIndex(i);
+            fullSceneIndexToPathDict.Add(i, path);
+            fullScenePathToIndexDict.Add(path, i);
+            if (path.Contains("Level")) //awful but lets us get them before enter lobby (because no ref to selectablelevels)
+                levelSceneDict.Add(i, path);
+        }
 
         int count = SceneManager.sceneCountInBuildSettings;
         for (int i = 0; i < scenePaths.Count; i++)
@@ -117,7 +156,11 @@ public static class NetworkScenePatcher
             buildIndexToScenePath.Add(buildIndex, scenePath);
             sceneHashToScenePath.Add(hash, scenePath);
 
-            //DebugHelper.Log($"Added modded scene path: {scenePath}");
+            fullSceneIndexToPathDict.Add(buildIndex, scenePath);
+            fullScenePathToIndexDict.Add(scenePath, buildIndex);
+            levelSceneDict.Add(buildIndex, scenePath);
+
+            DebugHelper.Log($"Added modded scene path: {scenePath}", DebugType.Developer);
         }
     }
     static string SceneNameFromHash_Hook(Func<NetworkSceneManager, uint, string> orig, NetworkSceneManager self, uint sceneHash)

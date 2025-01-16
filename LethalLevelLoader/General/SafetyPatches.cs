@@ -98,7 +98,7 @@ namespace LethalLevelLoader
                     invalidSpawnableItemWithRarity.Add(spawnableScrap);
 
             if (invalidSpawnableItemWithRarity.Count != 0)
-                DebugHelper.LogError("Removed: " + invalidSpawnableItemWithRarity.Count + " SpawnableItemWithRarities From CurrentLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Due To Invalid Properties To Prevent Errors.", DebugType.User);
+                DebugHelper.Log("Removed: " + invalidSpawnableItemWithRarity.Count + " SpawnableItemWithRarities From CurrentLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Due To Having 0 Rarity.", DebugType.User);
             foreach (SpawnableItemWithRarity invalidItem in invalidSpawnableItemWithRarity)
                 LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableScrap.Remove(invalidItem);
 

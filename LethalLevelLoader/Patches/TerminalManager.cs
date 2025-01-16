@@ -564,7 +564,7 @@ namespace LethalLevelLoader
                 extendedLevelsContentSourceNameDictionary[customExtendedLevelLists.Key] = customExtendedLevelLists.Value.OrderBy(o => o.CalculatedDifficultyRating).ToList();
                 if (customExtendedLevelLists.Value.Count == 1)
                     singleExtendedLevelsList.Add(customExtendedLevelLists.Value[0]);
-                else
+                else if (customExtendedLevelLists.Value.Count != 0)
                     foreach (ExtendedLevelGroup extendedLevelGroup in GetExtendedLevelGroups(customExtendedLevelLists.Value.ToArray(), Settings.moonsCatalogueSplitCount))
                         defaultCustomGroupedExtendedLevelGroups.Add(extendedLevelGroup);
             }

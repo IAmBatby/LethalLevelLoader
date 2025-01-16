@@ -24,7 +24,7 @@ namespace LethalLevelLoader
     {
         public const string ModGUID = "imabatby.lethallevelloader";
         public const string ModName = "LethalLevelLoader";
-        public const string ModVersion = "1.3.14";
+        public const string ModVersion = "1.4.0";
 
         internal static Plugin Instance;
 
@@ -68,12 +68,24 @@ namespace LethalLevelLoader
             NetcodePatch();
 
             GameObject assetBundleLoaderObject = new GameObject("LethalLevelLoader AssetBundleLoader");
-            assetBundleLoaderObject.AddComponent<AssetBundleLoader>().LoadBundles();
+            AssetBundleLoader assetBundleLoader = assetBundleLoaderObject.AddComponent<AssetBundleLoader>();
+            //assetBundleLoader.LoadBundles();
             if (Application.isEditor)
                 DontDestroyOnLoad(assetBundleLoaderObject);
             else
                 assetBundleLoaderObject.hideFlags = HideFlags.HideAndDontSave;
-            AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
+
+            GameObject newAssetBundleLoaderObject = new GameObject("LethalCore-AssetBundleLoader");
+            AssetBundles.AssetBundleLoader newAssetBundleLoader = newAssetBundleLoaderObject.AddComponent<AssetBundles.AssetBundleLoader>();
+            if (Application.isEditor)
+                DontDestroyOnLoad(newAssetBundleLoaderObject);
+            else
+                newAssetBundleLoaderObject.hideFlags = HideFlags.HideAndDontSave;
+
+            LethalBundleManager.Start();
+            //LethalBundleManager.TryLoadLethalBundles();
+
+            //AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
 
             ConfigLoader.BindGeneralConfigs();
         }

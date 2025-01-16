@@ -234,18 +234,21 @@ namespace LethalLevelLoader
                 DebugHelper.LogWarning("Tried to register ExtendedDungeonFlow with missing name! Setting to DungeonFlow name for safety!", DebugType.Developer);
                 extendedDungeonFlow.name = extendedDungeonFlow.DungeonFlow.name;
             }
-            AssetBundleLoader.RegisterNewExtendedContent(extendedDungeonFlow, extendedDungeonFlow.name);
+            //AssetBundleLoader.RegisterNewExtendedContent(extendedDungeonFlow, extendedDungeonFlow.name);
+            //LethalBundleManager.RegisterNewExtendedContent(extendedDungeonFlow, extendedDungeonFlow.name);
         }
 
         public static void RegisterExtendedLevel(ExtendedLevel extendedLevel)
         {
-            AssetBundleLoader.RegisterNewExtendedContent(extendedLevel, extendedLevel.name);
+            //AssetBundleLoader.RegisterNewExtendedContent(extendedLevel, extendedLevel.name);
+            LethalBundleManager.RegisterNewExtendedContent(extendedLevel, null);
         }
 
         public static void RegisterExtendedMod(ExtendedMod extendedMod)
         {
             DebugHelper.Log("Registering ExtendedMod: " + extendedMod.ModName + " Manually.", DebugType.Developer);
-            AssetBundleLoader.RegisterExtendedMod(extendedMod);
+            //AssetBundleLoader.RegisterExtendedMod(extendedMod);
+            LethalBundleManager.RegisterExtendedMod(extendedMod, null);
         }
 
         internal static void SortExtendedMods()

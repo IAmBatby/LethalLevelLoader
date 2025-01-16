@@ -60,11 +60,13 @@ namespace LethalLevelLoader
                 //AssetBundleLoader.LoadBundles(__instance);
                 //AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
 
+                if (LethalBundleManager.CurrentStatus == LethalBundleManager.ModProcessingStatus.Complete)
+                /*
                 if (AssetBundleLoader.noBundlesFound == true)
                 {
                     CurrentLoadingStatus = LoadingStatus.Complete;
                     AssetBundleLoader.OnBundlesFinishedLoadingInvoke();
-                }
+                }*/
 
 
                 ContentTagParser.ImportVanillaContentTags();
@@ -96,12 +98,12 @@ namespace LethalLevelLoader
                 return (false);
             }
 
-            if (AssetBundleLoader.CurrentLoadingStatus == AssetBundleLoader.LoadingStatus.Loading)
+            if (LethalBundleManager.CurrentStatus == LethalBundleManager.ModProcessingStatus.Loading)
             {
                 DebugHelper.LogWarning("SceneManager has attempted to load " + sceneName + " Scene before AssetBundles have finished loading. Pausing request until LethalLevelLoader is ready to proceed.", DebugType.User);
                 delayedSceneLoadingName = sceneName;
-                AssetBundleLoader.onBundlesFinishedLoading -= LoadMainMenu;
-                AssetBundleLoader.onBundlesFinishedLoading += LoadMainMenu;
+                LethalBundleManager.OnFinishedProcessing.RemoveListener(LoadMainMenu);
+                LethalBundleManager.OnFinishedProcessing.AddListener(LoadMainMenu);
 
                 return (false);
             }
@@ -124,6 +126,7 @@ namespace LethalLevelLoader
             if (Plugin.IsSetupComplete == false)
             {
                 LethalLevelLoaderNetworkManager.networkManager = __instance.GetComponent<NetworkManager>();
+                NetworkBundleManager.networkManager = __instance.GetComponent<NetworkManager>();
                 foreach (NetworkPrefab networkPrefab in __instance.GetComponent<NetworkManager>().NetworkConfig.Prefabs.Prefabs)
                     if (networkPrefab.Prefab.name.Contains("EntranceTeleport"))
                         if (networkPrefab.Prefab.GetComponent<AudioSource>() != null)
@@ -131,12 +134,24 @@ namespace LethalLevelLoader
 
                 GameObject networkManagerPrefab = PrefabHelper.CreateNetworkPrefab("LethalLevelLoaderNetworkManagerTest");
                 networkManagerPrefab.AddComponent<LethalLevelLoaderNetworkManager>();
-                networkManagerPrefab.GetComponent<NetworkObject>().DontDestroyWithOwner = true;
+                //networkManagerPrefab.GetComponent<NetworkObject>().DontDestroyWithOwner = true;
                 networkManagerPrefab.GetComponent<NetworkObject>().SceneMigrationSynchronization = true;
                 networkManagerPrefab.GetComponent<NetworkObject>().DestroyWithScene = false;
-                GameObject.DontDestroyOnLoad(networkManagerPrefab);
+                //GameObject.DontDestroyOnLoad(networkManagerPrefab);
                 LethalLevelLoaderNetworkManager.networkingManagerPrefab = networkManagerPrefab;
+
                 LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(networkManagerPrefab);
+
+                DebugHelper.Log("Creating NetworkBundleManager", DebugType.IAmBatby);
+                GameObject networkBundleManagerPrefab = PrefabHelper.CreateNetworkPrefab("NetworkBundleManager");
+                networkBundleManagerPrefab.AddComponent<NetworkBundleManager>();
+                //networkBundleManagerPrefab.GetComponent<NetworkObject>().DontDestroyWithOwner = true;
+                networkBundleManagerPrefab.GetComponent<NetworkObject>().SceneMigrationSynchronization = true;
+                networkBundleManagerPrefab.GetComponent<NetworkObject>().DestroyWithScene = false;
+                //GameObject.DontDestroyOnLoad(networkBundleManagerPrefab);
+                NetworkBundleManager.networkingManagerPrefab = networkBundleManagerPrefab;
+
+                LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(networkBundleManagerPrefab);
 
                 AssetBundleLoader.NetworkRegisterCustomContent(__instance.GetComponent<NetworkManager>());
                 LethalLevelLoaderNetworkManager.RegisterPrefabs(__instance.GetComponent<NetworkManager>());
@@ -190,8 +205,11 @@ namespace LethalLevelLoader
             }
 
             //Startup LethalLevelLoader's Network Manager Instance
-            if (GameNetworkManager.Instance.GetComponent<NetworkManager>().IsServer)
+            if (LethalLevelLoaderNetworkManager.networkManager.IsServer || LethalLevelLoaderNetworkManager.networkManager.IsHost)
+            {
                 GameObject.Instantiate(LethalLevelLoaderNetworkManager.networkingManagerPrefab).GetComponent<NetworkObject>().Spawn(destroyWithScene: false);
+                GameObject.Instantiate(NetworkBundleManager.networkingManagerPrefab).GetComponent<NetworkObject>().Spawn(destroyWithScene: false);
+            }
 
             //Add the facility's firstTimeDungeonAudio additionally to RoundManager's list to fix a base game bug.
             RoundManager.firstTimeDungeonAudios = RoundManager.firstTimeDungeonAudios.ToList().AddItem(RoundManager.firstTimeDungeonAudios[0]).ToArray();
@@ -391,6 +409,7 @@ namespace LethalLevelLoader
                 Plugin.CompleteSetup();
                 StartOfRound.SetPlanetsWeather();
             }
+
         }
 
         [HarmonyPriority(harmonyPriority)]
@@ -450,16 +469,19 @@ namespace LethalLevelLoader
         [HarmonyPostfix]
         public static void StartOfRoundChangeLevel_Postfix(int levelID)
         {
-            if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false)
-                return;
-
-            if (RoundManager.currentLevel != null && SaveManager.currentSaveFile.CurrentLevelName != RoundManager.currentLevel.PlanetName)
+            if (LethalLevelLoaderNetworkManager.networkManager.IsServer)
             {
-                DebugHelper.Log("Saving Current SelectableLevel: " + RoundManager.currentLevel.PlanetName, DebugType.User);
-                SaveManager.currentSaveFile.CurrentLevelName = RoundManager.currentLevel.name;
-                //SaveManager.SaveCurrentSelectableLevel(RoundManager.currentLevel);
-                //LevelLoader.RefreshShipAnimatorClips(LevelManager.CurrentExtendedLevel);
+                if (RoundManager.currentLevel != null && SaveManager.currentSaveFile.CurrentLevelName != RoundManager.currentLevel.PlanetName)
+                {
+                    DebugHelper.Log("Saving Current SelectableLevel: " + RoundManager.currentLevel.PlanetName, DebugType.User);
+                    SaveManager.currentSaveFile.CurrentLevelName = RoundManager.currentLevel.name;
+                    //SaveManager.SaveCurrentSelectableLevel(RoundManager.currentLevel);
+                    //LevelLoader.RefreshShipAnimatorClips(LevelManager.CurrentExtendedLevel);
+                }
             }
+
+            NetworkBundleManager.Instance.OnRouteChanged();
+
             
         }
 
@@ -536,6 +558,7 @@ namespace LethalLevelLoader
         internal static void TerminalLoadNewNode_Postfix(Terminal __instance, ref TerminalNode node)
         {
             TerminalManager.OnLoadNewNode(ref node);
+            //NetworkBundleManager.Instance.RefreshLoadedBundlesStatus();
             //if (ranLethalLevelLoaderTerminalEvent == true)
                 //__instance.currentNode = TerminalManager.moonsKeyword.specialKeywordResult;
         }
@@ -777,6 +800,61 @@ namespace LethalLevelLoader
         {
             if (LevelLoader.TryGetFootstepSurface(__instance.hit.collider, out FootstepSurface footstepSurface))
                 __instance.currentFootstepSurfaceIndex = StartOfRound.footstepSurfaces.IndexOf(footstepSurface);
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientConnect))]
+        [HarmonyPostfix]
+        internal static void StartOfRoundOnClientConnect_Postfix()
+        {
+            NetworkBundleManager.Instance.RefreshLoadedBundlesStatus();
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientDisconnect))]
+        [HarmonyPostfix]
+        internal static void StartOfRoundOnClientDisconnect_Postfix()
+        {
+            NetworkBundleManager.Instance.RefreshLoadedBundlesStatus();
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(StartMatchLever), nameof(StartMatchLever.Start))]
+        [HarmonyPostfix]
+        internal static void StartMatchLeverStart_Postfix(StartMatchLever __instance)
+        {
+            previousHoverTip = __instance.triggerScript.hoverTip;
+            previousInteractableState = __instance.triggerScript.interactable;
+        }
+
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(StartMatchLever), nameof(StartMatchLever.Update))]
+        [HarmonyPrefix]
+        internal static void StartMatchLeverUpdate_Prefix(StartMatchLever __instance)
+        {
+            if (SceneManager.loadedSceneCount > 1) return;
+            __instance.triggerScript.disabledHoverTip = NetworkBundleManager.AllowedToLoadLevel ? previousHoverTip : disabledText;
+            __instance.triggerScript.interactable = NetworkBundleManager.AllowedToLoadLevel ? previousInteractableState : false;
+
+            if (NetworkBundleManager.AllowedToLoadLevel == true)
+            {
+                previousInteractableState = __instance.triggerScript.interactable;
+                previousHoverTip = __instance.triggerScript.disabledHoverTip;
+            }
+        }
+
+
+        internal const string disabledText = "[ At least one player is loading custom moon! ]";
+        private static string previousHoverTip;
+        private static bool previousInteractableState;
+        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPatch(typeof(StartMatchLever), nameof(StartMatchLever.Update))]
+        [HarmonyPostfix]
+        internal static void StartMatchLeverUpdate_Postfix(StartMatchLever __instance)
+        {
+            if (SceneManager.loadedSceneCount > 1) return;
+            __instance.triggerScript.disabledHoverTip = NetworkBundleManager.AllowedToLoadLevel ? previousHoverTip : disabledText;
+            __instance.triggerScript.interactable = NetworkBundleManager.AllowedToLoadLevel ? previousInteractableState : false;
         }
 
         //DunGen Optimization Patches (Credit To LadyRaphtalia, Author Of Scarlet Devil Mansion)

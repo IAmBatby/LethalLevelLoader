@@ -38,7 +38,7 @@ namespace LethalLevelLoader
             base.OnNetworkSpawn();
             gameObject.name = "LethalLevelLoaderNetworkManager";
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            DebugHelper.Log("LethalLevelLoaderNetworkManager Spawned.", DebugType.User);
         }
 
         [ServerRpc]

@@ -33,6 +33,8 @@ namespace LethalLevelLoader
         internal static DirectoryInfo lethalLibFolder;
         internal static DirectoryInfo pluginsFolder;
 
+        internal static List<AssetBundleInfo> AssetBundleInfos { get; private set; } = new List<AssetBundleInfo>(); 
+
         internal static Dictionary<string, ExtendedMod> obtainedExtendedModsDictionary = new Dictionary<string, ExtendedMod>();
 
         public enum LoadingStatus { Inactive, Loading, Complete };
@@ -40,9 +42,6 @@ namespace LethalLevelLoader
 
         internal static Dictionary<string, AssetBundle> assetBundles = new Dictionary<string, AssetBundle>(); 
         internal static Dictionary<string, string> assetBundleLoadTimes = new Dictionary<string, string>();
-
-        internal static Dictionary<string, List<Action<AssetBundle>>> onLethalBundleLoadedRequestDictionary = new Dictionary<string, List<Action<AssetBundle>>>();
-        internal static Dictionary<string, List<Action<ExtendedMod>>> onExtendedModLoadedRequestDictionary = new Dictionary<string, List<Action<ExtendedMod>>>();
 
         internal static bool HaveBundlesFinishedLoading
         {
@@ -104,6 +103,19 @@ namespace LethalLevelLoader
             }
         }
 
+        public static bool TryGetAssetBundleInfo(string scenePath, out AssetBundleInfo info)
+        {
+            info = new AssetBundleInfo();
+            foreach (AssetBundleInfo bundleInfo in AssetBundleInfos)
+                if (bundleInfo.IsSceneBundle && bundleInfo.ContainsScene(scenePath))
+                {
+                    info = bundleInfo;
+                    return (true);
+                }
+
+            return (false);
+        }
+        /*
         internal void LoadBundles()
         {
             DebugHelper.Log("Finding LethalBundles!", DebugType.User);
@@ -142,12 +154,14 @@ namespace LethalLevelLoader
                 onBundlesFinishedLoading?.Invoke();
             }
         }
-
+        */
+        /*
         internal static void OnBundlesFinishedLoadingInvoke()
         {
             onBundlesFinishedLoading?.Invoke();
         }
-
+        */
+        /*
         IEnumerator LoadBundle(string bundleFile, string fileName)
         {
             Stopwatch stopWatch = new Stopwatch();
@@ -162,6 +176,7 @@ namespace LethalLevelLoader
 
             if (newBundle != null)
             {
+                AssetBundleInfos.Add(new AssetBundleInfo(bundleFile, newBundle));
                 assetBundles[fileName] = newBundle;
 
                 if (newBundle.isStreamedSceneAssetBundle == false)
@@ -207,7 +222,8 @@ namespace LethalLevelLoader
                 DebugHelper.LogError(ex, DebugType.User);
             }
         }
-
+        */
+        /*
         internal static void RegisterExtendedMod(ExtendedMod extendedMod)
         {
             DebugHelper.Log("Found ExtendedMod: " + extendedMod.name, DebugType.User);
@@ -267,7 +283,7 @@ namespace LethalLevelLoader
                 }
             }
         }
-
+        */
         internal static void RegisterNewExtendedMod()
         {
 
@@ -277,10 +293,10 @@ namespace LethalLevelLoader
         {
             if (invokedFunction != null && !string.IsNullOrEmpty(lethalBundleFileName))
             {
-                if (!onLethalBundleLoadedRequestDictionary.ContainsKey(lethalBundleFileName))
-                    onLethalBundleLoadedRequestDictionary.Add(lethalBundleFileName, new List<Action<AssetBundle>>() { invokedFunction });
+                if (!AssetBundles.AssetBundleLoader.onLethalBundleLoadedRequestDict.ContainsKey(lethalBundleFileName))
+                    AssetBundles.AssetBundleLoader.onLethalBundleLoadedRequestDict.Add(lethalBundleFileName, new List<Action<AssetBundle>>() { invokedFunction });
                 else
-                    onLethalBundleLoadedRequestDictionary[lethalBundleFileName].Add(invokedFunction);
+                    AssetBundles.AssetBundleLoader.onLethalBundleLoadedRequestDict[lethalBundleFileName].Add(invokedFunction);
             }
         }
 
@@ -288,21 +304,21 @@ namespace LethalLevelLoader
         {
             if (invokedFunction != null && !string.IsNullOrEmpty(extendedModAuthorName))
             {
-                if (!onExtendedModLoadedRequestDictionary.ContainsKey(extendedModAuthorName))
-                    onExtendedModLoadedRequestDictionary.Add(extendedModAuthorName, new List<Action<ExtendedMod>>() { invokedFunction });
+                if (!LethalBundleManager.onExtendedModLoadedRequestDict.ContainsKey(extendedModAuthorName))
+                    LethalBundleManager.onExtendedModLoadedRequestDict.Add(extendedModAuthorName, new List<Action<ExtendedMod>>() { invokedFunction });
                 else
-                    onExtendedModLoadedRequestDictionary[extendedModAuthorName].Add(invokedFunction);
+                    LethalBundleManager.onExtendedModLoadedRequestDict[extendedModAuthorName].Add(invokedFunction);
             }
 
             if (invokedFunction != null && !string.IsNullOrEmpty(extendedModModName))
             {
-                if (!onExtendedModLoadedRequestDictionary.ContainsKey(extendedModModName))
-                    onExtendedModLoadedRequestDictionary.Add(extendedModModName, new List<Action<ExtendedMod>>() { invokedFunction });
+                if (!LethalBundleManager.onExtendedModLoadedRequestDict.ContainsKey(extendedModModName))
+                    LethalBundleManager.onExtendedModLoadedRequestDict.Add(extendedModModName, new List<Action<ExtendedMod>>() { invokedFunction });
                 else
-                    onExtendedModLoadedRequestDictionary[extendedModModName].Add(invokedFunction);
+                    LethalBundleManager.onExtendedModLoadedRequestDict[extendedModModName].Add(invokedFunction);
             }
         }
-
+        /*
         internal static void OnBundlesFinishedLoading()
         {
             //foreach (KeyValuePair<string, string> loadedAssetBundles in assetBundleLoadTimes)
@@ -330,7 +346,8 @@ namespace LethalLevelLoader
                         foreach (Action<ExtendedMod> action in kvp.Value)
                             action(extendedMod);
         }
-
+        */
+        /*
         //This Function is used to Register new ExtendedConte to LethalLevelLoader, assiging content to it's relevant ExtendedMod or creating a new ExtendedMod if neccasary.
         internal static void RegisterNewExtendedContent(ExtendedContent extendedContent, string fallbackName)
         {
@@ -384,7 +401,8 @@ namespace LethalLevelLoader
                 }
             }
         }
-
+        */
+        /*
         internal static ExtendedMod GetOrCreateExtendedMod(string contentSourceName)
         {
             if (obtainedExtendedModsDictionary.TryGetValue(contentSourceName, out ExtendedMod extendedMod))
@@ -398,7 +416,8 @@ namespace LethalLevelLoader
 
             }
         }
-
+        */
+        /*
         //This function should probably just be in NetworkRegisterContent
         internal static void LoadContentInBundles()
         {
@@ -448,7 +467,7 @@ namespace LethalLevelLoader
             foreach (string loadedSceneName in PatchedContent.AllLevelSceneNames)
                 DebugHelper.Log("Loaded SceneName: " + loadedSceneName, DebugType.Developer);
         }
-
+        */
         internal static void InitializeBundles()
         {
             foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods)
