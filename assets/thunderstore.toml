@@ -20,7 +20,7 @@ MaxWasUnavailable-LethalModDataLib = "1.2.2"
 [build]
 icon = "../icon.png"
 readme = "../README.md"
-outdir = "../LethalLevelLoader/dist"
+outdir = "../dist"
 
 [[build.copy]]
 source = "../LethalLevelLoader/bin/Release/netstandard2.1/LethalLevelLoader.dll"
