@@ -54,6 +54,7 @@ namespace LethalLevelLoader
         [field: Space(5)]
         [field: Header("Terminal Route Override Settings")]
 
+        [field: SerializeField] public string OverrideRouteNoun { get; set; } = string.Empty;   
         [field: SerializeField] [field: TextArea(2, 20)] public string OverrideInfoNodeDescription { get; set; } = string.Empty;
         [field: SerializeField] [field: TextArea(2, 20)] public string OverrideRouteNodeDescription { get; set; } = string.Empty;
         [field: SerializeField] [field: TextArea(2, 20)] public string OverrideRouteConfirmNodeDescription { get; set; } = string.Empty;
@@ -98,6 +99,8 @@ namespace LethalLevelLoader
                 routePrice = value;
             }
         }
+
+        public string TerminalNoun => string.IsNullOrEmpty(OverrideRouteNoun) ? NumberlessPlanetName.StripSpecialCharacters().Sanitized() : OverrideRouteNoun.StripSpecialCharacters().Sanitized();
 
         public string NumberlessPlanetName => GetNumberlessPlanetName(SelectableLevel);
         public int CalculatedDifficultyRating => LevelManager.CalculateExtendedLevelDifficultyRating(this);

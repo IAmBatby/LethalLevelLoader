@@ -261,6 +261,10 @@ namespace LethalLevelLoader
 
             NetworkRegisterCustomScenes();
 
+            AssetBundles.AssetBundleLoader.ClearCache();
+
+            DebugHelper.Log("Custom Content Processed. Unlocking Main Menu.", DebugType.User);
+
             CurrentStatus = ModProcessingStatus.Complete;
 
             OnFinishedProcessing.Invoke();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -47,6 +48,8 @@ namespace LethalLevelLoader.AssetBundles
 
         internal static bool AllowLoading { get; set; } = true;
 
+        private bool onCooldown;
+
         public static bool LoadAllBundlesRequest(DirectoryInfo directory = null, string specifiedFileName = null, string specifiedFileExtension = null, ParameterEvent<AssetBundleGroup> onProcessedCallback = null)
         {
             if (AllowLoading == false)
@@ -71,6 +74,21 @@ namespace LethalLevelLoader.AssetBundles
 
             LoadAllBundles(directory, specifiedFileName, specifiedFileExtension, onProcessedCallback);
             return (true);
+        }
+
+        private IEnumerator ClearCacheRoutine()
+        {
+            AsyncOperation unloadUnused = Resources.UnloadUnusedAssets();
+            yield return unloadUnused;
+            Caching.ClearCache();
+            GC.Collect();
+            unloadUnused = Resources.UnloadUnusedAssets();
+            yield return unloadUnused;
+        }
+
+        internal static void ClearCache()
+        {
+            Instance.StartCoroutine(Instance.ClearCacheRoutine());
         }
 
         private static void LoadAllBundles(DirectoryInfo directory = null, string specifiedFileName = null, string specifiedFileExtension = null, ParameterEvent<AssetBundleGroup> onProcessedCallback = null)
@@ -124,7 +142,11 @@ namespace LethalLevelLoader.AssetBundles
             if (info.IsAssetBundleLoaded)
                 OnBundleLoaded.Invoke(info);
             else
+            {
                 OnBundleUnloaded.Invoke(info);
+                if (Plugin.IsSetupComplete)
+                    ClearCache();
+            }
         }
 
         private static void ProcessInitialBundleLoading(AssetBundleInfo info)

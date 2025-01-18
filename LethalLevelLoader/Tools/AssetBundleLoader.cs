@@ -347,6 +347,10 @@ namespace LethalLevelLoader
                             action(extendedMod);
         }
         */
+        internal static void RegisterNewExtendedContent(ExtendedContent extendedContent, string fallbackName)
+        {
+            LethalBundleManager.RegisterNewExtendedContent(extendedContent, null);
+        }
         /*
         //This Function is used to Register new ExtendedConte to LethalLevelLoader, assiging content to it's relevant ExtendedMod or creating a new ExtendedMod if neccasary.
         internal static void RegisterNewExtendedContent(ExtendedContent extendedContent, string fallbackName)

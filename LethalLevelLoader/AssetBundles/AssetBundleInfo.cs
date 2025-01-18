@@ -167,12 +167,6 @@ namespace LethalLevelLoader.AssetBundles
                 UnityEngine.Object.Destroy(assetBundle);
                 assetBundle = null; // I think we need to do this so it isn't deemed missing (?)
                 activeUnloadRequest = null;
-                AsyncOperation unloadUnused = Resources.UnloadUnusedAssets();
-                yield return unloadUnused;
-                Caching.ClearCache();
-                GC.Collect();
-                unloadUnused = Resources.UnloadUnusedAssets();
-                yield return unloadUnused;
                 bundleUnloadStopwatch.Stop();
                 LastTimeUnloaded = Time.time;
                 DebugHelper.Log(AssetBundleFileName + " Unloaded (" + LastUnloadTime + ")", DebugType.User);

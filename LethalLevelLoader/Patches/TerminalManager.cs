@@ -598,7 +598,7 @@ namespace LethalLevelLoader
             //Terminal Route Keyword
             TerminalKeyword terminalKeyword = CreateNewTerminalKeyword();
             terminalKeyword.name = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized() + "Keyword";
-            terminalKeyword.word = extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized();
+            terminalKeyword.word = extendedLevel.TerminalNoun;
             terminalKeyword.defaultVerb = routeKeyword;
 
             //Terminal Route Node
@@ -920,7 +920,7 @@ namespace LethalLevelLoader
             //Simulate Keywords
             List<string> simulateMoonsKeywords = new List<string>();
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                simulateMoonsKeywords.Add(extendedLevel.NumberlessPlanetName.StripSpecialCharacters().Sanitized());
+                simulateMoonsKeywords.Add(extendedLevel.TerminalNoun);
 
             int counter = 0;
             foreach (TerminalNode simulateNode in CreateTerminalEventNodes("simulate", simulateMoonsKeywords))

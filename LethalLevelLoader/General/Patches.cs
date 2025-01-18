@@ -60,13 +60,12 @@ namespace LethalLevelLoader
                 //AssetBundleLoader.LoadBundles(__instance);
                 //AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
 
-                if (LethalBundleManager.CurrentStatus == LethalBundleManager.ModProcessingStatus.Complete)
-                /*
-                if (AssetBundleLoader.noBundlesFound == true)
-                {
-                    CurrentLoadingStatus = LoadingStatus.Complete;
-                    AssetBundleLoader.OnBundlesFinishedLoadingInvoke();
-                }*/
+                /*if (LethalBundleManager.CurrentStatus == LethalBundleManager.ModProcessingStatus.Complete)
+if (AssetBundleLoader.noBundlesFound == true)
+{
+    CurrentLoadingStatus = LoadingStatus.Complete;
+    AssetBundleLoader.OnBundlesFinishedLoadingInvoke();
+}*/
 
 
                 ContentTagParser.ImportVanillaContentTags();

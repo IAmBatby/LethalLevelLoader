@@ -235,7 +235,7 @@ namespace LethalLevelLoader
                 extendedDungeonFlow.name = extendedDungeonFlow.DungeonFlow.name;
             }
             //AssetBundleLoader.RegisterNewExtendedContent(extendedDungeonFlow, extendedDungeonFlow.name);
-            //LethalBundleManager.RegisterNewExtendedContent(extendedDungeonFlow, extendedDungeonFlow.name);
+            LethalBundleManager.RegisterNewExtendedContent(extendedDungeonFlow, null);
         }
 
         public static void RegisterExtendedLevel(ExtendedLevel extendedLevel)
@@ -246,7 +246,7 @@ namespace LethalLevelLoader
 
         public static void RegisterExtendedMod(ExtendedMod extendedMod)
         {
-            DebugHelper.Log("Registering ExtendedMod: " + extendedMod.ModName + " Manually.", DebugType.Developer);
+            DebugHelper.Log("Registering ExtendedMod: " + extendedMod.ModName + " Manually.", DebugType.IAmBatby);
             //AssetBundleLoader.RegisterExtendedMod(extendedMod);
             LethalBundleManager.RegisterExtendedMod(extendedMod, null);
         }

@@ -64,8 +64,8 @@ namespace LethalLevelLoader
 
         internal void Refresh()
         {
-            if (IsHost == false) return;
-            allowedToLoadLevel.Value = true;
+            if (IsHost)
+                allowedToLoadLevel.Value = true;
             OnRouteChanged();
         }
 
