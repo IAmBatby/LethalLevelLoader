@@ -10,7 +10,7 @@
 **Description**
 --
 
-### **1.3.0 for Lethal Company v55 Has Released!**
+### **1.4.7 for Lethal Company v69 Has Released!**
 
 **LethalLevelLoader** is a custom API to support the manual and dynamic integration of custom levels and dungeons in Lethal Company.  
 Mod Developers can provide LethalLevelLoader with their custom content via code or via automatic AssetBundle detection, and from there LethalLevelLoader will seamlessly load the content into the game.
@@ -58,7 +58,7 @@ You should be now set up, and ready compile your fork of LethalLevelLoader on yo
 --
 
 * **Evaisa** *(This Mod is directly based from LethalLib's codebase and could have been made without it's pre-existing foundations.)*
-* **SkullCrusher** *(This Mod is directly based from SkullCrusher's LethalLib' Fork and could have been made without it's pre-existing foundations.)*
+* **SkullCrusher** *(This Mod is directly based from SkullCrusher's LethalLib' Fork and could not have been made without it's pre-existing foundations.)*
 * **HolographicWings** *(This Mod was inspired by LethalExpansion and could not have been made without HolographicWing's support and research.)*
 * **KayNetsua** *(This Mod was internally tested using KayNetsua's "E Gypt" Custom Level and KayNetsua assisted in testing LethalLevelLoader's usage)*
 * **Badhamknibb** *(This Mod was internally tested using Badhamknibb's "SCP Foundation" Custom Dungeon and Badhamknibb's assisted in testing LethalLevelLoader's usage)*

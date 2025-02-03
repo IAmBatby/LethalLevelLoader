@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using UnityEngine.ProBuilder.MeshOperations;
 using Debug = UnityEngine.Debug;
 
 namespace LethalLevelLoader.AssetBundles
@@ -105,7 +106,12 @@ namespace LethalLevelLoader.AssetBundles
 
         public bool TryLoadBundle()
         {
-            if (IsAssetBundleLoaded == false && activeLoadRequest == null)
+            if (IsAssetBundleLoaded == true)
+            {
+                OnBundleLoaded.Invoke(this); //Feels a little strange but if something requests a bundle to be loaded and expects this event to fire in response we wanna fire it in the event it's already loaded. (might change later) 
+                return (true);
+            }
+            else if (IsAssetBundleLoaded == false && activeLoadRequest == null)
             {
                 coroutineHandler.StartCoroutine(LoadBundleRequest());
                 return (true);
@@ -120,7 +126,12 @@ namespace LethalLevelLoader.AssetBundles
         public bool TryUnloadBundle()
         {
             if (IsHotReloadable == false) return (false);
-            if (IsAssetBundleLoaded && activeUnloadRequest == null)
+            else if (IsAssetBundleLoaded == false)
+            {
+                OnBundeUnloaded.Invoke(this);  //Feels a little strange but if something requests a bundle to be unloaded and expects this event to fire in response we wanna fire it in the event it's already unloaded. (might change later) 
+                return (true);
+            }
+            else if (activeUnloadRequest == null)
             {
                 coroutineHandler.StartCoroutine(UnloadBundleRequest());
                 return (true);
@@ -138,28 +149,25 @@ namespace LethalLevelLoader.AssetBundles
             string combinedPath = Path.Combine(Application.streamingAssetsPath, AssetBundleFilePath);
             activeLoadRequest = AssetBundle.LoadFromFileAsync(combinedPath);
             yield return activeLoadRequest;
-            if (activeLoadRequest.isDone)
+            if (assetBundle != null || (activeLoadRequest.isDone && activeLoadRequest.assetBundle != null))
             {
-                if (activeLoadRequest.assetBundle == null)
-                    DebugHelper.LogError("AssetBundleInfo: " + AssetBundleFileName + " failed to load.", DebugType.User);
-                else
-                {
-                    assetBundle = activeLoadRequest.assetBundle;
-                    if (hasInitialized == false)
-                        Initialize();
-                    activeLoadRequest = null;
-                    bundleLoadStopwatch.Stop();
-                    LastTimeLoaded = Time.time;
-                    DebugHelper.Log(AssetBundleFileName + " Loaded (" + LastLoadTime + ")!", DebugType.User);
-                    OnBundleLoaded.Invoke(this);
-                }
+                assetBundle = activeLoadRequest.assetBundle;
+                if (hasInitialized == false)
+                    Initialize();
+                activeLoadRequest = null;
+                bundleLoadStopwatch.Stop();
+                LastTimeLoaded = Time.time;
+                DebugHelper.Log(AssetBundleFileName + " Loaded (" + LastLoadTime + ")!", DebugType.User);
+                OnBundleLoaded.Invoke(this);
             }
+            else
+                DebugHelper.LogError("AssetBundleInfo: " + AssetBundleFileName + " failed to load.", DebugType.User);
         }
 
         private IEnumerator UnloadBundleRequest()
         {
             bundleUnloadStopwatch = Stopwatch.StartNew();
-            yield return new WaitForSeconds(0.01f); //Might remove later but stopped unity freeze when you tried to load and unload a bundle on the same frame
+            yield return new WaitForSeconds(0.01f); //Might remove later but stopped unity freeze when you tried to load and unload a bundle on the same frame (Confirmed Unity bug on our version)
             activeUnloadRequest = assetBundle.UnloadAsync(true);
             yield return activeUnloadRequest;
             if (activeUnloadRequest.isDone)

@@ -1,6 +1,36 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.4.7</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Tweaked NetworkBundleManager code to improve realibility of the hot-reloading system and prevent unintentional soft-locks related to pulling the lever
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.4.6</summary>**
+
+**<details><summary>Features</summary>**
+
+* Added ExtendedLevel.IsRouteRemoved to indicate if Level has been disabled in the config
+
+</details>
+
+**<details><summary>Fixes</summary>**
+
+* Fixed issue with AssetBundle hotloading when routing from a moon to a moon contained in the same AssetBundle
+* Added additional safetey check when performing Audio related Asset restoration
+* Changed ExtendedItem terminal registration to ensure accurate item Ids
+* Fixed an issue with Locked ExtendedLevel's by setting it's accossiated TerminalNode.acceptEverything to false
+
+
+</details>
+
+</details>
+
 **<details><summary>Version 1.4.5</summary>**
 
 **<details><summary>Fixes</summary>**

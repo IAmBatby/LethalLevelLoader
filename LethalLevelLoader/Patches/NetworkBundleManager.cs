@@ -48,23 +48,24 @@ namespace LethalLevelLoader
             DebugHelper.Log("NetworkBundleManger Has Spawned!", DebugType.IAmBatby);
             Instance = this;
 
-            if (IsServer)
-                ResetPlayerLoadStatusListServerRpc();
-
-            if (Plugin.IsSetupComplete == true)
-            {
-                GenerateSceneDict();
-                GenerateAssetBundleGroupDict();
-                Refresh();
-            }
+            if (Plugin.IsLobbyInitialized == true)
+                Initialize();
             else
             {
-                Plugin.onSetupComplete += GenerateSceneDict;
-                Plugin.onSetupComplete += GenerateAssetBundleGroupDict;
-                Plugin.onSetupComplete += Refresh;
+                Plugin.onLobbyInitialized -= Initialize;
+                Plugin.onLobbyInitialized += Initialize;
             }
             AssetBundles.AssetBundleLoader.OnBundleLoaded.AddListener(Instance.RefreshLoadStatus);
             AssetBundles.AssetBundleLoader.OnBundleUnloaded.AddListener(Instance.RefreshLoadStatus);
+        }
+
+        //This should run anytime the client joins a lobby
+        private void Initialize()
+        {
+            DebugHelper.Log("NetworkBundleManager Initializing.", DebugType.User);
+            GenerateSceneDict();
+            GenerateAssetBundleGroupDict();
+            Refresh();
         }
 
         //Called on Plugin.onSetupComplete
@@ -96,25 +97,17 @@ namespace LethalLevelLoader
         internal void OnClientsChangedRefresh()
         {
             if (!IsServer) return;
-            ResetPlayerLoadStatusListServerRpc();
+            RequestLoadStatusRefreshServerRpc();
         }
 
         [ServerRpc(RequireOwnership = false)]
         internal void RequestLoadStatusRefreshServerRpc()
         {
             DebugHelper.Log("Refeshing Loaded Bundles Status!", DebugType.User);
-            ResetPlayerLoadStatusListServerRpc();
-            RequestLoadStatusRefreshClientRpc();
-        }
-
-
-        [ServerRpc]
-        internal void ResetPlayerLoadStatusListServerRpc()
-        {
-            DebugHelper.Log("Reseting PlayerLoadStatus List!", DebugType.User);
             playersLoadStatus.Clear();
             foreach (ulong clientId in NetworkManager.ConnectedClientsIds)
                 playersLoadStatus.Add(false);
+            RequestLoadStatusRefreshClientRpc();
         }
 
         [ClientRpc]
@@ -131,7 +124,11 @@ namespace LethalLevelLoader
             bool loadedStatus = true;
             foreach (AssetBundleGroup routeGroup in GetRouteGroups(LevelManager.CurrentExtendedLevel))
                 if (routeGroup.LoadedStatus != AssetBundleGroupLoadedStatus.Loaded)
+                {
                     loadedStatus = false;
+                    if (routeGroup.LoadingStatus != AssetBundleGroupLoadingStatus.Loading)
+                        routeGroup.TryLoadGroup();
+                }
             DebugHelper.Log("Sending LoadedStatus: " + loadedStatus + " To Server!", DebugType.User);
             SetLoadedStatusServerRpc(NetworkManager.LocalClientId, loadedStatus);
         }
@@ -139,10 +136,7 @@ namespace LethalLevelLoader
         [ServerRpc(RequireOwnership = false)]
         private void SetLoadedStatusServerRpc(ulong clientID, bool status)
         {
-            List<ulong> connectedClientIds = new List<ulong>();
-            foreach (ulong clientId in NetworkManager.ConnectedClientsIds)
-                connectedClientIds.Add(clientId);
-            int index = connectedClientIds.IndexOf(clientID);
+            int index = NetworkManager.ConnectedClientsIds.ToList().IndexOf(clientID);
             if (playersLoadStatus.Count <= index)
             {
                 DebugHelper.LogError("Tried To Set LoadedStatus When List Is Invalid (ClientID: " + clientID + ", Index: " + index + "), Resetting.", DebugType.User);

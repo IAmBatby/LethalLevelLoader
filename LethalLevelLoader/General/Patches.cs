@@ -382,6 +382,7 @@ if (AssetBundleLoader.noBundlesFound == true)
                 Plugin.CompleteSetup();
                 StartOfRound.SetPlanetsWeather();
             }
+            Plugin.LobbyInitialized();
 
         }
 
@@ -660,6 +661,12 @@ if (AssetBundleLoader.noBundlesFound == true)
 
         [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientDisconnect)), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void StartOfRoundOnClientDisconnect_Postfix()
+        {
+            NetworkBundleManager.Instance.OnClientsChangedRefresh();
+        }
+
+        [HarmonyPatch(typeof(NetworkConnectionManager), nameof(NetworkConnectionManager.OnClientDisconnectFromServer)), HarmonyPostfix, HarmonyPriority(priority)]
+        internal static void NetworkConnectionManagerOnClientDisconnectFromServer_Postfix()
         {
             NetworkBundleManager.Instance.OnClientsChangedRefresh();
         }

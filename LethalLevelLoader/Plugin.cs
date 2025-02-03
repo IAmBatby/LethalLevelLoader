@@ -17,7 +17,7 @@ namespace LethalLevelLoader
     {
         public const string ModGUID = "imabatby.lethallevelloader";
         public const string ModName = "LethalLevelLoader";
-        public const string ModVersion = "1.4.6";
+        public const string ModVersion = "1.4.7";
 
         internal static Plugin Instance;
 
@@ -27,8 +27,10 @@ namespace LethalLevelLoader
         internal static BepInEx.Logging.ManualLogSource logger;
 
         public static event Action onBeforeSetup;
-        public static event Action onSetupComplete;
+        public static event Action onSetupComplete; //Happens on the first lobby in a session
+        public static event Action onLobbyInitialized; //Happens per lobby in a session
         public static bool IsSetupComplete { get; private set; } = false;
+        public static bool IsLobbyInitialized { get; internal set; } = false;
 
         internal static GameObject networkManagerPrefab;
 
@@ -85,6 +87,7 @@ namespace LethalLevelLoader
 
         internal static void OnBeforeSetupInvoke()
         {
+            IsLobbyInitialized = false;
             onBeforeSetup?.Invoke();
         }
 
@@ -93,6 +96,12 @@ namespace LethalLevelLoader
             DebugHelper.Log("LethalLevelLoader Has Finished Initializing.", DebugType.User);
             Plugin.IsSetupComplete = true;
             onSetupComplete?.Invoke();
+        }
+
+        internal static void LobbyInitialized()
+        {
+            IsLobbyInitialized = true;
+            onLobbyInitialized?.Invoke();
         }
 
         private void NetcodePatch()
