@@ -28,6 +28,7 @@ namespace LethalLevelLoader
 
         [field: SerializeField] public bool IsRouteHidden { get; set; } = false;
         [field: SerializeField] public bool IsRouteLocked { get; set; } = false;
+        public bool IsRouteRemoved { get; set; } = false;
         [field: SerializeField] public string LockedRouteNodeText { get; set; } = string.Empty;
 
         [field: Space(5)]

@@ -1,5 +1,4 @@
-﻿using BepInEx.Logging;
-using DunGen;
+﻿using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
 using System;

@@ -1,16 +1,9 @@
-﻿using BepInEx.Logging;
-using HarmonyLib;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
-using Unity.Netcode;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Unity.AI.Navigation;
-using UnityEngine.AI;
 using LethalLevelLoader.Tools;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Rendering;
 
 namespace LethalLevelLoader
 {

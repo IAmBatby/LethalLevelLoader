@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿#if !HARMONY_DISABLED
+using HarmonyLib;
 using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
@@ -75,6 +76,7 @@ namespace LethalLevelLoader
 
             lockedNode = CreateNewTerminalNode();
             lockedNode.name = "lockedLevelNode";
+            lockedNode.acceptAnything = false;
             lockedNode.clearPreviousText = true;
         }
 
@@ -746,11 +748,11 @@ namespace LethalLevelLoader
                 }
                 terminalNodeBuy.clearPreviousText = true;
                 terminalNodeBuy.maxCharactersToType = 15;
-                terminalNodeBuy.buyItemIndex = buyableItemIndex;
                 terminalNodeBuy.isConfirmationNode = true;
                 terminalNodeBuy.itemCost = extendedItem.Item.creditsWorth;
                 terminalNodeBuy.overrideOptions = true;
             }
+            terminalNodeBuy.buyItemIndex = buyableItemIndex;
 
             //Terminal Route Confirm Node
             TerminalNode terminalNodeBuyConfirm;
@@ -773,10 +775,10 @@ namespace LethalLevelLoader
                 }
                 terminalNodeBuyConfirm.clearPreviousText = true;
                 terminalNodeBuyConfirm.maxCharactersToType = 35;
-                terminalNodeBuyConfirm.buyItemIndex = buyableItemIndex;
                 terminalNodeBuyConfirm.isConfirmationNode = false;
                 terminalNodeBuyConfirm.playSyncedClip = 0;
             }
+            terminalNodeBuyConfirm.buyItemIndex = buyableItemIndex;
 
             //Terminal Info Node
             TerminalNode terminalNodeInfo = null;
@@ -1013,3 +1015,4 @@ namespace LethalLevelLoader
         }
     }
 }
+#endif

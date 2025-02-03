@@ -78,8 +78,8 @@ namespace LethalLevelLoader
             DebugHelper.Log("Initializing Custom Item: " + Item.itemName + ". Is Buyable: " + IsBuyableItem + ". Is Scrap: " + Item.isScrap, DebugType.Developer);
 
             TryCreateMatchingProperties();
-
-            Patches.StartOfRound.allItemsList.itemsList.Add(Item);
+            if (!Patches.StartOfRound.allItemsList.itemsList.Contains(Item))
+                Patches.StartOfRound.allItemsList.itemsList.Add(Item);
             if (IsBuyableItem)
                 TerminalManager.CreateItemTerminalData(this);
         }

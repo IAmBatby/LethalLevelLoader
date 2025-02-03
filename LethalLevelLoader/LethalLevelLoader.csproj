@@ -61,7 +61,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Evaisa.LethalLib" Version="0.16.0" />
     <PackageReference Include="MaxWasUnavailable.LethalModDataLib" Version="1.2.2" />
     <PackageReference Include="LethalCompany.GameLibs.Steam" Version="67.0.0-ngd.0" Publicize="true" />
   </ItemGroup>
@@ -73,6 +72,7 @@
   <PropertyGroup>
     <MinVerDefaultPreReleaseIdentifiers>dev</MinVerDefaultPreReleaseIdentifiers>
     <MinVerTagPrefix>v</MinVerTagPrefix>
+    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>
 
   <Target Name="SetPluginVersion" BeforeTargets="AddGeneratedFile" DependsOnTargets="MinVer">

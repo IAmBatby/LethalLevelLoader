@@ -1,40 +1,32 @@
-﻿using Discord;
-using DunGen;
-using DunGen.Graph;
+﻿using DunGen;
 using GameNetcodeStuff;
 using HarmonyLib;
 using LethalLevelLoader.Tools;
 using MonoMod.Cil;
-using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
-using TMPro;
 using Unity.Netcode;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Audio;
-using UnityEngine.Device;
 using UnityEngine.InputSystem.Utilities;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
-using static LethalLevelLoader.AssetBundleLoader;
 using NetworkManager = Unity.Netcode.NetworkManager;
 
 namespace LethalLevelLoader
 {
     internal static class Patches
     {
-        internal const int harmonyPriority = 200;
+        internal const int priority = 200;
 
         internal static string delayedSceneLoadingName = string.Empty;
 
         internal static List<string> allSceneNamesCalledToLoad = new List<string>();
 
         internal static Dictionary<Camera, float> playerCameras = new Dictionary<Camera, float>();
+
+        internal static bool IsServer => NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer;
 
         //Singletons and such for these are set in each classes Awake function, But they all are accessible on the first awake function of the earliest one of these four managers awake function, so i grab them directly via findobjectoftype to safely access them as early as possible.
         public static StartOfRound StartOfRound { get; internal set; }
@@ -46,7 +38,7 @@ namespace LethalLevelLoader
         public static ExtendedEvent OnAfterVanillaContentCollected = new ExtendedEvent();
         public static ExtendedEvent OnAfterCustomContentRestored = new ExtendedEvent();
 
-        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPriority(priority)]
         [HarmonyPatch(typeof(PreInitSceneScript), "Awake")]
         [HarmonyPrefix]
         internal static void PreInitSceneScriptAwake_Prefix(PreInitSceneScript __instance)
@@ -72,7 +64,7 @@ if (AssetBundleLoader.noBundlesFound == true)
             }
         }
 
-        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPriority(priority)]
         [HarmonyPatch(typeof(PreInitSceneScript), "ChooseLaunchOption")]
         [HarmonyPrefix]
         internal static bool PreInitSceneScriptChooseLaunchOption_Prefix()
@@ -81,7 +73,7 @@ if (AssetBundleLoader.noBundlesFound == true)
             return true;
         }
 
-        [HarmonyPriority(harmonyPriority)]
+        [HarmonyPriority(priority)]
         [HarmonyPatch(typeof(SceneManager), "LoadScene", new Type[] { typeof(string) })]
         [HarmonyPrefix]
         internal static bool SceneManagerLoadScene(string sceneName)
@@ -117,11 +109,11 @@ if (AssetBundleLoader.noBundlesFound == true)
             delayedSceneLoadingName = string.Empty;
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(GameNetworkManager), "Start")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(GameNetworkManager), "Start"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static void GameNetworkManagerStart_Prefix(GameNetworkManager __instance)
         {
+            if (LethalBundleManager.HasFinalisedFoundContent == false)
+                LethalBundleManager.FinialiseFoundContent();
             if (Plugin.IsSetupComplete == false)
             {
                 LethalLevelLoaderNetworkManager.networkManager = __instance.GetComponent<NetworkManager>();
@@ -157,32 +149,24 @@ if (AssetBundleLoader.noBundlesFound == true)
             }
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(GameNetworkManager), "SaveGameValues")]
-        [HarmonyPostfix]
+        [HarmonyPatch(typeof(GameNetworkManager), "SaveGameValues"), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void GameNetworkManagerSaveGameValues_Postfix(GameNetworkManager __instance)
         {
             // Vanilla checks
             if (!__instance.isHostingGame || !StartOfRound.Instance.inShipPhase || StartOfRound.Instance.isChallengeFile)
                 return;
-
             SaveManager.SaveGameValues();
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartOfRound), "Awake")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(StartOfRound), "Awake"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static void StartOfRoundAwake_Prefix(StartOfRound __instance)
         {
             Plugin.OnBeforeSetupInvoke();
             //Reference Setup
             StartOfRound = __instance;
-            //StartOfRound.Instance = __instance;
             RoundManager = UnityEngine.Object.FindFirstObjectByType<RoundManager>();
-            //RoundManager.Instance = RoundManager;
             Terminal = UnityEngine.Object.FindFirstObjectByType<Terminal>();
             TimeOfDay = UnityEngine.Object.FindFirstObjectByType<TimeOfDay>();
-            //TimeOfDay.Instance = TimeOfDay;
 
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.sceneLoaded += EventPatches.OnSceneLoaded;
@@ -383,21 +367,11 @@ if (AssetBundleLoader.noBundlesFound == true)
             }
 
             LevelLoader.defaultFootstepSurfaces = new List<FootstepSurface>(StartOfRound.footstepSurfaces).ToArray();
-            //We Might Not Need This Now
-            /*if (LevelManager.invalidSaveLevelID != -1 && StartOfRound.levels.Length > LevelManager.invalidSaveLevelID)
-            {
-                DebugHelper.Log("Setting CurrentLevel to previously saved ID that was not loaded at the time of save loading.");
-                DebugHelper.Log(LevelManager.invalidSaveLevelID + " / " + (StartOfRound.levels.Length));
-                StartOfRound.ChangeLevelServerRpc(LevelManager.invalidSaveLevelID, TerminalManager.Terminal.groupCredits);
-                LevelManager.invalidSaveLevelID = -1;
-            }*/
 
             DebugStopwatch.StartStopWatch("Initialize Save");
 
             if (LethalLevelLoaderNetworkManager.networkManager.IsServer)
-            {
                 SaveManager.InitializeSave();
-            }
 
             DebugStopwatch.StopStopWatch("Initialize Save");
             if (Plugin.IsSetupComplete == false)
@@ -411,9 +385,7 @@ if (AssetBundleLoader.noBundlesFound == true)
 
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartOfRound), "SetPlanetsWeather")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(StartOfRound), "SetPlanetsWeather"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static bool StartOfRoundSetPlanetsWeather_Prefix(int connectedPlayersOnServer)
         {
             if (Plugin.IsSetupComplete == false)
@@ -424,23 +396,18 @@ if (AssetBundleLoader.noBundlesFound == true)
             return (true);
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartOfRound), "SetPlanetsWeather")]
-        [HarmonyPostfix]
+        [HarmonyPatch(typeof(StartOfRound), "SetPlanetsWeather"), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void StartOfRoundSetPlanetsWeather_Postfix()
         {
-            if (LethalLevelLoaderNetworkManager.networkManager.IsServer)
+            if (IsServer)
                 LethalLevelLoaderNetworkManager.Instance.GetUpdatedLevelCurrentWeatherServerRpc();
         }
 
         public static bool hasInitiallyChangedLevel;
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartOfRound), "ChangeLevel")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(StartOfRound), "ChangeLevel"), HarmonyPrefix, HarmonyPriority(priority)]
         public static bool StartOfRoundChangeLevel_Prefix(ref int levelID)
         {
-            if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false)
-                return (true);
+            if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false) return (true);
 
             //Because Level ID's can change between modpack adjustments and such, we save the name of the level instead and find and load that up instead of the saved ID the base game uses.
             if (hasInitiallyChangedLevel == false && !string.IsNullOrEmpty(SaveManager.currentSaveFile.CurrentLevelName))
@@ -463,39 +430,24 @@ if (AssetBundleLoader.noBundlesFound == true)
         }
 
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartOfRound), "ChangeLevel")]
-        [HarmonyPostfix]
+        [HarmonyPatch(typeof(StartOfRound), "ChangeLevel"), HarmonyPostfix, HarmonyPriority(priority)]
         public static void StartOfRoundChangeLevel_Postfix(int levelID)
         {
-            if (LethalLevelLoaderNetworkManager.networkManager.IsServer)
+            NetworkBundleManager.Instance.Refresh();
+            if (IsServer && RoundManager.currentLevel != null && SaveManager.currentSaveFile.CurrentLevelName != RoundManager.currentLevel.PlanetName)
             {
-                if (RoundManager.currentLevel != null && SaveManager.currentSaveFile.CurrentLevelName != RoundManager.currentLevel.PlanetName)
-                {
-                    DebugHelper.Log("Saving Current SelectableLevel: " + RoundManager.currentLevel.PlanetName, DebugType.User);
-                    SaveManager.currentSaveFile.CurrentLevelName = RoundManager.currentLevel.name;
-                    //SaveManager.SaveCurrentSelectableLevel(RoundManager.currentLevel);
-                    //LevelLoader.RefreshShipAnimatorClips(LevelManager.CurrentExtendedLevel);
-                }
+                DebugHelper.Log("Saving Current SelectableLevel: " + RoundManager.currentLevel.PlanetName, DebugType.User);
+                SaveManager.currentSaveFile.CurrentLevelName = RoundManager.currentLevel.name;
             }
-
-            NetworkBundleManager.Instance.OnRouteChanged();
-
-            
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartOfRound), "LoadShipGrabbableItems")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(StartOfRound), "LoadShipGrabbableItems"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static void StartOfRoundLoadShipGrabbableItems_Prefix()
         {
             SaveManager.LoadShipGrabbableItems();
         }
 
-
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(Terminal), "ParseWord")]
-        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Terminal), "ParseWord"), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void TerminalParseWord_Postfix(Terminal __instance, ref TerminalKeyword __result, string playerWord)
         {
             if (__result != null)
@@ -508,104 +460,59 @@ if (AssetBundleLoader.noBundlesFound == true)
 
         internal static bool ranLethalLevelLoaderTerminalEvent;
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(Terminal), "RunTerminalEvents")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Terminal), "RunTerminalEvents"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static bool TerminalRunTerminalEvents_Prefix(Terminal __instance, TerminalNode node)
         {
-            /*
-            bool returnBool = true;
-            if (node.terminalEvent.Contains("simulate"))
-            {
-                ranLethalLevelLoaderTerminalEvent = false;
-                //TerminalManager.SetSimulationResultsText(node);
-                returnBool = true;
-            }
-            else if (__instance.currentNode != TerminalManager.moonsKeyword.specialKeywordResult)
-            {
-                ranLethalLevelLoaderTerminalEvent = false;
-                returnBool = true;
-            }
-            else
-            {
-                ranLethalLevelLoaderTerminalEvent = !TerminalManager.RunLethalLevelLoaderTerminalEvents(node);
-                returnBool = !ranLethalLevelLoaderTerminalEvent;
-            }
-
-            returnBool = TerminalManager.OnBeforeLoadNewNode(node);
-
-            return (returnBool);*/
-
             return (TerminalManager.OnBeforeLoadNewNode(ref node));
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(Terminal), "LoadNewNode")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Terminal), "LoadNewNode"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static bool TerminalLoadNewNode_Prefix(Terminal __instance, ref TerminalNode node)
         {
             Terminal.screenText.textComponent.fontSize = TerminalManager.defaultTerminalFontSize;
             return (TerminalManager.OnBeforeLoadNewNode(ref node));
-                /*foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                    if (extendedLevel.RouteNode == node && extendedLevel.IsRouteLocked == true)
-                        TerminalManager.SwapRouteNodeToLockedNode(extendedLevel, ref node);*/
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(Terminal), "LoadNewNode")]
-        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Terminal), "LoadNewNode"), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void TerminalLoadNewNode_Postfix(Terminal __instance, ref TerminalNode node)
         {
             TerminalManager.OnLoadNewNode(ref node);
-            //NetworkBundleManager.Instance.RefreshLoadedBundlesStatus();
-            //if (ranLethalLevelLoaderTerminalEvent == true)
-                //__instance.currentNode = TerminalManager.moonsKeyword.specialKeywordResult;
         }
 
         //Called via SceneManager event.
         internal static void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
-            if (LevelManager.CurrentExtendedLevel != null && LevelManager.CurrentExtendedLevel.IsLevelLoaded)
-                foreach (GameObject rootObject in SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.SelectableLevel.sceneName).GetRootGameObjects())
-                {
-                    LevelLoader.RefreshFogSize(LevelManager.CurrentExtendedLevel);
-                    ContentRestorer.RestoreAudioAssetReferencesInParent(rootObject);
-                }
-
+            if (LevelManager.CurrentExtendedLevel == null || LevelManager.CurrentExtendedLevel.IsLevelLoaded == false) return;
+            foreach (GameObject rootObject in SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.SelectableLevel.sceneName).GetRootGameObjects())
+            {
+                LevelLoader.RefreshFogSize(LevelManager.CurrentExtendedLevel);
+                ContentRestorer.RestoreAudioAssetReferencesInParent(rootObject);
+            }
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartOfRound), "StartGame")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(StartOfRound), "StartGame"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static void StartOfRoundStartGame_Prefix()
         {
-            if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false)
-                return;
-
             ExtendedLevel extendedLevel = LevelManager.CurrentExtendedLevel;
-
-            if (extendedLevel == null) return;
+            if (!IsServer || extendedLevel == null) return;
 
             extendedLevel.SelectableLevel.sceneName = string.Empty;
-
             RoundManager.InitializeRandomNumberGenerators();
 
             int counter = 1;
-            foreach (StringWithRarity sceneSelection in LevelManager.CurrentExtendedLevel.SceneSelections)
+            foreach (StringWithRarity sceneSelection in extendedLevel.SceneSelections)
             {
                 DebugHelper.Log("Scene Selection #" + counter + " \"" + sceneSelection.Name + "\" (" + sceneSelection.Rarity + ")", DebugType.Developer);
                 counter++;
             }
 
-            List<int> sceneSelections = LevelManager.CurrentExtendedLevel.SceneSelections.Select(s => s.Rarity).ToList();
+            List<int> sceneSelections = extendedLevel.SceneSelections.Select(s => s.Rarity).ToList();
             int selectedSceneIndex = RoundManager.GetRandomWeightedIndex(sceneSelections.ToArray(), RoundManager.LevelRandom);
-            extendedLevel.SelectableLevel.sceneName = LevelManager.CurrentExtendedLevel.SceneSelections[selectedSceneIndex].Name;
-            DebugHelper.Log("Selected SceneName: " + extendedLevel.SelectableLevel.sceneName + " For ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName, DebugType.Developer);
+            extendedLevel.SelectableLevel.sceneName = extendedLevel.SceneSelections[selectedSceneIndex].Name;
+            DebugHelper.Log("Selected SceneName: " + extendedLevel.SelectableLevel.sceneName + " For ExtendedLevel: " + extendedLevel.NumberlessPlanetName, DebugType.Developer);
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(DungeonGenerator), "Generate")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(DungeonGenerator), "Generate"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static void DungeonGeneratorGenerate_Prefix(DungeonGenerator __instance)
         {
             if (LevelManager.CurrentExtendedLevel != null)
@@ -617,9 +524,7 @@ if (AssetBundleLoader.noBundlesFound == true)
         }
 
         //Base game has a bug where it stops listening before it gets the Complete call, so this is just a fixed version of the base game function.
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(RoundManager), "Generator_OnGenerationStatusChanged")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(RoundManager), "Generator_OnGenerationStatusChanged"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static bool OnGenerationStatusChanged_Prefix(RoundManager __instance, GenerationStatus status)
         {
             if (status == GenerationStatus.Complete && !__instance.dungeonCompletedGenerating)
@@ -631,8 +536,7 @@ if (AssetBundleLoader.noBundlesFound == true)
             return (false);
         }
         
-        [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.GenerateNewLevelClientRpc))]
-        [HarmonyTranspiler]
+        [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.GenerateNewLevelClientRpc)), HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> GenerateNewLevelClientRpcTranspiler(IEnumerable<CodeInstruction> instructions)
         {
             CodeMatcher codeMatcher = new CodeMatcher(instructions)
@@ -644,8 +548,7 @@ if (AssetBundleLoader.noBundlesFound == true)
         }
 
 
-        [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.GenerateNewFloor))]
-        [HarmonyTranspiler]
+        [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.GenerateNewFloor)), HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> GenerateNewFloorTranspiler(IEnumerable<CodeInstruction> instructions)
         {
             CodeMatcher codeMatcher = new CodeMatcher(instructions)
@@ -659,96 +562,51 @@ if (AssetBundleLoader.noBundlesFound == true)
         //Called via Transpiler.
         public static void InjectHostDungeonSizeSelection(RoundManager roundManager)
         {
-            /*if (LevelManager.CurrentExtendedLevel != null)
-                LethalLevelLoaderNetworkManager.Instance.GetDungeonFlowSizeServerRpc();
-            else*/
-                roundManager.dungeonGenerator.Generate();
+            roundManager.dungeonGenerator.Generate();
         }
 
         //Called via Transpiler.
         internal static void InjectHostDungeonFlowSelection()
         {
             if (LevelManager.CurrentExtendedLevel != null)
-            {
-                //DungeonManager.TryAddCurrentVanillaLevelDungeonFlow(Patches.RoundManager.dungeonGenerator.Generator, LevelManager.CurrentExtendedLevel);
                 DungeonLoader.SelectDungeon();
-            }
             else
                 Patches.RoundManager.GenerateNewFloor();
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(RoundManager), "SetLockedDoors")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(RoundManager), "SetLockedDoors"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static void RoundManagerSetLockedDoors_Prefix()
         {
             RoundManager.keyPrefab = DungeonManager.CurrentExtendedDungeonFlow.OverrideKeyPrefab != null ? DungeonManager.CurrentExtendedDungeonFlow.OverrideKeyPrefab : DungeonLoader.defaultKeyPrefab;
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(RoundManager), "SpawnOutsideHazards")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(RoundManager), "SpawnOutsideHazards"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static void RoundManagerSpawnOutsideHazards_Prefix()
         {
             RoundManager.quicksandPrefab = LevelManager.CurrentExtendedLevel.OverrideQuicksandPrefab;
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.FinishGeneratingNewLevelClientRpc))]
-        [HarmonyPostfix]
+        [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.FinishGeneratingNewLevelClientRpc)), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void RoundManagerFinishGeneratingNewLevelClientRpc_Prefix()
         {
-            if (TimeOfDay.sunAnimator != null)
-            {
-                LevelLoader.RefreshFootstepSurfaces();
-                LevelLoader.BakeSceneColliderMaterialData(TimeOfDay.sunAnimator.gameObject.scene);
-                if (LevelLoader.vanillaWaterShader != null)
-                    LevelLoader.TryRestoreWaterShaders(TimeOfDay.sunAnimator.gameObject.scene);
-                ApplyCamerDistanceOverride();
-            }
+            if (TimeOfDay.sunAnimator == null) return;
+            LevelLoader.RefreshFootstepSurfaces();
+            LevelLoader.BakeSceneColliderMaterialData(TimeOfDay.sunAnimator.gameObject.scene);
+            if (LevelLoader.vanillaWaterShader != null)
+                LevelLoader.TryRestoreWaterShaders(TimeOfDay.sunAnimator.gameObject.scene);
+            ApplyCamerDistanceOverride();
         }
 
         internal static void ApplyCamerDistanceOverride()
         {
             float newDistance = 0;
             if (LevelManager.CurrentExtendedLevel.OverrideCameraMaxDistance > 400f || (DungeonManager.CurrentExtendedDungeonFlow != null && DungeonManager.CurrentExtendedDungeonFlow.OverrideCameraMaxDistance > 400f))
-            {
-                if (LevelManager.CurrentExtendedLevel.OverrideCameraMaxDistance > DungeonManager.CurrentExtendedDungeonFlow.OverrideCameraMaxDistance)
-                    newDistance = LevelManager.CurrentExtendedLevel.OverrideCameraMaxDistance;
-                else
-                    newDistance = DungeonManager.CurrentExtendedDungeonFlow.OverrideCameraMaxDistance;
-            }
+                newDistance = Mathf.Max(LevelManager.CurrentExtendedLevel.OverrideCameraMaxDistance, DungeonManager.CurrentExtendedDungeonFlow.OverrideCameraMaxDistance);
             foreach (KeyValuePair<Camera, float> cameraPair in playerCameras)
-            {
-                if (newDistance > cameraPair.Value)
-                    cameraPair.Key.farClipPlane = newDistance;
-                else
-                    cameraPair.Key.farClipPlane = cameraPair.Value;
-            }
+                cameraPair.Key.farClipPlane = Mathf.Max(cameraPair.Value, newDistance);
         }
-        /*
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(MoldSpreadManager), nameof(MoldSpreadManager.Start))]
-        [HarmonyPrefix]
-        internal static bool MoldSpreadManagerStart_Prefix(MoldSpreadManager __instance)
-        {
-            MoldSpreadManager moldSpreadManager = __instance;
 
-            moldSpreadManager.planetMoldStates = new PlanetMoldState[StartOfRound.Instance.levels.Length];
-            for (int i = 0; i < moldSpreadManager.planetMoldStates.Length; i++)
-            {
-                moldSpreadManager.planetMoldStates[i] = new PlanetMoldState();
-                moldSpreadManager.planetMoldStates[i].destroyedMold = ES3.Load<int[]>(string.Format("Level{Name}DestroyedMold", StartOfRound.Instance.levels[i].name), GameNetworkManager.Instance.currentSaveFileName, new int[0]).ToList();
-            }
-            Debug.Log(string.Format("planet mold states length: ${0}", moldSpreadManager.planetMoldStates.Length));
-            moldSpreadManager.weedColliders = new Collider[3];
-            return (false);
-        }*/
-
-
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StoryLog), "Start")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(StoryLog), "Start"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static void StoryLogStart_Prefix(StoryLog __instance)
         {
             foreach (ExtendedStoryLog extendedStoryLog in LevelManager.CurrentExtendedLevel.ExtendedMod.ExtendedStoryLogs)
@@ -763,10 +621,7 @@ if (AssetBundleLoader.noBundlesFound == true)
         }
 
         static List<SpawnableMapObject> temporarySpawnableMapObjectList = new List<SpawnableMapObject>();
-
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static void RoundManagerSpawnMapObjects_Prefix()
         {
             List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects);
@@ -778,9 +633,7 @@ if (AssetBundleLoader.noBundlesFound == true)
             LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects = spawnableMapObjects.ToArray();
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects")]
-        [HarmonyPostfix]
+        [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects"), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void RoundManagerSpawnMapObjects_Postfix()
         {
             List<SpawnableMapObject> spawnableMapObjects = new List<SpawnableMapObject>(LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects);
@@ -792,43 +645,33 @@ if (AssetBundleLoader.noBundlesFound == true)
 
         static FootstepSurface previousFootstepSurface;
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(PlayerControllerB), "GetCurrentMaterialStandingOn")]
-        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlayerControllerB), "GetCurrentMaterialStandingOn"), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void PlayerControllerBGetCurrentMaterialStandingOn_Postfix(PlayerControllerB __instance)
         {
             if (LevelLoader.TryGetFootstepSurface(__instance.hit.collider, out FootstepSurface footstepSurface))
                 __instance.currentFootstepSurfaceIndex = StartOfRound.footstepSurfaces.IndexOf(footstepSurface);
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientConnect))]
-        [HarmonyPostfix]
+        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientConnect)), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void StartOfRoundOnClientConnect_Postfix()
         {
-            NetworkBundleManager.Instance.RefreshLoadedBundlesStatus();
+            NetworkBundleManager.Instance.OnClientsChangedRefresh();
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientDisconnect))]
-        [HarmonyPostfix]
+        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientDisconnect)), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void StartOfRoundOnClientDisconnect_Postfix()
         {
-            NetworkBundleManager.Instance.RefreshLoadedBundlesStatus();
+            NetworkBundleManager.Instance.OnClientsChangedRefresh();
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartMatchLever), nameof(StartMatchLever.Start))]
-        [HarmonyPostfix]
+        [HarmonyPatch(typeof(StartMatchLever), nameof(StartMatchLever.Start)), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void StartMatchLeverStart_Postfix(StartMatchLever __instance)
         {
             previousHoverTip = __instance.triggerScript.hoverTip;
             previousInteractableState = __instance.triggerScript.interactable;
         }
 
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartMatchLever), nameof(StartMatchLever.Update))]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(StartMatchLever), nameof(StartMatchLever.Update)), HarmonyPrefix, HarmonyPriority(priority)]
         internal static void StartMatchLeverUpdate_Prefix(StartMatchLever __instance)
         {
             if (SceneManager.loadedSceneCount > 1) return;
@@ -846,9 +689,7 @@ if (AssetBundleLoader.noBundlesFound == true)
         internal const string disabledText = "[ At least one player is loading custom moon! ]";
         private static string previousHoverTip;
         private static bool previousInteractableState;
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(StartMatchLever), nameof(StartMatchLever.Update))]
-        [HarmonyPostfix]
+        [HarmonyPatch(typeof(StartMatchLever), nameof(StartMatchLever.Update)), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void StartMatchLeverUpdate_Postfix(StartMatchLever __instance)
         {
             if (SceneManager.loadedSceneCount > 1) return;
@@ -857,9 +698,7 @@ if (AssetBundleLoader.noBundlesFound == true)
         }
 
         //DunGen Optimization Patches (Credit To LadyRaphtalia, Author Of Scarlet Devil Mansion)
-        [HarmonyPriority(harmonyPriority)]
-        [HarmonyPatch(typeof(DoorwayPairFinder), "GetDoorwayPairs")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(DoorwayPairFinder), "GetDoorwayPairs"), HarmonyPrefix, HarmonyPriority(priority)]
         public static bool GetDoorwayPairsPatch(ref DoorwayPairFinder __instance, int? maxCount, ref Queue<DoorwayPair> __result)
         {
 
@@ -870,16 +709,12 @@ if (AssetBundleLoader.noBundlesFound == true)
 
             var num = doorwayPairs.Count();
             if (maxCount != null)
-            {
                 num = Mathf.Min(num, maxCount.Value);
-            }
             __result = new Queue<DoorwayPair>(num);
 
             var newList = OrderDoorwayPairs(doorwayPairs, num);
             foreach (var item in newList)
-            {
                 __result.Enqueue(item);
-            }
 
             return false;
         }

@@ -44,7 +44,11 @@ namespace LethalLevelLoader.AssetBundles
         private static int processedBundleCount;
         private static int requestedBundleCount;
 
-        private void OnEnable() => instance = this;
+        private void OnEnable()
+        {
+             instance = this;
+            OnBundlesFinishedProcessing.AddListener(LethalLevelLoader.AssetBundleLoader.InvokeBundlesFinishedLoading);
+        }
 
         internal static bool AllowLoading { get; set; } = true;
 

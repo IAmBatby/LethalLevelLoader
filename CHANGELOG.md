@@ -1,6 +1,38 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.4.5</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Fixed issue where SpawnSyncedObjects in Tile Injection TileSets were not being network registered
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.4.4</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Fixed additional networking issues related to AssetBundle Hotloading
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.4.3</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Fixed issue with onBundlesFinishedLoading callback not being invoked
+* Re-wrote AssetBundle Hotloading networking to hopefully improve issues in multiplayer and pre-existing saves
+* Fixed issue with custom content that is manually registered not being processed correctly
+
+</details>
+
+</details>
+
 **<details><summary>Version 1.4.2</summary>**
 
 **<details><summary>Features</summary>**

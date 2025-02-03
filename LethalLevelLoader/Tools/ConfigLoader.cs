@@ -276,6 +276,7 @@ namespace LethalLevelLoader.Tools
                                 List<CompatibleNoun> modifiedNounsList = new List<CompatibleNoun>(TerminalManager.routeKeyword.compatibleNouns);
                                 modifiedNounsList.Remove(compatibleNoun);
                                 TerminalManager.routeKeyword.compatibleNouns = modifiedNounsList.ToArray();
+                                extendedLevel.IsRouteRemoved = true;
                             }
 
                     //Scrap

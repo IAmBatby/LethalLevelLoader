@@ -20,6 +20,8 @@ namespace LethalLevelLoader
 
         public static ExtendedEvent OnFinishedProcessing { get; private set; } = new ExtendedEvent();
 
+        public static bool HasFinalisedFoundContent { get; internal set; }
+
         //Semi legacy
         internal static Dictionary<string, List<Action<ExtendedMod>>> onExtendedModLoadedRequestDict = new Dictionary<string, List<Action<ExtendedMod>>>();
 
@@ -29,8 +31,7 @@ namespace LethalLevelLoader
 
             PatchedContent.VanillaMod = ExtendedMod.Create("LethalCompany", "Zeekerss");
 
-            if (TryLoadLethalBundles() == false)
-                FinialiseFoundContent();
+            TryLoadLethalBundles();
         }
 
         private static bool TryLoadLethalBundles()
@@ -235,7 +236,7 @@ namespace LethalLevelLoader
             }
         }
 
-        private static void FinialiseFoundContent()
+        internal static void FinialiseFoundContent()
         {
             foreach (ExtendedMod obtainedExtendedMod in obtainedExtendedModsList)
             {
@@ -264,6 +265,8 @@ namespace LethalLevelLoader
             AssetBundles.AssetBundleLoader.ClearCache();
 
             DebugHelper.Log("Custom Content Processed. Unlocking Main Menu.", DebugType.User);
+
+            HasFinalisedFoundContent = true;
 
             CurrentStatus = ModProcessingStatus.Complete;
 

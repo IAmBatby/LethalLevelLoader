@@ -1,13 +1,9 @@
 ﻿using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
-using Mono.Cecil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using UnityEngine;
 
 namespace LethalLevelLoader
 {
@@ -19,7 +15,11 @@ namespace LethalLevelLoader
 
             foreach (GraphNode dungeonNode in dungeonFlow.Nodes)
                 foreach (TileSet dungeonTileSet in dungeonNode.TileSets)
-                    tilesList.AddRange(GetTilesInTileSet(dungeonTileSet));
+                    if (dungeonTileSet != null)
+                        tilesList.AddRange(GetTilesInTileSet(dungeonTileSet));
+
+            foreach (TileInjectionRule tileInjectionRule in dungeonFlow.TileInjectionRules)
+                tilesList.AddRange(GetTilesInTileSet(tileInjectionRule.TileSet));
 
             foreach (GraphLine dungeonLine in dungeonFlow.Lines)
                 foreach (DungeonArchetype dungeonArchetype in dungeonLine.DungeonArchetypes)

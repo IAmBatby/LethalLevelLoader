@@ -101,7 +101,7 @@ namespace LethalLevelLoader.Tools
                 else
                 {
                     foreach (ReverbPreset reverbPreset in OriginalContent.ReverbPresets)
-                        if (reverbPreset.name != null && audioReverbTrigger.reverbPreset.name == reverbPreset.name)
+                        if (reverbPreset != null && reverbPreset.name != null && audioReverbTrigger.reverbPreset.name == reverbPreset.name)
                         {
                             DebugHelper.Log("Restoring ReverbPreset: " + audioReverbTrigger.reverbPreset.name + " In AudioReverbTrigger: " + audioReverbTrigger.gameObject.name, DebugType.Developer);
                             audioReverbTrigger.reverbPreset = RestoreAsset(audioReverbTrigger.reverbPreset, reverbPreset, debugAction: false);

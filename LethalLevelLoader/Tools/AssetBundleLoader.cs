@@ -1,6 +1,5 @@
 ﻿using DunGen;
 using DunGen.Graph;
-using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,11 +12,6 @@ using System.Runtime.CompilerServices;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.SceneManagement;
-using UnityEngine.Windows;
-using static LethalLevelLoader.ExtendedContent;
-using Action = System.Action;
 
 namespace LethalLevelLoader
 {
@@ -102,6 +96,9 @@ namespace LethalLevelLoader
                 }
             }
         }
+
+        internal static void InvokeBundlesFinishedLoading() => onBundlesFinishedLoading?.Invoke();
+
 
         public static bool TryGetAssetBundleInfo(string scenePath, out AssetBundleInfo info)
         {

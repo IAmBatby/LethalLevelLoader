@@ -4,9 +4,7 @@ using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
-using UnityEngine.InputSystem.HID;
 using UnityEngine.SceneManagement;
 
 namespace LethalLevelLoader
@@ -36,7 +34,7 @@ namespace LethalLevelLoader
             }
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)]
+        [HarmonyPriority(Patches.priority)]
         [HarmonyPatch(typeof(StoryLog), "CollectLog")]
         [HarmonyPrefix]
         internal static void StoryLogCollectLog_Prefix(StoryLog __instance)
@@ -79,7 +77,7 @@ namespace LethalLevelLoader
 
         ////////// Dungeon Patches //////////
 
-        [HarmonyPriority(Patches.harmonyPriority + 1)] // +1 Because this needs to run after the Patch in Patches, second patch here for consistency.
+        [HarmonyPriority(Patches.priority + 1)] // +1 Because this needs to run after the Patch in Patches, second patch here for consistency.
         [HarmonyPatch(typeof(DungeonGenerator), "Generate")]
         [HarmonyPrefix]
         internal static void DungeonGeneratorGenerate_Prefix()
@@ -91,7 +89,7 @@ namespace LethalLevelLoader
             }
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)]
+        [HarmonyPriority(Patches.priority)]
         [HarmonyPatch(typeof(RoundManager), "SwitchPower")]
         [HarmonyPrefix]
         internal static void RoundManagerSwitchPower_Prefix(bool on)
@@ -108,7 +106,7 @@ namespace LethalLevelLoader
             }
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)]
+        [HarmonyPriority(Patches.priority)]
         [HarmonyPatch(typeof(RoundManager), "SpawnScrapInLevel")]
         [HarmonyPostfix]
         internal static void RoundManagerSpawnScrapInLevel_Postfix()
@@ -121,7 +119,7 @@ namespace LethalLevelLoader
             }
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)]
+        [HarmonyPriority(Patches.priority)]
         [HarmonyPatch(typeof(RoundManager), "SpawnSyncedProps")]
         [HarmonyPostfix]
         internal static void RoundManagerSpawnSyncedProps_Postfix()
@@ -134,7 +132,7 @@ namespace LethalLevelLoader
         }
 
         private static EnemyVent cachedSelectedVent;
-        [HarmonyPriority(Patches.harmonyPriority)]
+        [HarmonyPriority(Patches.priority)]
         [HarmonyPatch(typeof(RoundManager), "SpawnEnemyFromVent")]
         [HarmonyPrefix]
         internal static void RoundManagerSpawnEventFromVent_Prefix(EnemyVent vent)
@@ -143,7 +141,7 @@ namespace LethalLevelLoader
                 cachedSelectedVent = vent;
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)]
+        [HarmonyPriority(Patches.priority)]
         [HarmonyPatch(typeof(RoundManager), "SpawnEnemyGameObject")]
         [HarmonyPostfix]
         internal static void RoundManagerSpawnEventFromVent_Postfix()
@@ -156,7 +154,7 @@ namespace LethalLevelLoader
             }
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)]
+        [HarmonyPriority(Patches.priority)]
         [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects")]
         [HarmonyPostfix]
         internal static void RoundManagerSpawnMapObjects_Postfix()
@@ -173,7 +171,7 @@ namespace LethalLevelLoader
             }
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)]
+        [HarmonyPriority(Patches.priority)]
         [HarmonyPatch(typeof(StartOfRound), "OnShipLandedMiscEvents")]
         [HarmonyPrefix]
         internal static void StartOfRoundOnShipLandedMiscEvents_Prefix()
@@ -190,7 +188,7 @@ namespace LethalLevelLoader
             }
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)]
+        [HarmonyPriority(Patches.priority)]
         [HarmonyPatch(typeof(StartOfRound), "ShipLeave")]
         [HarmonyPrefix]
         internal static void StartOfRoundShipLeave_Prefix()
@@ -207,7 +205,7 @@ namespace LethalLevelLoader
             }
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)]
+        [HarmonyPriority(Patches.priority)]
         [HarmonyPatch(typeof(EntranceTeleport), "TeleportPlayerServerRpc")]
         [HarmonyPrefix]
         internal static void EntranceTeleportTeleportPlayerServerRpc_Prefix(EntranceTeleport __instance, int playerObj)
@@ -246,7 +244,7 @@ namespace LethalLevelLoader
             }
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)]
+        [HarmonyPriority(Patches.priority)]
         [HarmonyPatch(typeof(LungProp), "EquipItem")]
         [HarmonyPrefix]
         internal static void LungPropEquipItem_Prefix(LungProp __instance)
@@ -266,7 +264,7 @@ namespace LethalLevelLoader
             }
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)]
+        [HarmonyPriority(Patches.priority)]
         [HarmonyPatch(typeof(TimeOfDay), "GetDayPhase")]
         [HarmonyPostfix]
         internal static void TimeOfDayGetDayPhase_Postfix(DayMode __result)
