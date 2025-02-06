@@ -66,15 +66,15 @@ namespace LethalLevelLoader.AssetBundles
             if (directory == null) directory = pluginsFolder;
             if (specifiedFileExtension == null) specifiedFileExtension = ".*";
             if (specifiedFileName == null) specifiedFileName = "*";
-            int foundFilesCount = Directory.GetFiles(directory.FullName, specifiedFileName + specifiedFileExtension, SearchOption.AllDirectories).Length;
+            string[] foundFiles = Directory.GetFiles(directory.FullName, specifiedFileName + specifiedFileExtension, SearchOption.AllDirectories);
 
-            if (foundFilesCount == 0)
+            if (foundFiles.Length == 0)
             {
                 DebugHelper.Log("No Files Found, Cancelling LoadAllBundlesRequest!", DebugType.User);
                 return (false);
             }
 
-            LoadAllBundles(directory, specifiedFileName, specifiedFileExtension, onProcessedCallback);
+            LoadAllBundles(directory, specifiedFileName, specifiedFileExtension, onProcessedCallback, foundFiles);
             return (true);
         }
 
@@ -93,7 +93,7 @@ namespace LethalLevelLoader.AssetBundles
             Instance.StartCoroutine(Instance.ClearCacheRoutine());
         }
 
-        private static void LoadAllBundles(DirectoryInfo directory = null, string specifiedFileName = null, string specifiedFileExtension = null, ParameterEvent<AssetBundleGroup> onProcessedCallback = null)
+        private static void LoadAllBundles(DirectoryInfo directory = null, string specifiedFileName = null, string specifiedFileExtension = null, ParameterEvent<AssetBundleGroup> onProcessedCallback = null, string[] foundFiles = default)
         {
 
             AllowLoading = false;
@@ -115,7 +115,7 @@ namespace LethalLevelLoader.AssetBundles
                     processedCallbacksDict.Add((directory.FullName, callBack), new List<ParameterEvent<AssetBundleGroup>>() { onProcessedCallback });
             }
 
-            foreach (string filePath in Directory.GetFiles(directory.FullName, specifiedFileName + specifiedFileExtension, SearchOption.AllDirectories))
+            foreach (string filePath in foundFiles)
             {
                 requestedBundleCount++;
                 AssetBundleInfo newInfo = new AssetBundleInfo(Instance, filePath);
