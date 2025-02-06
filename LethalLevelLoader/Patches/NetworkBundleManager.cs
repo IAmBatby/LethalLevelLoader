@@ -89,7 +89,7 @@ namespace LethalLevelLoader
                     bundleGroup.TryLoadGroup();
 
             if (IsServer)
-                RequestLoadStatusRefreshServerRpc();
+                RequestLoadStatusRefreshServer();
         }
 
         //Called by StartOfRound.OnClientConnect.Postfix
@@ -97,11 +97,10 @@ namespace LethalLevelLoader
         internal void OnClientsChangedRefresh()
         {
             if (!IsServer) return;
-            RequestLoadStatusRefreshServerRpc();
+            RequestLoadStatusRefreshServer();
         }
 
-        [ServerRpc(RequireOwnership = false)]
-        internal void RequestLoadStatusRefreshServerRpc()
+        internal void RequestLoadStatusRefreshServer()
         {
             DebugHelper.Log("Refeshing Loaded Bundles Status!", DebugType.User);
             playersLoadStatus.Clear();
@@ -140,7 +139,7 @@ namespace LethalLevelLoader
             if (playersLoadStatus.Count <= index)
             {
                 DebugHelper.LogError("Tried To Set LoadedStatus When List Is Invalid (ClientID: " + clientID + ", Index: " + index + "), Resetting.", DebugType.User);
-                RequestLoadStatusRefreshServerRpc();
+                RequestLoadStatusRefreshServer();
                 return;
             }
 
