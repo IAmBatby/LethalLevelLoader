@@ -328,19 +328,20 @@ namespace LethalLevelLoader
                 string groupString = string.Empty;
                 foreach (ExtendedLevel extendedLevel in extendedLevelGroup.extendedLevelsList)
                     if (extendedLevel.IsRouteHidden == false)
-                        groupString += "* " + extendedLevel.NumberlessPlanetName + " " + GetExtendedLevelPreviewInfo(extendedLevel) + "\n";
+                        groupString += $"* {extendedLevel.NumberlessPlanetName} {GetExtendedLevelPreviewInfo(extendedLevel)}\n";
                 if (!string.IsNullOrEmpty(groupString))
                     returnString += groupString + "\n";
 
             }
-            if (returnString.Contains("\n"))
-                returnString.Replace(returnString.Substring(returnString.LastIndexOf("\n")), "");
 
-            string tagString = Settings.levelPreviewFilterType.ToString().ToUpper();
-            if (Settings.levelPreviewFilterType == FilterInfoType.Tag)
-                tagString = currentTagFilter.ToUpper();
+            string tagString;
+            switch(Settings.levelPreviewFilterType)
+            {
+                case FilterInfoType.Tag: tagString = currentTagFilter.ToUpper(); break;
+                default: tagString = Settings.levelPreviewFilterType.ToString().ToUpper(); break;
+            }
 
-            return (returnString + "\n" + "____________________________" + "\n" + "PREVIEW: " + Settings.levelPreviewInfoType.ToString().ToUpper() + " | " + "SORT: " + Settings.levelPreviewSortType.ToString().ToUpper() + " | " + "FILTER: " + tagString + "\n");
+            return (returnString + $"\n____________________________\nPREVIEW: {Settings.levelPreviewInfoType.ToString().ToUpper()} | SORT: {Settings.levelPreviewSortType.ToString().ToUpper()} | FILTER: {tagString}\n");
         }
 
         public static string GetExtendedLevelPreviewInfo(ExtendedLevel extendedLevel)
