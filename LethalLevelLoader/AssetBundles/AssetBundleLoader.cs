@@ -226,9 +226,12 @@ namespace LethalLevelLoader.AssetBundles
                         foreach (AssetBundleInfo info in newGroup.GetAssetBundleInfos())
                         {
                             if (info.AssetBundleFilePath.Contains(kvp.Key.Item1) && info.AssetBundleFileName.Contains(kvp.Key.Item2))
+                            {
                                 foreach (ParameterEvent<AssetBundleGroup> groupEvent in kvp.Value)
                                     groupEvent.Invoke(newGroup);
-                            break;
+
+                                break;
+                            }
                         }
 
                     List<AssetBundle> allLoadedBundles = new List<AssetBundle>(AssetBundle.GetAllLoadedAssetBundles());
