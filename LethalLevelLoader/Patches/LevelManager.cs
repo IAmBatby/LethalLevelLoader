@@ -105,10 +105,13 @@ namespace LethalLevelLoader
         public static ExtendedLevel GetExtendedLevel(SelectableLevel selectableLevel)
         {
             ExtendedLevel returnExtendedLevel = null;
-
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                if (extendedLevel.SelectableLevel == selectableLevel)
-                    returnExtendedLevel = extendedLevel;
+            {
+                if (extendedLevel.SelectableLevel != selectableLevel) continue;
+
+                returnExtendedLevel = extendedLevel;
+                break;
+            }
 
             return (returnExtendedLevel);
         }
