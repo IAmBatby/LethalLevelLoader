@@ -124,20 +124,25 @@ namespace LethalLevelLoader
         internal static bool TryGetExtendedDungeonFlow(DungeonFlow dungeonFlow, out ExtendedDungeonFlow returnExtendedDungeonFlow, ContentType contentType = ContentType.Any)
         {
             returnExtendedDungeonFlow = null;
-            List<ExtendedDungeonFlow> extendedDungeonFlowsList = null;
-
             if (dungeonFlow == null) return (false);
 
-            if (contentType == ContentType.Any)
-                extendedDungeonFlowsList = PatchedContent.ExtendedDungeonFlows;
-            else if (contentType == ContentType.Custom)
-                extendedDungeonFlowsList = PatchedContent.CustomExtendedDungeonFlows;
-            else if (contentType == ContentType.Vanilla)
-                extendedDungeonFlowsList = PatchedContent.VanillaExtendedDungeonFlows;
+            List<ExtendedDungeonFlow> extendedDungeonFlowsList;
+            switch(contentType)
+            {
+                case ContentType.Any: extendedDungeonFlowsList = PatchedContent.ExtendedDungeonFlows; break;
+                case ContentType.Custom: extendedDungeonFlowsList = PatchedContent.CustomExtendedDungeonFlows; break;
+                case ContentType.Vanilla:
+                default:
+                    extendedDungeonFlowsList = PatchedContent.VanillaExtendedDungeonFlows; break;
+            }
 
             foreach (ExtendedDungeonFlow extendedDungeonFlow in extendedDungeonFlowsList)
-                if (extendedDungeonFlow.DungeonFlow == dungeonFlow)
-                    returnExtendedDungeonFlow = extendedDungeonFlow;
+            {
+                if (extendedDungeonFlow.DungeonFlow != dungeonFlow) continue;
+
+                returnExtendedDungeonFlow = extendedDungeonFlow;
+                break;
+            }
 
             return (returnExtendedDungeonFlow != null);
         }
