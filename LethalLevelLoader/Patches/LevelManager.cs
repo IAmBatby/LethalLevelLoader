@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Unity.AI.Navigation;
-using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.SceneManagement;
 
 namespace LethalLevelLoader
 {
@@ -84,20 +79,25 @@ namespace LethalLevelLoader
         public static bool TryGetExtendedLevel(SelectableLevel selectableLevel, out ExtendedLevel returnExtendedLevel, ContentType levelType = ContentType.Any)
         {
             returnExtendedLevel = null;
-            List<ExtendedLevel> extendedLevelsList = null;
-
             if (selectableLevel == null) return false;
 
-            if (levelType == ContentType.Any)
-                extendedLevelsList = PatchedContent.ExtendedLevels;
-            else if (levelType == ContentType.Custom)
-                extendedLevelsList = PatchedContent.CustomExtendedLevels;
-            else if (levelType == ContentType.Vanilla)
-                extendedLevelsList = PatchedContent.VanillaExtendedLevels;
+            List<ExtendedLevel> extendedLevelsList;
+            switch(levelType)
+            {
+                case ContentType.Any: extendedLevelsList = PatchedContent.ExtendedLevels; break;
+                case ContentType.Custom: extendedLevelsList = PatchedContent.CustomExtendedLevels; break;
+                case ContentType.Vanilla:
+                default:
+                    extendedLevelsList = PatchedContent.VanillaExtendedLevels; break;
+            }
 
             foreach (ExtendedLevel extendedLevel in extendedLevelsList)
-                if (extendedLevel.SelectableLevel == selectableLevel)
-                    returnExtendedLevel = extendedLevel;
+            {
+                if (extendedLevel.SelectableLevel != selectableLevel) continue;
+
+                returnExtendedLevel = extendedLevel;
+                break;
+            }
 
             return (returnExtendedLevel != null);
         }
