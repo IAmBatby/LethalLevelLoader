@@ -228,28 +228,21 @@ namespace LethalLevelLoader
 
         internal static void FilterMoonsCataloguePage(MoonsCataloguePage moonsCataloguePage)
         {
-            List<ExtendedLevel> removeLevelList = new List<ExtendedLevel>();
-
             foreach (ExtendedLevelGroup extendedLevelGroup in moonsCataloguePage.ExtendedLevelGroups)
                 foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(extendedLevelGroup.extendedLevelsList))
                 {
                     bool removeExtendedLevel = extendedLevel.IsRouteHidden;
+                    switch(Settings.levelPreviewFilterType)
+                    {
+                        case FilterInfoType.Price: removeExtendedLevel |= extendedLevel.RoutePrice > Terminal.groupCredits; break;
+                        case FilterInfoType.Weather: removeExtendedLevel |= GetWeatherConditions(extendedLevel) != string.Empty; break;
+                        case FilterInfoType.Tag: removeExtendedLevel |= !extendedLevel.TryGetTag(currentTagFilter); break;
+                        default: removeExtendedLevel = extendedLevel.IsRouteHidden; break;
+                    }
 
-                    if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Price))
-                        removeExtendedLevel = (extendedLevel.RoutePrice > Terminal.groupCredits);
-                    else if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Weather))
-                        removeExtendedLevel = (GetWeatherConditions(extendedLevel) != string.Empty);
-                    else if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Tag))
-                        removeExtendedLevel = (!extendedLevel.TryGetTag(currentTagFilter));
-
-                    if (removeExtendedLevel == true)
-                        removeLevelList.Add(extendedLevel);
-                }
-
-            foreach (ExtendedLevelGroup extendedLevelGroup in moonsCataloguePage.ExtendedLevelGroups)
-                foreach (ExtendedLevel extendedLevel in removeLevelList)
-                    if (extendedLevelGroup.extendedLevelsList.Contains(extendedLevel))
+                    if (removeExtendedLevel)
                         extendedLevelGroup.extendedLevelsList.Remove(extendedLevel);
+                }
 
             if (Settings.levelPreviewFilterType != FilterInfoType.None)
                 moonsCataloguePage.RebuildLevelGroups(new List<ExtendedLevelGroup>(moonsCataloguePage.ExtendedLevelGroups), Settings.moonsCatalogueSplitCount);
