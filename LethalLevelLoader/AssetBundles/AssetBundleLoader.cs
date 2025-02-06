@@ -63,12 +63,10 @@ namespace LethalLevelLoader.AssetBundles
             }
 
             //TODO: Should cache this
-            int foundFilesCount = 0;
             if (directory == null) directory = pluginsFolder;
             if (specifiedFileExtension == null) specifiedFileExtension = ".*";
             if (specifiedFileName == null) specifiedFileName = "*";
-            foreach (string filePath in Directory.GetFiles(directory.FullName, specifiedFileName + specifiedFileExtension, SearchOption.AllDirectories))
-                foundFilesCount++;
+            int foundFilesCount = Directory.GetFiles(directory.FullName, specifiedFileName + specifiedFileExtension, SearchOption.AllDirectories).Length;
 
             if (foundFilesCount == 0)
             {
