@@ -1,13 +1,9 @@
 ﻿using DunGen.Graph;
 using GameNetcodeStuff;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using static LethalLevelLoader.DungeonEvents;
 
 namespace LethalLevelLoader
 {
@@ -102,12 +98,21 @@ namespace LethalLevelLoader
 
         private void GetDungeonFlowID()
         {
-            if (ContentType == ContentType.Custom)
-                DungeonID = PatchedContent.ExtendedDungeonFlows.Count;
-            if (ContentType == ContentType.Vanilla)
-                foreach (IndoorMapType indoorMapType in Patches.RoundManager.dungeonFlowTypes)
-                    if (indoorMapType.dungeonFlow == DungeonFlow)
-                        DungeonID = Patches.RoundManager.dungeonFlowTypes.ToList().IndexOf(indoorMapType);
+            switch(ContentType)
+            {
+                case ContentType.Custom: DungeonID = PatchedContent.ExtendedDungeonFlows.Count; break;
+                case ContentType.Vanilla:
+                default:
+                    {
+                        foreach (IndoorMapType indoorMapType in Patches.RoundManager.dungeonFlowTypes)
+                        {
+                            if (indoorMapType.dungeonFlow != DungeonFlow) continue;
+                            DungeonID = Patches.RoundManager.dungeonFlowTypes.ToList().IndexOf(indoorMapType);
+                            break;
+                        }
+                        break;
+                    }
+            }
         }
 
         internal override void TryCreateMatchingProperties()
@@ -161,6 +166,20 @@ namespace LethalLevelLoader
                 DebugHelper.LogWarning("ExtendedDungeonFlow.generateAutomaticConfigurationOptions Is Obsolete and will be removed in following releases, Please use ExtendedDungeonFlow.GenerateAutomaticConfigurationOptions instead.", DebugType.Developer);
                 GenerateAutomaticConfigurationOptions = generateAutomaticConfigurationOptions;
             }
+        }
+
+        internal override void Register(ExtendedMod extendedMod)
+        {
+            ConvertObsoleteValues();
+            base.Register(extendedMod);
+
+            extendedMod.ExtendedDungeonFlows.Add(this);
+        }
+
+        internal override void Unregister(ExtendedMod extendedMod)
+        {
+            base.Unregister(extendedMod);
+            extendedMod.ExtendedDungeonFlows.Remove(this);
         }
     }
 

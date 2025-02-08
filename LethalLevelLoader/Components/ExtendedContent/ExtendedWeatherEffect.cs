@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace LethalLevelLoader
 {
@@ -42,6 +38,13 @@ namespace LethalLevelLoader
             newExtendedWeatherEffect.GlobalObject = globalObject;
 
             return (newExtendedWeatherEffect);
+        }
+
+        internal override void Register(ExtendedMod extendedMod)
+        {
+            base.Register(extendedMod);
+
+            extendedMod.ExtendedWeatherEffects.Add(this);
         }
     }
 }

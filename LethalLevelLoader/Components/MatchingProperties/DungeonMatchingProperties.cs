@@ -6,7 +6,7 @@ using UnityEngine;
 namespace LethalLevelLoader
 {
     [CreateAssetMenu(fileName = "DungeonMatchingProperties", menuName = "Lethal Level Loader/Utility/DungeonMatchingProperties", order = 13)]
-    public class DungeonMatchingProperties : MatchingProperties
+    public class DungeonMatchingProperties : MatchingProperties<ExtendedDungeonFlow>
     {
         [Space(5)] public List<StringWithRarity> dungeonTags = new List<StringWithRarity>();
         [Space(5)] public List<StringWithRarity> dungeonNames = new List<StringWithRarity>();
@@ -17,13 +17,11 @@ namespace LethalLevelLoader
             dungeonMatchingProperties.name = extendedContent.name + "DungeonMatchingProperties";
             return (dungeonMatchingProperties);
         }
-        public int GetDynamicRarity(ExtendedDungeonFlow extendedDungeonFlow)
+        internal override int GetDynamicRarity(ExtendedDungeonFlow extendedDungeonFlow)
         {
-            int returnRarity = 0;
+            int returnRarity = base.GetDynamicRarity(extendedDungeonFlow);
 
             UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedTags(extendedDungeonFlow.ContentTags, dungeonNames), extendedDungeonFlow.name, "Content Tags");
-            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedDungeonFlow.AuthorName, authorNames), extendedDungeonFlow.name, "Author Name");
-            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedStrings(extendedDungeonFlow.ExtendedMod.ModNameAliases, modNames), extendedDungeonFlow.name, "Mod Name Name");
             UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedDungeonFlow.DungeonFlow.name, dungeonNames), extendedDungeonFlow.name, "Dungeon Name");
 
             return (returnRarity);

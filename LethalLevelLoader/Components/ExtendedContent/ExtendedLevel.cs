@@ -155,22 +155,23 @@ namespace LethalLevelLoader
             if (OverrideQuicksandPrefab == null)
                 OverrideQuicksandPrefab = LevelLoader.defaultQuicksandPrefab;
 
-            if (ContentType == ContentType.Custom)
+            switch(ContentType)
             {
-                name = NumberlessPlanetName.StripSpecialCharacters() + "ExtendedLevel";
-                SelectableLevel.name = NumberlessPlanetName.StripSpecialCharacters() + "Level";
-                if (generateTerminalAssets == true) //Needs to be after levelID setting above.
-                {
-                    //DebugHelper.Log("Generating Terminal Assets For: " + NumberlessPlanetName);
-                    TerminalManager.CreateLevelTerminalData(this, routePrice);
-                }
+                case ContentType.Custom:
+                    {
+                        name = NumberlessPlanetName.StripSpecialCharacters() + "ExtendedLevel";
+                        SelectableLevel.name = NumberlessPlanetName.StripSpecialCharacters() + "Level";
+                        if (generateTerminalAssets == true) //Needs to be after levelID setting above.
+                        {
+                            //DebugHelper.Log("Generating Terminal Assets For: " + NumberlessPlanetName);
+                            TerminalManager.CreateLevelTerminalData(this, routePrice);
+                        }
+                        break;
+                    }
+                case ContentType.Vanilla:
+                default: GetVanillaInfoNode(); break;
             }
-
-            if (ContentType == ContentType.Vanilla)
-                GetVanillaInfoNode();
             SetExtendedDungeonFlowMatches();
-
-            //Obsolete
         }
 
         internal void ConvertObsoleteValues()
@@ -242,6 +243,20 @@ namespace LethalLevelLoader
             if (Plugin.Instance != null)
                 Debug.LogWarning("ForceSetRoutePrice Should Only Be Used In Editor! Consider Using RoutePrice Property To Sync TerminalNode's With New Value.");
             routePrice = newValue;
+        }
+
+        internal override void Register(ExtendedMod extendedMod)
+        {
+            ConvertObsoleteValues();
+            base.Register(extendedMod);
+
+            extendedMod.ExtendedLevels.Add(this);
+        }
+
+        internal override void Unregister(ExtendedMod extendedMod)
+        {
+            base.Unregister(extendedMod);
+            extendedMod.ExtendedLevels.Remove(this);
         }
     }
         

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace LethalLevelLoader
 {
     [CreateAssetMenu(fileName = "LevelMatchingProperties", menuName = "Lethal Level Loader/Utility/LevelMatchingProperties", order = 12)]
-    public class LevelMatchingProperties : MatchingProperties
+    public class LevelMatchingProperties : MatchingProperties<ExtendedLevel>
     {
         [Space(5)] public List<StringWithRarity> levelTags = new List<StringWithRarity>();
         [Space(5)] public List<Vector2WithRarity> currentRoutePrice = new List<Vector2WithRarity>();
@@ -20,17 +18,14 @@ namespace LethalLevelLoader
             return (levelMatchingProperties);
         }
 
-        public int GetDynamicRarity(ExtendedLevel extendedLevel)
+        internal override int GetDynamicRarity(ExtendedLevel extendedLevel)
         {
-            int returnRarity = 0;
+            int returnRarity = base.GetDynamicRarity(extendedLevel);
 
             UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedTags(extendedLevel.ContentTags, levelTags), extendedLevel.name, "Content Tags");
-            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.AuthorName, authorNames), extendedLevel.name, "Author Name");
-            UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedStrings(extendedLevel.ExtendedMod.ModNameAliases, modNames), extendedLevel.name, "Mod Name");
             UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingWithinRanges(extendedLevel.RoutePrice, currentRoutePrice), extendedLevel.name, "Route Price");
             UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.NumberlessPlanetName, planetNames), extendedLevel.name, "Planet Name");
             UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.SelectableLevel.currentWeather.ToString(), currentWeather), extendedLevel.name, "Current Weather");
-
 
             return (returnRarity);
         }

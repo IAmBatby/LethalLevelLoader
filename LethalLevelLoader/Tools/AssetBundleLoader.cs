@@ -545,7 +545,7 @@ namespace LethalLevelLoader
                 extendedLevel.name = extendedLevel.NumberlessPlanetName + "ExtendedLevel";
 
                 PatchedContent.ExtendedLevels.Add(extendedLevel);
-                PatchedContent.VanillaMod.RegisterExtendedContent(extendedLevel);
+                extendedLevel.Register(PatchedContent.VanillaMod);
             }
         }
 
@@ -651,7 +651,7 @@ namespace LethalLevelLoader
             extendedDungeonFlow.DungeonName = dungeonDisplayName;
 
             extendedDungeonFlow.Initialize();
-            PatchedContent.VanillaMod.RegisterExtendedContent(extendedDungeonFlow);
+            extendedDungeonFlow.Register(PatchedContent.VanillaMod);
             PatchedContent.ExtendedDungeonFlows.Add(extendedDungeonFlow);
 
             if (extendedDungeonFlow.DungeonID == -1)
@@ -668,7 +668,7 @@ namespace LethalLevelLoader
         internal static void CreateVanillaExtendedBuyableVehicle(BuyableVehicle buyableVehicle)
         {
             ExtendedBuyableVehicle newExtendedVanillaBuyableVehicle = ExtendedBuyableVehicle.Create(buyableVehicle);
-            PatchedContent.VanillaMod.RegisterExtendedContent(newExtendedVanillaBuyableVehicle);
+            newExtendedVanillaBuyableVehicle.Register(PatchedContent.VanillaMod);
             PatchedContent.ExtendedBuyableVehicles.Add(newExtendedVanillaBuyableVehicle);
         }
 
