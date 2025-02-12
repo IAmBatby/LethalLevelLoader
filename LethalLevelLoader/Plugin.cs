@@ -11,13 +11,13 @@ using Application = UnityEngine.Application;
 namespace LethalLevelLoader
 {
     [BepInPlugin(ModGUID, ModName, ModVersion)]
-    [BepInDependency("evaisa.lethallib", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(LethalLib.Plugin.ModGUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(LethalModDataLib.PluginInfo.PLUGIN_GUID)]
     public class Plugin : BaseUnityPlugin
     {
         public const string ModGUID = "imabatby.lethallevelloader";
         public const string ModName = "LethalLevelLoader";
-        public const string ModVersion = "1.4.7";
+        public const string ModVersion = "1.4.9";
 
         internal static Plugin Instance;
 
@@ -55,7 +55,7 @@ namespace LethalLevelLoader
             Harmony.PatchAll(typeof(EventPatches));
             Harmony.PatchAll(typeof(SafetyPatches));
 
-            TrySoftPatch("evaisa.lethallib", typeof(LethalLibPatches));
+            TrySoftPatch(LethalLib.Plugin.ModGUID, typeof(LethalLibPatches));
 			
             NetworkScenePatcher.Patch();
 			Patches.InitMonoModHooks();

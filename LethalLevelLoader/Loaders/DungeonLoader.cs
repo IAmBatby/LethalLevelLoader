@@ -37,6 +37,14 @@ namespace LethalLevelLoader
             ExtendedDungeonFlow currentExtendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
 
             //PatchDungeonSize(dungeonGenerator, currentExtendedLevel, currentExtendedDungeonFlow);
+
+            if (currentExtendedDungeonFlow.OverrideTilePlacementBounds)
+            {
+                dungeonGenerator.RestrictDungeonToBounds = true;
+                dungeonGenerator.TilePlacementBounds = new Bounds(Vector3.zero, currentExtendedDungeonFlow.OverrideRestrictedTilePlacementBounds);
+            }
+
+
             PatchFireEscapes(dungeonGenerator, currentExtendedLevel, SceneManager.GetSceneByName(currentExtendedLevel.SelectableLevel.sceneName));
             PatchDynamicGlobalProps(dungeonGenerator, currentExtendedDungeonFlow);
         }

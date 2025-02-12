@@ -164,6 +164,8 @@ namespace LethalLevelLoader
         {
             if (PatchedContent.TryGetExtendedContent(extendedLevelData.UniqueIdentifier, out ExtendedLevel extendedLevel))
                 extendedLevelData.ApplySavedValues(extendedLevel);
+            else
+                DebugHelper.Log("Failed To Apply Saved Level Info!", DebugType.User);
         }
 
 
