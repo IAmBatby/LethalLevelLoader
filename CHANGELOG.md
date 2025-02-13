@@ -1,6 +1,16 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.4.10</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Small hotfix
+
+</details>
+
+</details>
+
 **<details><summary>Version 1.4.9</summary>**
 
 **<details><summary>Fixes</summary>**

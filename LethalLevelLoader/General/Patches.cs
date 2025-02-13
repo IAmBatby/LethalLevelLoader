@@ -29,7 +29,7 @@ namespace LethalLevelLoader
         internal static bool IsServer => NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer;
 
         //Caching this because I need it for checks while the local client is disconnecting which may make direct comparisons inconsistent.
-        internal static ulong currentClientID;
+        internal static ulong currentClientId;
 
         //Singletons and such for these are set in each classes Awake function, But they all are accessible on the first awake function of the earliest one of these four managers awake function, so i grab them directly via findobjectoftype to safely access them as early as possible.
         public static StartOfRound StartOfRound { get; internal set; }
@@ -174,7 +174,7 @@ if (AssetBundleLoader.noBundlesFound == true)
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.sceneLoaded += EventPatches.OnSceneLoaded;
 
-            currentClientID = NetworkManager.Singleton.LocalClientId;
+            currentClientId = NetworkManager.Singleton.LocalClientId;
 
             //Removing the broken cardboard box item please understand 
             //Scrape Vanilla For Content References
@@ -665,16 +665,16 @@ if (AssetBundleLoader.noBundlesFound == true)
         }
 
         [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientDisconnect)), HarmonyPostfix, HarmonyPriority(priority)]
-        internal static void StartOfRoundOnClientDisconnect_Postfix(ulong clientID)
+        internal static void StartOfRoundOnClientDisconnect_Postfix(ulong clientId)
         {
-            if (clientID != currentClientID)
+            if (clientId != currentClientId)
                 NetworkBundleManager.Instance.OnClientsChangedRefresh();
         }
 
         [HarmonyPatch(typeof(NetworkConnectionManager), nameof(NetworkConnectionManager.OnClientDisconnectFromServer)), HarmonyPostfix, HarmonyPriority(priority)]
-        internal static void NetworkConnectionManagerOnClientDisconnectFromServer_Postfix(ulong clientID)
+        internal static void NetworkConnectionManagerOnClientDisconnectFromServer_Postfix(ulong clientId)
         {
-            if (clientID != currentClientID)
+            if (clientId != currentClientId)
                 NetworkBundleManager.Instance.OnClientsChangedRefresh();
         }
 

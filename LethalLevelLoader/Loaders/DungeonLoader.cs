@@ -38,6 +38,8 @@ namespace LethalLevelLoader
 
             //PatchDungeonSize(dungeonGenerator, currentExtendedLevel, currentExtendedDungeonFlow);
 
+            dungeonGenerator.retryCount = 50; //I shouldn't really do this but I'm curious if it silently helps some custom interiors
+
             if (currentExtendedDungeonFlow.OverrideTilePlacementBounds)
             {
                 dungeonGenerator.RestrictDungeonToBounds = true;
