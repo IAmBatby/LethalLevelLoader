@@ -1,6 +1,37 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.4.10</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Small hotfix
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.4.9</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Made change to improve issue related to host leaving a multiplayer session
+* Added log when client fails to import ExtendedLevel saved data to further troubleshoot ongoing issues
+
+</details>
+
+</details>
+
+**<details><summary>Version 1.4.8</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Fixed issue with LethalLib SoftDependency
+
+</details>
+
+</details>
+
 **<details><summary>Version 1.4.7</summary>**
 
 **<details><summary>Fixes</summary>**

@@ -23,6 +23,10 @@ namespace LethalLevelLoader
         [field: Space(5)]
         [field: Header("Extended Feature Settings")]
 
+        [field: Tooltip("When above Vector3.zero this value will restrict the max bounds of the interior.")]
+        [field: SerializeField] public Vector3 OverrideRestrictedTilePlacementBounds { get; set; } = Vector3.zero;
+        public bool OverrideTilePlacementBounds => (OverrideRestrictedTilePlacementBounds.sqrMagnitude > 1f);
+
         [field: SerializeField] public GameObject OverrideKeyPrefab { get; set; }
         [field: SerializeField] public List<SpawnableMapObject> SpawnableMapObjects { get; set; } = new List<SpawnableMapObject>();
         [field: SerializeField] public List<GlobalPropCountOverride> GlobalPropCountOverridesList { get; set; } = new List<GlobalPropCountOverride>();

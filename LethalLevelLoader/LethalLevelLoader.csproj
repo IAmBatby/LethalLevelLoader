@@ -37,6 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Evaisa.LethalLib" Version="0.16.2" />
     <PackageReference Include="MinVer" Version="4.*" PrivateAssets="all" Private="false" />
   </ItemGroup>
 

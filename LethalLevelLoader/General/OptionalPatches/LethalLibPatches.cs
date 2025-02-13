@@ -6,7 +6,7 @@ namespace LethalLevelLoader
     internal class LethalLibPatches
     {
         [HarmonyPriority(Patches.priority)]
-        [HarmonyPatch("LethalLib.Modules.Dungeon", "RoundManager_Start")]
+        [HarmonyPatch(typeof(LethalLib.Modules.Dungeon), "RoundManager_Start")]
         [HarmonyPrefix]
         internal static bool Dungeon_Start_Prefix(Action<RoundManager> orig, RoundManager self)
         {
@@ -16,7 +16,7 @@ namespace LethalLevelLoader
         }
 
         [HarmonyPriority(Patches.priority)]
-        [HarmonyPatch("LethalLib.Modules.Dungeon", "RoundManager_GenerateNewFloor")]
+        [HarmonyPatch(typeof(LethalLib.Modules.Dungeon), "RoundManager_GenerateNewFloor")]
         [HarmonyPrefix]
         internal static bool Dungeon_GenerateNewFloor_Prefix(Action<RoundManager> orig, RoundManager self)
         {
