@@ -1,6 +1,6 @@
 {
     "name": "LethalLevelLoader",
-    "version_number": "1.4.10",
+    "version_number": "1.4.11",
     "website_url": "https://github.com/IAmBatby/LethalLevelLoader",
     "description": "A Custom API to support the manual and dynamic integration of all forms of custom content in Lethal Company. (v69 Compatible)",
     "dependencies": [

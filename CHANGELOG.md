@@ -1,6 +1,17 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.4.11</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Added additional check to hotloading system to avoid issues when leaving a lobby as a host (Thank you Zaggy)
+* Added additional validation checks to ExtendedBuyableVehicle to avoid errors with incorrectly setup content (Thank you ScandalTheVandal)
+
+</details>
+
+</details>
+
 **<details><summary>Version 1.4.10</summary>**
 
 **<details><summary>Fixes</summary>**

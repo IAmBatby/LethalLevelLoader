@@ -128,6 +128,15 @@ namespace LethalLevelLoader
 
         public static (bool result, string log) ValidateExtendedContent(ExtendedBuyableVehicle extendedBuyableVehicle)
         {
+            if (extendedBuyableVehicle.BuyableVehicle.vehiclePrefab == null)
+                return (false, "Vehicle Prefab Was Null Or Empty");
+            else if (extendedBuyableVehicle.BuyableVehicle.secondaryPrefab == null)
+                return (false, "Vehicle Secondary Prefab Was Null Or Empty");
+            else if (extendedBuyableVehicle.BuyableVehicle.vehiclePrefab.GetComponent<NetworkObject>() == null)
+                return (false, "Vehicle Prefab Is Missing NetworkObject Component");
+            else if (extendedBuyableVehicle.BuyableVehicle.secondaryPrefab.GetComponent<NetworkObject>() == null)
+                return (false, "Vehicle Secondary Prefab Is Missing NetworkObject Component");
+
             return (true, string.Empty);
         }
     }

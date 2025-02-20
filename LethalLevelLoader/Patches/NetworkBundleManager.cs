@@ -59,6 +59,13 @@ namespace LethalLevelLoader
             AssetBundles.AssetBundleLoader.OnBundleUnloaded.AddListener(Instance.RefreshLoadStatus);
         }
 
+        public override void OnNetworkDespawn()
+        {
+            base.OnNetworkDespawn();
+            AssetBundles.AssetBundleLoader.OnBundleLoaded.RemoveListener(Instance.RefreshLoadStatus);
+            AssetBundles.AssetBundleLoader.OnBundleUnloaded.RemoveListener(Instance.RefreshLoadStatus);
+        }
+
         //This should run anytime the client joins a lobby
         private void Initialize()
         {
@@ -96,7 +103,7 @@ namespace LethalLevelLoader
         //Called by StartOfRound.OnClientDisconnect.Postfix
         internal void OnClientsChangedRefresh()
         {
-            if (!IsServer) return;
+            if (!IsServer || (NetworkManager != null && NetworkManager.ShutdownInProgress)) return;
             RequestLoadStatusRefreshServerRpc();
         }
 
