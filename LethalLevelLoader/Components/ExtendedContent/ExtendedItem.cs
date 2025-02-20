@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace LethalLevelLoader
 {
@@ -66,7 +63,7 @@ namespace LethalLevelLoader
             extendedItem.Item = newItem;
             extendedItem.name = newItem.itemName.SkipToLetters().RemoveWhitespace() + "ExtendedItem";
             extendedItem.ContentType = contentType;
-            extendedMod.RegisterExtendedContent(extendedItem);
+            extendedItem.Register(extendedMod);
 
             extendedItem.TryCreateMatchingProperties();
 
@@ -97,6 +94,20 @@ namespace LethalLevelLoader
             if (Plugin.Instance != null)
                 Debug.LogError("SetLevelMatchingProperties() Should Only Be Used In Editor!");
             LevelMatchingProperties = newLevelMatchingProperties;
+        }
+
+        internal override void Register(ExtendedMod extendedMod)
+        {
+            base.Register(extendedMod);
+
+            extendedMod.ExtendedItems.Add(this);
+        }
+
+        internal override void Unregister(ExtendedMod extendedMod)
+        {
+            base.Unregister(extendedMod);
+
+            extendedMod.ExtendedItems.Remove(this);
         }
     }
 }

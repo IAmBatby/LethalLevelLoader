@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace LethalLevelLoader
@@ -22,6 +20,19 @@ namespace LethalLevelLoader
         internal virtual void TryCreateMatchingProperties()
         {
 
+        }
+
+        internal virtual void Register(ExtendedMod extendedMod)
+        {
+            extendedMod.TryThrowInvalidContentException(this, Validators.VerbValidateExtendedContent(this));
+
+            ContentTags.Add(ContentTag.Create("Custom"));
+            ExtendedMod = extendedMod;
+        }
+
+        internal virtual void Unregister(ExtendedMod extendedMod)
+        {
+            ExtendedMod = null;
         }
 
         public bool TryGetTag(string tag)

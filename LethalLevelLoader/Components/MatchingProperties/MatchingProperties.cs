@@ -1,21 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    public class MatchingProperties : ScriptableObject
+    public class MatchingProperties<T> : ScriptableObject where T : ExtendedContent
     {
         [Space(5)] public List<StringWithRarity> modNames = new List<StringWithRarity>();
         [Space(5)] public List<StringWithRarity> authorNames = new List<StringWithRarity>();
 
-        public static MatchingProperties Create(ExtendedContent extendedContent)
+        public static MatchingProperties<T> Create(ExtendedContent extendedContent)
         {
-            MatchingProperties matchingProperties = ScriptableObject.CreateInstance<MatchingProperties>();
+            MatchingProperties<T> matchingProperties = ScriptableObject.CreateInstance<MatchingProperties<T>>();
             matchingProperties.name = extendedContent.name + "MatchingProperties";
             return (matchingProperties);
+        }
+
+        internal virtual int GetDynamicRarity(T content)
+        {
+            int result = 0;
+            UpdateRarity(ref result, GetHighestRarityViaMatchingNormalizedString(content.AuthorName, authorNames), content.name, "Author Name");
+            UpdateRarity(ref result, GetHighestRarityViaMatchingNormalizedStrings(content.ExtendedMod.ModNameAliases, modNames), content.name, "Mod Name Name");
+            return result;
         }
 
         internal static bool UpdateRarity(ref int currentValue, int newValue, string debugActionObject = null, string debugActionReason = null)

@@ -36,7 +36,7 @@ namespace LethalLevelLoader
             extendedEnemyType.EnemyType = enemyType;
             extendedEnemyType.name = enemyType.enemyName.SkipToLetters().RemoveWhitespace() + "ExtendedEnemyType";
             extendedEnemyType.ContentType = contentType;
-            extendedMod.RegisterExtendedContent(extendedEnemyType);
+            extendedEnemyType.Register(extendedMod);
 
             extendedEnemyType.TryCreateMatchingProperties();
 
@@ -60,6 +60,13 @@ namespace LethalLevelLoader
                 OutsideLevelMatchingProperties = LevelMatchingProperties.Create(this);
             if (DaytimeLevelMatchingProperties == null)
                 DaytimeLevelMatchingProperties = LevelMatchingProperties.Create(this);
+        }
+
+        internal override void Register(ExtendedMod extendedMod)
+        {
+            base.Register(extendedMod);
+
+            extendedMod.ExtendedEnemyTypes.Add(this);
         }
     }
 }

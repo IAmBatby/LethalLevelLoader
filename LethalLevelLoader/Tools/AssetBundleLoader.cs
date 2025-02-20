@@ -92,7 +92,9 @@ namespace LethalLevelLoader
                 foreach (ExtendedBuyableVehicle extendedBuyableVehicle in extendedMod.ExtendedBuyableVehicles)
                 {
                     LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedBuyableVehicle.BuyableVehicle.vehiclePrefab);
-                    LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedBuyableVehicle.BuyableVehicle.secondaryPrefab);
+
+                    if (extendedBuyableVehicle.BuyableVehicle.secondaryPrefab != null)
+                        LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedBuyableVehicle.BuyableVehicle.secondaryPrefab);
                 }
             }
         }
@@ -543,7 +545,7 @@ namespace LethalLevelLoader
                 extendedLevel.name = extendedLevel.NumberlessPlanetName + "ExtendedLevel";
 
                 PatchedContent.ExtendedLevels.Add(extendedLevel);
-                PatchedContent.VanillaMod.RegisterExtendedContent(extendedLevel);
+                extendedLevel.Register(PatchedContent.VanillaMod);
             }
         }
 
@@ -649,7 +651,7 @@ namespace LethalLevelLoader
             extendedDungeonFlow.DungeonName = dungeonDisplayName;
 
             extendedDungeonFlow.Initialize();
-            PatchedContent.VanillaMod.RegisterExtendedContent(extendedDungeonFlow);
+            extendedDungeonFlow.Register(PatchedContent.VanillaMod);
             PatchedContent.ExtendedDungeonFlows.Add(extendedDungeonFlow);
 
             if (extendedDungeonFlow.DungeonID == -1)
@@ -666,7 +668,7 @@ namespace LethalLevelLoader
         internal static void CreateVanillaExtendedBuyableVehicle(BuyableVehicle buyableVehicle)
         {
             ExtendedBuyableVehicle newExtendedVanillaBuyableVehicle = ExtendedBuyableVehicle.Create(buyableVehicle);
-            PatchedContent.VanillaMod.RegisterExtendedContent(newExtendedVanillaBuyableVehicle);
+            newExtendedVanillaBuyableVehicle.Register(PatchedContent.VanillaMod);
             PatchedContent.ExtendedBuyableVehicles.Add(newExtendedVanillaBuyableVehicle);
         }
 

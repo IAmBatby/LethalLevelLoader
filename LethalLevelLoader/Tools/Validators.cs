@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Unity.Netcode;
+﻿using Unity.Netcode;
 using UnityEngine;
 
 namespace LethalLevelLoader
@@ -32,7 +29,29 @@ namespace LethalLevelLoader
 
             return (result.Item1);
         }
-        
+
+        public static (bool,string) VerbValidateExtendedContent(ExtendedContent extendedContent)
+        {
+            (bool, string) result = (false, string.Empty);
+
+            if (extendedContent is ExtendedLevel extendedLevel)
+                result = ValidateExtendedContent(extendedLevel);
+            else if (extendedContent is ExtendedDungeonFlow extendedDungeonFlow)
+                result = ValidateExtendedContent(extendedDungeonFlow);
+            else if (extendedContent is ExtendedItem extendedItem)
+                result = ValidateExtendedContent(extendedItem);
+            else if (extendedContent is ExtendedEnemyType extendedEnemyType)
+                result = ValidateExtendedContent(extendedEnemyType);
+            else if (extendedContent is ExtendedFootstepSurface extendedFootstepSurface)
+                result = ValidateExtendedContent(extendedFootstepSurface);
+            else if (extendedContent is ExtendedStoryLog extendedStoryLog)
+                result = ValidateExtendedContent(extendedStoryLog);
+            else if (extendedContent is ExtendedBuyableVehicle extendedBuyableVehicle)
+                result = ValidateExtendedContent(extendedBuyableVehicle);
+
+            return result;
+        }
+
         public static (bool result, string log) ValidateExtendedContent(ExtendedItem extendedItem)
         {
             if (extendedItem == null)

@@ -87,16 +87,19 @@ namespace LethalLevelLoader
             ExtendedMod matchingExtendedMod = null;
             foreach (ExtendedMod registeredExtendedMod in obtainedExtendedModsList)
             {
-                if (extendedMod.ModMergeSetting == ModMergeSetting.MatchingModName && registeredExtendedMod.ModMergeSetting == ModMergeSetting.MatchingModName)
+                if (extendedMod.ModMergeSetting != registeredExtendedMod.ModMergeSetting) continue;
+
+                bool matched;
+                switch(extendedMod.ModMergeSetting)
                 {
-                    if (registeredExtendedMod.ModName == extendedMod.ModName)
-                        matchingExtendedMod = registeredExtendedMod;
+                    case ModMergeSetting.MatchingModName: matched = extendedMod.ModName == registeredExtendedMod.ModName; break;
+                    case ModMergeSetting.MatchingAuthorName: matched = extendedMod.AuthorName == registeredExtendedMod.AuthorName; break;
+                    default: matched = false; break;
                 }
-                else if (extendedMod.ModMergeSetting == ModMergeSetting.MatchingAuthorName && registeredExtendedMod.ModMergeSetting == ModMergeSetting.MatchingAuthorName)
-                {
-                    if (registeredExtendedMod.AuthorName == extendedMod.AuthorName)
-                        matchingExtendedMod = registeredExtendedMod;
-                }
+                if (!matched) continue;
+
+                matchingExtendedMod = registeredExtendedMod;
+                break;
             }
 
             if (matchingExtendedMod != null)

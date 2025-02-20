@@ -1,9 +1,4 @@
-﻿using JetBrains.Annotations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace LethalLevelLoader
 {
@@ -18,43 +13,45 @@ namespace LethalLevelLoader
         {
             foreach (ExtendedItem extendedItem in PatchedContent.CustomExtendedItems)
             {
-                if (extendedItem.Item.isScrap)
+                if (!extendedItem.Item.isScrap) continue;
+                string debugString = string.Empty;
+                SpawnableItemWithRarity alreadyInjectedItem = null;
+                foreach (SpawnableItemWithRarity spawnableItem in extendedLevel.SelectableLevel.spawnableScrap)
                 {
-                    string debugString = string.Empty;
-                    SpawnableItemWithRarity alreadyInjectedItem = null;
-                    foreach (SpawnableItemWithRarity spawnableItem in extendedLevel.SelectableLevel.spawnableScrap)
-                        if (spawnableItem.spawnableItem == extendedItem)
-                            alreadyInjectedItem = spawnableItem;
+                    if (spawnableItem.spawnableItem != extendedItem) continue;
 
-                    int returnRarity = 0;
-                    int levelRarity = extendedItem.LevelMatchingProperties.GetDynamicRarity(extendedLevel);
-                    //int dungeonRarity
-                    returnRarity = levelRarity;
-                    if (alreadyInjectedItem != null)
+                    alreadyInjectedItem = spawnableItem;
+                    break;
+                }
+
+                int returnRarity = 0;
+                int levelRarity = extendedItem.LevelMatchingProperties.GetDynamicRarity(extendedLevel);
+                //int dungeonRarity
+                returnRarity = levelRarity;
+                if (alreadyInjectedItem != null)
+                {
+                    if (returnRarity > 0)
                     {
-                        if (returnRarity > 0)
-                        {
-                            alreadyInjectedItem.rarity = returnRarity;
-                            debugString = "Updated Rarity Of: " + extendedItem.Item.itemName + " To: " + returnRarity + " On Planet: " + extendedLevel.NumberlessPlanetName;
-                        }
-                        else
-                        {
-                            extendedLevel.SelectableLevel.spawnableScrap.Remove(alreadyInjectedItem);
-                            debugString = "Removed " + extendedItem.Item.itemName + " From Planet: " + extendedLevel.NumberlessPlanetName;
-                        }
- 
+                        alreadyInjectedItem.rarity = returnRarity;
+                        debugString = "Updated Rarity Of: " + extendedItem.Item.itemName + " To: " + returnRarity + " On Planet: " + extendedLevel.NumberlessPlanetName;
                     }
                     else
                     {
-                        SpawnableItemWithRarity newSpawnableItem = new SpawnableItemWithRarity();
-                        newSpawnableItem.spawnableItem = extendedItem.Item;
-                        newSpawnableItem.rarity = returnRarity;
-                        extendedLevel.SelectableLevel.spawnableScrap.Add(newSpawnableItem);
-                        debugString = "Added " + extendedItem.Item.itemName + " To Planet: " + extendedLevel.NumberlessPlanetName + " With A Rarity Of: " + returnRarity;
+                        extendedLevel.SelectableLevel.spawnableScrap.Remove(alreadyInjectedItem);
+                        debugString = "Removed " + extendedItem.Item.itemName + " From Planet: " + extendedLevel.NumberlessPlanetName;
                     }
-                    if (debugResults == true)
-                        DebugHelper.Log(debugString, DebugType.Developer);
+ 
                 }
+                else
+                {
+                    SpawnableItemWithRarity newSpawnableItem = new SpawnableItemWithRarity();
+                    newSpawnableItem.spawnableItem = extendedItem.Item;
+                    newSpawnableItem.rarity = returnRarity;
+                    extendedLevel.SelectableLevel.spawnableScrap.Add(newSpawnableItem);
+                    debugString = "Added " + extendedItem.Item.itemName + " To Planet: " + extendedLevel.NumberlessPlanetName + " With A Rarity Of: " + returnRarity;
+                }
+                if (debugResults == true)
+                    DebugHelper.Log(debugString, DebugType.Developer);
             }
         }
 

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace LethalLevelLoader
 {
@@ -18,5 +15,12 @@ namespace LethalLevelLoader
         [TextArea] public string storyLogDescription = string.Empty;
 
         [HideInInspector] internal int newStoryLogID;
+
+        internal override void Register(ExtendedMod extendedMod)
+        {
+            base.Register(extendedMod);
+
+            extendedMod.ExtendedStoryLogs.Add(this);
+        }
     }
 }
