@@ -102,7 +102,7 @@
   </Target>
 
     <!-- zipping the .dll alone for curseforge release -->
-  <Target Name="ZipCurseForge" AfterTargets="PackThunderstore">
+  <Target Name="ZipCurseForge" DependsOnTargets="PackThunderstore">
     <MakeDir Directories="$(ProjectDir)dist/output/" Condition="!Exists('$(ProjectDir)dist/output/')" />
     <Copy SourceFiles="$(ProjectDir)bin/Release/netstandard2.1/$(AssemblyName).dll" DestinationFiles="$(ProjectDir)dist/output/$(AssemblyName).dll" />
 
