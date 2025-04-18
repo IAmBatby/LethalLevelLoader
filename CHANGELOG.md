@@ -1,6 +1,14 @@
 **Changelog**
 --
 
+**<details><summary>Version 1.4.12</summary>**
+
+**<details><summary>Fixes</summary>**
+
+* Fixed SpawnableMapObjects defined in ExtendedDungeonFlow not spawning for clients
+
+</details>
+
 **<details><summary>Version 1.4.11</summary>**
 
 **<details><summary>Fixes</summary>**
