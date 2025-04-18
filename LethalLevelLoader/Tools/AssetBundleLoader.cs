@@ -690,6 +690,7 @@ namespace LethalLevelLoader
                 registeredPrefabs.Add(networkPrefab.Prefab);
 
             List<SpawnSyncedObject> spawnSyncedObjects = extendedDungeonFlow.DungeonFlow.GetSpawnSyncedObjects();
+            List<SpawnableMapObject> extendedSpawnableMapObjects = extendedDungeonFlow.SpawnableMapObjects;
 
             foreach (GameObject registeredPrefab in registeredPrefabs)
             {
@@ -702,6 +703,16 @@ namespace LethalLevelLoader
                             restoredObjectsDebugList.Add(registeredPrefab.name);
                     }
 
+                // Just in case it's already registered as a network prefab for whatever reason, though it might not be necessary:
+                foreach (SpawnableMapObject spawnableMapObject in new List<SpawnableMapObject>(extendedSpawnableMapObjects))
+                    if(spawnableMapObject.prefabToSpawn != null && spawnableMapObject.prefabToSpawn.name == registeredPrefab.name)
+                    {
+                        spawnableMapObject.prefabToSpawn = registeredPrefab;
+                        extendedSpawnableMapObjects.Remove(spawnableMapObject);
+                        if(!restoredObjectsDebugList.Contains(registeredPrefab.name))
+                            restoredObjectsDebugList.Add(registeredPrefab.name);
+                    }
+                // ...
             }
             foreach (SpawnSyncedObject spawnSyncedObject in spawnSyncedObjects)
             {
@@ -713,6 +724,18 @@ namespace LethalLevelLoader
 
                     if (!registeredObjectsDebugList.Contains(spawnSyncedObject.spawnPrefab.name))
                         registeredObjectsDebugList.Add(spawnSyncedObject.spawnPrefab.name);
+                }
+            }
+            foreach (SpawnableMapObject spawnableMapObject in extendedSpawnableMapObjects)
+            {
+                if(spawnableMapObject != null && spawnableMapObject.prefabToSpawn != null)
+                {
+                    if(!spawnableMapObject.prefabToSpawn.TryGetComponent(out NetworkObject _))
+                        spawnableMapObject.prefabToSpawn.AddComponent<NetworkObject>();
+                    LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(spawnableMapObject.prefabToSpawn);
+
+                    if(!registeredObjectsDebugList.Contains(spawnableMapObject.prefabToSpawn.name))
+                        registeredObjectsDebugList.Add(spawnableMapObject.prefabToSpawn.name);
                 }
             }
 
