@@ -18,5 +18,7 @@ namespace LethalLevelLoader
         [TextArea] public string storyLogDescription = string.Empty;
 
         [HideInInspector] internal int newStoryLogID;
+
+        [HideInInspector] internal TerminalNode assignedNode;
     }
 }

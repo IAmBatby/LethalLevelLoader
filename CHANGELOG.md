@@ -6,6 +6,7 @@
 **<details><summary>Fixes</summary>**
 
 * Fixed SpawnableMapObjects defined in ExtendedDungeonFlow not spawning for clients
+* Fixed some ExtendedContent not being re-registered on the terminal after a lobby reload
 
 </details>
 
