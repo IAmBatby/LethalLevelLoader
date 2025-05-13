@@ -710,6 +710,7 @@ namespace LethalLevelLoader
             newStoryLogNode.creatureName = newStoryLog.storyLogTitle;
             newStoryLogNode.storyLogFileID = Terminal.logEntryFiles.Count;
             newStoryLog.newStoryLogID = Terminal.logEntryFiles.Count;
+            newStoryLog.assignedNode = newStoryLogNode;
 
             Terminal.logEntryFiles.Add(newStoryLogNode);
             viewKeyword.AddCompatibleNoun(newStoryLogKeyword, newStoryLogNode);

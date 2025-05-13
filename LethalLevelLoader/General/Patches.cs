@@ -370,6 +370,48 @@ if (AssetBundleLoader.noBundlesFound == true)
 
                 TerminalManager.AddTerminalNodeEventListener(TerminalManager.moonsKeyword.specialKeywordResult, TerminalManager.RefreshMoonsCataloguePage, TerminalManager.LoadNodeActionType.After);
             }
+            else
+            {
+                // Populate Terminal lists with already-existing ExtendedContent:
+                foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods)
+                {
+                    // Load ExtendedItem store page entries:
+                    if (extendedMod.ExtendedItems.Count > 0)
+                    {
+                        List<Item> allBuyableItems = [.. Terminal.buyableItemsList];
+
+                        foreach (ExtendedItem extendedItem in extendedMod.ExtendedItems)
+                            if (extendedItem.IsBuyableItem)
+                                allBuyableItems.Add(extendedItem.Item);
+
+                        Terminal.buyableItemsList = [.. allBuyableItems];
+                    }
+                    // ...
+
+                    // Load ExtendedEnemyType beastiary entries.
+                    if (extendedMod.ExtendedEnemyTypes.Count > 0)
+                        foreach (ExtendedEnemyType extendedEnemy in extendedMod.ExtendedEnemyTypes)
+                            Terminal.enemyFiles.Add(extendedEnemy.EnemyInfoNode);
+
+                    // Load ExtendedStoryLog journal entries.
+                    if (extendedMod.ExtendedStoryLogs.Count > 0)
+                        foreach (ExtendedStoryLog extendedStoryLog in extendedMod.ExtendedStoryLogs)
+                            Terminal.logEntryFiles.Add(extendedStoryLog.assignedNode);
+
+                    // Load ExtendedBuyableVehicle store page entries:
+                    if (extendedMod.ExtendedBuyableVehicles.Count > 0)
+                    {
+                        List<BuyableVehicle> allVehicles = [.. Terminal.buyableVehicles];
+
+                        foreach (ExtendedBuyableVehicle extendedBuyableVehicle in extendedMod.ExtendedBuyableVehicles)
+                            allVehicles.Add(extendedBuyableVehicle.BuyableVehicle);
+
+                        Terminal.buyableVehicles = [.. allVehicles];
+                    }
+                    // ...
+                }
+                // ...
+            }
 
             LevelLoader.defaultFootstepSurfaces = new List<FootstepSurface>(StartOfRound.footstepSurfaces).ToArray();
 
