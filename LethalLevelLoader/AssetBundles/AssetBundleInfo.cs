@@ -16,7 +16,7 @@ namespace LethalLevelLoader.AssetBundles
     public class AssetBundleInfo
     {
         private bool hasInitialized;
-        private AssetBundle assetBundle;
+        internal AssetBundle assetBundle; // Increased accessibility solely for convenience.
         private MonoBehaviour coroutineHandler;
         private AssetBundleCreateRequest activeLoadRequest;
         private AssetBundleUnloadOperation activeUnloadRequest;
