@@ -40,6 +40,9 @@ namespace LethalLevelLoader
         public List<ExtendedBuyableVehicle> ExtendedBuyableVehicles { get; private set; } = new List<ExtendedBuyableVehicle>();
 
         [field: SerializeField]
+        public List<ExtendedUnlockableItem> ExtendedUnlockableItems { get; private set; } = new List<ExtendedUnlockableItem>();
+
+        [field: SerializeField]
         public List<string> StreamingLethalBundleNames { get; private set; } = new List<string>();
 
         public List<ExtendedContent> ExtendedContents
@@ -63,6 +66,8 @@ namespace LethalLevelLoader
                     returnList.Add(storyLog);
                 foreach (ExtendedBuyableVehicle vehicle in ExtendedBuyableVehicles)
                     returnList.Add(vehicle);
+                foreach (ExtendedUnlockableItem unlockableItem in ExtendedUnlockableItems)
+                    returnList.Add(unlockableItem);
 
                 return (returnList);
             }
@@ -126,6 +131,8 @@ namespace LethalLevelLoader
                         RegisterExtendedContent(extendedStoryLog);
                     else if (newExtendedContent is ExtendedBuyableVehicle extendedBuyableVehicle)
                         RegisterExtendedContent(extendedBuyableVehicle);
+                    else if (newExtendedContent is ExtendedUnlockableItem extendedUnlockableItem)
+                        RegisterExtendedContent(extendedUnlockableItem);
                     else
                         throw new ArgumentException(nameof(newExtendedContent), newExtendedContent.name + " (" + newExtendedContent.GetType().Name + ") " + " Could Not Be Registered To ExtendedMod: " + ModName + " Due To Unimplemented Registration Check!");
                 }
@@ -210,6 +217,15 @@ namespace LethalLevelLoader
             extendedBuyableVehicle.ExtendedMod = this;
         }
 
+        internal void RegisterExtendedContent(ExtendedUnlockableItem extendedUnlockableItem)
+        {
+            TryThrowInvalidContentException(extendedUnlockableItem, Validators.ValidateExtendedContent(extendedUnlockableItem));
+
+            ExtendedUnlockableItems.Add(extendedUnlockableItem);
+            extendedUnlockableItem.ContentTags.Add(ContentTag.Create("Custom"));
+            extendedUnlockableItem.ExtendedMod = this;
+        }
+
         internal void TryThrowInvalidContentException(ExtendedContent extendedContent, (bool,string) result)
         {
             if (result.Item1 == false)
@@ -229,6 +245,8 @@ namespace LethalLevelLoader
                 ExtendedDungeonFlows.Remove(extendedDungeonFlow);
             else if (currentExtendedContent is ExtendedItem extendedItem)
                 ExtendedItems.Remove(extendedItem);
+            else if (currentExtendedContent is ExtendedUnlockableItem extendedUnlockableItem)
+                ExtendedUnlockableItems.Remove(extendedUnlockableItem);
 
             currentExtendedContent.ExtendedMod = null;
             DebugHelper.LogWarning("Unregistered ExtendedContent: " + currentExtendedContent.name + " In ExtendedMod: " + ModName, DebugType.Developer);
@@ -244,6 +262,7 @@ namespace LethalLevelLoader
             ExtendedFootstepSurfaces.Clear();
             ExtendedStoryLogs.Clear();
             ExtendedBuyableVehicles.Clear();
+            ExtendedUnlockableItems.Clear();
         }
 
         internal void SortRegisteredContent()
@@ -256,6 +275,7 @@ namespace LethalLevelLoader
             ExtendedFootstepSurfaces.Sort((s1, s2) => s1.name.CompareTo(s2.name));
             ExtendedStoryLogs.Sort((s1, s2) => s1.name.CompareTo(s2.name));
             ExtendedBuyableVehicles.Sort((s1, s2) => s1.name.CompareTo(s2.name));
+            ExtendedUnlockableItems.Sort((s1, s2) => s1.name.CompareTo(s2.name));
         }
     }
 }

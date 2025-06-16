@@ -186,6 +186,7 @@ if (AssetBundleLoader.noBundlesFound == true)
 
                 DebugStopwatch.StartStopWatch("Scrape Vanilla Content");
                 ContentExtractor.TryScrapeVanillaItems(StartOfRound);
+                ContentExtractor.TryScrapeVanillaUnlockableItems(StartOfRound);
                 ContentExtractor.TryScrapeVanillaContent(StartOfRound, RoundManager);
                 ContentExtractor.ObtainSpecialItemReferences();
 
@@ -228,6 +229,7 @@ if (AssetBundleLoader.noBundlesFound == true)
                 AssetBundleLoader.CreateVanillaExtendedItems();
                 AssetBundleLoader.CreateVanillaExtendedEnemyTypes();
                 AssetBundleLoader.CreateVanillaExtendedBuyableVehicles();
+                AssetBundleLoader.CreateVanillaExtendedUnlockableItems(StartOfRound);
 
                 DebugStopwatch.StartStopWatch("Initialize Custom ExtendedContent"); // this is not used
                 //Initialize ExtendedContent Objects For Custom Content.
@@ -346,13 +348,23 @@ if (AssetBundleLoader.noBundlesFound == true)
             //Dynamically Inject Custom EnemyType's Into SelectableLevel's Based On Level & Dungeon MatchingProperties.
             EnemyManager.RefreshDynamicEnemyTypeRarityOnAllExtendedLevels();
 
-            DebugStopwatch.StartStopWatch("Create ExtendedLevelGroups & Filter Assets");
+            DebugStopwatch.StartStopWatch("ExtendedBuyableVehicle Injection");
 
             VehiclesManager.PatchVanillaVehiclesLists();
             VehiclesManager.SetBuyableVehicleIDs();
 
             foreach (ExtendedBuyableVehicle customExtendedBuyableVehicle in PatchedContent.CustomExtendedBuyableVehicles)
                 TerminalManager.CreateBuyableVehicleTerminalData(customExtendedBuyableVehicle);
+
+            DebugStopwatch.StartStopWatch("ExtendedUnlockableItem Injection");
+
+            UnlockableItemManager.PatchVanillaUnlockableItemLists();
+            UnlockableItemManager.SetUnlockableItemIDs();
+
+            foreach (ExtendedBuyableVehicle customExtendedBuyableVehicle in PatchedContent.CustomExtendedBuyableVehicles)
+                TerminalManager.CreateBuyableVehicleTerminalData(customExtendedBuyableVehicle);
+
+            DebugStopwatch.StartStopWatch("Create ExtendedLevelGroups & Filter Assets");
 
             //Populate SelectableLevel Data To Be Used In Overhaul Of The Terminal Moons Catalogue.
             TerminalManager.CreateExtendedLevelGroups();
@@ -407,6 +419,18 @@ if (AssetBundleLoader.noBundlesFound == true)
                             allVehicles.Add(extendedBuyableVehicle.BuyableVehicle);
 
                         Terminal.buyableVehicles = [.. allVehicles];
+                    }
+                    // ...
+
+                    // Load ExtendedUnlockableItem store page entries:
+                    if (extendedMod.ExtendedUnlockableItems.Count > 0)
+                    {
+                        List<UnlockableItem> allBuyableUnlockableItems = [.. StartOfRound.unlockablesList.unlockables];
+
+                        foreach (ExtendedUnlockableItem extendedUnlockableItem in extendedMod.ExtendedUnlockableItems)
+                            allBuyableUnlockableItems.Add(extendedUnlockableItem.UnlockableItem);
+
+                        StartOfRound.unlockablesList.unlockables = [.. allBuyableUnlockableItems];
                     }
                     // ...
                 }

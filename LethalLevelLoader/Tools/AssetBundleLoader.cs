@@ -94,6 +94,10 @@ namespace LethalLevelLoader
                     LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedBuyableVehicle.BuyableVehicle.vehiclePrefab);
                     LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedBuyableVehicle.BuyableVehicle.secondaryPrefab);
                 }
+
+                foreach (ExtendedUnlockableItem extendedUnlockableItem in extendedMod.ExtendedUnlockableItems)
+                    if (extendedUnlockableItem.UnlockableItem.unlockableType == 1 && extendedUnlockableItem.UnlockableItem.prefabObject != null)
+                        LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedUnlockableItem.UnlockableItem.prefabObject);
             }
         }
 
@@ -505,6 +509,12 @@ namespace LethalLevelLoader
                     extendedBuyableVehicle.ContentType = ContentType.Custom;
                     PatchedContent.ExtendedBuyableVehicles.Add(extendedBuyableVehicle);
                 }    
+                foreach (ExtendedUnlockableItem extendedUnlockableItem in extendedMod.ExtendedUnlockableItems)
+                {
+                    extendedUnlockableItem.ContentType = ContentType.Custom;
+                    extendedUnlockableItem.Initialize();
+                    PatchedContent.ExtendedUnlockableItems.Add(extendedUnlockableItem);
+                }    
             }
             //DebugHelper.DebugAllLevels();
         }
@@ -668,6 +678,19 @@ namespace LethalLevelLoader
             ExtendedBuyableVehicle newExtendedVanillaBuyableVehicle = ExtendedBuyableVehicle.Create(buyableVehicle);
             PatchedContent.VanillaMod.RegisterExtendedContent(newExtendedVanillaBuyableVehicle);
             PatchedContent.ExtendedBuyableVehicles.Add(newExtendedVanillaBuyableVehicle);
+        }
+
+        internal static void CreateVanillaExtendedUnlockableItems(StartOfRound startOfRound)
+        {
+            foreach (UnlockableItem vanillaUnlockableItem in OriginalContent.UnlockableItems)
+                CreateVanillaExtendedUnlockableItem(vanillaUnlockableItem);
+        }
+
+        internal static void CreateVanillaExtendedUnlockableItem(UnlockableItem unlockableItem)
+        {
+            ExtendedUnlockableItem newExtendedVanillaUnlockableItem = ExtendedUnlockableItem.Create(unlockableItem, PatchedContent.VanillaMod, ContentType.Vanilla);
+            PatchedContent.VanillaMod.RegisterExtendedContent(newExtendedVanillaUnlockableItem);
+            PatchedContent.ExtendedUnlockableItems.Add(newExtendedVanillaUnlockableItem);
         }
 
         internal static void NetworkRegisterDungeonContent(ExtendedDungeonFlow extendedDungeonFlow, NetworkManager networkManager)
