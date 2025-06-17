@@ -238,8 +238,10 @@ namespace LethalLevelLoader.AssetBundles
                         {
                             if (info.AssetBundleName == lethalBundleRequest.Key)
                             {
-                                foreach (Action<AssetBundle> bundleEvent in lethalBundleRequest.Value)
-                                    bundleEvent.Invoke(info.assetBundle);
+                                AssetBundle newBundle = AssetBundle.GetAllLoadedAssetBundles().First(bundle => bundle.name == info.AssetBundleName);
+                                if (newBundle != null)
+                                    foreach (Action<AssetBundle> bundleEvent in lethalBundleRequest.Value)
+                                        bundleEvent.Invoke(newBundle);
                                 break;
                             }
                         }

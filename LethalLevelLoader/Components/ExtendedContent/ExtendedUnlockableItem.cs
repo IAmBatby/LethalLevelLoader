@@ -30,6 +30,9 @@ namespace LethalLevelLoader
         public void Initialize()
         {
             TerminalManager.CreateUnlockableItemTerminalData(this);
+
+            if (!Patches.StartOfRound.unlockablesList.unlockables.Contains(UnlockableItem))
+                Patches.StartOfRound.unlockablesList.unlockables.Add(UnlockableItem);
         }
 
         internal static ExtendedUnlockableItem Create(UnlockableItem newUnlockableItem, ExtendedMod extendedMod, ContentType contentType)

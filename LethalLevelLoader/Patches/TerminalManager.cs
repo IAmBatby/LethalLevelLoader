@@ -981,9 +981,6 @@ namespace LethalLevelLoader
             extendedUnlockableItem.BuyInfoNode = terminalNodeInfo;
 
             extendedUnlockableItem.UnlockableItem.shopSelectionNode = extendedUnlockableItem.BuyNode;
-
-            if (!Patches.StartOfRound.unlockablesList.unlockables.Contains(extendedUnlockableItem.UnlockableItem))
-                Patches.StartOfRound.unlockablesList.unlockables.Add(extendedUnlockableItem.UnlockableItem);
         }
 
         internal static void RegisterStoryLog(TerminalKeyword terminalKeyword, TerminalNode terminalNode)
