@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using LethalLevelLoader.ExtendedManagers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    public static class ItemManager
+    public class ItemManager : ExtendedContentManager<ExtendedItem, Item, ItemManager>
     {
         public static void RefreshDynamicItemRarityOnAllExtendedLevels()
         {

@@ -6,8 +6,9 @@ using UnityEngine;
 namespace LethalLevelLoader
 {
     [CreateAssetMenu(fileName = "ExtendedItem", menuName = "Lethal Level Loader/Extended Content/ExtendedItem", order = 23)]
-    public class ExtendedItem : ExtendedContent
+    public class ExtendedItem : ExtendedContent<ExtendedItem, Item, ItemManager>
     {
+        public override Item Content => Item;
         [field: Header("General Settings")]
 
         [field: SerializeField] public Item Item { get; set; }
@@ -73,7 +74,7 @@ namespace LethalLevelLoader
             return (extendedItem);
         }
 
-        public void Initialize()
+        internal override void Initialize()
         {
             DebugHelper.Log("Initializing Custom Item: " + Item.itemName + ". Is Buyable: " + IsBuyableItem + ". Is Scrap: " + Item.isScrap, DebugType.Developer);
 

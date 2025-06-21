@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LethalLevelLoader.ExtendedManagers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,7 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    public class EnemyManager
+    public class EnemyManager : ExtendedContentManager<ExtendedEnemyType, EnemyType, EnemyManager>
     {
         public static void RefreshDynamicEnemyTypeRarityOnAllExtendedLevels()
         {

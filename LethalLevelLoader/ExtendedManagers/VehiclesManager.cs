@@ -1,11 +1,12 @@
-﻿using System;
+﻿using LethalLevelLoader.ExtendedManagers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace LethalLevelLoader
 {
-    public static class VehiclesManager
+    public class VehiclesManager : ExtendedContentManager<ExtendedBuyableVehicle, BuyableVehicle, VehiclesManager>
     {
         internal static void PatchVanillaVehiclesLists()
         {

@@ -1,4 +1,5 @@
 ﻿using GameNetcodeStuff;
+using LethalLevelLoader.ExtendedManagers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ public enum ContentType { Vanilla, Custom, Any } //Any & All included for built 
 namespace LethalLevelLoader
 {
     [CreateAssetMenu(fileName = "ExtendedLevel", menuName = "Lethal Level Loader/Extended Content/ExtendedLevel", order = 20)]
-    public class ExtendedLevel : ExtendedContent
+    public class ExtendedLevel : ExtendedContent<ExtendedLevel, SelectableLevel, LevelManager>
     {
         [field: Header("General Settings")]
         [field: SerializeField] public SelectableLevel SelectableLevel { get; set; }
@@ -71,6 +72,8 @@ namespace LethalLevelLoader
         [Obsolete][Space(5)] public string contentSourceName = string.Empty; //Levels from AssetBundles will have this as their Assembly Name.
         [Obsolete][Space(5)] public List<string> levelTags = new List<string>();
 
+        public override SelectableLevel Content => SelectableLevel;
+
         //Runtime Stuff
         public int RoutePrice
         {
@@ -126,10 +129,10 @@ namespace LethalLevelLoader
 
             return (newExtendedLevel);
         }
-        internal void Initialize(string newContentSourceName, bool generateTerminalAssets)
+        internal override void Initialize()
         {
             bool mainSceneRegistered = false;
-
+            
             foreach (StringWithRarity sceneSelection in SceneSelections)
                 if (sceneSelection.Name == SelectableLevel.sceneName)
                     mainSceneRegistered = true;
@@ -159,12 +162,13 @@ namespace LethalLevelLoader
             {
                 name = NumberlessPlanetName.StripSpecialCharacters() + "ExtendedLevel";
                 SelectableLevel.name = NumberlessPlanetName.StripSpecialCharacters() + "Level";
-                if (generateTerminalAssets == true) //Needs to be after levelID setting above.
+                if (RouteNode == null) //Needs to be after levelID setting above.
                 {
                     //DebugHelper.Log("Generating Terminal Assets For: " + NumberlessPlanetName);
                     TerminalManager.CreateLevelTerminalData(this, routePrice);
                 }
             }
+            
 
             if (ContentType == ContentType.Vanilla)
                 GetVanillaInfoNode();

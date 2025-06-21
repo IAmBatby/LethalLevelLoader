@@ -475,48 +475,25 @@ namespace LethalLevelLoader
         */
         internal static void InitializeBundles()
         {
-            foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods)
+            foreach (ExtendedContent content in PatchedContent.ExtendedMods.SelectMany(m => m.ExtendedContents))
             {
-                foreach (ExtendedLevel extendedLevel in extendedMod.ExtendedLevels)
-                {
-                    extendedLevel.ContentType = ContentType.Custom;
-                    extendedLevel.Initialize(extendedLevel.name, generateTerminalAssets: true);
-                    PatchedContent.ExtendedLevels.Add(extendedLevel);
-                }
-                foreach (ExtendedDungeonFlow extendedDungeonFlow in extendedMod.ExtendedDungeonFlows)
-                {
-                    extendedDungeonFlow.ContentType = ContentType.Custom;
-                    extendedDungeonFlow.Initialize();
-                    //extendedDungeonFlow.manualPlanetNameReferenceList.Add(new StringWithRarity("Tenebrous", 1000));
-                    PatchedContent.ExtendedDungeonFlows.Add(extendedDungeonFlow); 
-                }
-                foreach (ExtendedItem extendedItem in extendedMod.ExtendedItems)
-                {
-                    extendedItem.ContentType = ContentType.Custom;
-                    extendedItem.Initialize();
-                    PatchedContent.ExtendedItems.Add(extendedItem);
-                }
-                foreach (ExtendedEnemyType extendedEnemyType in extendedMod.ExtendedEnemyTypes)
-                {
-                    extendedEnemyType.ContentType = ContentType.Custom;
-                    extendedEnemyType.Initalize();
-                    PatchedContent.ExtendedEnemyTypes.Add(extendedEnemyType);
-                }
-                foreach (ExtendedWeatherEffect extendedWeatherEffect in extendedMod.ExtendedWeatherEffects)
-                    PatchedContent.ExtendedWeatherEffects.Add(extendedWeatherEffect);
-                foreach (ExtendedBuyableVehicle extendedBuyableVehicle in extendedMod.ExtendedBuyableVehicles)
-                {
-                    extendedBuyableVehicle.ContentType = ContentType.Custom;
-                    PatchedContent.ExtendedBuyableVehicles.Add(extendedBuyableVehicle);
-                }    
-                foreach (ExtendedUnlockableItem extendedUnlockableItem in extendedMod.ExtendedUnlockableItems)
-                {
-                    extendedUnlockableItem.ContentType = ContentType.Custom;
-                    extendedUnlockableItem.Initialize();
-                    PatchedContent.ExtendedUnlockableItems.Add(extendedUnlockableItem);
-                }    
+                content.ContentType = ContentType.Custom;
+                content.Initialize();
+                if (content is ExtendedLevel level)
+                    PatchedContent.ExtendedLevels.Add(level);
+                else if (content is ExtendedDungeonFlow flow)
+                    PatchedContent.ExtendedDungeonFlows.Add(flow);
+                else if (content is ExtendedItem item)
+                    PatchedContent.ExtendedItems.Add(item);
+                else if (content is ExtendedEnemyType enemy)
+                    PatchedContent.ExtendedEnemyTypes.Add(enemy);
+                else if (content is ExtendedWeatherEffect weather)
+                    PatchedContent.ExtendedWeatherEffects.Add(weather);
+                else if (content is ExtendedBuyableVehicle vehicle)
+                    PatchedContent.ExtendedBuyableVehicles.Add(vehicle);
+                else if (content is ExtendedUnlockableItem unlock)
+                    PatchedContent.ExtendedUnlockableItems.Add(unlock);
             }
-            //DebugHelper.DebugAllLevels();
         }
 
         public static void RegisterExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
@@ -549,7 +526,7 @@ namespace LethalLevelLoader
                     }
                 PatchedContent.AllLevelSceneNames.Add(extendedLevel.SelectableLevel.sceneName);
 
-                extendedLevel.Initialize("Lethal Company", generateTerminalAssets: false);
+                extendedLevel.Initialize();
                 extendedLevel.name = extendedLevel.NumberlessPlanetName + "ExtendedLevel";
 
                 PatchedContent.ExtendedLevels.Add(extendedLevel);

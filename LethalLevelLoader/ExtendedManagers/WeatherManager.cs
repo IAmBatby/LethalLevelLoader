@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LethalLevelLoader.ExtendedManagers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,7 @@ using Random = System.Random;
 
 namespace LethalLevelLoader
 {
-    internal class WeatherManager
+    public class WeatherManager : ExtendedContentManager<ExtendedWeatherEffect, WeatherEffect, WeatherManager>
     {
         public static ExtendedWeatherEffect CurrentExtendedWeatherEffect;
 

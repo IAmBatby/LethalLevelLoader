@@ -3,8 +3,9 @@ using UnityEngine;
 namespace LethalLevelLoader
 {
     [CreateAssetMenu(fileName = "ExtendedUnlockableItem", menuName = "Lethal Level Loader/Extended Content/ExtendedUnlockableItem", order = 21)]
-    public class ExtendedUnlockableItem : ExtendedContent
+    public class ExtendedUnlockableItem : ExtendedContent<ExtendedUnlockableItem, UnlockableItem, UnlockableItemManager>
     {
+        public override UnlockableItem Content => UnlockableItem;
         [field: Header("General Settings")]
 
         [field: SerializeField] public UnlockableItem UnlockableItem { get; set; }
@@ -23,11 +24,22 @@ namespace LethalLevelLoader
 
         public int UnlockableItemID { get; set; } = -1;
 
+        public UnlockableType UnlockableType
+        {
+            get
+            {
+                if (UnlockableItemID == 0) return (UnlockableType.Suit);
+                else if (UnlockableItemID == 1) return (UnlockableType.Unknown);
+                else if (UnlockableItemID < 0) return (UnlockableType.Invalid);
+                return (UnlockableType.Unknown);
+            }
+        }
+
         public TerminalNode BuyNode { get; internal set; }
         public TerminalNode BuyConfirmNode { get; internal set; }
         public TerminalNode BuyInfoNode { get; internal set; }
 
-        public void Initialize()
+        internal override void Initialize()
         {
             TerminalManager.CreateUnlockableItemTerminalData(this);
 
@@ -45,5 +57,13 @@ namespace LethalLevelLoader
 
             return (extendedUnlockableItem);
         }
+    }
+
+    public enum UnlockableType
+    {
+        Invalid,
+        Suit,
+        Furniture,
+        Unknown,
     }
 }

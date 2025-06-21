@@ -4,8 +4,9 @@ using UnityEngine.Video;
 namespace LethalLevelLoader
 {
     [CreateAssetMenu(fileName = "ExtendedEnemyType", menuName = "Lethal Level Loader/Extended Content/ExtendedEnemyType", order = 24)]
-    public class ExtendedEnemyType : ExtendedContent
+    public class ExtendedEnemyType : ExtendedContent<ExtendedEnemyType, EnemyType, EnemyManager>
     {
+        public override EnemyType Content => EnemyType;
         [field: Header("General Settings")]
 
         [field: SerializeField] public EnemyType EnemyType { get; set; }
@@ -43,7 +44,7 @@ namespace LethalLevelLoader
             return (extendedEnemyType);
         }
 
-        public void Initalize()
+        internal override void Initialize()
         {
             DebugHelper.Log("Initializing Custom Enemy: " + EnemyType.enemyName, DebugType.Developer);
 

@@ -63,7 +63,7 @@
 
   <ItemGroup>
     <PackageReference Include="MaxWasUnavailable.LethalModDataLib" Version="1.2.2" />
-    <PackageReference Include="LethalCompany.GameLibs.Steam" Version="70.0.0-ngd.0" Publicize="true"/>
+    <PackageReference Include="LethalCompany.GameLibs.Steam" Version="70.0.0-ngd.0" Publicize="true" />
   </ItemGroup>
 
   <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">

@@ -6,8 +6,9 @@ using UnityEngine;
 namespace LethalLevelLoader
 {
     [CreateAssetMenu(fileName = "ExtendedBuyableVehicle", menuName = "Lethal Level Loader/Extended Content/ExtendedBuyableVehicle", order = 21)]
-    public class ExtendedBuyableVehicle : ExtendedContent
+    public class ExtendedBuyableVehicle : ExtendedContent<ExtendedBuyableVehicle, BuyableVehicle, VehiclesManager>
     {
+        public override BuyableVehicle Content => BuyableVehicle;
         [field: SerializeField] public BuyableVehicle BuyableVehicle { get; set; }
         [field: SerializeField] public string TerminalKeywordName { get; set; } = string.Empty;
 

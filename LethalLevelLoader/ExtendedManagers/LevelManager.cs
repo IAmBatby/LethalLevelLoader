@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LethalLevelLoader.ExtendedManagers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -10,7 +11,7 @@ using UnityEngine.SceneManagement;
 
 namespace LethalLevelLoader
 {
-    public class LevelManager
+    public class LevelManager : ExtendedContentManager<ExtendedLevel, SelectableLevel, LevelManager>
     {
         public static ExtendedLevel CurrentExtendedLevel
         {

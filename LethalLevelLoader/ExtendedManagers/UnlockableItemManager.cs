@@ -1,8 +1,10 @@
+using LethalLevelLoader.ExtendedManagers;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LethalLevelLoader
 {
-    public static class UnlockableItemManager
+    public class UnlockableItemManager : ExtendedContentManager<ExtendedUnlockableItem, UnlockableItem, UnlockableItemManager>
     {
         internal static void PatchVanillaUnlockableItemLists()
         {

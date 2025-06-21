@@ -12,8 +12,9 @@ using static LethalLevelLoader.DungeonEvents;
 namespace LethalLevelLoader
 {
     [CreateAssetMenu(fileName = "ExtendedDungeonFlow", menuName = "Lethal Level Loader/Extended Content/ExtendedDungeonFlow", order = 21)]
-    public class ExtendedDungeonFlow : ExtendedContent
+    public class ExtendedDungeonFlow : ExtendedContent<ExtendedDungeonFlow, DungeonFlow, DungeonManager>
     {
+        public override DungeonFlow Content => DungeonFlow;
         [field: Header("General Settings")]
         [field: SerializeField] public DungeonFlow DungeonFlow { get; set; }
         [field: SerializeField] public string DungeonName { get; set; } = string.Empty;
@@ -85,7 +86,7 @@ namespace LethalLevelLoader
             return (newExtendedDungeonFlow);
         }
 
-        internal void Initialize()
+        internal override void Initialize()
         {
             if (LevelMatchingProperties == null)
                 LevelMatchingProperties = LevelMatchingProperties.Create(this);

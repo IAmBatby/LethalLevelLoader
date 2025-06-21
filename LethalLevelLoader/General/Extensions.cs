@@ -1,6 +1,7 @@
 ﻿using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
+using LethalLevelLoader.ExtendedManagers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

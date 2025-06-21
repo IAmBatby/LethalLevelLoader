@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LethalLevelLoader.ExtendedManagers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
-    public class ExtendedContent : ScriptableObject
+    public abstract class ExtendedContent : ScriptableObject
     {
         public ExtendedMod ExtendedMod { get; internal set; }
         public ContentType ContentType { get; internal set; } = ContentType.Vanilla;
@@ -19,7 +20,14 @@ namespace LethalLevelLoader
 
         public string UniqueIdentificationName => AuthorName.ToLowerInvariant() + "." + ModName.ToLowerInvariant() + "." + name.ToLowerInvariant();
 
+        //internal abstract void RegisterContent();
+
         internal virtual void TryCreateMatchingProperties()
+        {
+
+        }
+
+        internal virtual void Initialize()
         {
 
         }
@@ -54,6 +62,12 @@ namespace LethalLevelLoader
             return (false);
         }
     }
+
+    public abstract class ExtendedContent<E, C, M> : ExtendedContent, IExtendedContent<E, C, M> where E : ExtendedContent<E, C, M>, IExtendedContent<E, C, M> where M : ExtendedContentManager, IExtendedManager<E, C, M>
+    {
+        public abstract C Content { get; }
+    }
+
 
     [Serializable]
     public class StringWithRarity

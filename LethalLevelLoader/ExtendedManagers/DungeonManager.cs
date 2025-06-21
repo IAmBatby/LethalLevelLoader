@@ -1,6 +1,7 @@
 ﻿using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
+using LethalLevelLoader.ExtendedManagers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using UnityEngine.Events;
 
 namespace LethalLevelLoader
 {
-    public class DungeonManager
+    public class DungeonManager : ExtendedContentManager<ExtendedDungeonFlow, DungeonFlow, DungeonManager>
     {
         public static ExtendedDungeonFlow CurrentExtendedDungeonFlow
         {
