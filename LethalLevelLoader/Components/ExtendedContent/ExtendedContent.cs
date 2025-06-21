@@ -1,5 +1,4 @@
-﻿using LethalLevelLoader.ExtendedManagers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -61,11 +60,18 @@ namespace LethalLevelLoader
             }
             return (false);
         }
+
+        public abstract void Register();
     }
 
     public abstract class ExtendedContent<E, C, M> : ExtendedContent, IExtendedContent<E, C, M> where E : ExtendedContent<E, C, M>, IExtendedContent<E, C, M> where M : ExtendedContentManager, IExtendedManager<E, C, M>
     {
         public abstract C Content { get; }
+
+        public override void Register()
+        {
+            ExtendedContentManager<E, C, M>.RegisterContent(this as E);
+        }
     }
 
 

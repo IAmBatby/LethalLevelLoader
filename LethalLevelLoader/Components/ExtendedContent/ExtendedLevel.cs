@@ -1,5 +1,4 @@
 ﻿using GameNetcodeStuff;
-using LethalLevelLoader.ExtendedManagers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +13,9 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedLevel", menuName = "Lethal Level Loader/Extended Content/ExtendedLevel", order = 20)]
     public class ExtendedLevel : ExtendedContent<ExtendedLevel, SelectableLevel, LevelManager>
     {
+        public override SelectableLevel Content => SelectableLevel;
+
+
         [field: Header("General Settings")]
         [field: SerializeField] public SelectableLevel SelectableLevel { get; set; }
         [Space(5)] [SerializeField] private int routePrice = 0;
@@ -71,8 +73,6 @@ namespace LethalLevelLoader
         [Obsolete] public SelectableLevel selectableLevel;
         [Obsolete][Space(5)] public string contentSourceName = string.Empty; //Levels from AssetBundles will have this as their Assembly Name.
         [Obsolete][Space(5)] public List<string> levelTags = new List<string>();
-
-        public override SelectableLevel Content => SelectableLevel;
 
         //Runtime Stuff
         public int RoutePrice

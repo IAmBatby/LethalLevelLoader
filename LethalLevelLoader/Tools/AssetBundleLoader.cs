@@ -478,21 +478,8 @@ namespace LethalLevelLoader
             foreach (ExtendedContent content in PatchedContent.ExtendedMods.SelectMany(m => m.ExtendedContents))
             {
                 content.ContentType = ContentType.Custom;
+                content.Register();
                 content.Initialize();
-                if (content is ExtendedLevel level)
-                    PatchedContent.ExtendedLevels.Add(level);
-                else if (content is ExtendedDungeonFlow flow)
-                    PatchedContent.ExtendedDungeonFlows.Add(flow);
-                else if (content is ExtendedItem item)
-                    PatchedContent.ExtendedItems.Add(item);
-                else if (content is ExtendedEnemyType enemy)
-                    PatchedContent.ExtendedEnemyTypes.Add(enemy);
-                else if (content is ExtendedWeatherEffect weather)
-                    PatchedContent.ExtendedWeatherEffects.Add(weather);
-                else if (content is ExtendedBuyableVehicle vehicle)
-                    PatchedContent.ExtendedBuyableVehicles.Add(vehicle);
-                else if (content is ExtendedUnlockableItem unlock)
-                    PatchedContent.ExtendedUnlockableItems.Add(unlock);
             }
         }
 
@@ -529,7 +516,7 @@ namespace LethalLevelLoader
                 extendedLevel.Initialize();
                 extendedLevel.name = extendedLevel.NumberlessPlanetName + "ExtendedLevel";
 
-                PatchedContent.ExtendedLevels.Add(extendedLevel);
+                extendedLevel.Register();
                 PatchedContent.VanillaMod.RegisterExtendedContent(extendedLevel);
             }
         }
@@ -551,7 +538,8 @@ namespace LethalLevelLoader
             {
                 ExtendedItem extendedVanillaItem = ExtendedItem.Create(scrapItem, PatchedContent.VanillaMod, ContentType.Vanilla);
                 extendedVanillaItem.IsBuyableItem = false;
-                PatchedContent.ExtendedItems.Add(extendedVanillaItem);
+                extendedVanillaItem.Register();
+                PatchedContent.VanillaMod.RegisterExtendedContent(extendedVanillaItem);
             }
 
 
@@ -571,7 +559,8 @@ namespace LethalLevelLoader
                             if (infoCompatibleNoun.noun.word == compatibleNoun.noun.word)
                                 extendedVanillaItem.BuyInfoNode = infoCompatibleNoun.result;
                     }
-                PatchedContent.ExtendedItems.Add(extendedVanillaItem);
+                extendedVanillaItem.Register();
+                PatchedContent.VanillaMod.RegisterExtendedContent(extendedVanillaItem);
                 counter++;
             }
         }
@@ -581,7 +570,8 @@ namespace LethalLevelLoader
             foreach (EnemyType enemyType in OriginalContent.Enemies)
             {
                 ExtendedEnemyType newExtendedEnemyType = ExtendedEnemyType.Create(enemyType, PatchedContent.VanillaMod, ContentType.Vanilla);
-                PatchedContent.ExtendedEnemyTypes.Add(newExtendedEnemyType);
+                newExtendedEnemyType.Register();
+                PatchedContent.VanillaMod.RegisterExtendedContent(newExtendedEnemyType);
                 ScanNodeProperties enemyScanNode = newExtendedEnemyType.EnemyType.enemyPrefab.GetComponentInChildren<ScanNodeProperties>();
                 if (enemyScanNode != null)
                 {
@@ -607,8 +597,8 @@ namespace LethalLevelLoader
                 else
                     newExtendedWeatherEffect = ExtendedWeatherEffect.Create(levelWeatherType, null, null, levelWeatherType.ToString(), ContentType.Vanilla);
                 
-                PatchedContent.ExtendedWeatherEffects.Add(newExtendedWeatherEffect);
-                PatchedContent.VanillaMod.ExtendedWeatherEffects.Add(newExtendedWeatherEffect);
+                PatchedContent.VanillaMod.RegisterExtendedContent(newExtendedWeatherEffect);
+                newExtendedWeatherEffect.Register();
             }
         }
 
@@ -637,7 +627,7 @@ namespace LethalLevelLoader
 
             extendedDungeonFlow.Initialize();
             PatchedContent.VanillaMod.RegisterExtendedContent(extendedDungeonFlow);
-            PatchedContent.ExtendedDungeonFlows.Add(extendedDungeonFlow);
+            extendedDungeonFlow.Register();
 
             if (extendedDungeonFlow.DungeonID == -1)
                 DungeonManager.RefreshDungeonFlowIDs();
@@ -654,7 +644,7 @@ namespace LethalLevelLoader
         {
             ExtendedBuyableVehicle newExtendedVanillaBuyableVehicle = ExtendedBuyableVehicle.Create(buyableVehicle);
             PatchedContent.VanillaMod.RegisterExtendedContent(newExtendedVanillaBuyableVehicle);
-            PatchedContent.ExtendedBuyableVehicles.Add(newExtendedVanillaBuyableVehicle);
+            newExtendedVanillaBuyableVehicle.Register();
         }
 
         internal static void CreateVanillaExtendedUnlockableItems(StartOfRound startOfRound)
@@ -667,7 +657,7 @@ namespace LethalLevelLoader
         {
             ExtendedUnlockableItem newExtendedVanillaUnlockableItem = ExtendedUnlockableItem.Create(unlockableItem, PatchedContent.VanillaMod, ContentType.Vanilla);
             PatchedContent.VanillaMod.RegisterExtendedContent(newExtendedVanillaUnlockableItem);
-            PatchedContent.ExtendedUnlockableItems.Add(newExtendedVanillaUnlockableItem);
+            newExtendedVanillaUnlockableItem.Register();
         }
 
         internal static void NetworkRegisterDungeonContent(ExtendedDungeonFlow extendedDungeonFlow, NetworkManager networkManager)
