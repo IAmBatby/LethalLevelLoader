@@ -194,6 +194,10 @@ namespace LethalLevelLoader
             {
                 extendedMod = GetOrCreateExtendedMod(source, extendedBuyableVehicle.name);
             }
+            else if (extendedContent is ExtendedUnlockableItem extendedUnlockableItem)
+            {
+                extendedMod = GetOrCreateExtendedMod(source, extendedUnlockableItem.name);
+            }
 
             if (extendedMod != null)
             {

@@ -26,6 +26,8 @@ namespace LethalLevelLoader
                 result = ValidateExtendedContent(extendedStoryLog);
             else if (extendedContent is ExtendedBuyableVehicle extendedBuyableVehicle)
                 result = ValidateExtendedContent(extendedBuyableVehicle);
+            else if (extendedContent is ExtendedUnlockableItem extendedUnlockableItem)
+                result = ValidateExtendedContent(extendedUnlockableItem);
 
             if (result.Item1 == false)
                 DebugHelper.Log(result.Item2, DebugType.Developer);
@@ -136,6 +138,23 @@ namespace LethalLevelLoader
                 return (false, "Vehicle Prefab Is Missing NetworkObject Component");
             else if (extendedBuyableVehicle.BuyableVehicle.secondaryPrefab.GetComponent<NetworkObject>() == null)
                 return (false, "Vehicle Secondary Prefab Is Missing NetworkObject Component");
+
+            return (true, string.Empty);
+        }
+
+        public static (bool result, string log) ValidateExtendedContent(ExtendedUnlockableItem extendedUnlockableItem)
+        {
+            if (extendedUnlockableItem.UnlockableItem.unlockableType == 1 && !extendedUnlockableItem.UnlockableItem.alreadyUnlocked)
+            {
+                if (extendedUnlockableItem.UnlockableItem.prefabObject == null)
+                    return (false, "Unlockable Item Prefab Was Null Or Empty");
+                else if (!extendedUnlockableItem.UnlockableItem.prefabObject.TryGetComponent(out NetworkObject _))
+                    return (false, "Unlockable Item Prefab Is Missing NetworkObject Component");
+                else if (!extendedUnlockableItem.UnlockableItem.prefabObject.TryGetComponent(out AutoParentToShip _))
+                    return (false, "Unlockable Item Prefab Is Missing AutoParentToShip Component");
+            }
+            else if (extendedUnlockableItem.UnlockableItem.unlockableType == 0 && extendedUnlockableItem.UnlockableItem.suitMaterial == null)
+                return (false, "Unlockable Suit Is Missing Suit Material");
 
             return (true, string.Empty);
         }

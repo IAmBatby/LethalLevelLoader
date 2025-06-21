@@ -886,6 +886,103 @@ namespace LethalLevelLoader
             buyKeyword.AddCompatibleNoun(newVehicleTerminalKeyword, newVehicleBuyNode);
         }
 
+        internal static void CreateUnlockableItemTerminalData(ExtendedUnlockableItem extendedUnlockableItem)
+        {
+            int unlockableItemIndex = Patches.StartOfRound.unlockablesList.unlockables.Count();
+
+
+
+            //Terminal Buy Keyword
+            TerminalKeyword terminalKeyword = CreateNewTerminalKeyword();
+            terminalKeyword.name = extendedUnlockableItem.UnlockableItem.unlockableName.StripSpecialCharacters().Sanitized() + "Keyword";
+            terminalKeyword.word = extendedUnlockableItem.UnlockableItem.unlockableName.StripSpecialCharacters().Sanitized();
+            terminalKeyword.defaultVerb = buyKeyword;
+
+            //Terminal Buy Keyword
+            TerminalNode terminalNodeBuy;
+            if (extendedUnlockableItem.BuyNode != null)
+                terminalNodeBuy = extendedUnlockableItem.BuyNode;
+            else
+            {
+                terminalNodeBuy = CreateNewTerminalNode();
+                terminalNodeBuy.name = extendedUnlockableItem.UnlockableItem.unlockableName.StripSpecialCharacters().Sanitized() + "Buy";
+                terminalNodeBuy.itemCost = extendedUnlockableItem.ItemCost;
+                terminalNodeBuy.isConfirmationNode = false;
+                terminalNodeBuy.overrideOptions = true;
+                terminalNodeBuy.clearPreviousText = true;
+                terminalNodeBuy.maxCharactersToType = 15;
+                terminalNodeBuy.creatureName = extendedUnlockableItem.UnlockableItem.unlockableName;
+                if (extendedUnlockableItem.OverrideBuyNodeDescription != string.Empty)
+                    terminalNodeBuy.displayText = extendedUnlockableItem.OverrideBuyNodeDescription;
+                else
+                {
+                    terminalNodeBuy.displayText = $"You have requested to order the {terminalNodeBuy.creatureName}.";
+                    terminalNodeBuy.displayText += "\n Total cost of item: [totalCost].";
+                    terminalNodeBuy.displayText += "\n" + "\n" + "Please CONFIRM or DENY." + "\n" + "\n";
+                }
+            }
+            terminalNodeBuy.shipUnlockableID = unlockableItemIndex;
+
+            //Terminal Buy Confirm Node
+            TerminalNode terminalNodeBuyConfirm;
+            if (extendedUnlockableItem.BuyConfirmNode != null)
+                terminalNodeBuyConfirm = extendedUnlockableItem.BuyConfirmNode;
+            else
+            {
+                terminalNodeBuyConfirm = CreateNewTerminalNode();
+                terminalNodeBuyConfirm.name = extendedUnlockableItem.UnlockableItem.unlockableName.StripSpecialCharacters().Sanitized() + "BuyConfirm";
+                terminalNodeBuyConfirm.itemCost = extendedUnlockableItem.ItemCost;
+                terminalNodeBuyConfirm.isConfirmationNode = false;
+                terminalNodeBuyConfirm.clearPreviousText = true;
+                terminalNodeBuyConfirm.buyUnlockable = true;
+                terminalNodeBuyConfirm.maxCharactersToType = 35;
+                terminalNodeBuyConfirm.playSyncedClip = 0;
+                terminalNodeBuyConfirm.creatureName = extendedUnlockableItem.UnlockableItem.unlockableName;
+                if (extendedUnlockableItem.OverrideBuyConfirmNodeDescription != string.Empty)
+                    terminalNodeBuyConfirm.displayText = extendedUnlockableItem.OverrideBuyConfirmNodeDescription;
+                else
+                {
+                    terminalNodeBuyConfirm.displayText = $"Ordered the {terminalNodeBuyConfirm.creatureName}! ";
+                    terminalNodeBuyConfirm.displayText += "Your new balance is [playerCredits]";
+                }
+            }
+            terminalNodeBuyConfirm.shipUnlockableID = unlockableItemIndex;
+
+            //Terminal Info Node
+            TerminalNode terminalNodeInfo = null;
+            if (!string.IsNullOrEmpty(extendedUnlockableItem.OverrideInfoNodeDescription))
+            {
+                if (extendedUnlockableItem.BuyInfoNode != null)
+                    terminalNodeInfo = extendedUnlockableItem.BuyInfoNode;
+                else
+                {
+                    terminalNodeInfo = CreateNewTerminalNode();
+                    terminalNodeInfo.name = extendedUnlockableItem.UnlockableItem.unlockableName.StripSpecialCharacters().Sanitized() + "Info";
+                    terminalNodeInfo.clearPreviousText = true;
+                    terminalNodeInfo.maxCharactersToType = 25;
+                    terminalNodeInfo.displayText = "\n" + extendedUnlockableItem.OverrideInfoNodeDescription;
+                    terminalNodeInfo.creatureName = extendedUnlockableItem.UnlockableItem.unlockableName;
+                }
+            }
+
+
+            //Population Into Base game
+
+            terminalNodeBuy.AddCompatibleNoun(routeConfirmKeyword, terminalNodeBuyConfirm);
+            terminalNodeBuy.AddCompatibleNoun(routeDenyKeyword, cancelPurchaseNode);
+
+            buyKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeBuy);
+
+            if (terminalNodeInfo != null)
+                routeInfoKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeInfo);
+
+            extendedUnlockableItem.BuyNode = terminalNodeBuy;
+            extendedUnlockableItem.BuyConfirmNode = terminalNodeBuyConfirm;
+            extendedUnlockableItem.BuyInfoNode = terminalNodeInfo;
+
+            extendedUnlockableItem.UnlockableItem.shopSelectionNode = extendedUnlockableItem.BuyNode;
+        }
+
         internal static void RegisterStoryLog(TerminalKeyword terminalKeyword, TerminalNode terminalNode)
         {
 

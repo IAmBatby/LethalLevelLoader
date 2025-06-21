@@ -233,14 +233,15 @@ namespace LethalLevelLoader.AssetBundles
                             break;
                         }
 
-                    List<AssetBundle> allLoadedBundles = new List<AssetBundle>(AssetBundle.GetAllLoadedAssetBundles());
                     foreach (KeyValuePair<string, List<Action<AssetBundle>>> lethalBundleRequest in onLethalBundleLoadedRequestDict)
-                        foreach (AssetBundle bundle in allLoadedBundles)
+                        foreach (AssetBundleInfo info in newGroup.GetAssetBundleInfos())
                         {
-                            if (bundle != null && bundle.name == lethalBundleRequest.Key)
+                            if (info.AssetBundleName == lethalBundleRequest.Key)
                             {
-                                foreach (Action<AssetBundle> bundleEvent in lethalBundleRequest.Value)
-                                    bundleEvent.Invoke(bundle);
+                                AssetBundle newBundle = AssetBundle.GetAllLoadedAssetBundles().First(bundle => bundle.name == info.AssetBundleName);
+                                if (newBundle != null)
+                                    foreach (Action<AssetBundle> bundleEvent in lethalBundleRequest.Value)
+                                        bundleEvent.Invoke(newBundle);
                                 break;
                             }
                         }

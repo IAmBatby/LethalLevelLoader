@@ -3,10 +3,16 @@
 
 **<details><summary>Version 1.4.12</summary>**
 
+**<details><summary>Features</summary>**
+
+* Updated mod for Lethal Company version 70
+* Added ExtendedUnlockableItem (suits, ship furniture, ship upgrades)
+
 **<details><summary>Fixes</summary>**
 
 * Fixed SpawnableMapObjects defined in ExtendedDungeonFlow not spawning for clients
 * Fixed some ExtendedContent not being re-registered on the terminal after a lobby reload
+* Fixed OnLethalBundleLoaded listeners being called multiple times (once for every bundle found)
 
 </details>
 

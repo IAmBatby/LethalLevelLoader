@@ -20,6 +20,7 @@ namespace LethalLevelLoader
         internal static Dictionary<Item, ExtendedItem> ExtendedItemDictionary = new Dictionary<Item, ExtendedItem>();
         internal static Dictionary<EnemyType, ExtendedEnemyType> ExtendedEnemyTypeDictionary = new Dictionary<EnemyType, ExtendedEnemyType>();
         internal static Dictionary<BuyableVehicle, ExtendedBuyableVehicle> ExtendedBuyableVehicleDictionary = new Dictionary<BuyableVehicle, ExtendedBuyableVehicle>();
+        internal static Dictionary<UnlockableItem, ExtendedUnlockableItem> ExtendedUnlockableItemDictionary = new Dictionary<UnlockableItem, ExtendedUnlockableItem>();
 
 
         public static List<ExtendedLevel> ExtendedLevels { get; internal set; } = new List<ExtendedLevel>();
@@ -208,6 +209,34 @@ namespace LethalLevelLoader
         }
 
 
+
+        public static List<ExtendedUnlockableItem> ExtendedUnlockableItems { get; internal set; } = new List<ExtendedUnlockableItem>();
+
+        public static List<ExtendedUnlockableItem> CustomExtendedUnlockableItems
+        {
+            get
+            {
+                List<ExtendedUnlockableItem> returnList = new List<ExtendedUnlockableItem>();
+                foreach (ExtendedUnlockableItem extendedUnlockableItem in ExtendedUnlockableItems)
+                    if (extendedUnlockableItem.ContentType == ContentType.Custom)
+                        returnList.Add(extendedUnlockableItem);
+                return (returnList);
+            }
+        }
+
+        public static List<ExtendedUnlockableItem> VanillaExtendedUnlockableItems
+        {
+            get
+            {
+                List<ExtendedUnlockableItem> returnList = new List<ExtendedUnlockableItem>();
+                foreach (ExtendedUnlockableItem extendedUnlockableItem in ExtendedUnlockableItems)
+                    if (extendedUnlockableItem.ContentType == ContentType.Vanilla)
+                        returnList.Add(extendedUnlockableItem);
+                return (returnList);
+            }
+        }
+
+
         public static List<AudioMixer> AudioMixers { get; internal set; } = new List<AudioMixer>();
 
         public static List<AudioMixerGroup> AudioMixerGroups { get; internal set; } = new List<AudioMixerGroup>();
@@ -286,6 +315,11 @@ namespace LethalLevelLoader
                 TryAdd(ExtendedBuyableVehicleDictionary, extendedBuyableVehicle.BuyableVehicle, extendedBuyableVehicle);
                 TryAddUUID(extendedBuyableVehicle);
             }
+            foreach (ExtendedUnlockableItem extendedUnlockableItem in ExtendedUnlockableItems)
+            {
+                TryAdd(ExtendedUnlockableItemDictionary, extendedUnlockableItem.UnlockableItem, extendedUnlockableItem);
+                TryAddUUID(extendedUnlockableItem);
+            }
         }
 
         internal static void TryAddUUID(ExtendedContent extendedContent)
@@ -333,6 +367,11 @@ namespace LethalLevelLoader
             return (ExtendedBuyableVehicleDictionary.TryGetValue(buyableVehicle, out extendedBuyableVehicle));
         }
 
+        public static bool TryGetExtendedContent(UnlockableItem unlockableItem, out ExtendedUnlockableItem extendedUnlockableItem)
+        {
+            return (ExtendedUnlockableItemDictionary.TryGetValue(unlockableItem, out extendedUnlockableItem));
+        }
+
         public static bool TryGetExtendedContent<T>(string uniqueIdentifierName, out T extendedContent) where T : ExtendedContent
         {
             extendedContent = null;
@@ -364,6 +403,10 @@ namespace LethalLevelLoader
         public static List<Item> Items { get; internal set; } = new List<Item>();
 
         public static List<ItemGroup> ItemGroups { get; internal set; } = new List<ItemGroup>();
+
+        //Unlockable Items
+
+        public static List<UnlockableItem> UnlockableItems { get; internal set; } = new List<UnlockableItem>();
 
         //Enemies
 
