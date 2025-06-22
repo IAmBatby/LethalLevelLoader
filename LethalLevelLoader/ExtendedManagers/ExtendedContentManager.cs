@@ -34,6 +34,7 @@ namespace LethalLevelLoader
                 DebugHelper.LogWarning("Already Registered " + typeof(E) + " " + e.name + " Content!", DebugType.User);
         }
 
+
         public static M Instance => PatchedContent.GetExtendedManager<E,C,M>();
     }
 }

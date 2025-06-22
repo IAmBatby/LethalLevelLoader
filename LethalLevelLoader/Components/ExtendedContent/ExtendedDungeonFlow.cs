@@ -122,7 +122,7 @@ namespace LethalLevelLoader
             LevelMatchingProperties.ApplyValues(newAuthorNames: manualContentSourceNameReferenceList, newPlanetNames: manualPlanetNameReferenceList, newLevelTags: dynamicLevelTagsList, newRoutePrices: dynamicRoutePricesList, newCurrentWeathers: dynamicCurrentWeatherList);
         }
 
-        internal void ConvertObsoleteValues()
+        protected override void OnBeforeRegistration()
         {
             if (DungeonFlow == null && dungeonFlow != null)
             {

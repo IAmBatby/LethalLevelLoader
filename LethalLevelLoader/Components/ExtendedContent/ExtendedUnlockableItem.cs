@@ -29,7 +29,7 @@ namespace LethalLevelLoader
             get
             {
                 if (UnlockableItemID == 0) return (UnlockableType.Suit);
-                else if (UnlockableItemID == 1) return (UnlockableType.Unknown);
+                else if (UnlockableItemID == 1) return (UnlockableType.Furniture);
                 else if (UnlockableItemID < 0) return (UnlockableType.Invalid);
                 return (UnlockableType.Unknown);
             }

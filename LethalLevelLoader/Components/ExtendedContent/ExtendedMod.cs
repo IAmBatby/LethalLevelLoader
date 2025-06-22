@@ -111,6 +111,13 @@ namespace LethalLevelLoader
 
         internal void RegisterExtendedContent(ExtendedContent newExtendedContent)
         {
+            if (newExtendedContent == null)
+                throw new ArgumentNullException(nameof(newExtendedContent), "Null ExtendedContent Could Not Be Registered To ExtendedMod: " + ModName + " Due To Failed Validation Check!");
+            else if (!ExtendedContents.Contains(newExtendedContent))
+                throw new ArgumentException(nameof(newExtendedContent), newExtendedContent.name + " (" + newExtendedContent.GetType().Name + ") " + " Could Not Be Registered To ExtendedMod: " + ModName + " Due To Already Being Registered To This Mod!");
+  
+
+
             if (newExtendedContent != null)
             {
                 if (!ExtendedContents.Contains(newExtendedContent))
@@ -145,7 +152,7 @@ namespace LethalLevelLoader
 
         internal void RegisterExtendedContent(ExtendedLevel extendedLevel)
         {
-            extendedLevel.ConvertObsoleteValues();
+            //extendedLevel.ConvertObsoleteValues();
             TryThrowInvalidContentException(extendedLevel, Validators.ValidateExtendedContent(extendedLevel));
 
             ExtendedLevels.Add(extendedLevel);
@@ -155,7 +162,7 @@ namespace LethalLevelLoader
 
         internal void RegisterExtendedContent(ExtendedDungeonFlow extendedDungeonFlow)
         {
-            extendedDungeonFlow.ConvertObsoleteValues();
+            //extendedDungeonFlow.ConvertObsoleteValues();
             TryThrowInvalidContentException(extendedDungeonFlow, Validators.ValidateExtendedContent(extendedDungeonFlow));
 
             ExtendedDungeonFlows.Add(extendedDungeonFlow);

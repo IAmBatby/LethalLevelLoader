@@ -177,7 +177,7 @@ namespace LethalLevelLoader
             //Obsolete
         }
 
-        internal void ConvertObsoleteValues()
+        protected override void OnBeforeRegistration()
         {
             if (levelTags.Count > 0 && ContentTags.Count == 0)
             {

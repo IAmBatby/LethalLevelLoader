@@ -62,6 +62,8 @@ namespace LethalLevelLoader
         }
 
         public abstract void Register();
+
+        public abstract (bool, string) Validate();
     }
 
     public abstract class ExtendedContent<E, C, M> : ExtendedContent, IExtendedContent<E, C, M> where E : ExtendedContent<E, C, M>, IExtendedContent<E, C, M> where M : ExtendedContentManager, IExtendedManager<E, C, M>
@@ -70,8 +72,11 @@ namespace LethalLevelLoader
 
         public override void Register()
         {
+            OnBeforeRegistration();
             ExtendedContentManager<E, C, M>.RegisterContent(this as E);
         }
+
+        protected virtual void OnBeforeRegistration() { }
     }
 
 
