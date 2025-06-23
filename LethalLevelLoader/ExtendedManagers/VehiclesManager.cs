@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Unity.Netcode;
 
 namespace LethalLevelLoader
 {
@@ -35,6 +36,20 @@ namespace LethalLevelLoader
                 if (extendedBuyableVehicle.BuyableVehicle.vehiclePrefab.TryGetComponent(out VehicleController vehicleController))
                     vehicleController.vehicleID = extendedBuyableVehicle.VehicleID;
 
+        }
+
+        protected override (bool result, string log) ValidateExtendedContent(ExtendedBuyableVehicle extendedBuyableVehicle)
+        {
+            if (extendedBuyableVehicle.BuyableVehicle.vehiclePrefab == null)
+                return (false, "Vehicle Prefab Was Null Or Empty");
+            else if (extendedBuyableVehicle.BuyableVehicle.secondaryPrefab == null)
+                return (false, "Vehicle Secondary Prefab Was Null Or Empty");
+            else if (extendedBuyableVehicle.BuyableVehicle.vehiclePrefab.GetComponent<NetworkObject>() == null)
+                return (false, "Vehicle Prefab Is Missing NetworkObject Component");
+            else if (extendedBuyableVehicle.BuyableVehicle.secondaryPrefab.GetComponent<NetworkObject>() == null)
+                return (false, "Vehicle Secondary Prefab Is Missing NetworkObject Component");
+
+            return (true, string.Empty);
         }
     }
 }

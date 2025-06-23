@@ -262,9 +262,10 @@ namespace LethalLevelLoader
             orderedCalculatedDifficultyList.Sort();
 
             foreach (int calculatedDifficultyValue in orderedCalculatedDifficultyList)
-                foreach (KeyValuePair<string, int> calculatedRiskLevel in dynamicRiskLevelDictionary)
-                    if (calculatedRiskLevel.Value == calculatedDifficultyValue)
-                        assignmentRiskLevelDictionary.Add(calculatedDifficultyValue, calculatedRiskLevel.Key);
+                if (!orderedCalculatedDifficultyList.Contains(calculatedDifficultyValue))
+                    foreach (KeyValuePair<string, int> calculatedRiskLevel in dynamicRiskLevelDictionary)
+                        if (calculatedRiskLevel.Value == calculatedDifficultyValue)
+                            assignmentRiskLevelDictionary.Add(calculatedDifficultyValue, calculatedRiskLevel.Key);
 
             foreach (KeyValuePair<int, string> calculatedRiskLevel in assignmentRiskLevelDictionary)
                 DebugHelper.Log("Ordered Calculated Risk Level: (" + calculatedRiskLevel.Value + ") - " + calculatedRiskLevel.Key, DebugType.Developer);
@@ -330,13 +331,9 @@ namespace LethalLevelLoader
         public static int CalculateExtendedLevelDifficultyRating(ExtendedLevel extendedLevel, bool debugResults = false)
         {
             int returnRating = 0;
-            string debugString = "Calculated Difficulty Rating For ExtendedLevel: " + extendedLevel.NumberlessPlanetName + "(" + extendedLevel.SelectableLevel.riskLevel + ")" + " ----- ";
-
             int baselineRouteValue = extendedLevel.RoutePrice;
             baselineRouteValue += extendedLevel.SelectableLevel.maxTotalScrapValue;
             returnRating += baselineRouteValue;
-            debugString += "Baseline Route Value: " + baselineRouteValue + ", ";
-
             int scrapValue = 0;
             foreach (SpawnableItemWithRarity spawnableScrap in extendedLevel.SelectableLevel.spawnableScrap)
             {
@@ -350,13 +347,9 @@ namespace LethalLevelLoader
                 }
             }
             returnRating += scrapValue;
-            debugString += "Scrap Value: " + scrapValue + ", ";
-
             int enemySpawnValue = (extendedLevel.SelectableLevel.maxEnemyPowerCount + extendedLevel.SelectableLevel.maxOutsideEnemyPowerCount + extendedLevel.SelectableLevel.maxDaytimeEnemyPowerCount) * 15;
             enemySpawnValue = enemySpawnValue * 2;
             returnRating += enemySpawnValue;
-            debugString += "Enemy Spawn Value: " + enemySpawnValue + ", ";
-
             float enemyValue = 0;
             foreach (SpawnableEnemyWithRarity spawnableEnemy in extendedLevel.SelectableLevel.Enemies.Concat(extendedLevel.SelectableLevel.OutsideEnemies).Concat(extendedLevel.SelectableLevel.DaytimeEnemies))
             {
@@ -365,20 +358,22 @@ namespace LethalLevelLoader
                         enemyValue += (spawnableEnemy.enemyType.PowerLevel * 100) / (spawnableEnemy.rarity / 10);
             }
             returnRating += Mathf.RoundToInt(enemyValue);
-            debugString += "Enemy Value: " + enemyValue + ", ";
-
-            debugString += "Calculated Difficulty Value: " + returnRating + ", ";
-
-            //returnRating = Mathf.RoundToInt(returnRating * Mathf.Lerp(1, extendedLevel.selectableLevel.factorySizeMultiplier, 0.25f));
             returnRating += Mathf.RoundToInt(returnRating * (extendedLevel.SelectableLevel.factorySizeMultiplier * 0.5f));
-
-            debugString += "Factory Size Multiplier: " + extendedLevel.SelectableLevel.factorySizeMultiplier + ", ";
-
-            debugString += "Multiplied Calculated Difficulty Value: " + returnRating;
-
-            if (debugResults == true)
-                DebugHelper.Log(debugString, DebugType.Developer);
             return (returnRating);
+        }
+
+        protected override (bool result, string log) ValidateExtendedContent(ExtendedLevel content)
+        {
+            if (string.IsNullOrEmpty(content.SelectableLevel.sceneName))
+                return ((false, "SelectableLevel SceneName Was Null Or Empty"));
+            else if (content.SelectableLevel.planetPrefab == null)
+                return ((false, "SelectableLevel PlanetPrefab Was Null"));
+            else if (content.SelectableLevel.planetPrefab.GetComponent<Animator>() == null)
+                return ((false, "SelectableLevel PlanetPrefab Animator Was Null"));
+            else if (content.SelectableLevel.planetPrefab.GetComponent<Animator>().runtimeAnimatorController == null)
+                return ((false, "SelectableLevel PlanetPrefab Animator AnimatorController Was Null"));
+            else
+                return (true, string.Empty);
         }
     }
 

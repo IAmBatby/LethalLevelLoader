@@ -119,36 +119,18 @@ if (AssetBundleLoader.noBundlesFound == true)
                 LethalBundleManager.FinialiseFoundContent();
             if (Plugin.IsSetupComplete == false)
             {
-                LethalLevelLoaderNetworkManager.networkManager = __instance.GetComponent<NetworkManager>();
-                NetworkBundleManager.networkManager = __instance.GetComponent<NetworkManager>();
-                foreach (NetworkPrefab networkPrefab in __instance.GetComponent<NetworkManager>().NetworkConfig.Prefabs.Prefabs)
-                    if (networkPrefab.Prefab.name.Contains("EntranceTeleport"))
-                        if (networkPrefab.Prefab.GetComponent<AudioSource>() != null)
-                            OriginalContent.AudioMixers.Add(networkPrefab.Prefab.GetComponent<AudioSource>().outputAudioMixerGroup.audioMixer);
+                NetworkManager netMan = __instance.GetComponent<NetworkManager>();
+                LethalLevelLoaderNetworkManager.networkManager = netMan;
+                NetworkBundleManager.networkManager = netMan;
+                foreach (NetworkPrefab networkPrefab in netMan.NetworkConfig.Prefabs.Prefabs)
+                    if (networkPrefab.Prefab.name.Contains("EntranceTeleport") && networkPrefab.Prefab.TryGetComponent(out AudioSource source))
+                            OriginalContent.AudioMixers.Add(source.outputAudioMixerGroup.audioMixer);
 
-                GameObject networkManagerPrefab = PrefabHelper.CreateNetworkPrefab("LethalLevelLoaderNetworkManagerTest");
-                networkManagerPrefab.AddComponent<LethalLevelLoaderNetworkManager>();
-                //networkManagerPrefab.GetComponent<NetworkObject>().DontDestroyWithOwner = true;
-                networkManagerPrefab.GetComponent<NetworkObject>().SceneMigrationSynchronization = true;
-                networkManagerPrefab.GetComponent<NetworkObject>().DestroyWithScene = false;
-                //GameObject.DontDestroyOnLoad(networkManagerPrefab);
-                LethalLevelLoaderNetworkManager.networkingManagerPrefab = networkManagerPrefab;
+                LethalLevelLoaderNetworkManager.networkingManagerPrefab = Utilities.CreateNetworkPrefab<LethalLevelLoaderNetworkManager>("LethalLevelLoaderNetworkManager", false, true, false);
+                NetworkBundleManager.networkingManagerPrefab = Utilities.CreateNetworkPrefab<NetworkBundleManager>("NetworkBundleManager", false, true, false);
 
-                LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(networkManagerPrefab);
-
-                DebugHelper.Log("Creating NetworkBundleManager", DebugType.IAmBatby);
-                GameObject networkBundleManagerPrefab = PrefabHelper.CreateNetworkPrefab("NetworkBundleManager");
-                networkBundleManagerPrefab.AddComponent<NetworkBundleManager>();
-                //networkBundleManagerPrefab.GetComponent<NetworkObject>().DontDestroyWithOwner = true;
-                networkBundleManagerPrefab.GetComponent<NetworkObject>().SceneMigrationSynchronization = true;
-                networkBundleManagerPrefab.GetComponent<NetworkObject>().DestroyWithScene = false;
-                //GameObject.DontDestroyOnLoad(networkBundleManagerPrefab);
-                NetworkBundleManager.networkingManagerPrefab = networkBundleManagerPrefab;
-
-                LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(networkBundleManagerPrefab);
-
-                AssetBundleLoader.NetworkRegisterCustomContent(__instance.GetComponent<NetworkManager>());
-                LethalLevelLoaderNetworkManager.RegisterPrefabs(__instance.GetComponent<NetworkManager>());
+                AssetBundleLoader.NetworkRegisterCustomContent(netMan);
+                LethalLevelLoaderNetworkManager.RegisterPrefabs(netMan);
             }
         }
 
@@ -314,8 +296,6 @@ if (AssetBundleLoader.noBundlesFound == true)
 
                 //Debugging.
                 DebugHelper.DebugAllContentTags();
-                ItemManager.GetExtendedItemPriceData();
-                ItemManager.GetExtendedItemWeightData();
             }
 
             DebugStopwatch.StartStopWatch("Bind Configs");
@@ -554,6 +534,7 @@ if (AssetBundleLoader.noBundlesFound == true)
         //Called via SceneManager event.
         internal static void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
+            Events.TryUpdateGameState(scene.name);
             if (LevelManager.CurrentExtendedLevel == null || LevelManager.CurrentExtendedLevel.IsLevelLoaded == false) return;
             foreach (GameObject rootObject in SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.SelectableLevel.sceneName).GetRootGameObjects())
             {

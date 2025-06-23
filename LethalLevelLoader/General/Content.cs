@@ -81,7 +81,7 @@ namespace LethalLevelLoader
 
         public static void RegisterExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
         {
-            extendedDungeonFlow.ConvertObsoleteValues();
+           // extendedDungeonFlow.ConvertObsoleteValues();
             if (string.IsNullOrEmpty(extendedDungeonFlow.name))
             {
                 DebugHelper.LogWarning("Tried to register ExtendedDungeonFlow with missing name! Setting to DungeonFlow name for safety!", DebugType.Developer);

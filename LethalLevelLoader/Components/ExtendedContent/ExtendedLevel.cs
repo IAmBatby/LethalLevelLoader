@@ -177,7 +177,7 @@ namespace LethalLevelLoader
             //Obsolete
         }
 
-        protected override void OnBeforeRegistration()
+        internal override void OnBeforeRegistration()
         {
             if (levelTags.Count > 0 && ContentTags.Count == 0)
             {

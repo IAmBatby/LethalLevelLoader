@@ -146,5 +146,10 @@ namespace LethalLevelLoader
         {
             return (TryGetExtendedDungeonFlow(indoorMapType.dungeonFlow, out returnExtendedDungeonFlow, contentType));
         }
+
+        protected override (bool result, string log) ValidateExtendedContent(ExtendedDungeonFlow extendedDungeonFlow)
+        {
+            return (true, string.Empty);
+        }
     }
 }

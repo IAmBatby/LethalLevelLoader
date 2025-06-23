@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 
 namespace LethalLevelLoader
 {
@@ -21,24 +22,37 @@ namespace LethalLevelLoader
 
             foreach (ExtendedUnlockableItem extendedUnlockableItem in PatchedContent.ExtendedUnlockableItems)
             {
-                if (extendedUnlockableItem.UnlockableItem.unlockableType == 1)
+                if (extendedUnlockableItem.UnlockableItemID != 1) continue;
+                if (extendedUnlockableItem.UnlockableItem.prefabObject == null) continue;
+                if (extendedUnlockableItem.UnlockableItem.alreadyUnlocked) continue;
+
+                AutoParentToShip autoParentToShip = extendedUnlockableItem.UnlockableItem.prefabObject.GetComponent<AutoParentToShip>();
+                autoParentToShip.unlockableID = extendedUnlockableItem.UnlockableItemID;
+
+                PlaceableShipObject placeableShipObject = extendedUnlockableItem.UnlockableItem.prefabObject.GetComponentInChildren<PlaceableShipObject>();
+                if (placeableShipObject != null)
                 {
-                    if (extendedUnlockableItem.UnlockableItem.prefabObject == null && extendedUnlockableItem.UnlockableItem.alreadyUnlocked)
-                    {
-                        continue;
-                    }
-
-                    AutoParentToShip autoParentToShip = extendedUnlockableItem.UnlockableItem.prefabObject.GetComponent<AutoParentToShip>();
-                    autoParentToShip.unlockableID = extendedUnlockableItem.UnlockableItemID;
-
-                    PlaceableShipObject placeableShipObject = extendedUnlockableItem.UnlockableItem.prefabObject.GetComponentInChildren<PlaceableShipObject>();
-                    if (placeableShipObject != null)
-                    {
-                        placeableShipObject.parentObject = autoParentToShip;
-                        placeableShipObject.unlockableID = extendedUnlockableItem.UnlockableItemID;
-                    }
+                    placeableShipObject.parentObject = autoParentToShip;
+                    placeableShipObject.unlockableID = extendedUnlockableItem.UnlockableItemID;
                 }
             }
+        }
+
+        protected override (bool result, string log) ValidateExtendedContent(ExtendedUnlockableItem extendedUnlockableItem)
+        {
+            if (extendedUnlockableItem.UnlockableItem.unlockableType == 1 && !extendedUnlockableItem.UnlockableItem.alreadyUnlocked)
+            {
+                if (extendedUnlockableItem.UnlockableItem.prefabObject == null)
+                    return (false, "Unlockable Item Prefab Was Null Or Empty");
+                else if (!extendedUnlockableItem.UnlockableItem.prefabObject.TryGetComponent(out NetworkObject _))
+                    return (false, "Unlockable Item Prefab Is Missing NetworkObject Component");
+                else if (!extendedUnlockableItem.UnlockableItem.prefabObject.TryGetComponent(out AutoParentToShip _))
+                    return (false, "Unlockable Item Prefab Is Missing AutoParentToShip Component");
+            }
+            else if (extendedUnlockableItem.UnlockableItem.unlockableType == 0 && extendedUnlockableItem.UnlockableItem.suitMaterial == null)
+                return (false, "Unlockable Suit Is Missing Suit Material");
+
+            return (true, string.Empty);
         }
     }
 }

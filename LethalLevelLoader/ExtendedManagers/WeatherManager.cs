@@ -113,5 +113,10 @@ namespace LethalLevelLoader
 
             return (null);
         }
+
+        protected override (bool result, string log) ValidateExtendedContent(ExtendedWeatherEffect extendedWeatherEffect)
+        {
+            return (true, string.Empty);
+        }
     }
 }

@@ -117,19 +117,35 @@ namespace LethalLevelLoader
         internal static void AddCustomEnemyTypesToTestAllEnemiesLevel()
         {
             QuickMenuManager quickMenuManager = UnityEngine.Object.FindAnyObjectByType<QuickMenuManager>();
-
-            if (quickMenuManager != null)
+            if (quickMenuManager == null) return;
+            foreach (ExtendedEnemyType customEnemyType in PatchedContent.CustomExtendedEnemyTypes)
             {
-                foreach (ExtendedEnemyType customEnemyType in PatchedContent.CustomExtendedEnemyTypes)
-                {
-                    SpawnableEnemyWithRarity spawnableEnemyWithRarity = new SpawnableEnemyWithRarity();
-                    spawnableEnemyWithRarity.enemyType = customEnemyType.EnemyType;
-                    spawnableEnemyWithRarity.rarity = 300;
-                    quickMenuManager.testAllEnemiesLevel.Enemies.Add(spawnableEnemyWithRarity);
-                    quickMenuManager.testAllEnemiesLevel.OutsideEnemies.Add(spawnableEnemyWithRarity);
-                    quickMenuManager.testAllEnemiesLevel.DaytimeEnemies.Add(spawnableEnemyWithRarity);
-                }
+                SpawnableEnemyWithRarity spawnableEnemyWithRarity = new SpawnableEnemyWithRarity();
+                spawnableEnemyWithRarity.enemyType = customEnemyType.EnemyType;
+                spawnableEnemyWithRarity.rarity = 300;
+                quickMenuManager.testAllEnemiesLevel.Enemies.Add(spawnableEnemyWithRarity);
+                quickMenuManager.testAllEnemiesLevel.OutsideEnemies.Add(spawnableEnemyWithRarity);
+                quickMenuManager.testAllEnemiesLevel.DaytimeEnemies.Add(spawnableEnemyWithRarity);
             }
+        }
+
+        protected override (bool result, string log) ValidateExtendedContent(ExtendedEnemyType extendedEnemyType)
+        {
+            if (extendedEnemyType.EnemyType.enemyPrefab == null)
+                return ((false, "EnemyPrefab Was Null"));
+            if (extendedEnemyType.EnemyType.enemyPrefab.GetComponent<NetworkObject>() == false)
+                return ((false, "EnemyPrefab Did Not Contain A NetworkObject"));
+            EnemyAI enemyAI = extendedEnemyType.EnemyType.enemyPrefab.GetComponent<EnemyAI>();
+            if (enemyAI == null)
+                enemyAI = extendedEnemyType.EnemyType.enemyPrefab.GetComponentInChildren<EnemyAI>();
+            if (enemyAI == null)
+                return ((false, "EnemyPrefab Did Not Contain A Component Deriving From EnemyAI"));
+            if (enemyAI.enemyType == null)
+                return ((false, "EnemyAI.enemyType Was Null"));
+            if (enemyAI.enemyType != extendedEnemyType.EnemyType)
+                return ((false, "EnemyAI.enemyType Did Not Match ExtendedEnemyType.EnemyType"));
+
+            return (true, string.Empty);
         }
     }
 

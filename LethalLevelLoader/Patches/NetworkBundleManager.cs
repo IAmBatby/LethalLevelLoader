@@ -12,7 +12,7 @@ namespace LethalLevelLoader
 {
     internal class NetworkBundleManager : NetworkBehaviour
     {
-        public static GameObject networkingManagerPrefab;
+        public static NetworkBundleManager networkingManagerPrefab;
         private static NetworkBundleManager _instance;
         public static NetworkBundleManager Instance
         {

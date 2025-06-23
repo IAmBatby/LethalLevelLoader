@@ -18,7 +18,7 @@ namespace LethalLevelLoader
         public string AuthorName => ExtendedMod.AuthorName;
 
         public string UniqueIdentificationName => AuthorName.ToLowerInvariant() + "." + ModName.ToLowerInvariant() + "." + name.ToLowerInvariant();
-
+        public IntergrationStatus CurrentStatus => ExtendedContentManager.GetContentStatus(this);
         //internal abstract void RegisterContent();
 
         internal virtual void TryCreateMatchingProperties()
@@ -61,22 +61,14 @@ namespace LethalLevelLoader
             return (false);
         }
 
-        public abstract void Register();
+        //public abstract (bool, string) Validate();
 
-        public abstract (bool, string) Validate();
+        internal virtual void OnBeforeRegistration() { }
     }
 
     public abstract class ExtendedContent<E, C, M> : ExtendedContent, IExtendedContent<E, C, M> where E : ExtendedContent<E, C, M>, IExtendedContent<E, C, M> where M : ExtendedContentManager, IExtendedManager<E, C, M>
     {
         public abstract C Content { get; }
-
-        public override void Register()
-        {
-            OnBeforeRegistration();
-            ExtendedContentManager<E, C, M>.RegisterContent(this as E);
-        }
-
-        protected virtual void OnBeforeRegistration() { }
     }
 
 

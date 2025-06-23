@@ -83,6 +83,8 @@ namespace LethalLevelLoader
             //AssetBundleLoader.onBundlesFinishedLoading += AssetBundleLoader.LoadContentInBundles;
 
             ConfigLoader.BindGeneralConfigs();
+
+            Events.ChangeGameState(GameStates.Startup);
         }
 
         internal static void OnBeforeSetupInvoke()

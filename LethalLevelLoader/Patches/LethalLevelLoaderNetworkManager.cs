@@ -13,7 +13,7 @@ namespace LethalLevelLoader
 {
     public class LethalLevelLoaderNetworkManager : NetworkBehaviour
     {
-        public static GameObject networkingManagerPrefab;
+        public static LethalLevelLoaderNetworkManager networkingManagerPrefab;
         private static LethalLevelLoaderNetworkManager _instance;
         public static LethalLevelLoaderNetworkManager Instance
         {
