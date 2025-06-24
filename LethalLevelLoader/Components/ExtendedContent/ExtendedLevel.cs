@@ -13,6 +13,7 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedLevel", menuName = "Lethal Level Loader/Extended Content/ExtendedLevel", order = 20)]
     public class ExtendedLevel : ExtendedContent<ExtendedLevel, SelectableLevel, LevelManager>
     {
+        public override RestorationPeriod RestorationPeriod => RestorationPeriod.Lobby;
         public override SelectableLevel Content => SelectableLevel;
 
 
@@ -247,6 +248,17 @@ namespace LethalLevelLoader
                 Debug.LogWarning("ForceSetRoutePrice Should Only Be Used In Editor! Consider Using RoutePrice Property To Sync TerminalNode's With New Value.");
             routePrice = newValue;
         }
+
+        internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration()
+        {
+            List<PrefabReference> returnList = new List<PrefabReference>();
+            foreach (SpawnableOutsideObject outsideMapObj in SelectableLevel.spawnableOutsideObjects.Select(s => s.spawnableObject))
+                returnList.Add(new SpawnableOutsideObjectReference(outsideMapObj));
+            foreach (SpawnableMapObject outsideMapObj in SelectableLevel.spawnableMapObjects)
+                returnList.Add(new SpawnableMapObjectReference(outsideMapObj));
+            return (returnList);
+        }
+        internal override List<GameObject> GetNetworkPrefabsForRegistration() => NoNetworkPrefabs;
     }
         
 

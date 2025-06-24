@@ -112,6 +112,12 @@ if (AssetBundleLoader.noBundlesFound == true)
             delayedSceneLoadingName = string.Empty;
         }
 
+        [HarmonyPatch(typeof(NetworkManager), "Awake"), HarmonyPrefix, HarmonyPriority(Priority.First)]
+        internal static void GameNetworkManagerStartFaster_Prefix(NetworkManager __instance)
+        {
+            ExtendedNetworkManager.TrackVanillaPrefabs();
+        }
+
         [HarmonyPatch(typeof(GameNetworkManager), "Start"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static void GameNetworkManagerStart_Prefix(GameNetworkManager __instance)
         {
@@ -124,12 +130,15 @@ if (AssetBundleLoader.noBundlesFound == true)
                     if (networkPrefab.Prefab.name.Contains("EntranceTeleport") && networkPrefab.Prefab.TryGetComponent(out AudioSource source))
                             OriginalContent.AudioMixers.Add(source.outputAudioMixerGroup.audioMixer);
 
-                //ExtendedNetworkManager.networkingManagerPrefab = Utilities.CreateNetworkPrefab<ExtendedNetworkManager>("LethalLevelLoaderNetworkManager", false, true, false);
-                //NetworkBundleManager.networkingManagerPrefab = Utilities.CreateNetworkPrefab<NetworkBundleManager>("NetworkBundleManager", false, true, false);
-
-                AssetBundleLoader.NetworkRegisterCustomContent(netMan);
-                ExtendedNetworkManager.RegisterPrefabs(netMan);
+                ExtendedContentManager.ProcessContentNetworking();
+                ExtendedNetworkManager.RegisterPrefabs();
             }
+        }
+
+        [HarmonyPatch(typeof(NetworkPrefabHandler), nameof(NetworkPrefabHandler.AddNetworkPrefab)), HarmonyPostfix, HarmonyPriority(Priority.Last)]
+        private static void OnNetworkPrefabAdded()
+        {
+            ExtendedNetworkManager.AddNetworkPrefabToRegistry(ExtendedNetworkManager.NetworkManagerInstance.NetworkConfig.Prefabs.Prefabs.Last());
         }
 
         [HarmonyPatch(typeof(GameNetworkManager), "SaveGameValues"), HarmonyPostfix, HarmonyPriority(priority)]

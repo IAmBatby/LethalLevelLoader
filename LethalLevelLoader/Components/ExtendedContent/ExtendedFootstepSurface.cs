@@ -8,7 +8,14 @@ namespace LethalLevelLoader;
 [CreateAssetMenu(fileName = "ExtendedFootstepSurface", menuName = "Lethal Level Loader/Extended Content/ExtendedFootstepSurface", order = 27)]
 public class ExtendedFootstepSurface : ExtendedContent<ExtendedFootstepSurface,FootstepSurface,FootstepManager>
 {
+    public override RestorationPeriod RestorationPeriod => RestorationPeriod.MainMenu;
     public override FootstepSurface Content => footstepSurface;
     public FootstepSurface footstepSurface;
     public List<Material> associatedMaterials;
+
+    internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration() => NoPrefabReferences;
+    internal override List<GameObject> GetNetworkPrefabsForRegistration()
+    {
+        return (new List<GameObject>());
+    }
 }

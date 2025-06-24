@@ -14,6 +14,7 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedDungeonFlow", menuName = "Lethal Level Loader/Extended Content/ExtendedDungeonFlow", order = 21)]
     public class ExtendedDungeonFlow : ExtendedContent<ExtendedDungeonFlow, DungeonFlow, DungeonManager>
     {
+        public override RestorationPeriod RestorationPeriod => RestorationPeriod.MainMenu;
         public override DungeonFlow Content => DungeonFlow;
         [field: Header("General Settings")]
         [field: SerializeField] public DungeonFlow DungeonFlow { get; set; }
@@ -166,6 +167,17 @@ namespace LethalLevelLoader
                 DebugHelper.LogWarning("ExtendedDungeonFlow.generateAutomaticConfigurationOptions Is Obsolete and will be removed in following releases, Please use ExtendedDungeonFlow.GenerateAutomaticConfigurationOptions instead.", DebugType.Developer);
                 GenerateAutomaticConfigurationOptions = generateAutomaticConfigurationOptions;
             }
+        }
+
+        internal override List<GameObject> GetNetworkPrefabsForRegistration() => NoNetworkPrefabs;
+        internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration()
+        {
+            List<PrefabReference> returnList = new List<PrefabReference>();
+            foreach (SpawnSyncedObject spawnSyncedObject in DungeonFlow.GetSpawnSyncedObjects())
+                returnList.Add(new SpawnSyncedObjectReference(spawnSyncedObject));
+            foreach (SpawnableMapObject mapObject in SpawnableMapObjects)
+                returnList.Add(new SpawnableMapObjectReference(mapObject));
+            return (returnList);
         }
     }
 

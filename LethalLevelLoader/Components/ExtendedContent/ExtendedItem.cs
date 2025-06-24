@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace LethalLevelLoader
@@ -8,6 +10,7 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedItem", menuName = "Lethal Level Loader/Extended Content/ExtendedItem", order = 23)]
     public class ExtendedItem : ExtendedContent<ExtendedItem, Item, ItemManager>
     {
+        public override RestorationPeriod RestorationPeriod => RestorationPeriod.MainMenu;
         public override Item Content => Item;
         [field: Header("General Settings")]
 
@@ -98,6 +101,12 @@ namespace LethalLevelLoader
             if (Plugin.Instance != null)
                 Debug.LogError("SetLevelMatchingProperties() Should Only Be Used In Editor!");
             LevelMatchingProperties = newLevelMatchingProperties;
+        }
+
+        internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration() => NoPrefabReferences;
+        internal override List<GameObject> GetNetworkPrefabsForRegistration()
+        {
+            return (Item.spawnPrefab.GetComponentsInChildren<NetworkObject>().Select(n => n.gameObject).ToList());
         }
     }
 }

@@ -116,7 +116,8 @@ namespace LethalLevelLoader
         {
             //if (extendedContent.CurrentStatus) //Do this later
             extendedContent.ExtendedMod = this;
-            extendedContent.ContentTags.Add(ContentTag.Create("Custom"));
+            if (extendedContent.ContentType == ContentType.Custom)
+                extendedContent.ContentTags.Add(ContentTag.Create("Custom"));
 
             if (extendedContent is ExtendedLevel extendedLevel)
                 ExtendedLevels.Add(extendedLevel);

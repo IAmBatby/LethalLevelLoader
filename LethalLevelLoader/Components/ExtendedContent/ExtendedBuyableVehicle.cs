@@ -8,6 +8,7 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedBuyableVehicle", menuName = "Lethal Level Loader/Extended Content/ExtendedBuyableVehicle", order = 21)]
     public class ExtendedBuyableVehicle : ExtendedContent<ExtendedBuyableVehicle, BuyableVehicle, VehiclesManager>
     {
+        public override RestorationPeriod RestorationPeriod => RestorationPeriod.MainMenu;
         public override BuyableVehicle Content => BuyableVehicle;
         [field: SerializeField] public BuyableVehicle BuyableVehicle { get; set; }
         [field: SerializeField] public string TerminalKeywordName { get; set; } = string.Empty;
@@ -26,5 +27,11 @@ namespace LethalLevelLoader
 
             return (newExtendedBuyableVehicle);
         }
+
+        internal override List<GameObject> GetNetworkPrefabsForRegistration()
+        {
+            return new List<GameObject>() { BuyableVehicle.vehiclePrefab, BuyableVehicle.secondaryPrefab };
+        }
+        internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration() => NoPrefabReferences;
     }
 }

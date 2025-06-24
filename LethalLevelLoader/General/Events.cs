@@ -16,6 +16,7 @@ namespace LethalLevelLoader
 
         public static ExtendedEvent<GameStates> OnCurrentStateChanged { get; private set; } = new ExtendedEvent<GameStates>();
         public static ExtendedEvent<GameStates> OnFurthestStateChanged { get; private set; } = new ExtendedEvent<GameStates>();
+        public static ExtendedEvent<bool> OnInInitalizedLobbyStateChanged { get; private set; } = new ExtendedEvent<bool>();
 
         internal static void ChangeGameState(GameStates newState)
         {
@@ -30,7 +31,12 @@ namespace LethalLevelLoader
             OnCurrentStateChanged.Invoke(newState);
         }
 
-        internal static void SetLobbyState(bool newStatus) => InInitializedLobby = newStatus;
+        internal static void SetLobbyState(bool newStatus)
+        {
+            if (InInitializedLobby == newStatus) return;
+            InInitializedLobby = newStatus;
+            OnInInitalizedLobbyStateChanged.Invoke(newStatus);
+        }
 
         internal static void TryUpdateGameState(string newSceneName)
         {

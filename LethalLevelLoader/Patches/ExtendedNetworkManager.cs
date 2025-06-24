@@ -15,12 +15,28 @@ namespace LethalLevelLoader
     public class ExtendedNetworkManager : NetworkSingleton<ExtendedNetworkManager>
     {
         public static ExtendedNetworkManager Instance => NetworkInstance as ExtendedNetworkManager;
-
-        private static List<GameObject> queuedNetworkPrefabs = new List<GameObject>();
-        private static List<GameObject> addedNetworkPrefabs = new List<GameObject>();
+        private static Dictionary<GameObject, NetworkPrefab> NetworkPrefabRegistry = new Dictionary<GameObject, NetworkPrefab>();
+        private static Dictionary<string, GameObject> VanillaNetworkPrefabNameDict = new Dictionary<string, GameObject>();
+        private static List<GameObject> queuedInternalNetworkPrefabs = new List<GameObject>();
+        private static Dictionary<ExtendedMod, List<GameObject>> networkPrefabCollections = new Dictionary<ExtendedMod, List<GameObject>>();
         public static bool networkHasStarted;
 
         private static List<NetworkSingleton> queuedNetworkSingletonSpawns = new List<NetworkSingleton>();
+
+        public static bool IsLobbyNetworkInitialized { get; private set; }
+
+        [RuntimeInitializeOnLoadMethod]
+        private static void Init()
+        {
+            DebugHelper.Log("Inherited Init Is Working Yippeeeee", DebugType.User);
+            Events.OnCurrentStateChanged.AddListener(OnGameStateChanged);
+        }
+
+        private static void OnGameStateChanged(GameStates state)
+        {
+            if (state == GameStates.MainMenu)
+                IsLobbyNetworkInitialized = false;
+        }
 
         internal static T CreateAndRegisterNetworkSingleton<T>(Type realType,  string name, bool dontDestroyWithOwner = false, bool sceneMigration = true, bool destroyWithScene = true) where T : NetworkSingleton
         {
@@ -54,6 +70,7 @@ namespace LethalLevelLoader
         internal static void OnNetworkSingletonsSpawned()
         {
             DebugHelper.Log("All Registered NetworkSingletons Have Spawned!", DebugType.User);
+            IsLobbyNetworkInitialized = true;
         }
 
         //private static Dictionary<Type, NetworkSingleton> networkSingletonNetworkPrefabs = new Dictionary<Type, NetworkSingleton>();
@@ -214,62 +231,101 @@ namespace LethalLevelLoader
                 DebugHelper.Log("Failed To Apply Saved Level Info!", DebugType.User);
         }
 
-
-        public static void RegisterNetworkPrefab(GameObject prefab)
+        internal static void RegisterNetworkPrefab(ExtendedMod source, GameObject prefab)
         {
+            if (prefab == null || source == null ) return;
             if (networkHasStarted == false)
-                queuedNetworkPrefabs.Add(prefab);
+                networkPrefabCollections.AddOrAddAdd(source, prefab);
             else
                 DebugHelper.LogWarning("Attempted To Register NetworkPrefab: " + prefab + " After GameNetworkManager Has Started!", DebugType.User);
         }
 
-        public static T SetupNetworkManagerObject<T>() where T : NetworkBehaviour
+
+        internal static void RegisterNetworkPrefab(GameObject prefab)
         {
-            GameObject newPrefab = new GameObject(nameof(T));
-            newPrefab.hideFlags = HideFlags.HideAndDontSave;
-
-            T instancedBehaviour = newPrefab.AddComponent<T>();
-
-            NetworkObject networkObject = newPrefab.AddComponent<NetworkObject>();
-            byte[] hash = MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(Assembly.GetCallingAssembly().GetName().Name + nameof(T)));
-            networkObject.GlobalObjectIdHash = BitConverter.ToUInt32(hash, 0);
-            networkObject.DontDestroyWithOwner = true;
-            networkObject.SceneMigrationSynchronization = true;
-            networkObject.DestroyWithScene = true;
-            GameObject.DontDestroyOnLoad(newPrefab);
-
-            NetworkManager.Singleton.AddNetworkPrefab(newPrefab);
-
-            return (instancedBehaviour);
+            if (prefab == null || queuedInternalNetworkPrefabs.Contains(prefab)) return;
+            if (networkHasStarted == false)
+                queuedInternalNetworkPrefabs.Add(prefab);
+            else
+                DebugHelper.LogWarning("Attempted To Register NetworkPrefab: " + prefab + " After GameNetworkManager Has Started!", DebugType.User);
         }
 
-        internal static void RegisterPrefabs(NetworkManager networkManager)
+        internal static void RegisterNetworkContent(ExtendedContent content)
         {
-            //DebugHelper.Log("Game NetworkManager Start");
+            List<GameObject> registeredObjects = new List<GameObject>();
 
-            addedNetworkPrefabs = new List<GameObject>();
+            foreach (GameObject networkPrefab in content.GetNetworkPrefabsForRegistration())
+                if (TryRegisterNetworkPrefab(networkPrefab))
+                    registeredObjects.Add(networkPrefab);
 
-            foreach (NetworkPrefab networkPrefab in networkManager.NetworkConfig.Prefabs.Prefabs)
-                addedNetworkPrefabs.Add(networkPrefab.Prefab);
+            foreach (PrefabReference networkPrefabReference in content.GetPrefabReferencesForRestorationOrRegistration())
+                if (TryRegisterNetworkPrefabReference(networkPrefabReference))
+                    registeredObjects.Add(networkPrefabReference.Prefab);
 
-            int debugCounter = 0;
+            foreach (GameObject prefab in registeredObjects)
+                networkPrefabCollections.AddOrAddAdd(content.ExtendedMod, prefab);
+        }
 
-            foreach (GameObject queuedNetworkPrefab in queuedNetworkPrefabs)
+        internal static void TrackVanillaPrefabs()
+        {
+            DebugHelper.Log(Events.FurthestState + "yyyyy", DebugType.User);
+            if (Events.FurthestState == GameStates.Lobby || Events.FurthestState == GameStates.Moon) return;
+            NetworkPrefabsList prefabList = Resources.FindObjectsOfTypeAll<NetworkPrefabsList>()[0]; //Need this because runs before singleton is set
+            foreach (NetworkPrefab networkPrefab in prefabList.PrefabList)
             {
-                if (!addedNetworkPrefabs.Contains(queuedNetworkPrefab))
-                {
-                    //DebugHelper.Log("Trying To Register Prefab: " + queuedNetworkPrefab);
-                    networkManager.AddNetworkPrefab(queuedNetworkPrefab);
-                    addedNetworkPrefabs.Add(queuedNetworkPrefab);
-                }
-                else
-                    debugCounter++;
+                DebugHelper.Log("Tracvking Vanilla1212", DebugType.User);
+                AddNetworkPrefabToRegistry(networkPrefab);
+                networkPrefabCollections.AddOrAddAdd(PatchedContent.VanillaMod, networkPrefab.Prefab);
+                VanillaNetworkPrefabNameDict.Add(networkPrefab.Prefab.name, networkPrefab.Prefab);
             }
+        }
 
-            DebugHelper.Log("Skipped Registering " + debugCounter + " NetworkObjects As They Were Already Registered.", DebugType.User);
+        internal static void RegisterPrefabs()
+        {
+            //Register LethalLevelLoader's various Managers (Tracked via NetworkPrefabHandler Postfix)
+            foreach (GameObject queuedPrefab in queuedInternalNetworkPrefabs)
+                TryRegisterNetworkPrefab(queuedPrefab);
 
-            networkHasStarted = true;
-            
+            //Register Each Mod's NetworkPrefabs (Tracked via NetworkPrefabHandler Postfix)
+            //foreach (KeyValuePair<ExtendedMod, List<GameObject>> kvp in networkPrefabCollections)
+                //foreach (GameObject prefab in kvp.Value)
+                    //TryRegisterNetworkPrefab(prefab);
+
+            networkHasStarted = true;      
+        }
+
+        private static bool TryRegisterNetworkPrefabReference(PrefabReference prefabReference)
+        {
+            if (VanillaNetworkPrefabNameDict.TryGetValue(prefabReference.Prefab.name, out GameObject vanillaPrefab))
+            {
+                prefabReference.Restore(vanillaPrefab);
+                return (false);
+            }
+            else
+                return (TryRegisterNetworkPrefab(prefabReference.Prefab));         
+        }
+
+        private static bool TryRegisterNetworkPrefab(GameObject gameObject)
+        {
+            if (gameObject == null) return (false);
+            if (NetworkPrefabRegistry.ContainsKey(gameObject)) return (false);
+            if (gameObject.TryGetComponent(out NetworkObject networkObject) == false) return (false);
+            return (TryRegisterNetworkPrefab(networkObject));
+        }
+
+        private static bool TryRegisterNetworkPrefab(NetworkObject networkObject)
+        {
+            if (networkObject == null) return (false);
+            if (NetworkPrefabRegistry.ContainsKey(networkObject.gameObject)) return (false);
+            NetworkManagerInstance.AddNetworkPrefab(networkObject.gameObject);
+            return (true);
+        }
+
+        //This gets called when we can access the NetworkManager for the first time and via a postfix to AddNetworkPrefab so we catch other mods too
+        internal static void AddNetworkPrefabToRegistry(NetworkPrefab registeredPrefab)
+        {
+            if (NetworkPrefabRegistry.ContainsKey(registeredPrefab.Prefab)) return;
+            NetworkPrefabRegistry.Add(registeredPrefab.Prefab, registeredPrefab);
         }
 
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace LethalLevelLoader
@@ -5,6 +6,7 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedUnlockableItem", menuName = "Lethal Level Loader/Extended Content/ExtendedUnlockableItem", order = 21)]
     public class ExtendedUnlockableItem : ExtendedContent<ExtendedUnlockableItem, UnlockableItem, UnlockableItemManager>
     {
+        public override RestorationPeriod RestorationPeriod => RestorationPeriod.Lobby;
         public override UnlockableItem Content => UnlockableItem;
         [field: Header("General Settings")]
 
@@ -56,6 +58,15 @@ namespace LethalLevelLoader
             extendedMod.RegisterExtendedContent(extendedUnlockableItem);
 
             return (extendedUnlockableItem);
+        }
+
+        internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration() => NoPrefabReferences;
+        internal override List<GameObject> GetNetworkPrefabsForRegistration()
+        {
+            if (UnlockableItem.unlockableType == 1 && UnlockableItem.prefabObject != null)
+                return (new List<GameObject>() { UnlockableItem.prefabObject});
+            else
+                return (NoNetworkPrefabs);
         }
     }
 

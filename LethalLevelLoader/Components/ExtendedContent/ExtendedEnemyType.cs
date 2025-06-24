@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Unity.Netcode;
+using UnityEngine;
 using UnityEngine.Video;
 
 namespace LethalLevelLoader
@@ -6,6 +9,7 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedEnemyType", menuName = "Lethal Level Loader/Extended Content/ExtendedEnemyType", order = 24)]
     public class ExtendedEnemyType : ExtendedContent<ExtendedEnemyType, EnemyType, EnemyManager>
     {
+        public override RestorationPeriod RestorationPeriod => RestorationPeriod.MainMenu;
         public override EnemyType Content => EnemyType;
         [field: Header("General Settings")]
 
@@ -61,6 +65,12 @@ namespace LethalLevelLoader
                 OutsideLevelMatchingProperties = LevelMatchingProperties.Create(this);
             if (DaytimeLevelMatchingProperties == null)
                 DaytimeLevelMatchingProperties = LevelMatchingProperties.Create(this);
+        }
+
+        internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration() => NoPrefabReferences;
+        internal override List<GameObject> GetNetworkPrefabsForRegistration()
+        {
+            return (EnemyType.enemyPrefab.GetComponentsInChildren<NetworkObject>().Select(n => n.gameObject).ToList());
         }
     }
 }

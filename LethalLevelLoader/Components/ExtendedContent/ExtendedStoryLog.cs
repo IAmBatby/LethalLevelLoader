@@ -8,6 +8,7 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedStoryLog", menuName = "Lethal Level Loader/Extended Content/ExtendedStoryLog", order = 26)]
     public class ExtendedStoryLog : ExtendedContent<ExtendedStoryLog,StoryLogInfo,StoryLogManager>
     {
+        public override RestorationPeriod RestorationPeriod => RestorationPeriod.Lobby;
         public override StoryLogInfo Content
         {
             get
@@ -31,6 +32,9 @@ namespace LethalLevelLoader
         [HideInInspector] internal int newStoryLogID;
 
         [HideInInspector] internal TerminalNode assignedNode;
+
+        internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration() => NoPrefabReferences;
+        internal override List<GameObject> GetNetworkPrefabsForRegistration() => NoNetworkPrefabs;
     }
 
     public class StoryLogInfo

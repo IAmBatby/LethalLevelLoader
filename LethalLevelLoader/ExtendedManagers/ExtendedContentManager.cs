@@ -11,8 +11,10 @@ using UnityEngine;
 namespace LethalLevelLoader
 {
     public enum IntergrationStatus { Unprocessed, Invalidated, Validated, Registered, Initalized }
+    public enum RestorationPeriod { MainMenu, Lobby }
     public abstract class ExtendedContentManager : NetworkBehaviour
     {
+        private static List<ExtendedContentManager> allContentManagerPrefabs = new List<ExtendedContentManager>();
         private static HashSet<ExtendedContent> ValidatedExtendedContents = new HashSet<ExtendedContent>();
         private static HashSet<ExtendedContent> InvalidatedExtendedContents = new HashSet<ExtendedContent>();
         private static HashSet<ExtendedContent> RegisteredExtendedContents = new HashSet<ExtendedContent>();
@@ -54,8 +56,13 @@ namespace LethalLevelLoader
             return (IntergrationStatus.Unprocessed);
         }
 
-        //private static
+        internal static void ProcessContentNetworking()
+        {
+            foreach (ExtendedContent content in RegisteredExtendedContents)
+                ExtendedNetworkManager.RegisterNetworkContent(content);
+        }
 
+        protected void AddPrefab(ExtendedContentManager contentManager) => allContentManagerPrefabs.Add(contentManager);
     }
 
     public abstract class ExtendedContentManager<E,C,M> : ExtendedContentManager, IExtendedManager<E,C,M> where E : ExtendedContent<E,C,M>, IExtendedContent<E,C,M> where M : ExtendedContentManager, IExtendedManager<E,C,M>
@@ -109,6 +116,7 @@ namespace LethalLevelLoader
         {
             DebugHelper.Log("Initializing: " + this.GetType(), DebugType.User);
             Prefab = Utilities.CreateNetworkPrefab<ExtendedContentManager<E, C, M>>(GetType(), typeof(M).Name + " (NetworkPrefab)");
+            AddPrefab(Prefab);
             GameObject.Destroy(this);
         }
 

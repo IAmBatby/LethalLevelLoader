@@ -8,6 +8,7 @@ namespace LethalLevelLoader
 {
     public abstract class ExtendedContent : ScriptableObject
     {
+        public abstract RestorationPeriod RestorationPeriod { get; }
         public ExtendedMod ExtendedMod { get; internal set; }
         public ContentType ContentType { get; internal set; } = ContentType.Vanilla;
         /*Obsolete*/ public List<string> ContentTagStrings { get; internal set; } = new List<string>();
@@ -66,6 +67,11 @@ namespace LethalLevelLoader
         internal virtual void OnBeforeRegistration() { }
 
         internal abstract void Register(ExtendedMod mod);
+
+        protected List<PrefabReference> NoPrefabReferences { get; private set; } = new List<PrefabReference>();
+        protected List<GameObject> NoNetworkPrefabs { get; private set; } = new List<GameObject>();
+        internal abstract List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration();
+        internal abstract List<GameObject> GetNetworkPrefabsForRegistration();
     }
 
     public abstract class ExtendedContent<E, C, M> : ExtendedContent, IExtendedContent<E, C, M> where E : ExtendedContent<E, C, M>, IExtendedContent<E, C, M> where M : ExtendedContentManager, IExtendedManager<E, C, M>

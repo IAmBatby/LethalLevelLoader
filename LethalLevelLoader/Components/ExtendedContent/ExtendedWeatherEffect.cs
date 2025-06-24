@@ -9,6 +9,7 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedWeatherEffect", menuName = "Lethal Level Loader/Extended Content/ExtendedWeatherEffect", order = 25)]
     public class ExtendedWeatherEffect : ExtendedContent<ExtendedWeatherEffect, WeatherEffect, WeatherManager>
     {
+        public override RestorationPeriod RestorationPeriod => RestorationPeriod.Lobby;
         public override WeatherEffect Content => null;
         [field: Header("General Settings")]
 
@@ -44,5 +45,8 @@ namespace LethalLevelLoader
 
             return (newExtendedWeatherEffect);
         }
+
+        internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration() => NoPrefabReferences;
+        internal override List<GameObject> GetNetworkPrefabsForRegistration() => NoNetworkPrefabs;
     }
 }

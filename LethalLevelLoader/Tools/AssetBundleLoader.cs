@@ -67,36 +67,7 @@ namespace LethalLevelLoader
         public delegate void BundleFinishedLoading(AssetBundle assetBundle);
         public static event BundleFinishedLoading onBundleFinishedLoading;
 
-        //This Function is used to Register NetworkPrefabs to the GameNetworkManager on GameNetworkManager.Start()
-        internal static void NetworkRegisterCustomContent(NetworkManager networkManager)
-        {
-            DebugHelper.Log("Registering Bundle Content!", DebugType.User);
-
-            foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods)
-            {
-                foreach (ExtendedDungeonFlow extendedDungeonFlow in extendedMod.ExtendedDungeonFlows)
-                    NetworkRegisterDungeonContent(extendedDungeonFlow, networkManager);
-
-                foreach (ExtendedItem extendedItem in extendedMod.ExtendedItems)
-                    ExtendedNetworkManager.RegisterNetworkPrefab(extendedItem.Item.spawnPrefab);
-
-                foreach (ExtendedEnemyType extendedEnemyType in extendedMod.ExtendedEnemyTypes)
-                    ExtendedNetworkManager.RegisterNetworkPrefab(extendedEnemyType.EnemyType.enemyPrefab);
-
-                foreach (ExtendedBuyableVehicle extendedBuyableVehicle in extendedMod.ExtendedBuyableVehicles)
-                {
-                    ExtendedNetworkManager.RegisterNetworkPrefab(extendedBuyableVehicle.BuyableVehicle.vehiclePrefab);
-                    ExtendedNetworkManager.RegisterNetworkPrefab(extendedBuyableVehicle.BuyableVehicle.secondaryPrefab);
-                }
-
-                foreach (ExtendedUnlockableItem extendedUnlockableItem in extendedMod.ExtendedUnlockableItems)
-                    if (extendedUnlockableItem.UnlockableItem.unlockableType == 1 && extendedUnlockableItem.UnlockableItem.prefabObject != null)
-                        ExtendedNetworkManager.RegisterNetworkPrefab(extendedUnlockableItem.UnlockableItem.prefabObject);
-            }
-        }
-
         internal static void InvokeBundlesFinishedLoading() => onBundlesFinishedLoading?.Invoke();
-
 
         public static bool TryGetAssetBundleInfo(string scenePath, out AssetBundleInfo info)
         {
@@ -120,15 +91,6 @@ namespace LethalLevelLoader
         {
             LethalBundleManager.onExtendedModLoadedRequestDict.AddOrAddAdd(extendedModAuthorName, invokedFunction);
             LethalBundleManager.onExtendedModLoadedRequestDict.AddOrAddAdd(extendedModModName, invokedFunction);
-        }
-
-        private static void AddOrCreate<T>(Dictionary<string, List<Action<T>>> dict, string stringVal, Action<T> modAct)
-        {
-            if (string.IsNullOrEmpty(stringVal) || modAct == null) return;
-            if (dict.TryGetValue(stringVal, out List<Action<T>> list))
-                list.Add(modAct);
-            else
-                dict.Add(stringVal, new List<Action<T>> { modAct });
         }
 
         internal static void RegisterNewExtendedContent(ExtendedContent extendedContent, string fallbackName)
@@ -172,13 +134,8 @@ namespace LethalLevelLoader
 
         internal static void CreateVanillaExtendedDungeonFlows()
         {
-            //DebugHelper.Log("Creating ExtendedDungeonFlows For Vanilla DungeonFlows");
-
-            if (Patches.RoundManager.dungeonFlowTypes != null)
-                foreach (IndoorMapType indoorMapType in Patches.RoundManager.dungeonFlowTypes)
-                    CreateVanillaExtendedDungeonFlow(indoorMapType.dungeonFlow);
-            else
-                DebugHelper.Log("Error! RoundManager dungeonFlowTypes Array Was Null!", DebugType.User);
+            foreach (IndoorMapType indoorMapType in Patches.RoundManager.dungeonFlowTypes)
+                CreateVanillaExtendedDungeonFlow(indoorMapType.dungeonFlow);
         }
 
         internal static void CreateVanillaExtendedItems()
@@ -190,10 +147,8 @@ namespace LethalLevelLoader
                 ItemManager.TryRegisterContent(PatchedContent.VanillaMod, extendedVanillaItem);
             }
 
-
-            Terminal terminal = TerminalManager.Terminal;
             int counter = 0;
-            foreach (Item item in terminal.buyableItemsList)
+            foreach (Item item in TerminalManager.Terminal.buyableItemsList)
             {
                 ExtendedItem extendedVanillaItem = ExtendedItem.Create(item, PatchedContent.VanillaMod, ContentType.Vanilla);
                 extendedVanillaItem.IsBuyableItem = true;
@@ -217,19 +172,15 @@ namespace LethalLevelLoader
             foreach (EnemyType enemyType in OriginalContent.Enemies)
             {
                 ExtendedEnemyType newExtendedEnemyType = ExtendedEnemyType.Create(enemyType, PatchedContent.VanillaMod, ContentType.Vanilla);
-                EnemyManager.TryRegisterContent(PatchedContent.VanillaMod, newExtendedEnemyType);
                 ScanNodeProperties enemyScanNode = newExtendedEnemyType.EnemyType.enemyPrefab.GetComponentInChildren<ScanNodeProperties>();
-                if (enemyScanNode != null)
-                {
-                    newExtendedEnemyType.ScanNodeProperties = enemyScanNode;
-                    newExtendedEnemyType.EnemyID = enemyScanNode.creatureScanID;
-                    newExtendedEnemyType.EnemyInfoNode = Patches.Terminal.enemyFiles[newExtendedEnemyType.EnemyID];
-                    if (newExtendedEnemyType.EnemyInfoNode != null)
-                        newExtendedEnemyType.InfoNodeVideoClip = newExtendedEnemyType.EnemyInfoNode.displayVideo;
-                    newExtendedEnemyType.EnemyDisplayName = enemyScanNode.headerText;
-                }
-                else
-                    newExtendedEnemyType.EnemyDisplayName = enemyType.enemyName;
+                newExtendedEnemyType.EnemyDisplayName = enemyType.enemyName;
+                if (enemyScanNode == null) continue;
+                newExtendedEnemyType.ScanNodeProperties = enemyScanNode;
+                newExtendedEnemyType.EnemyID = enemyScanNode.creatureScanID;
+                newExtendedEnemyType.EnemyInfoNode = Patches.Terminal.enemyFiles[newExtendedEnemyType.EnemyID];
+                newExtendedEnemyType.InfoNodeVideoClip = newExtendedEnemyType.EnemyInfoNode ? newExtendedEnemyType.EnemyInfoNode.displayVideo : null;
+                newExtendedEnemyType.EnemyDisplayName = enemyScanNode.headerText;
+                EnemyManager.TryRegisterContent(PatchedContent.VanillaMod, newExtendedEnemyType);
             }
         }
 
@@ -302,85 +253,6 @@ namespace LethalLevelLoader
             UnlockableItemManager.TryRegisterContent(PatchedContent.VanillaMod, newExtendedVanillaUnlockableItem);
         }
 
-        internal static void NetworkRegisterDungeonContent(ExtendedDungeonFlow extendedDungeonFlow, NetworkManager networkManager)
-        {
-            if (extendedDungeonFlow == null)
-            {
-                DebugHelper.LogError("Cannot Network Register Null ExtendedDungeonFlow!", DebugType.User);
-                return;
-            }
-            if (extendedDungeonFlow.DungeonFlow == null)
-            {
-                DebugHelper.LogError("Cannot Network Register ExtendedDungeonFlow: " + extendedDungeonFlow.name + " Due To Null DungeonFlow!", DebugType.User);
-                return;
-            }
-            List<string> restoredObjectsDebugList = new List<string>();
-            List<string> registeredObjectsDebugList = new List<string>();
-
-            List<GameObject> registeredPrefabs = new List<GameObject>();
-            foreach (NetworkPrefab networkPrefab in networkManager.NetworkConfig.Prefabs.m_Prefabs)
-                registeredPrefabs.Add(networkPrefab.Prefab);
-
-            List<SpawnSyncedObject> spawnSyncedObjects = extendedDungeonFlow.DungeonFlow.GetSpawnSyncedObjects();
-            List<SpawnableMapObject> extendedSpawnableMapObjects = extendedDungeonFlow.SpawnableMapObjects;
-
-            foreach (GameObject registeredPrefab in registeredPrefabs)
-            {
-                foreach (SpawnSyncedObject spawnSyncedObject in new List<SpawnSyncedObject>(spawnSyncedObjects))
-                    if (spawnSyncedObject.spawnPrefab != null && spawnSyncedObject.spawnPrefab.name == registeredPrefab.name)
-                    {
-                        spawnSyncedObject.spawnPrefab = registeredPrefab;
-                        spawnSyncedObjects.Remove(spawnSyncedObject);
-                        if (!restoredObjectsDebugList.Contains(registeredPrefab.name))
-                            restoredObjectsDebugList.Add(registeredPrefab.name);
-                    }
-
-                // Just in case it's already registered as a network prefab for whatever reason, though it might not be necessary:
-                foreach (SpawnableMapObject spawnableMapObject in new List<SpawnableMapObject>(extendedSpawnableMapObjects))
-                    if(spawnableMapObject.prefabToSpawn != null && spawnableMapObject.prefabToSpawn.name == registeredPrefab.name)
-                    {
-                        spawnableMapObject.prefabToSpawn = registeredPrefab;
-                        extendedSpawnableMapObjects.Remove(spawnableMapObject);
-                        if(!restoredObjectsDebugList.Contains(registeredPrefab.name))
-                            restoredObjectsDebugList.Add(registeredPrefab.name);
-                    }
-                // ...
-            }
-            foreach (SpawnSyncedObject spawnSyncedObject in spawnSyncedObjects)
-            {
-                if (spawnSyncedObject != null && spawnSyncedObject.spawnPrefab != null)
-                {
-                    if (spawnSyncedObject.spawnPrefab.GetComponent<NetworkObject>() == null)
-                        spawnSyncedObject.spawnPrefab.AddComponent<NetworkObject>();
-                    ExtendedNetworkManager.RegisterNetworkPrefab(spawnSyncedObject.spawnPrefab);
-
-                    if (!registeredObjectsDebugList.Contains(spawnSyncedObject.spawnPrefab.name))
-                        registeredObjectsDebugList.Add(spawnSyncedObject.spawnPrefab.name);
-                }
-            }
-            foreach (SpawnableMapObject spawnableMapObject in extendedSpawnableMapObjects)
-            {
-                if(spawnableMapObject != null && spawnableMapObject.prefabToSpawn != null)
-                {
-                    if(!spawnableMapObject.prefabToSpawn.TryGetComponent(out NetworkObject _))
-                        spawnableMapObject.prefabToSpawn.AddComponent<NetworkObject>();
-                    ExtendedNetworkManager.RegisterNetworkPrefab(spawnableMapObject.prefabToSpawn);
-
-                    if(!registeredObjectsDebugList.Contains(spawnableMapObject.prefabToSpawn.name))
-                        registeredObjectsDebugList.Add(spawnableMapObject.prefabToSpawn.name);
-                }
-            }
-
-            string debugString = "Automatically Restored The Following SpawnablePrefab's In " + extendedDungeonFlow.DungeonFlow.name + ": ";
-            foreach (string debug in restoredObjectsDebugList)
-                debugString += debug + ", ";
-            DebugHelper.Log(debugString, DebugType.Developer);
-            debugString = "Automatically Registered The Following SpawnablePrefab's In " + extendedDungeonFlow.DungeonFlow.name + ": ";
-            foreach (string debug in registeredObjectsDebugList)
-                debugString += debug + ", ";
-            DebugHelper.Log(debugString, DebugType.Developer);
-        }
-
         internal static void SetVanillaLevelTags(ExtendedLevel vanillaLevel)
         {
             foreach (IntWithRarity intWithRarity in vanillaLevel.SelectableLevel.dungeonFlowTypes)
@@ -393,12 +265,8 @@ namespace LethalLevelLoader
                         if (DungeonManager.TryGetExtendedDungeonFlow(indoorMapType.dungeonFlow, out ExtendedDungeonFlow marchDungeonFlow))
                             marchDungeonFlow.LevelMatchingProperties.planetNames.Add(new StringWithRarity(vanillaLevel.NumberlessPlanetName, 300));
 
-            foreach (CompatibleNoun infoNoun in TerminalManager.routeInfoKeyword.compatibleNouns)
-                if (infoNoun.noun.word == vanillaLevel.NumberlessPlanetName.ToLower())
-                {
-                    vanillaLevel.InfoNode = infoNoun.result;
-                    break;
-                }
+            CompatibleNoun infoNoun = TerminalManager.routeInfoKeyword.compatibleNouns.Where(n => n.noun.word == vanillaLevel.NumberlessPlanetName.ToLower()).FirstOrDefault();
+            vanillaLevel.InfoNode = infoNoun != null ? infoNoun.result : null;
         }
 
         internal static string GetSceneName(string scenePath)
