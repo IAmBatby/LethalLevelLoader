@@ -546,14 +546,8 @@ namespace LethalLevelLoader
             ExtendedLevelGroup vanillaGroupD = new ExtendedLevelGroup(hiddenVanillaLevels);
 
             Dictionary<string, List<ExtendedLevel>> extendedLevelsContentSourceNameDictionary = new Dictionary<string, List<ExtendedLevel>>();
-
             foreach (ExtendedLevel customExtendedLevel in PatchedContent.CustomExtendedLevels)
-            {
-                if (extendedLevelsContentSourceNameDictionary.TryGetValue(customExtendedLevel.ModName, out List<ExtendedLevel> extendedLevels))
-                    extendedLevels.Add(customExtendedLevel);
-                else
-                    extendedLevelsContentSourceNameDictionary.Add(customExtendedLevel.ModName, new List<ExtendedLevel> { customExtendedLevel });                 
-            }
+                extendedLevelsContentSourceNameDictionary.AddOrAddAdd(customExtendedLevel.ModName, customExtendedLevel);               
 
             List<ExtendedLevelGroup> defaultVanillaExtendedLevelGroups = new List<ExtendedLevelGroup>() { vanillaGroupA, vanillaGroupB, vanillaGroupC, vanillaGroupD };
             List<ExtendedLevelGroup> defaultCustomGroupedExtendedLevelGroups = new List<ExtendedLevelGroup>();

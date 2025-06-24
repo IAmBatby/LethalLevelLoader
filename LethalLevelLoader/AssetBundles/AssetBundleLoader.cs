@@ -97,7 +97,6 @@ namespace LethalLevelLoader.AssetBundles
 
         private static void LoadAllBundles(DirectoryInfo directory = null, string specifiedFileName = null, string specifiedFileExtension = null, ParameterEvent<AssetBundleGroup> onProcessedCallback = null)
         {
-
             AllowLoading = false;
             processedBundleCount = 0;
             requestedBundleCount = 0;
@@ -109,19 +108,15 @@ namespace LethalLevelLoader.AssetBundles
             string callbackName = specifiedFileName == "*" ? string.Empty : specifiedFileName;
             string callbackExtension = specifiedFileExtension == ".*" ? string.Empty : specifiedFileExtension;
             string callBack = callbackName.ToLowerInvariant() + callbackExtension.ToLowerInvariant();
-            if (onProcessedCallback != null)
-            {
-                if (processedCallbacksDict.TryGetValue((directory.FullName, callBack), out List<ParameterEvent<AssetBundleGroup>> list))
-                    list.Add(onProcessedCallback);
-                else
-                    processedCallbacksDict.Add((directory.FullName, callBack), new List<ParameterEvent<AssetBundleGroup>>() { onProcessedCallback });
-            }
+
+            processedCallbacksDict.AddOrAddAdd((directory.FullName, callBack), onProcessedCallback);
 
             foreach (string filePath in Directory.GetFiles(directory.FullName, specifiedFileName + specifiedFileExtension, SearchOption.AllDirectories))
             {
                 requestedBundleCount++;
                 AssetBundleInfo newInfo = new AssetBundleInfo(Instance, filePath);
                 newInfo.OnBundleLoaded.AddListener(OnAssetBundleLoadChanged);
+                newInfo.OnBundeUnloaded.AddListener(OnAssetBundleLoadChanged);
                 Instance.AssetBundleInfos.Add(newInfo);
             }
 
@@ -138,7 +133,6 @@ namespace LethalLevelLoader.AssetBundles
                 AllowLoading = true;
                 OnBundlesFinishedProcessing.Invoke();
             }
-
         }
 
         private static void OnAssetBundleLoadChanged(AssetBundleInfo info)
@@ -268,48 +262,6 @@ namespace LethalLevelLoader.AssetBundles
                 return (false);
             else
                 return (true);
-
-
-            if (assetBundleInfos.Count == 0)
-            {
-                Debug.Log("Could Not Make Grouping (No Matches)");
-                return (false);
-            }
-
-            //LC specific validation because we don't want to load up any SelectableLevels's that don't have scenes with them
-            int highestStandardSceneNamesCount = 0;
-            int highestStreamingSceneNamesCount = 0;
-
-            for (int i = 0; i < assetBundleInfos.Count; i++)
-            {
-                int sceneCount = assetBundleInfos[i].GetSceneNames().Count;
-                if (assetBundleInfos[i].AssetBundleMode == AssetBundleType.Standard)
-                {
-                    if (sceneCount > highestStandardSceneNamesCount)
-                        highestStandardSceneNamesCount = sceneCount;
-                }
-                else if (assetBundleInfos[i].AssetBundleMode == AssetBundleType.Streaming)
-                {
-                    if (sceneCount > highestStreamingSceneNamesCount)
-                        highestStreamingSceneNamesCount = sceneCount;
-                }
-            }
-
-            //TODO - LLL Scene Selection support
-            /*if (highestStreamingSceneNamesCount != highestStandardSceneNamesCount)
-            {
-                Debug.Log("Could Not Make Grouping (Matching AssetBundleInfo's Have Inequal Scene Counts)");
-                return (false);
-            }*/
-
-            //This validates under the assumption this system may support loading new scenes from things that are not SelectableLevels
-            if (highestStreamingSceneNamesCount < highestStandardSceneNamesCount)
-            {
-                Debug.Log("Could Not Make Grouping (Standard Bundles Requesting More Scenes Than Streaming Bundles Have)");
-                return (false);
-            }
-
-            return (true);
         }
 
         public static int GetAssetBundleLoadingCount()

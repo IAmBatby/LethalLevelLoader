@@ -1,6 +1,6 @@
 ﻿using Unity.Netcode;
 using UnityEngine.SceneManagement;
-using static LethalLevelLoader.LethalLevelLoaderNetworkManager;
+using static LethalLevelLoader.ExtendedNetworkManager;
 
 namespace LethalLevelLoader
 {

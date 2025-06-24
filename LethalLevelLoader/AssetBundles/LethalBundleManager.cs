@@ -113,7 +113,7 @@ namespace LethalLevelLoader
                 {
                     try
                     {
-                        matchingExtendedMod.RegisterExtendedContent(extendedContent);
+                        matchingExtendedMod.TryRegisterExtendedContent(extendedContent);
                     }
                     catch (Exception ex)
                     {
@@ -142,7 +142,7 @@ namespace LethalLevelLoader
                 {
                     try
                     {
-                        extendedMod.RegisterExtendedContent(extendedContent);
+                        extendedMod.TryRegisterExtendedContent(extendedContent);
                     }
                     catch (Exception ex)
                     {
@@ -203,7 +203,7 @@ namespace LethalLevelLoader
             {
                 try
                 {
-                    extendedMod.RegisterExtendedContent(extendedContent);
+                    extendedMod.TryRegisterExtendedContent(extendedContent);
                 }
                 catch (Exception ex)
                 {
@@ -221,7 +221,6 @@ namespace LethalLevelLoader
                 obtainedExtendedModsList.Add(newExtendedMod);
                 return (newExtendedMod);
             }
-
             if (obtainedExtendedModsDict.TryGetValue(source, out List<ExtendedMod> extendedModList))
                 return (extendedModList.First());
             else
@@ -229,13 +228,7 @@ namespace LethalLevelLoader
                 DebugHelper.Log("Creating New ExtendedMod: " + contentSourceName, DebugType.Developer);
                 ExtendedMod newExtendedMod = ExtendedMod.Create(contentSourceName);
                 obtainedExtendedModsList.Add(newExtendedMod);
-                if (obtainedExtendedModsDict.TryGetValue(source, out List<ExtendedMod> foundExtendedModList))
-                {
-                    if (!foundExtendedModList.Contains(newExtendedMod))
-                        foundExtendedModList.Add(newExtendedMod);
-                }
-                else
-                    obtainedExtendedModsDict.Add(source, new List<ExtendedMod> { newExtendedMod });
+                obtainedExtendedModsDict.AddOrAddAdd(source, newExtendedMod);
                 return (newExtendedMod);
             }
         }

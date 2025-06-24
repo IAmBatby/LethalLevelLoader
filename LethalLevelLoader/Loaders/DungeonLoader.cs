@@ -26,8 +26,8 @@ namespace LethalLevelLoader
         internal static void SelectDungeon()
         {
             Patches.RoundManager.dungeonGenerator.Generator.DungeonFlow = null;
-            if (LethalLevelLoaderNetworkManager.Instance.IsServer)
-                LethalLevelLoaderNetworkManager.Instance.GetRandomExtendedDungeonFlowServerRpc();
+            if (ExtendedNetworkManager.Instance.IsServer)
+                ExtendedNetworkManager.Instance.GetRandomExtendedDungeonFlowServerRpc();
         }
 
         internal static void PrepareDungeon()

@@ -8,7 +8,7 @@ namespace LethalLevelLoader
 {
     public struct NetworkEnemyTypeReference : INetworkSerializable
     {
-        private List<NetworkPrefab> m_Prefabs => LethalLevelLoaderNetworkManager.networkManager.NetworkConfig.Prefabs.m_Prefabs;
+        private List<NetworkPrefab> m_Prefabs => ExtendedNetworkManager.NetworkManagerInstance.NetworkConfig.Prefabs.m_Prefabs;
 
         private uint m_NetworkEnemyTypeObjectId;
         private static uint s_NullId = uint.MaxValue;

@@ -8,36 +8,88 @@ using System.Security.Cryptography;
 using System.Text;
 using System;
 using System.Reflection;
+using Zeekerss.Core.Singletons;
 
 namespace LethalLevelLoader
 {
-    public class LethalLevelLoaderNetworkManager : NetworkBehaviour
+    public class ExtendedNetworkManager : NetworkSingleton<ExtendedNetworkManager>
     {
-        public static LethalLevelLoaderNetworkManager networkingManagerPrefab;
-        private static LethalLevelLoaderNetworkManager _instance;
-        public static LethalLevelLoaderNetworkManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = UnityEngine.Object.FindObjectOfType<LethalLevelLoaderNetworkManager>();
-                if (_instance == null)
-                    DebugHelper.LogError("LethalLevelLoaderNetworkManager Could Not Be Found! Returning Null!", DebugType.User);
-                return _instance;
-            }
-            set { _instance = value; }
-        }
-        public static NetworkManager networkManager;
+        public static ExtendedNetworkManager Instance => NetworkInstance as ExtendedNetworkManager;
 
         private static List<GameObject> queuedNetworkPrefabs = new List<GameObject>();
+        private static List<GameObject> addedNetworkPrefabs = new List<GameObject>();
         public static bool networkHasStarted;
 
-        public override void OnNetworkSpawn()
+        private static List<NetworkSingleton> queuedNetworkSingletonSpawns = new List<NetworkSingleton>();
+
+        internal static T CreateAndRegisterNetworkSingleton<T>(Type realType,  string name, bool dontDestroyWithOwner = false, bool sceneMigration = true, bool destroyWithScene = true) where T : NetworkSingleton
         {
-            base.OnNetworkSpawn();
+            var prefab = Utilities.CreateNetworkPrefab<T>(realType, name, dontDestroyWithOwner, sceneMigration, destroyWithScene);
+            queuedNetworkSingletonSpawns.Add(prefab);
+            return (prefab);
+        }
+
+        static int activeNetworkSingletonSpawnCounter;
+
+        internal static void SpawnNetworkSingletons()
+        {
+            activeNetworkSingletonSpawnCounter = queuedNetworkSingletonSpawns.Count;
+            if (!NetworkManagerInstance.IsServer) return;
+            DebugHelper.Log("Spawning: " + activeNetworkSingletonSpawnCounter + " NetworkSingletons!", DebugType.User);
+            foreach (NetworkSingleton singletonPrefab in queuedNetworkSingletonSpawns)
+            {
+                DebugHelper.Log("Spawning NetworkSingleton: " + singletonPrefab.name, DebugType.User);
+                Instantiate(singletonPrefab).GetComponent<NetworkObject>().Spawn(true); //MAKE NOT TRUE LATER
+            }
+        }
+
+        internal static void OnNetworkSingletonSpawned(NetworkSingleton singleton)
+        {
+            DebugHelper.Log("NetworkSingleton: " + singleton.name + " Has Spawned!", DebugType.User);
+            activeNetworkSingletonSpawnCounter--;
+            if (activeNetworkSingletonSpawnCounter == 0)
+                OnNetworkSingletonsSpawned();
+        }
+
+        internal static void OnNetworkSingletonsSpawned()
+        {
+            DebugHelper.Log("All Registered NetworkSingletons Have Spawned!", DebugType.User);
+        }
+
+        //private static Dictionary<Type, NetworkSingleton> networkSingletonNetworkPrefabs = new Dictionary<Type, NetworkSingleton>();
+        //private static Dictionary<NetworkSingleton, NetworkSingleton> networkSingletonSpawnedPrefabs = new Dictionary<NetworkSingleton, NetworkSingleton>();
+        /*
+        public static void SpawnNetworkSingleton<T>(T networkSingletonPrefab, bool destroyWithScene = false) where T : NetworkSingleton<T>
+        {
+            if (networkSingletonNetworkPrefabs.ContainsKey(typeof(T))) return;
+            networkSingletonNetworkPrefabs.Add(typeof(T), networkSingletonPrefab); //Gotta add on clients
+            if (!networkManager.IsServer) return;
+            Instantiate(networkSingletonPrefab).GetComponent<NetworkObject>().Spawn(destroyWithScene);
+        }
+
+        internal static void OnNetworkSingletonSpawn<T>(T networkSingletonInstance) where T : NetworkSingleton<T>
+        {
+            if (networkSingletonNetworkPrefabs.TryGetValue(typeof(T), out NetworkSingleton prefab))
+                networkSingletonSpawnedPrefabs.Add(prefab, networkSingletonInstance);
+        }
+
+        //Needs work
+        internal static void OnNetworkSingletonDespawn<T>(T networkSingletonInstance) where T : NetworkSingleton<T>
+        {
+            if (networkSingletonSpawnedPrefabs.ContainsKey(networkSingletonNetworkPrefabs[typeof(T)]))
+                networkSingletonSpawnedPrefabs.Remove(networkSingletonNetworkPrefabs[typeof(T)]);
+        }*/
+
+        protected override void OnNetworkSingletonSpawn()
+        {
             gameObject.name = "LethalLevelLoaderNetworkManager";
-            Instance = this;
             DebugHelper.Log("LethalLevelLoaderNetworkManager Spawned.", DebugType.User);
+        }
+
+        public static void TryRefreshWeather()
+        {
+            if (IsSpawnedAndIntialized)
+                Instance.GetUpdatedLevelCurrentWeatherServerRpc();
         }
 
         [ServerRpc]
@@ -77,7 +129,7 @@ namespace LethalLevelLoader
         }
 
         [ServerRpc]
-        public void GetUpdatedLevelCurrentWeatherServerRpc()
+        private void GetUpdatedLevelCurrentWeatherServerRpc()
         {
             List<StringContainer> levelNames = new List<StringContainer>();
             List<LevelWeatherType> weatherTypes = new List<LevelWeatherType>();
@@ -116,26 +168,20 @@ namespace LethalLevelLoader
         public void SetRandomExtendedDungeonFlowClientRpc(StringContainer[] dungeonFlowNames, int[] rarities)
         {
             DebugHelper.Log("Setting Random DungeonFlows!", DebugType.User);
-            List<IntWithRarity> dungeonFlowsList = new List<IntWithRarity>();
-            List<IntWithRarity> cachedDungeonFlowsList = new List<IntWithRarity>();
-            
+            List<DungeonFlow> roundManagerFlows = Patches.RoundManager.GetDungeonFlows();
+            IntWithRarity[] injectedDungeons = new IntWithRarity[dungeonFlowNames.Length];
+            IntWithRarity[] cachedDungeons = LevelManager.CurrentExtendedLevel.SelectableLevel.dungeonFlowTypes;
             Dictionary<string, int> dungeonFlowIds = new Dictionary<string, int>();
-            int counter = 0;
-            foreach (DungeonFlow dungeonFlow in Patches.RoundManager.GetDungeonFlows())
-            {
-                dungeonFlowIds.Add(dungeonFlow.name, counter);
-                counter++;
-            }    
+
+            for (int i = 0; i < roundManagerFlows.Count; i++)
+                dungeonFlowIds.Add(roundManagerFlows[i].name, i);
+
             for (int i = 0; i < dungeonFlowNames.Length; i++)
-            {
-                IntWithRarity intWithRarity = new IntWithRarity();
-                intWithRarity.Add(dungeonFlowIds[dungeonFlowNames[i].SomeText], rarities[i]);
-                dungeonFlowsList.Add(intWithRarity);
-            }
-            cachedDungeonFlowsList = new List<IntWithRarity>(LevelManager.CurrentExtendedLevel.SelectableLevel.dungeonFlowTypes.ToList());
-            LevelManager.CurrentExtendedLevel.SelectableLevel.dungeonFlowTypes = dungeonFlowsList.ToArray();
+                injectedDungeons[i] = Utilities.Create(dungeonFlowIds[dungeonFlowNames[i].SomeText], rarities[i]);
+
+            LevelManager.CurrentExtendedLevel.SelectableLevel.dungeonFlowTypes = injectedDungeons;
             Patches.RoundManager.GenerateNewFloor();
-            LevelManager.CurrentExtendedLevel.SelectableLevel.dungeonFlowTypes = cachedDungeonFlowsList.ToArray();
+            LevelManager.CurrentExtendedLevel.SelectableLevel.dungeonFlowTypes = cachedDungeons;
         }
 
         [ServerRpc]
@@ -201,7 +247,7 @@ namespace LethalLevelLoader
         {
             //DebugHelper.Log("Game NetworkManager Start");
 
-            List<GameObject> addedNetworkPrefabs = new List<GameObject>();
+            addedNetworkPrefabs = new List<GameObject>();
 
             foreach (NetworkPrefab networkPrefab in networkManager.NetworkConfig.Prefabs.Prefabs)
                 addedNetworkPrefabs.Add(networkPrefab.Prefab);
@@ -233,13 +279,9 @@ namespace LethalLevelLoader
             public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
             {
                 if (serializer.IsWriter)
-                {
                     serializer.GetFastBufferWriter().WriteValueSafe(SomeText);
-                }
                 else
-                {
                     serializer.GetFastBufferReader().ReadValueSafe(out SomeText);
-                }
             }
         }
     }

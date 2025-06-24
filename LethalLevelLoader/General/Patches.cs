@@ -120,17 +120,15 @@ if (AssetBundleLoader.noBundlesFound == true)
             if (Plugin.IsSetupComplete == false)
             {
                 NetworkManager netMan = __instance.GetComponent<NetworkManager>();
-                LethalLevelLoaderNetworkManager.networkManager = netMan;
-                NetworkBundleManager.networkManager = netMan;
                 foreach (NetworkPrefab networkPrefab in netMan.NetworkConfig.Prefabs.Prefabs)
                     if (networkPrefab.Prefab.name.Contains("EntranceTeleport") && networkPrefab.Prefab.TryGetComponent(out AudioSource source))
                             OriginalContent.AudioMixers.Add(source.outputAudioMixerGroup.audioMixer);
 
-                LethalLevelLoaderNetworkManager.networkingManagerPrefab = Utilities.CreateNetworkPrefab<LethalLevelLoaderNetworkManager>("LethalLevelLoaderNetworkManager", false, true, false);
-                NetworkBundleManager.networkingManagerPrefab = Utilities.CreateNetworkPrefab<NetworkBundleManager>("NetworkBundleManager", false, true, false);
+                //ExtendedNetworkManager.networkingManagerPrefab = Utilities.CreateNetworkPrefab<ExtendedNetworkManager>("LethalLevelLoaderNetworkManager", false, true, false);
+                //NetworkBundleManager.networkingManagerPrefab = Utilities.CreateNetworkPrefab<NetworkBundleManager>("NetworkBundleManager", false, true, false);
 
                 AssetBundleLoader.NetworkRegisterCustomContent(netMan);
-                LethalLevelLoaderNetworkManager.RegisterPrefabs(netMan);
+                ExtendedNetworkManager.RegisterPrefabs(netMan);
             }
         }
 
@@ -176,11 +174,7 @@ if (AssetBundleLoader.noBundlesFound == true)
             }
 
             //Startup LethalLevelLoader's Network Manager Instance
-            if (LethalLevelLoaderNetworkManager.networkManager.IsServer || LethalLevelLoaderNetworkManager.networkManager.IsHost)
-            {
-                GameObject.Instantiate(LethalLevelLoaderNetworkManager.networkingManagerPrefab).GetComponent<NetworkObject>().Spawn(destroyWithScene: false);
-                GameObject.Instantiate(NetworkBundleManager.networkingManagerPrefab).GetComponent<NetworkObject>().Spawn(destroyWithScene: false);
-            }
+            ExtendedNetworkManager.SpawnNetworkSingletons();
 
             //Add the facility's firstTimeDungeonAudio additionally to RoundManager's list to fix a base game bug.
             RoundManager.firstTimeDungeonAudios = RoundManager.firstTimeDungeonAudios.ToList().AddItem(RoundManager.firstTimeDungeonAudios[0]).ToArray();
@@ -421,7 +415,7 @@ if (AssetBundleLoader.noBundlesFound == true)
 
             DebugStopwatch.StartStopWatch("Initialize Save");
 
-            if (LethalLevelLoaderNetworkManager.networkManager.IsServer)
+            if (ExtendedNetworkManager.NetworkManagerInstance.IsServer)
                 SaveManager.InitializeSave();
 
             DebugStopwatch.StopStopWatch("Initialize Save");
@@ -452,14 +446,14 @@ if (AssetBundleLoader.noBundlesFound == true)
         internal static void StartOfRoundSetPlanetsWeather_Postfix()
         {
             if (IsServer)
-                LethalLevelLoaderNetworkManager.Instance.GetUpdatedLevelCurrentWeatherServerRpc();
+                ExtendedNetworkManager.InvokeWhenInitalized(ExtendedNetworkManager.TryRefreshWeather);
         }
 
         public static bool hasInitiallyChangedLevel;
         [HarmonyPatch(typeof(StartOfRound), "ChangeLevel"), HarmonyPrefix, HarmonyPriority(priority)]
         public static bool StartOfRoundChangeLevel_Prefix(ref int levelID)
         {
-            if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false) return (true);
+            if (ExtendedNetworkManager.NetworkManagerInstance.IsServer == false) return (true);
 
             //Because Level ID's can change between modpack adjustments and such, we save the name of the level instead and find and load that up instead of the saved ID the base game uses.
             if (hasInitiallyChangedLevel == false && !string.IsNullOrEmpty(SaveManager.currentSaveFile.CurrentLevelName))
@@ -485,7 +479,7 @@ if (AssetBundleLoader.noBundlesFound == true)
         [HarmonyPatch(typeof(StartOfRound), "ChangeLevel"), HarmonyPostfix, HarmonyPriority(priority)]
         public static void StartOfRoundChangeLevel_Postfix(int levelID)
         {
-            NetworkBundleManager.Instance.Refresh();
+            NetworkBundleManager.TryRefresh();
             if (IsServer && RoundManager.currentLevel != null && SaveManager.currentSaveFile.CurrentLevelName != RoundManager.currentLevel.PlanetName)
             {
                 DebugHelper.Log("Saving Current SelectableLevel: " + RoundManager.currentLevel.PlanetName, DebugType.User);
@@ -535,6 +529,8 @@ if (AssetBundleLoader.noBundlesFound == true)
         internal static void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
             Events.TryUpdateGameState(scene.name);
+            if (Events.CurrentState != GameStates.Moon)
+                Events.SetLobbyState(false);
             if (LevelManager.CurrentExtendedLevel == null || LevelManager.CurrentExtendedLevel.IsLevelLoaded == false) return;
             foreach (GameObject rootObject in SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.SelectableLevel.sceneName).GetRootGameObjects())
             {

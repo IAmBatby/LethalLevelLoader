@@ -118,6 +118,26 @@ namespace LethalLevelLoader
             intWithRarity.rarity = rarity;
         }
 
+        public static IntWithRarity Create(this IntWithRarity intWithRarity, int id, int rarity)
+        {
+            IntWithRarity returnR = new IntWithRarity();
+            returnR.id = id;
+            returnR.rarity = rarity;
+            return (returnR);
+        }
+
+        public static void AddOrAddAdd<K,V>(this Dictionary<K,List<V>> dict, K key, V value)
+        {
+            if (key == null || value == null) return;
+            if (dict.TryGetValue(key, out List<V> list))
+            {
+                if (!list.Contains(value))
+                    list.Add(value);
+            }
+            else
+                dict.Add(key, new List<V>() { value });
+        }
+
         public static string Sanitized(this string currentString)
         {
             return new string(currentString.SkipToLetters().RemoveWhitespace().ToLowerInvariant());

@@ -4,6 +4,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using LethalLevelLoader.Tools;
 using System;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using Application = UnityEngine.Application;
@@ -32,6 +33,22 @@ namespace LethalLevelLoader
         public static bool IsSetupComplete { get; private set; } = false;
         public static bool IsLobbyInitialized { get; internal set; } = false;
 
+        private static GameObject _setupObject;
+        internal static GameObject SetupObject
+        {
+            get
+            {
+                if (_setupObject == null)
+                {
+                    _setupObject = new GameObject("LLLSetupObject");
+                    _setupObject.SetActive(false);
+                    DontDestroyOnLoad(SetupObject);
+                }
+                return (_setupObject);
+            }
+
+        }
+
         internal static GameObject networkManagerPrefab;
 
         private void Awake()
@@ -48,7 +65,7 @@ namespace LethalLevelLoader
             if (LevelLoader.vanillaWaterShader == null)
                 DebugHelper.LogError("Could Not Find Water Shader", DebugType.User);
 
-            Harmony.PatchAll(typeof(LethalLevelLoaderNetworkManager));
+            Harmony.PatchAll(typeof(ExtendedNetworkManager));
             Harmony.PatchAll(typeof(DungeonLoader));
 
             Harmony.PatchAll(typeof(Patches));
@@ -103,30 +120,23 @@ namespace LethalLevelLoader
         internal static void LobbyInitialized()
         {
             IsLobbyInitialized = true;
+            Events.SetLobbyState(true);
             onLobbyInitialized?.Invoke();
         }
 
         private void NetcodePatch()
         {
-            try
+            foreach (MethodInfo method in Assembly.GetExecutingAssembly().GetTypes().SelectMany(t => t.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)))
             {
-                var types = Assembly.GetExecutingAssembly().GetTypes();
-                foreach (var type in types)
+                try
                 {
-                    var methods = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-                    foreach (var method in methods)
-                    {
-                        var attributes = method.GetCustomAttributes(typeof(RuntimeInitializeOnLoadMethodAttribute), false);
-                        if (attributes.Length > 0)
-                        {
-                            method.Invoke(null, null);
-                        }
-                    }
+                    if (method.GetCustomAttributes(typeof(RuntimeInitializeOnLoadMethodAttribute), false).Length > 0)
+                        method.Invoke(null, null);
                 }
-            }
-            catch
-            {
-                DebugHelper.LogError("NetcodePatcher Failed! This Is Very Bad.", DebugType.Developer);
+                catch (Exception ex)
+                {
+                    //DebugHelper.LogError("NetcodePatcher Failed! This Is Very Bad: Method: " + method.Name + " , Type: " + method.DeclaringType + ", Error: " + ex.ToString(), DebugType.User);
+                }
             }
         }
 

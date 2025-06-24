@@ -28,7 +28,7 @@ namespace LethalLevelLoader
             if (!string.IsNullOrEmpty(log) && (int)Settings.debugType >= (int)debugType)
             {
                 string logString = log;
-                if (Plugin.logger != null)
+                if (Plugin.logger != null && !Application.isEditor)
                     Plugin.logger.LogInfo(logString);
                 else
                     UnityEngine.Debug.Log("LethalLevelLoader Fallback Logger: " + logString);

@@ -14,7 +14,7 @@ namespace LethalLevelLoader
 
         internal static void InitializeSave()
         {
-            if (LethalLevelLoaderNetworkManager.networkManager.IsServer == false)
+            if (ExtendedNetworkManager.NetworkManagerInstance.IsServer == false)
                 return;
 
             currentSaveFile = new LLLSaveFile();
@@ -46,7 +46,7 @@ namespace LethalLevelLoader
             if (currentSaveFile.extendedLevelSaveData != null)
             {
                 foreach (ExtendedLevelData extendedLevelData in currentSaveFile.extendedLevelSaveData)
-                    LethalLevelLoaderNetworkManager.Instance.SetExtendedLevelValuesServerRpc(extendedLevelData);
+                    ExtendedNetworkManager.Instance.SetExtendedLevelValuesServerRpc(extendedLevelData);
             }
         }
 

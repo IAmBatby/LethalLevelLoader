@@ -18,29 +18,16 @@ namespace LethalLevelLoader
         private static HashSet<ExtendedContent> RegisteredExtendedContents = new HashSet<ExtendedContent>();
         private static HashSet<ExtendedContent> InitializedExtendedContents = new HashSet<ExtendedContent>();
 
-        private static GameObject _setupObject;
-        private static GameObject SetupObject
-        {
-            get
-            {
-                if (_setupObject == null)
-                {
-                    _setupObject = new GameObject("LLLSetupObject");
-                    DontDestroyOnLoad(SetupObject);
-                }
-                return (_setupObject);
-            }
-            
-        }
         //This is pretty cursed but basicially I need to setup a static prefab for every ExtendedContentManager dynamically
         //and this is the best way to do so with no hardcoding and potential support for non LLL mods to implement content types.
         //We spawn a temp instance to utilise inheritence so we can make the real prefab in the context of each classes generic definition.
         [RuntimeInitializeOnLoadMethod]
         private static void Init()
         {
+            DebugHelper.Log("Test Init ExtendedContentManager", DebugType.User);
             foreach (Type type in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()))
                 if (type.IsAbstract == false && type.IsSubclassOf(typeof(ExtendedContentManager)))
-                    if (SetupObject.AddComponent(type) is ExtendedContentManager manager)
+                    if (Plugin.SetupObject.AddComponent(type) is ExtendedContentManager manager)
                         manager.CreateNetworkPrefab();
         }
 
@@ -68,6 +55,7 @@ namespace LethalLevelLoader
         }
 
         //private static
+
     }
 
     public abstract class ExtendedContentManager<E,C,M> : ExtendedContentManager, IExtendedManager<E,C,M> where E : ExtendedContent<E,C,M>, IExtendedContent<E,C,M> where M : ExtendedContentManager, IExtendedManager<E,C,M>
@@ -88,12 +76,11 @@ namespace LethalLevelLoader
             ExtensionDictionary.Add(e.Content, e);
             CatalogValidatedContent(e);
             CatalogRegisteredContent(e);
-            //mod.AddContent(e);
+            mod.RegisterExtendedContent(e);
         }
 
         public static bool TryRegisterContent(ExtendedMod mod, E content)
         {
-            DebugHelper.Log("Trying To Register: " + content, DebugType.User);
             string errorText = string.Empty;
             if (content == null)
                 errorText = "Null ExtendedContent Could Not Be Registered To ExtendedMod: " + mod.ModName + "!";
@@ -120,7 +107,7 @@ namespace LethalLevelLoader
 
         protected override sealed void CreateNetworkPrefab()
         {
-            DebugHelper.Log("Init Running On ContentManager: " + this.GetType(), DebugType.User);
+            DebugHelper.Log("Initializing: " + this.GetType(), DebugType.User);
             Prefab = Utilities.CreateNetworkPrefab<ExtendedContentManager<E, C, M>>(GetType(), typeof(M).Name + " (NetworkPrefab)");
             GameObject.Destroy(this);
         }

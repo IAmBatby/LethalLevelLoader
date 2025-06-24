@@ -67,12 +67,6 @@ namespace LethalLevelLoader
         public delegate void BundleFinishedLoading(AssetBundle assetBundle);
         public static event BundleFinishedLoading onBundleFinishedLoading;
 
-        internal static TextMeshProUGUI loadingBundlesHeaderText;
-
-        internal static bool noBundlesFound = false;
-
-        internal static bool hasRequestedToLoadMainMenu;
-
         //This Function is used to Register NetworkPrefabs to the GameNetworkManager on GameNetworkManager.Start()
         internal static void NetworkRegisterCustomContent(NetworkManager networkManager)
         {
@@ -84,20 +78,20 @@ namespace LethalLevelLoader
                     NetworkRegisterDungeonContent(extendedDungeonFlow, networkManager);
 
                 foreach (ExtendedItem extendedItem in extendedMod.ExtendedItems)
-                    LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedItem.Item.spawnPrefab);
+                    ExtendedNetworkManager.RegisterNetworkPrefab(extendedItem.Item.spawnPrefab);
 
                 foreach (ExtendedEnemyType extendedEnemyType in extendedMod.ExtendedEnemyTypes)
-                    LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedEnemyType.EnemyType.enemyPrefab);
+                    ExtendedNetworkManager.RegisterNetworkPrefab(extendedEnemyType.EnemyType.enemyPrefab);
 
                 foreach (ExtendedBuyableVehicle extendedBuyableVehicle in extendedMod.ExtendedBuyableVehicles)
                 {
-                    LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedBuyableVehicle.BuyableVehicle.vehiclePrefab);
-                    LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedBuyableVehicle.BuyableVehicle.secondaryPrefab);
+                    ExtendedNetworkManager.RegisterNetworkPrefab(extendedBuyableVehicle.BuyableVehicle.vehiclePrefab);
+                    ExtendedNetworkManager.RegisterNetworkPrefab(extendedBuyableVehicle.BuyableVehicle.secondaryPrefab);
                 }
 
                 foreach (ExtendedUnlockableItem extendedUnlockableItem in extendedMod.ExtendedUnlockableItems)
                     if (extendedUnlockableItem.UnlockableItem.unlockableType == 1 && extendedUnlockableItem.UnlockableItem.prefabObject != null)
-                        LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(extendedUnlockableItem.UnlockableItem.prefabObject);
+                        ExtendedNetworkManager.RegisterNetworkPrefab(extendedUnlockableItem.UnlockableItem.prefabObject);
             }
         }
 
@@ -116,383 +110,39 @@ namespace LethalLevelLoader
 
             return (false);
         }
-        /*
-        internal void LoadBundles()
-        {
-            DebugHelper.Log("Finding LethalBundles!", DebugType.User);
-
-            CurrentLoadingStatus = LoadingStatus.Loading;
-            Instance = this;
-            //Instance = new AssetBundleLoader();
-
-            onBundlesFinishedLoading += OnBundlesFinishedLoading;
-
-            PatchedContent.VanillaMod = ExtendedMod.Create("LethalCompany", "Zeekerss");
-            //PatchedContent.ExtendedMods.Add(PatchedContent.VanillaMod);
-
-            lethalLibFolder = lethalLibFile.Parent;
-            pluginsFolder = lethalLibFile.Parent.Parent;
-
-            int counter = 0;
-            foreach (string file in Directory.GetFiles(pluginsFolder.FullName, specifiedFileExtension, SearchOption.AllDirectories))
-            {
-                FileInfo fileInfo = new FileInfo(file);
-                if (!assetBundles.ContainsKey(fileInfo.Name))
-                {
-                    counter++;
-                    assetBundles.Add(fileInfo.Name, null);
-                    UpdateLoadingBundlesHeaderText(null);
-                    StartCoroutine(Instance.LoadBundle(file, fileInfo.Name));
-                }
-                else
-                    DebugHelper.LogError("Failed To Load Lethalbundle: " + fileInfo.Name + ". A Lethalbundle with an indentical name has already been found.", DebugType.User);
-            }
-            if (counter == 0)
-            {
-                DebugHelper.Log("No Bundles Found!", DebugType.User);
-                noBundlesFound = true;
-                CurrentLoadingStatus = LoadingStatus.Complete;
-                onBundlesFinishedLoading?.Invoke();
-            }
-        }
-        */
-        /*
-        internal static void OnBundlesFinishedLoadingInvoke()
-        {
-            onBundlesFinishedLoading?.Invoke();
-        }
-        */
-        /*
-        IEnumerator LoadBundle(string bundleFile, string fileName)
-        {
-            Stopwatch stopWatch = new Stopwatch();
-            stopWatch.Start();
-            //FileStream fileStream = new FileStream(Path.Combine(Application.streamingAssetsPath, bundleFile), FileMode.Open, FileAccess.Read);
-            AssetBundleCreateRequest newBundleRequest = AssetBundle.LoadFromFileAsync(Path.Combine(Application.streamingAssetsPath, bundleFile));
-            yield return newBundleRequest;
-
-            AssetBundle newBundle = newBundleRequest.assetBundle;
-
-            //yield return new WaitUntil(() => newBundle != null);
-
-            if (newBundle != null)
-            {
-                AssetBundleInfos.Add(new AssetBundleInfo(bundleFile, newBundle));
-                assetBundles[fileName] = newBundle;
-
-                if (newBundle.isStreamedSceneAssetBundle == false)
-                {
-                    ExtendedMod[] extendedMods = newBundle.LoadAllAssets<ExtendedMod>();
-                    if (extendedMods != null && extendedMods.Length > 0 && extendedMods[0] != null)
-                        RegisterExtendedMod(extendedMods[0]);
-                    else
-                    {
-                        DebugHelper.Log("No ExtendedMod Found In Bundle: " + newBundle.name + ". Forcefully Loading ExtendedContent!", DebugType.User);
-                        foreach (ExtendedContent extendedContent in newBundle.LoadAllAssets<ExtendedContent>())
-                            RegisterNewExtendedContent(extendedContent, newBundle.name);
-                    }
-                }
-
-                onBundleFinishedLoading?.Invoke(newBundle);
-            }
-            else
-            {
-                DebugHelper.LogError("Failed To Load Bundle: " + bundleFile, DebugType.User);
-                assetBundles.Remove(fileName);
-                yield break;
-            }
-             
-            if (HaveBundlesFinishedLoading == true)
-            {
-                CurrentLoadingStatus = LoadingStatus.Complete;
-                onBundlesFinishedLoading?.Invoke();
-            }
-            else
-            {
-                
-            }
-
-            //fileStream.Close();
-            stopWatch.Stop();
-            try
-            {
-                assetBundleLoadTimes.Add(bundleFile.Substring(bundleFile.LastIndexOf("\\") + 1), $"{stopWatch.Elapsed.TotalSeconds:0.##} Seconds. ({stopWatch.ElapsedMilliseconds}ms)");
-            }
-            catch (Exception ex)
-            {
-                DebugHelper.LogError(ex, DebugType.User);
-            }
-        }
-        */
-        /*
-        internal static void RegisterExtendedMod(ExtendedMod extendedMod)
-        {
-            DebugHelper.Log("Found ExtendedMod: " + extendedMod.name, DebugType.User);
-            extendedMod.ModNameAliases.Add(extendedMod.ModName);
-            ExtendedMod matchingExtendedMod = null;
-            foreach (ExtendedMod registeredExtendedMod in obtainedExtendedModsDictionary.Values)
-            {
-                if (extendedMod.ModMergeSetting == ModMergeSetting.MatchingModName && registeredExtendedMod.ModMergeSetting == ModMergeSetting.MatchingModName)
-                {
-                    if (registeredExtendedMod.ModName == extendedMod.ModName)
-                        matchingExtendedMod = registeredExtendedMod;
-                }
-                else if (extendedMod.ModMergeSetting == ModMergeSetting.MatchingAuthorName && registeredExtendedMod.ModMergeSetting == ModMergeSetting.MatchingAuthorName)
-                {
-                    if (registeredExtendedMod.AuthorName == extendedMod.AuthorName)
-                        matchingExtendedMod = registeredExtendedMod;
-                }
-            }
-
-            if (matchingExtendedMod != null)
-            {
-                if (!matchingExtendedMod.ModName.Contains(matchingExtendedMod.AuthorName))
-                {
-                    DebugHelper.Log("Renaming ExtendedMod: " + matchingExtendedMod.ModName + " To: " +  matchingExtendedMod.AuthorName + "sMod" + " Due To Upcoming ExtendedMod Merge!", DebugType.Developer);
-                    matchingExtendedMod.ModNameAliases.Add(extendedMod.ModName);
-                    matchingExtendedMod.ModName = matchingExtendedMod.AuthorName + "sMod";
-                    //matchingExtendedMod.name = matchingExtendedMod.ModName;
-                }
-                DebugHelper.Log("Merging ExtendedMod: " + extendedMod.ModName + " (" + extendedMod.AuthorName + ")" + " With Already Obtained ExtendedMod: " + matchingExtendedMod.ModName + " (" + matchingExtendedMod.AuthorName + ")", DebugType.Developer);
-                foreach (ExtendedContent extendedContent in extendedMod.ExtendedContents)
-                {
-                    try
-                    {
-                        matchingExtendedMod.RegisterExtendedContent(extendedContent);
-                    }
-                    catch (Exception ex)
-                    {
-                        DebugHelper.LogError(ex, DebugType.User);
-                    }
-                }
-            }
-            else
-            {
-                obtainedExtendedModsDictionary.Add(extendedMod.AuthorName, extendedMod);
-                List<ExtendedContent> serializedExtendedContents = new List<ExtendedContent>(extendedMod.ExtendedContents);
-                extendedMod.UnregisterAllExtendedContent();
-                foreach (ExtendedContent extendedContent in serializedExtendedContents)
-                {
-                    try
-                    {
-                        extendedMod.RegisterExtendedContent(extendedContent);
-                    }
-                    catch (Exception ex)
-                    {
-                        DebugHelper.LogError(ex, DebugType.User);
-                    }
-                }
-            }
-        }
-        */
-        internal static void RegisterNewExtendedMod()
-        {
-
-        }
 
         public static void AddOnLethalBundleLoadedListener(Action<AssetBundle> invokedFunction, string lethalBundleFileName)
         {
-            if (invokedFunction != null && !string.IsNullOrEmpty(lethalBundleFileName))
-            {
-                if (!AssetBundles.AssetBundleLoader.onLethalBundleLoadedRequestDict.ContainsKey(lethalBundleFileName))
-                    AssetBundles.AssetBundleLoader.onLethalBundleLoadedRequestDict.Add(lethalBundleFileName, new List<Action<AssetBundle>>() { invokedFunction });
-                else
-                    AssetBundles.AssetBundleLoader.onLethalBundleLoadedRequestDict[lethalBundleFileName].Add(invokedFunction);
-            }
+            AssetBundles.AssetBundleLoader.onLethalBundleLoadedRequestDict.AddOrAddAdd(lethalBundleFileName, invokedFunction);
         }
 
         public static void AddOnExtendedModLoadedListener(Action<ExtendedMod> invokedFunction, string extendedModAuthorName = null, string extendedModModName = null)
         {
-            if (invokedFunction != null && !string.IsNullOrEmpty(extendedModAuthorName))
-            {
-                if (!LethalBundleManager.onExtendedModLoadedRequestDict.ContainsKey(extendedModAuthorName))
-                    LethalBundleManager.onExtendedModLoadedRequestDict.Add(extendedModAuthorName, new List<Action<ExtendedMod>>() { invokedFunction });
-                else
-                    LethalBundleManager.onExtendedModLoadedRequestDict[extendedModAuthorName].Add(invokedFunction);
-            }
-
-            if (invokedFunction != null && !string.IsNullOrEmpty(extendedModModName))
-            {
-                if (!LethalBundleManager.onExtendedModLoadedRequestDict.ContainsKey(extendedModModName))
-                    LethalBundleManager.onExtendedModLoadedRequestDict.Add(extendedModModName, new List<Action<ExtendedMod>>() { invokedFunction });
-                else
-                    LethalBundleManager.onExtendedModLoadedRequestDict[extendedModModName].Add(invokedFunction);
-            }
+            LethalBundleManager.onExtendedModLoadedRequestDict.AddOrAddAdd(extendedModAuthorName, invokedFunction);
+            LethalBundleManager.onExtendedModLoadedRequestDict.AddOrAddAdd(extendedModModName, invokedFunction);
         }
-        /*
-        internal static void OnBundlesFinishedLoading()
+
+        private static void AddOrCreate<T>(Dictionary<string, List<Action<T>>> dict, string stringVal, Action<T> modAct)
         {
-            //foreach (KeyValuePair<string, string> loadedAssetBundles in assetBundleLoadTimes)
-                //DebugHelper.Log(loadedAssetBundles.Key + " Loaded In " + loadedAssetBundles.Value, DebugType.User);
-
-            foreach (KeyValuePair<string, ExtendedMod> obtainedExtendedMod in obtainedExtendedModsDictionary)
-            {
-                PatchedContent.ExtendedMods.Add(obtainedExtendedMod.Value);
-                DebugHelper.DebugExtendedMod(obtainedExtendedMod.Value);
-            }
-
-            PatchedContent.ExtendedMods = new List<ExtendedMod>(PatchedContent.ExtendedMods.OrderBy(o => o.ModName).ToList());
-
-            foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods)
-                extendedMod.SortRegisteredContent();
-
-            foreach (KeyValuePair<string, List<System.Action<AssetBundle>>> kvp in onLethalBundleLoadedRequestDictionary)
-                if (assetBundles.ContainsKey(kvp.Key))
-                    foreach (Action<AssetBundle> action in kvp.Value)
-                        action(assetBundles[kvp.Key]);
-
-            foreach (KeyValuePair<string, List<Action<ExtendedMod>>> kvp in onExtendedModLoadedRequestDictionary)
-                foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods)
-                    if (extendedMod.ModNameAliases.Contains(kvp.Key))
-                        foreach (Action<ExtendedMod> action in kvp.Value)
-                            action(extendedMod);
+            if (string.IsNullOrEmpty(stringVal) || modAct == null) return;
+            if (dict.TryGetValue(stringVal, out List<Action<T>> list))
+                list.Add(modAct);
+            else
+                dict.Add(stringVal, new List<Action<T>> { modAct });
         }
-        */
+
         internal static void RegisterNewExtendedContent(ExtendedContent extendedContent, string fallbackName)
         {
             LethalBundleManager.RegisterNewExtendedContent(extendedContent, null);
         }
-        /*
-        //This Function is used to Register new ExtendedConte to LethalLevelLoader, assiging content to it's relevant ExtendedMod or creating a new ExtendedMod if neccasary.
-        internal static void RegisterNewExtendedContent(ExtendedContent extendedContent, string fallbackName)
-        {
-            if (extendedContent == null)
-            {
-                DebugHelper.LogError("Failed to register new ExtendedContent as it was null!", DebugType.User);
-                return;
-            }
 
-            ExtendedMod extendedMod = null;
-            if (extendedContent is ExtendedLevel extendedLevel)
-            {
-                if (string.IsNullOrEmpty(extendedLevel.contentSourceName))
-                    extendedLevel.contentSourceName = fallbackName;
-                extendedMod = GetOrCreateExtendedMod(extendedLevel.contentSourceName);
-            }
-            else if (extendedContent is ExtendedDungeonFlow extendedDungeonFlow)
-            {
-                if (string.IsNullOrEmpty(extendedDungeonFlow.contentSourceName))
-                    extendedDungeonFlow.contentSourceName = fallbackName;
-                extendedMod = GetOrCreateExtendedMod(extendedDungeonFlow.contentSourceName);
-            }
-            else if (extendedContent is ExtendedItem extendedItem)
-            {
-                extendedMod = GetOrCreateExtendedMod(extendedItem.Item.itemName.RemoveWhitespace());
-            }
-            else if (extendedContent is ExtendedEnemyType extendedEnemyType)
-            {
-                extendedMod = GetOrCreateExtendedMod(extendedEnemyType.EnemyType.enemyName.RemoveWhitespace());
-            }
-            else if (extendedContent is ExtendedWeatherEffect extendedWeatherEffect)
-            {
-                //if (extendedWeatherEffect.contentSourceName == string.Empty)
-                    //extendedWeatherEffect.contentSourceName = fallbackName;
-                //extendedMod = GetOrCreateExtendedMod(extendedWeatherEffect.contentSourceName);
-            }
-            else if (extendedContent is ExtendedBuyableVehicle extendedBuyableVehicle)
-            {
-                extendedMod = GetOrCreateExtendedMod(extendedBuyableVehicle.name);
-            }
-
-            if (extendedMod != null)
-            {
-                try
-                {
-                    extendedMod.RegisterExtendedContent(extendedContent);
-                }
-                catch (Exception ex)
-                {
-                    DebugHelper.LogError(ex, DebugType.User);
-                }
-            }
-        }
-        */
-        /*
-        internal static ExtendedMod GetOrCreateExtendedMod(string contentSourceName)
-        {
-            if (obtainedExtendedModsDictionary.TryGetValue(contentSourceName, out ExtendedMod extendedMod))
-                return (extendedMod);
-            else
-            {
-                DebugHelper.Log("Creating New ExtendedMod: " + contentSourceName, DebugType.Developer);
-                ExtendedMod newExtendedMod = ExtendedMod.Create(contentSourceName);
-                obtainedExtendedModsDictionary.Add(contentSourceName, newExtendedMod);
-                return (newExtendedMod);
-
-            }
-        }
-        */
-        /*
-        //This function should probably just be in NetworkRegisterContent
-        internal static void LoadContentInBundles()
-        {
-            bool foundExtendedLevelScene;
-            List<ExtendedMod> obtainedExtendedModsList = obtainedExtendedModsDictionary.Values.OrderBy(o => o.ModName).ToList();
-            List<string> sceneNames = new List<string>();
-
-            foreach (ExtendedMod extendedMod in obtainedExtendedModsList)
-                foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(extendedMod.ExtendedLevels))
-                {
-                    if (!sceneNames.Contains(extendedLevel.SelectableLevel.sceneName))
-                        sceneNames.Add(extendedLevel.SelectableLevel.sceneName);
-                    foreach (StringWithRarity sceneName in extendedLevel.SceneSelections)
-                        if (!sceneNames.Contains(sceneName.Name))
-                            sceneNames.Add(sceneName.Name);
-                }
-
-            foreach (ExtendedMod extendedMod in obtainedExtendedModsList)
-            {
-                foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(extendedMod.ExtendedLevels))
-                {
-                    foundExtendedLevelScene = false;
-                    string debugString = "Could Not Find Scene File For ExtendedLevel: " + extendedLevel.SelectableLevel.name + ", Unregistering Early. \nSelectable Scene Name Is: " + extendedLevel.SelectableLevel.sceneName + ". Scenes Found In Bundles Are: " + "\n";
-                    foreach (KeyValuePair<string, AssetBundle> assetBundle in assetBundles)
-                        if (assetBundle.Value != null && assetBundle.Value.isStreamedSceneAssetBundle)
-                            foreach (string scenePath in assetBundle.Value.GetAllScenePaths())
-                            {
-                                debugString += ", " + GetSceneName(scenePath);
-                                if (sceneNames.Contains(GetSceneName(scenePath)))
-                                {
-                                    //DebugHelper.Log("Found Scene File For ExtendedLevel: " + extendedLevel.selectableLevel.name + ". Scene Path Is: " + scenePath);
-                                    foundExtendedLevelScene = true;
-                                    NetworkScenePatcher.AddScenePath(GetSceneName(scenePath));
-                                    if (!PatchedContent.AllLevelSceneNames.Contains(GetSceneName(scenePath)))
-                                        PatchedContent.AllLevelSceneNames.Add(GetSceneName(scenePath));
-                                }
-                            }
-
-                    if (foundExtendedLevelScene == false)
-                    {
-                        DebugHelper.LogError(debugString, DebugType.User);
-                        extendedMod.UnregisterExtendedContent(extendedLevel);
-                    }
-                }
-            }
-
-            foreach (string loadedSceneName in PatchedContent.AllLevelSceneNames)
-                DebugHelper.Log("Loaded SceneName: " + loadedSceneName, DebugType.Developer);
-        }
-        */
         internal static void InitializeBundles()
         {
             foreach (ExtendedContent content in PatchedContent.ExtendedMods.SelectMany(m => m.ExtendedContents))
             {
                 content.ContentType = ContentType.Custom;
-                //content.Register();
                 content.Initialize();
             }
-        }
-
-        public static void RegisterExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
-        {
-            DebugHelper.LogWarning("AssetBundleLoader.RegisterExtendedDungeonFlow() is deprecated. Please move to PatchedContent.RegisterExtendedDungeonFlow() to prevent issues in following updates.", DebugType.Developer);
-            PatchedContent.RegisterExtendedDungeonFlow(extendedDungeonFlow);
-        }
-
-        public static void RegisterExtendedLevel(ExtendedLevel extendedLevel)
-        {
-            DebugHelper.LogWarning("AssetBundleLoader.RegisterExtendedLevel() is deprecated. Please move to PatchedContent.RegisterExtendedLevel() to prevent issues in following updates.", DebugType.Developer);
-            PatchedContent.RegisterExtendedLevel(extendedLevel);
         }
 
         internal static void CreateVanillaExtendedLevels(StartOfRound startOfRound)
@@ -517,8 +167,6 @@ namespace LethalLevelLoader
                 extendedLevel.name = extendedLevel.NumberlessPlanetName + "ExtendedLevel";
 
                 LevelManager.TryRegisterContent(PatchedContent.VanillaMod, extendedLevel);
-                //extendedLevel.Register();
-                PatchedContent.VanillaMod.RegisterExtendedContent(extendedLevel);
             }
         }
 
@@ -540,8 +188,6 @@ namespace LethalLevelLoader
                 ExtendedItem extendedVanillaItem = ExtendedItem.Create(scrapItem, PatchedContent.VanillaMod, ContentType.Vanilla);
                 extendedVanillaItem.IsBuyableItem = false;
                 ItemManager.TryRegisterContent(PatchedContent.VanillaMod, extendedVanillaItem);
-                //extendedVanillaItem.Register();
-                PatchedContent.VanillaMod.RegisterExtendedContent(extendedVanillaItem);
             }
 
 
@@ -561,9 +207,7 @@ namespace LethalLevelLoader
                             if (infoCompatibleNoun.noun.word == compatibleNoun.noun.word)
                                 extendedVanillaItem.BuyInfoNode = infoCompatibleNoun.result;
                     }
-                //extendedVanillaItem.Register();
                 ItemManager.TryRegisterContent(PatchedContent.VanillaMod, extendedVanillaItem);
-                PatchedContent.VanillaMod.RegisterExtendedContent(extendedVanillaItem);
                 counter++;
             }
         }
@@ -573,9 +217,7 @@ namespace LethalLevelLoader
             foreach (EnemyType enemyType in OriginalContent.Enemies)
             {
                 ExtendedEnemyType newExtendedEnemyType = ExtendedEnemyType.Create(enemyType, PatchedContent.VanillaMod, ContentType.Vanilla);
-                //newExtendedEnemyType.Register();
                 EnemyManager.TryRegisterContent(PatchedContent.VanillaMod, newExtendedEnemyType);
-                PatchedContent.VanillaMod.RegisterExtendedContent(newExtendedEnemyType);
                 ScanNodeProperties enemyScanNode = newExtendedEnemyType.EnemyType.enemyPrefab.GetComponentInChildren<ScanNodeProperties>();
                 if (enemyScanNode != null)
                 {
@@ -601,9 +243,7 @@ namespace LethalLevelLoader
                 else
                     newExtendedWeatherEffect = ExtendedWeatherEffect.Create(levelWeatherType, null, null, levelWeatherType.ToString(), ContentType.Vanilla);
                 
-                PatchedContent.VanillaMod.RegisterExtendedContent(newExtendedWeatherEffect);
                 WeatherManager.TryRegisterContent(PatchedContent.VanillaMod, newExtendedWeatherEffect);
-                //newExtendedWeatherEffect.Register();
             }
         }
 
@@ -631,9 +271,7 @@ namespace LethalLevelLoader
             extendedDungeonFlow.DungeonName = dungeonDisplayName;
 
             extendedDungeonFlow.Initialize();
-            PatchedContent.VanillaMod.RegisterExtendedContent(extendedDungeonFlow);
             DungeonManager.TryRegisterContent(PatchedContent.VanillaMod, extendedDungeonFlow);
-            //extendedDungeonFlow.Register();
 
             if (extendedDungeonFlow.DungeonID == -1)
                 DungeonManager.RefreshDungeonFlowIDs();
@@ -649,9 +287,7 @@ namespace LethalLevelLoader
         internal static void CreateVanillaExtendedBuyableVehicle(BuyableVehicle buyableVehicle)
         {
             ExtendedBuyableVehicle newExtendedVanillaBuyableVehicle = ExtendedBuyableVehicle.Create(buyableVehicle);
-            PatchedContent.VanillaMod.RegisterExtendedContent(newExtendedVanillaBuyableVehicle);
             VehiclesManager.TryRegisterContent(PatchedContent.VanillaMod, newExtendedVanillaBuyableVehicle);   
-            //newExtendedVanillaBuyableVehicle.Register();
         }
 
         internal static void CreateVanillaExtendedUnlockableItems(StartOfRound startOfRound)
@@ -663,9 +299,7 @@ namespace LethalLevelLoader
         internal static void CreateVanillaExtendedUnlockableItem(UnlockableItem unlockableItem)
         {
             ExtendedUnlockableItem newExtendedVanillaUnlockableItem = ExtendedUnlockableItem.Create(unlockableItem, PatchedContent.VanillaMod, ContentType.Vanilla);
-            PatchedContent.VanillaMod.RegisterExtendedContent(newExtendedVanillaUnlockableItem);
             UnlockableItemManager.TryRegisterContent(PatchedContent.VanillaMod, newExtendedVanillaUnlockableItem);
-            //newExtendedVanillaUnlockableItem.Register();
         }
 
         internal static void NetworkRegisterDungeonContent(ExtendedDungeonFlow extendedDungeonFlow, NetworkManager networkManager)
@@ -718,7 +352,7 @@ namespace LethalLevelLoader
                 {
                     if (spawnSyncedObject.spawnPrefab.GetComponent<NetworkObject>() == null)
                         spawnSyncedObject.spawnPrefab.AddComponent<NetworkObject>();
-                    LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(spawnSyncedObject.spawnPrefab);
+                    ExtendedNetworkManager.RegisterNetworkPrefab(spawnSyncedObject.spawnPrefab);
 
                     if (!registeredObjectsDebugList.Contains(spawnSyncedObject.spawnPrefab.name))
                         registeredObjectsDebugList.Add(spawnSyncedObject.spawnPrefab.name);
@@ -730,7 +364,7 @@ namespace LethalLevelLoader
                 {
                     if(!spawnableMapObject.prefabToSpawn.TryGetComponent(out NetworkObject _))
                         spawnableMapObject.prefabToSpawn.AddComponent<NetworkObject>();
-                    LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(spawnableMapObject.prefabToSpawn);
+                    ExtendedNetworkManager.RegisterNetworkPrefab(spawnableMapObject.prefabToSpawn);
 
                     if(!registeredObjectsDebugList.Contains(spawnableMapObject.prefabToSpawn.name))
                         registeredObjectsDebugList.Add(spawnableMapObject.prefabToSpawn.name);
@@ -772,46 +406,17 @@ namespace LethalLevelLoader
             return (scenePath.Substring(scenePath.LastIndexOf('/') + 1).Replace(".unity", ""));
         }
 
-        internal static void CreateLoadingBundlesHeaderText(PreInitSceneScript preInitSceneScript)
+        public static void RegisterExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
         {
-            GameObject newHeader = GameObject.Instantiate(preInitSceneScript.headerText.gameObject, preInitSceneScript.headerText.transform.parent);
-            RectTransform newHeaderRectTransform = newHeader.GetComponent<RectTransform>();
-            TextMeshProUGUI newHeaderText = newHeader.GetComponent<TextMeshProUGUI>();
-
-            newHeaderRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-            newHeaderRectTransform.anchorMax = new Vector2(0.0f, 0.0f);
-            newHeaderRectTransform.offsetMin = new Vector2(0, -150);
-            newHeaderRectTransform.offsetMax = new Vector2(0, -150);
-            newHeaderRectTransform.anchoredPosition = new Vector2(0, -150);
-            if (CurrentLoadingStatus != LoadingStatus.Inactive)
-                newHeaderText.text = "Loading Bundles: " + assetBundles.First().Key + " (" + BundlesFinishedLoadingCount + " // " + assetBundles.Count + ")";
-            else
-                newHeaderText.text = "Loading Bundles: " + " (" + (assetBundles.Count - (assetBundles.Count - BundlesFinishedLoadingCount)) + " // " + assetBundles.Count + ")";
-            newHeaderText.color = new Color(0.641f, 0.641f, 0.641f, 1);
-            newHeaderText.fontSize = 20;
-            //newHeaderRectTransform.sizeDelta = new Vector2(400, 47);
-            newHeaderText.overflowMode = TextOverflowModes.Overflow;
-            newHeaderText.enableWordWrapping = false;
-            newHeaderText.alignment = TextAlignmentOptions.Center;
-
-            loadingBundlesHeaderText = newHeaderText;
-
-            onBundleFinishedLoading += UpdateLoadingBundlesHeaderText;
-
-
+            DebugHelper.LogWarning("AssetBundleLoader.RegisterExtendedDungeonFlow() is deprecated. Please move to PatchedContent.RegisterExtendedDungeonFlow() to prevent issues in following updates.", DebugType.Developer);
+            PatchedContent.RegisterExtendedDungeonFlow(extendedDungeonFlow);
         }
 
-        internal static void UpdateLoadingBundlesHeaderText(AssetBundle _)
+        public static void RegisterExtendedLevel(ExtendedLevel extendedLevel)
         {
-            if (loadingBundlesHeaderText != null)
-            {
-                if (CurrentLoadingStatus != LoadingStatus.Inactive)
-                    loadingBundlesHeaderText.text = "Loading Bundles: " + assetBundles.First().Key + " " + "(" + (assetBundles.Count - (assetBundles.Count - BundlesFinishedLoadingCount)) + " // " + assetBundles.Count + ")";
-                else
-                    loadingBundlesHeaderText.text = "Loaded Bundles: " + " (" + (assetBundles.Count - (assetBundles.Count - BundlesFinishedLoadingCount)) + " // " + assetBundles.Count + ")";
-            }
+            DebugHelper.LogWarning("AssetBundleLoader.RegisterExtendedLevel() is deprecated. Please move to PatchedContent.RegisterExtendedLevel() to prevent issues in following updates.", DebugType.Developer);
+            PatchedContent.RegisterExtendedLevel(extendedLevel);
         }
-
 
         public static Tile[] GetAllTilesInDungeonFlow(DungeonFlow dungeonFlow)
         {

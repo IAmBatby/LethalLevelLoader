@@ -64,11 +64,18 @@ namespace LethalLevelLoader
         //public abstract (bool, string) Validate();
 
         internal virtual void OnBeforeRegistration() { }
+
+        internal abstract void Register(ExtendedMod mod);
     }
 
     public abstract class ExtendedContent<E, C, M> : ExtendedContent, IExtendedContent<E, C, M> where E : ExtendedContent<E, C, M>, IExtendedContent<E, C, M> where M : ExtendedContentManager, IExtendedManager<E, C, M>
     {
         public abstract C Content { get; }
+
+        internal override void Register(ExtendedMod mod)
+        {
+            ExtendedContentManager<E, C, M>.TryRegisterContent(mod, this as E);
+        }
     }
 
 

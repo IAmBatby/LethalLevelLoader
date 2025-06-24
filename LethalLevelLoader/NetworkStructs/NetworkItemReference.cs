@@ -51,7 +51,7 @@ namespace LethalLevelLoader.NetworkStructs
 
         public static implicit operator NetworkItemReference(Item item) => new NetworkItemReference(item);
 
-        private List<NetworkPrefab> m_Prefabs => LethalLevelLoaderNetworkManager.networkManager.NetworkConfig.Prefabs.m_Prefabs;
+        private List<NetworkPrefab> m_Prefabs => ExtendedNetworkManager.NetworkManagerInstance.NetworkConfig.Prefabs.m_Prefabs;
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {

@@ -16,7 +16,7 @@ namespace LethalLevelLoader
             ngo.DontDestroyWithOwner = dontDestroyWithOwner;
             ngo.SceneMigrationSynchronization = sceneMigration;
             ngo.DestroyWithScene = destroyWithScene;
-            LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(go);
+            ExtendedNetworkManager.RegisterNetworkPrefab(go);
             return (component);
         }
 
@@ -28,8 +28,16 @@ namespace LethalLevelLoader
             ngo.DontDestroyWithOwner = dontDestroyWithOwner;
             ngo.SceneMigrationSynchronization = sceneMigration;
             ngo.DestroyWithScene = destroyWithScene;
-            LethalLevelLoaderNetworkManager.RegisterNetworkPrefab(go);
+            ExtendedNetworkManager.RegisterNetworkPrefab(go);
             return (component as T);
+        }
+
+        internal static IntWithRarity Create(int id, int rarity)
+        {
+            IntWithRarity returnR = new IntWithRarity();
+            returnR.id = id;
+            returnR.rarity = rarity;
+            return (returnR);
         }
     }
 }

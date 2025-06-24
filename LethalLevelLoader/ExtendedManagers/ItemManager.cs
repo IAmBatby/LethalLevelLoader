@@ -20,7 +20,7 @@ namespace LethalLevelLoader
             {
                 string debugString = string.Empty;
                 int returnRarity = extendedItem.LevelMatchingProperties.GetDynamicRarity(extendedLevel);
-                SpawnableItemWithRarity alreadyInjectedItem = extendedLevel.SelectableLevel.spawnableScrap.Where(s => s.spawnableItem == extendedItem).First();
+                SpawnableItemWithRarity alreadyInjectedItem = extendedLevel.SelectableLevel.spawnableScrap.Where(s => s.spawnableItem == extendedItem).FirstOrDefault();
 
                 if (alreadyInjectedItem != null)
                 {

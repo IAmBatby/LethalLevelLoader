@@ -10,23 +10,9 @@ using UnityEngine.SceneManagement;
 
 namespace LethalLevelLoader
 {
-    internal class NetworkBundleManager : NetworkBehaviour
+    internal class NetworkBundleManager : NetworkSingleton<NetworkBundleManager>
     {
-        public static NetworkBundleManager networkingManagerPrefab;
-        private static NetworkBundleManager _instance;
-        public static NetworkBundleManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = UnityEngine.Object.FindObjectOfType<NetworkBundleManager>();
-                if (_instance == null)
-                    DebugHelper.LogError("NetworkBundleManager Could Not Be Found! Returning Null!", DebugType.User);
-                return _instance;
-            }
-            set { _instance = value; }
-        }
-        public static NetworkManager networkManager;
+        public static NetworkBundleManager Instance => NetworkInstance as NetworkBundleManager;
 
         public List<NetworkSceneInfo> networkSceneInfos;
         internal Dictionary<string, List<AssetBundleGroup>> assetBundleGroupSceneDict = new Dictionary<string, List<AssetBundleGroup>>();
@@ -41,12 +27,10 @@ namespace LethalLevelLoader
 
         private NetworkList<bool> playersLoadStatus = new NetworkList<bool>();
 
-        public override void OnNetworkSpawn()
+        protected override void OnNetworkSingletonSpawn()
         {
-            base.OnNetworkSpawn();
             gameObject.name = "NetworkBundleManager";
             DebugHelper.Log("NetworkBundleManger Has Spawned!", DebugType.IAmBatby);
-            Instance = this;
 
             if (Plugin.IsLobbyInitialized == true)
                 Initialize();
@@ -59,9 +43,8 @@ namespace LethalLevelLoader
             AssetBundles.AssetBundleLoader.OnBundleUnloaded.AddListener(Instance.RefreshLoadStatus);
         }
 
-        public override void OnNetworkDespawn()
+        protected override void OnNetworkSingletonDespawn()
         {
-            base.OnNetworkDespawn();
             AssetBundles.AssetBundleLoader.OnBundleLoaded.RemoveListener(Instance.RefreshLoadStatus);
             AssetBundles.AssetBundleLoader.OnBundleUnloaded.RemoveListener(Instance.RefreshLoadStatus);
         }
@@ -75,9 +58,15 @@ namespace LethalLevelLoader
             Refresh();
         }
 
+        internal static void TryRefresh()
+        {
+            if (IsSpawnedAndIntialized)
+                Instance.Refresh();
+        }
+
         //Called on Plugin.onSetupComplete
         //Called by StartOfRound.ChangeLevel.Postfix
-        internal void Refresh()
+        private void Refresh()
         {
             List<AssetBundleGroup> newGroups = GetRouteGroups(LevelManager.CurrentExtendedLevel);
             List<AssetBundleGroup> previousGroups = new List<AssetBundleGroup>();
