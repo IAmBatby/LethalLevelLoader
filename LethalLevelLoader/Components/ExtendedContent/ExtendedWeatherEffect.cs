@@ -34,11 +34,8 @@ namespace LethalLevelLoader
         internal static ExtendedWeatherEffect Create(LevelWeatherType levelWeatherType, GameObject worldObject, GameObject globalObject, string newWeatherDisplayName, ContentType newContentType)
         {
             ExtendedWeatherEffect newExtendedWeatherEffect = ScriptableObject.CreateInstance<ExtendedWeatherEffect>();
-
             newExtendedWeatherEffect.WeatherDisplayName = newWeatherDisplayName;
-
             newExtendedWeatherEffect.name = newExtendedWeatherEffect.WeatherDisplayName + "ExtendedWeatherEffect";
-
             newExtendedWeatherEffect.BaseWeatherType = levelWeatherType;
             newExtendedWeatherEffect.WorldObject = worldObject;
             newExtendedWeatherEffect.GlobalObject = globalObject;

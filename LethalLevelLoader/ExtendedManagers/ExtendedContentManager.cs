@@ -118,7 +118,43 @@ namespace LethalLevelLoader
             Prefab = Utilities.CreateNetworkPrefab<ExtendedContentManager<E, C, M>>(GetType(), typeof(M).Name + " (NetworkPrefab)");
             AddPrefab(Prefab);
             GameObject.Destroy(this);
+            Events.OnCurrentStateChanged.AddListener(OnGameStateChanged);
+            Events.OnInInitalizedLobbyStateChanged.AddListener(OnLobbyStateChanged);
         }
+        private static void OnGameStateChanged(GameStates state)
+        {
+            //Maybe network stuff here
+
+            if (state == GameStates.MainMenu && Events.FurthestState == GameStates.Lobby || Events.FurthestState == GameStates.Moon)
+                Prefab.OnLobbyUnloaded();
+        }
+
+        private static void OnLobbyStateChanged(bool state)
+        {
+            if (state)
+            {
+                if (Events.FurthestState == Events.CurrentState)
+                    Prefab.OnInitialLobbyLoaded();
+                Prefab.OnLobbyLoaded();
+            }
+        }
+
+        protected virtual void OnInitialLobbyLoaded()
+        {
+            DebugHelper.Log(GetType() + ": OnInitialLobbyLoaded!", DebugType.User);
+        }
+        protected virtual void OnLobbyLoaded()
+        {
+            DebugHelper.Log(GetType() + ": OnLobbyLoaded!", DebugType.User);
+        }
+        protected virtual void OnLobbyUnloaded()
+        {
+            DebugHelper.Log(GetType() + ": OnLobbyUnloaded!", DebugType.User);
+        }
+
+        //We'll see lol
+        //protected virtual void OnModEnabled() { }
+        //protected virtual void OnModDisabled() { }
 
         protected abstract (bool result, string log) ValidateExtendedContent(E content);
     }
