@@ -24,39 +24,50 @@ namespace LethalLevelLoader
         [field: TextArea(2, 20)]
         [field: SerializeField] public string OverrideBuyConfirmNodeDescription { get; set; } = string.Empty;
 
-        public int UnlockableItemID { get; set; } = -1;
+        public int UnlockableItemID => GameID;
 
         public UnlockableType UnlockableType
         {
             get
             {
-                if (UnlockableItemID == 0) return (UnlockableType.Suit);
-                else if (UnlockableItemID == 1) return (UnlockableType.Furniture);
-                else if (UnlockableItemID < 0) return (UnlockableType.Invalid);
+                if (UnlockableItem.unlockableType == 0) return (UnlockableType.Suit);
+                else if (UnlockableItem.unlockableType == 1) return (UnlockableType.Furniture);
+                else if (UnlockableItem.unlockableType < 0) return (UnlockableType.Invalid);
                 return (UnlockableType.Unknown);
             }
         }
 
+        public GameObject Prefab => UnlockableItem.prefabObject;
+        public AutoParentToShip AutoParentToShip { get; private set; }
+        public PlaceableShipObject PlaceableShipObject { get; private set; }
+
+        public TerminalKeyword BuyKeyword { get; internal set; }
         public TerminalNode BuyNode { get; internal set; }
         public TerminalNode BuyConfirmNode { get; internal set; }
         public TerminalNode BuyInfoNode { get; internal set; }
 
         internal override void Initialize()
         {
-            TerminalManager.CreateUnlockableItemTerminalData(this);
-
-            if (!Patches.StartOfRound.unlockablesList.unlockables.Contains(UnlockableItem))
-                Patches.StartOfRound.unlockablesList.unlockables.Add(UnlockableItem);
+            if (Prefab != null)
+            {
+                AutoParentToShip = Prefab.GetComponent<AutoParentToShip>();
+                PlaceableShipObject = Prefab.GetComponentInChildren<PlaceableShipObject>();
+            }
         }
 
-        internal static ExtendedUnlockableItem Create(UnlockableItem newUnlockableItem, ExtendedMod extendedMod, ContentType contentType)
+        protected override void OnGameIDChanged()
+        {
+            if (AutoParentToShip != null) AutoParentToShip.unlockableID = GameID;
+            if (PlaceableShipObject != null) PlaceableShipObject.unlockableID = GameID;
+            if (BuyNode != null) BuyNode.shipUnlockableID = GameID;
+            if (BuyConfirmNode != null) BuyConfirmNode.shipUnlockableID = GameID;
+        }
+
+        internal static ExtendedUnlockableItem Create(UnlockableItem newUnlockableItem)
         {
             ExtendedUnlockableItem extendedUnlockableItem = ScriptableObject.CreateInstance<ExtendedUnlockableItem>();
             extendedUnlockableItem.UnlockableItem = newUnlockableItem;
             extendedUnlockableItem.name = newUnlockableItem.unlockableName.SkipToLetters().RemoveWhitespace() + "ExtendedUnlockableItem";
-            extendedUnlockableItem.ContentType = contentType;
-            extendedMod.RegisterExtendedContent(extendedUnlockableItem);
-
             return (extendedUnlockableItem);
         }
 

@@ -4,8 +4,35 @@ using System.Text;
 
 namespace LethalLevelLoader
 {
-    public class StoryLogManager : ExtendedContentManager<ExtendedStoryLog, StoryLogInfo, StoryLogManager>
+    public class StoryLogManager : ExtendedContentManager<ExtendedStoryLog, StoryLogInfo>
     {
+        protected override List<StoryLogInfo> GetVanillaContent() => new List<StoryLogInfo>();
+        protected override ExtendedStoryLog ExtendVanillaContent(StoryLogInfo content) => null;
+
+        protected override void PatchGame()
+        {
+            DebugHelper.Log(GetType().Name + " Patching Game!", DebugType.User);
+
+            foreach (ExtendedStoryLog log in ExtendedContents)
+            {
+                if (log.StoryLogKeyword == null || log.StoryLogNode == null) continue;
+
+                if (!Terminal.logEntryFiles.Contains(log.StoryLogNode))
+                    Terminal.logEntryFiles.Add(log.StoryLogNode);
+
+                log.SetGameID(Terminal.logEntryFiles.IndexOf(log.StoryLogNode));
+
+                if (!TerminalManager.Keyword_View.Contains(log.StoryLogKeyword, log.StoryLogNode))
+                    TerminalManager.Keyword_View.AddCompatibleNoun(log.StoryLogKeyword,log.StoryLogNode);
+            }
+
+        }
+
+        protected override void UnpatchGame()
+        {
+            DebugHelper.Log(GetType().Name + " Unpatching Game!", DebugType.User);
+        }
+
         protected override (bool result, string log) ValidateExtendedContent(ExtendedStoryLog extendedStoryLog)
         {
             if (string.IsNullOrEmpty(extendedStoryLog.sceneName))
@@ -18,6 +45,32 @@ namespace LethalLevelLoader
                 return (false, "StoryLog Description Was Null Or Empty");
 
             return (true, string.Empty);
+        }
+
+        protected override void PopulateContentTerminalData(ExtendedStoryLog content)
+        {
+            TerminalKeyword keyword = null;
+            TerminalNode node = null;
+            if (Terminal.logEntryFiles.Count > content.GameID)
+            {
+                node = Terminal.logEntryFiles[content.GameID];
+                foreach (CompatibleNoun noun in TerminalManager.Keyword_View.compatibleNouns)
+                    if (noun.result == node)
+                    {
+                        keyword = noun.noun;
+                        break;
+                    }
+            }
+            else
+            {
+                keyword = TerminalManager.CreateNewTerminalKeyword(content.terminalKeywordNoun + "Keyword", content.terminalKeywordNoun, TerminalManager.Keyword_View);
+                node = TerminalManager.CreateNewTerminalNode("LogFile" + (Terminal.logEntryFiles.Count + 1), content.storyLogDescription);
+                node.clearPreviousText = true;
+                node.creatureName = content.storyLogTitle;
+            }
+
+            content.StoryLogKeyword = keyword;
+            content.StoryLogNode = node;
         }
     }
 }

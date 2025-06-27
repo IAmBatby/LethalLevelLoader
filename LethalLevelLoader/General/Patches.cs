@@ -209,21 +209,23 @@ if (AssetBundleLoader.noBundlesFound == true)
 
                 DebugStopwatch.StartStopWatch("Create Vanilla ExtendedContent");
                 //Create & Initialize ExtendedContent Objects For Vanilla Content.
-                AssetBundleLoader.CreateVanillaExtendedDungeonFlows();
-                AssetBundleLoader.CreateVanillaExtendedLevels(StartOfRound);
-                AssetBundleLoader.CreateVanillaExtendedItems();
-                AssetBundleLoader.CreateVanillaExtendedEnemyTypes();
-                AssetBundleLoader.CreateVanillaExtendedBuyableVehicles();
-                AssetBundleLoader.CreateVanillaExtendedUnlockableItems(StartOfRound);
+                //AssetBundleLoader.CreateVanillaExtendedDungeonFlows();
+                //AssetBundleLoader.CreateVanillaExtendedLevels(StartOfRound);
+                //AssetBundleLoader.CreateVanillaExtendedItems();
+                //AssetBundleLoader.CreateVanillaExtendedEnemyTypes();
+                //AssetBundleLoader.CreateVanillaExtendedBuyableVehicles();
+                //AssetBundleLoader.CreateVanillaExtendedUnlockableItems(StartOfRound);
 
                 DebugStopwatch.StartStopWatch("Initialize Custom ExtendedContent"); // this is not used
                 //Initialize ExtendedContent Objects For Custom Content.
-                AssetBundleLoader.InitializeBundles();
+                //AssetBundleLoader.InitializeBundles();
+
+                Events.OnInitializeContent.Invoke();
 
                 PatchedContent.PopulateContentDictionaries();
 
-                foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
-                    extendedLevel.SetLevelID();
+                //foreach (ExtendedLevel extendedLevel in PatchedContent.CustomExtendedLevels)
+                    //extendedLevel.SetLevelID();
 
                 foreach (WeatherEffect weatherEffect in TimeOfDay.effects)
                 {
@@ -307,19 +309,22 @@ if (AssetBundleLoader.noBundlesFound == true)
 
             DebugStopwatch.StartStopWatch("Patch Base game Lists");
             //Patch The Base game References To SelectableLevel's To Include Enabled Custom SelectableLevels.
-            LevelManager.PatchVanillaLevelLists();
+
+            Events.OnPatchGame.Invoke();
+
+            //LevelManager.PatchVanillaLevelLists();
 
             //Patch The Base game References To DungeonFlows's To Include Enabled Custom DungeonFlows.
-            DungeonManager.PatchVanillaDungeonLists();
+            //DungeonManager.PatchVanillaDungeonLists();
 
             //Patch The Base game References To EnemyTypes's To Include Enabled Custom EnemyTypes.
-            EnemyManager.UpdateEnemyIDs(); //Might only need to do once?
+            //EnemyManager.UpdateEnemyIDs(); //Might only need to do once?
 
-            foreach (ExtendedEnemyType extendedEnemyType in PatchedContent.CustomExtendedEnemyTypes)
-                TerminalManager.CreateEnemyTypeTerminalData(extendedEnemyType); //Might only need to do once?
+            //foreach (ExtendedEnemyType extendedEnemyType in PatchedContent.CustomExtendedEnemyTypes)
+                //TerminalManager.CreateEnemyTypeTerminalData(extendedEnemyType); //Might only need to do once?
 
-            if (Plugin.IsSetupComplete == false)
-                EnemyManager.AddCustomEnemyTypesToTestAllEnemiesLevel(); //Might only need to do once?
+            //if (Plugin.IsSetupComplete == false)
+                //EnemyManager.AddCustomEnemyTypesToTestAllEnemiesLevel(); //Might only need to do once?
 
             DebugStopwatch.StartStopWatch("ExtendedItem Injection");
 
@@ -333,19 +338,19 @@ if (AssetBundleLoader.noBundlesFound == true)
 
             DebugStopwatch.StartStopWatch("ExtendedBuyableVehicle Injection");
 
-            VehiclesManager.PatchVanillaVehiclesLists();
-            VehiclesManager.SetBuyableVehicleIDs();
+            //VehiclesManager.PatchVanillaVehiclesLists();
+            //VehiclesManager.SetBuyableVehicleIDs();
 
-            foreach (ExtendedBuyableVehicle customExtendedBuyableVehicle in PatchedContent.CustomExtendedBuyableVehicles)
-                TerminalManager.CreateBuyableVehicleTerminalData(customExtendedBuyableVehicle);
+            //foreach (ExtendedBuyableVehicle customExtendedBuyableVehicle in PatchedContent.CustomExtendedBuyableVehicles)
+                //TerminalManager.CreateBuyableVehicleTerminalData(customExtendedBuyableVehicle);
 
             DebugStopwatch.StartStopWatch("ExtendedUnlockableItem Injection");
 
-            UnlockableItemManager.PatchVanillaUnlockableItemLists();
-            UnlockableItemManager.SetUnlockableItemIDs();
+            //UnlockableItemManager.PatchVanillaUnlockableItemLists();
+            //UnlockableItemManager.SetUnlockableItemIDs();
 
-            foreach (ExtendedBuyableVehicle customExtendedBuyableVehicle in PatchedContent.CustomExtendedBuyableVehicles)
-                TerminalManager.CreateBuyableVehicleTerminalData(customExtendedBuyableVehicle);
+            //foreach (ExtendedBuyableVehicle customExtendedBuyableVehicle in PatchedContent.CustomExtendedBuyableVehicles)
+                //TerminalManager.CreateBuyableVehicleTerminalData(customExtendedBuyableVehicle);
 
             DebugStopwatch.StartStopWatch("Create ExtendedLevelGroups & Filter Assets");
 
@@ -357,16 +362,17 @@ if (AssetBundleLoader.noBundlesFound == true)
                 //Populate SelectableLevel Data To Be Used In Overhaul Of The Terminal Moons Catalogue.
                 TerminalManager.CreateMoonsFilterTerminalAssets();
 
-                foreach (CompatibleNoun routeNode in TerminalManager.routeKeyword.compatibleNouns)
+                foreach (CompatibleNoun routeNode in TerminalManager.Keyword_Route.compatibleNouns)
                     TerminalManager.AddTerminalNodeEventListener(routeNode.result, TerminalManager.OnBeforeRouteNodeLoaded, TerminalManager.LoadNodeActionType.Before);
 
                 //Create Terminal Data For Custom StoryLog's And Patch Base game References To StoryLog's To Include Custom StoryLogs.
-                TerminalManager.CreateTerminalDataForAllExtendedStoryLogs();
+                //TerminalManager.CreateTerminalDataForAllExtendedStoryLogs();
 
-                TerminalManager.AddTerminalNodeEventListener(TerminalManager.moonsKeyword.specialKeywordResult, TerminalManager.RefreshMoonsCataloguePage, TerminalManager.LoadNodeActionType.After);
+                TerminalManager.AddTerminalNodeEventListener(TerminalManager.Keyword_Moons.specialKeywordResult, TerminalManager.RefreshMoonsCataloguePage, TerminalManager.LoadNodeActionType.After);
             }
             else
             {
+                /*
                 // Populate Terminal lists with already-existing ExtendedContent:
                 foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods)
                 {
@@ -391,7 +397,7 @@ if (AssetBundleLoader.noBundlesFound == true)
                     // Load ExtendedStoryLog journal entries.
                     if (extendedMod.ExtendedStoryLogs.Count > 0)
                         foreach (ExtendedStoryLog extendedStoryLog in extendedMod.ExtendedStoryLogs)
-                            Terminal.logEntryFiles.Add(extendedStoryLog.assignedNode);
+                            Terminal.logEntryFiles.Add(extendedStoryLog.StoryLogNode);
 
                     // Load ExtendedBuyableVehicle store page entries:
                     if (extendedMod.ExtendedBuyableVehicles.Count > 0)
@@ -417,7 +423,7 @@ if (AssetBundleLoader.noBundlesFound == true)
                     }
                     // ...
                 }
-                // ...
+                // ...*/
             }
 
             LevelLoader.defaultFootstepSurfaces = new List<FootstepSurface>(StartOfRound.footstepSurfaces).ToArray();
@@ -430,7 +436,7 @@ if (AssetBundleLoader.noBundlesFound == true)
             DebugStopwatch.StopStopWatch("Initialize Save");
             if (Plugin.IsSetupComplete == false)
             {
-                AssetBundleLoader.CreateVanillaExtendedWeatherEffects(StartOfRound, TimeOfDay);
+                //AssetBundleLoader.CreateVanillaExtendedWeatherEffects(StartOfRound, TimeOfDay);
                 WeatherManager.PopulateVanillaExtendedWeatherEffectsDictionary();
                 WeatherManager.PopulateExtendedLevelEnabledExtendedWeatherEffects();
                 Plugin.CompleteSetup();
@@ -673,7 +679,7 @@ if (AssetBundleLoader.noBundlesFound == true)
                     if (__instance.storyLogID == extendedStoryLog.storyLogID)
                     {
                         DebugHelper.Log("Updating " + extendedStoryLog.storyLogTitle + "ID", DebugType.Developer);
-                        __instance.storyLogID = extendedStoryLog.newStoryLogID;
+                        __instance.storyLogID = extendedStoryLog.StoryLogID;
                     }
                 }
         }

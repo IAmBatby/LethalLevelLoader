@@ -13,11 +13,14 @@ namespace LethalLevelLoader
         [field: SerializeField] public BuyableVehicle BuyableVehicle { get; set; }
         [field: SerializeField] public string TerminalKeywordName { get; set; } = string.Empty;
 
-        public int VehicleID { get; set; }
+        public int VehicleID => GameID;
 
-        public TerminalNode VehicleBuyNode { get; set; }
-        public TerminalNode VehicleBuyConfirmNode { get; set; }
-        public TerminalNode VehicleInfoNode { get; set; }
+        public TerminalKeyword TerminalKeyword { get; internal set; }
+        public TerminalNode PurchasePromptNode { get; internal set; }
+        public TerminalNode PurchaseConfirmNode { get; internal set; }
+        public TerminalNode TerminalEntryNode { get; internal set; }
+
+        public VehicleController VehicleController { get; private set; }
 
         internal static ExtendedBuyableVehicle Create(BuyableVehicle newBuyableVehicle)
         {
@@ -26,6 +29,18 @@ namespace LethalLevelLoader
             newExtendedBuyableVehicle.BuyableVehicle = newBuyableVehicle;
 
             return (newExtendedBuyableVehicle);
+        }
+
+        internal override void Initialize()
+        {
+            VehicleController = BuyableVehicle.vehiclePrefab.GetComponent<VehicleController>();
+        }
+
+        protected override void OnGameIDChanged()
+        {
+            if (VehicleController != null) VehicleController.vehicleID = GameID;
+            if (PurchasePromptNode != null) PurchasePromptNode.buyItemIndex = GameID;
+            if (PurchaseConfirmNode != null) PurchaseConfirmNode.buyItemIndex = GameID;
         }
 
         internal override List<GameObject> GetNetworkPrefabsForRegistration()

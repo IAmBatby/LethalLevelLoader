@@ -72,7 +72,7 @@ namespace LethalLevelLoader
         [Obsolete][HideInInspector] public int dungeonDefaultRarity;
 
         // HideInInspector
-        public int DungeonID { get; internal set; }
+        public int DungeonID => GameID;
         public bool IsCurrentDungeon => (DungeonManager.CurrentExtendedDungeonFlow == this);
         [HideInInspector] public DungeonEvents DungeonEvents { get; internal set; } = new DungeonEvents();
 
@@ -92,28 +92,14 @@ namespace LethalLevelLoader
             if (LevelMatchingProperties == null)
                 LevelMatchingProperties = LevelMatchingProperties.Create(this);
 
-            GetDungeonFlowID();
-
-            if (DungeonName == null || DungeonName == string.Empty)
-                DungeonName = DungeonFlow.name;
-
+            DungeonName = string.IsNullOrEmpty(DungeonName) ? DungeonFlow.name : DungeonName;
             name = DungeonFlow.name.Replace("Flow", "") + "ExtendedDungeonFlow";
 
             if (FirstTimeDungeonAudio == null)
             {
-                DebugHelper.LogWarning("Custom Dungeon: " + DungeonName + " Is Missing A DungeonFirstTimeAudio Reference! Assigning Facility Audio To Prevent Errors.", DebugType.Developer);
+                DebugHelper.LogWarning("Custom Dungeon: " + DungeonName + " Is Missing A DungeonFirstTimeAudio Reference! Assigning Facility Audio To Prevent Errors.", DebugType.User);
                 FirstTimeDungeonAudio = Patches.RoundManager.firstTimeDungeonAudios[0];
             }
-        }
-
-        private void GetDungeonFlowID()
-        {
-            if (ContentType == ContentType.Custom)
-                DungeonID = PatchedContent.ExtendedDungeonFlows.Count;
-            if (ContentType == ContentType.Vanilla)
-                foreach (IndoorMapType indoorMapType in Patches.RoundManager.dungeonFlowTypes)
-                    if (indoorMapType.dungeonFlow == DungeonFlow)
-                        DungeonID = Patches.RoundManager.dungeonFlowTypes.ToList().IndexOf(indoorMapType);
         }
 
         internal override void TryCreateMatchingProperties()

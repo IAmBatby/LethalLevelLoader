@@ -20,6 +20,11 @@ namespace LethalLevelLoader
         private static HashSet<ExtendedContent> RegisteredExtendedContents = new HashSet<ExtendedContent>();
         private static HashSet<ExtendedContent> InitializedExtendedContents = new HashSet<ExtendedContent>();
 
+        //Just quality of life.
+        protected static RoundManager RoundManager => Patches.RoundManager;
+        protected static StartOfRound StartOfRound => Patches.StartOfRound;
+        protected static Terminal Terminal => Patches.Terminal;
+
         //This is pretty cursed but basicially I need to setup a static prefab for every ExtendedContentManager dynamically
         //and this is the best way to do so with no hardcoding and potential support for non LLL mods to implement content types.
         //We spawn a temp instance to utilise inheritence so we can make the real prefab in the context of each classes generic definition.
@@ -65,16 +70,19 @@ namespace LethalLevelLoader
         protected void AddPrefab(ExtendedContentManager contentManager) => allContentManagerPrefabs.Add(contentManager);
     }
 
-    public abstract class ExtendedContentManager<E,C,M> : ExtendedContentManager, IExtendedManager<E,C,M> where E : ExtendedContent<E,C,M>, IExtendedContent<E,C,M> where M : ExtendedContentManager, IExtendedManager<E,C,M>
+    public abstract class ExtendedContentManager<E> : ExtendedContentManager, IContentManager<E> where E : UnityEngine.Object, IManagedContent, IExtendedContent;
+
+    public abstract class ExtendedContentManager<E, C> : ExtendedContentManager<E> where E : ExtendedContent, IManagedContent, IExtendedContent<C>
     {
-        private static ExtendedContentManager<E, C, M> Prefab;
-        public static M Instance => PatchedContent.GetExtendedManager<E, C, M>();
+        private static ExtendedContentManager<E, C> Prefab;
 
-        public static List<E> ExtendedContents { get; private set; } = new List<E>();
-        public static Dictionary<C, E> ExtensionDictionary { get; private set; } = new Dictionary<C, E>();
+        internal static List<E> ExtendedContents { get; private set; } = new List<E>();
+        internal static Dictionary<C, E> ExtensionDictionary { get; private set; } = new Dictionary<C, E>();
 
-        public List<E> GetExtendedContents() => ExtendedContents;
-        public Dictionary<C,E> GetExtensionDictionary() => ExtensionDictionary;
+        internal static List<E> ActiveContents { get; private set; } = new List<E>();
+
+        public List<E> GetExtendedContents() => new List<E>(ExtendedContents);
+        public Dictionary<C,E> GetExtensionDictionary() => new Dictionary<C, E>(ExtensionDictionary);
 
         private static void RegisterContent(ExtendedMod mod, E e)
         {
@@ -115,11 +123,19 @@ namespace LethalLevelLoader
         protected override sealed void CreateNetworkPrefab()
         {
             DebugHelper.Log("Initializing: " + this.GetType(), DebugType.User);
-            Prefab = Utilities.CreateNetworkPrefab<ExtendedContentManager<E, C, M>>(GetType(), typeof(M).Name + " (NetworkPrefab)");
+            Prefab = Utilities.CreateNetworkPrefab<ExtendedContentManager<E,C>>(GetType(), GetType().Name + " (NetworkPrefab)");
             AddPrefab(Prefab);
-            GameObject.Destroy(this);
+
             Events.OnCurrentStateChanged.AddListener(OnGameStateChanged);
             Events.OnInInitalizedLobbyStateChanged.AddListener(OnLobbyStateChanged);
+
+            Events.OnInitializeContent.AddListener(CreateExtendedVanillaContent, StepType.Before);
+            Events.OnInitializeContent.AddListener(InitializeContent, StepType.On);
+            Events.OnInitializeContent.AddListener(PopulateTerminalData, StepType.After);
+
+            Events.OnPatchGame.AddListener(Prefab.PatchGame, StepType.On);
+
+            GameObject.Destroy(this);
         }
         private static void OnGameStateChanged(GameStates state)
         {
@@ -131,12 +147,10 @@ namespace LethalLevelLoader
 
         private static void OnLobbyStateChanged(bool state)
         {
-            if (state)
-            {
-                if (Events.FurthestState == Events.CurrentState)
-                    Prefab.OnInitialLobbyLoaded();
-                Prefab.OnLobbyLoaded();
-            }
+            if (!state) return;
+            if (Events.FurthestState == Events.CurrentState)
+                Prefab.OnInitialLobbyLoaded();
+            Prefab.OnLobbyLoaded();
         }
 
         protected virtual void OnInitialLobbyLoaded()
@@ -152,10 +166,70 @@ namespace LethalLevelLoader
             DebugHelper.Log(GetType() + ": OnLobbyUnloaded!", DebugType.User);
         }
 
+        //This runs the first time a lobby is loaded in the current game session in order for content to initalize and setup itself which may require references that only exist when in the lobby.
+        private static void InitializeContent()
+        {
+            foreach (E content in ExtendedContents)
+                content.Initialize();
+        }
+
+        internal static bool ActivateContent(E content)
+        {
+            if (ActiveContents.Contains(content)) return (false);
+
+            content.SetGameID(ActiveContents.Count);
+            ActiveContents.Add(content);
+            return (true);
+        }
+
+        //Vanilla stuff needs to be manually inserted to the front of our lists because we must make it after all custom stuff is loaded
+        //But it must be first in order for ID's to be correct
+        private static void CreateExtendedVanillaContent()
+        {
+            List<E> validContents = new List<E>();
+            foreach (C content in Prefab.GetVanillaContent())
+            {
+                E extended = Prefab.ExtendVanillaContent(content);
+                if (TryRegisterContent(PatchedContent.VanillaMod, extended) == false) continue;
+                validContents.Add(extended);
+                ExtendedContents.Remove(extended);
+            }
+            ExtendedContents.InsertRange(0,validContents);
+        }
+
+        private static void PopulateTerminalData()
+        {
+            foreach (E content in ExtendedContents)
+                Prefab.PopulateContentTerminalData(content);
+        }
+
+        public static bool TryGetExtendedContent(C content, out E extendedContent)
+        {
+            extendedContent = null;
+            if (content != null && ExtensionDictionary.TryGetValue(content, out E returnC))
+                extendedContent = returnC;
+            return (extendedContent != null);
+        }
+
         //We'll see lol
         //protected virtual void OnModEnabled() { }
         //protected virtual void OnModDisabled() { }
 
         protected abstract (bool result, string log) ValidateExtendedContent(E content);
+
+        //Seperating these two because it removes the foreach loop in every implementation which i think looks cleaner without
+        protected abstract List<C> GetVanillaContent();
+        protected abstract E ExtendVanillaContent(C content);
+
+        //This runs on every lobby load and is where custom content is shoved into base game lists, functions etc.
+        //This runs after InitializeContent if it's the initial lobby load.
+        protected abstract void PatchGame();
+
+        //This runs on every lobby unload and is where custom content is pulled out of the base game lists, functions etc.
+        //The idea here is that the game should be in a state where the content was never patched in in the first place.
+        protected abstract void UnpatchGame();
+
+        protected abstract void PopulateContentTerminalData(E content);
+
     }
 }

@@ -31,15 +31,15 @@ namespace LethalLevelLoader
         public static MoonsCataloguePage currentMoonsCataloguePage { get; internal set; }
 
         //Cached References To Important Base-Game TerminalKeywords;
-        internal static TerminalKeyword routeKeyword;
-        internal static TerminalKeyword routeInfoKeyword;
-        internal static TerminalKeyword routeConfirmKeyword;
-        internal static TerminalKeyword routeDenyKeyword;
-        internal static TerminalKeyword moonsKeyword;
-        internal static TerminalKeyword viewKeyword;
-        internal static TerminalKeyword buyKeyword;
-        internal static TerminalNode cancelRouteNode;
-        internal static TerminalNode cancelPurchaseNode;
+        internal static TerminalKeyword Keyword_Route;
+        internal static TerminalKeyword Keyword_Info;
+        internal static TerminalKeyword Keyword_Confirm;
+        internal static TerminalKeyword Keyword_Deny;
+        internal static TerminalKeyword Keyword_Moons;
+        internal static TerminalKeyword Keyword_View;
+        internal static TerminalKeyword Keyword_Buy;
+        internal static TerminalNode Node_CancelRoute;
+        internal static TerminalNode Node_CancelPurchase;
 
         internal static string currentTagFilter;
 
@@ -62,15 +62,15 @@ namespace LethalLevelLoader
 
         internal static void CacheTerminalReferences()
         {
-            routeKeyword = Terminal.terminalNodes.allKeywords[27];
-            routeInfoKeyword = Terminal.terminalNodes.allKeywords[6];
-            routeConfirmKeyword = Terminal.terminalNodes.allKeywords[3];
-            routeDenyKeyword = Terminal.terminalNodes.allKeywords[4];
-            moonsKeyword = Terminal.terminalNodes.allKeywords[21];
-            viewKeyword = Terminal.terminalNodes.allKeywords[19];
-            buyKeyword = Terminal.terminalNodes.allKeywords[0];
-            cancelRouteNode = routeKeyword.compatibleNouns[0].result.terminalOptions[0].result;
-            cancelPurchaseNode = buyKeyword.compatibleNouns[0].result.terminalOptions[1].result;
+            Keyword_Route = Terminal.terminalNodes.allKeywords[27];
+            Keyword_Info = Terminal.terminalNodes.allKeywords[6];
+            Keyword_Confirm = Terminal.terminalNodes.allKeywords[3];
+            Keyword_Deny = Terminal.terminalNodes.allKeywords[4];
+            Keyword_Moons = Terminal.terminalNodes.allKeywords[21];
+            Keyword_View = Terminal.terminalNodes.allKeywords[19];
+            Keyword_Buy = Terminal.terminalNodes.allKeywords[0];
+            Node_CancelRoute = Keyword_Route.compatibleNouns[0].result.terminalOptions[0].result;
+            Node_CancelPurchase = Keyword_Buy.compatibleNouns[0].result.terminalOptions[1].result;
 
             defaultTerminalFontSize = Terminal.screenText.textComponent.fontSize;
 
@@ -190,7 +190,7 @@ namespace LethalLevelLoader
 
         internal static bool TryRefreshMoonsCataloguePage(ref TerminalNode currentNode, ref TerminalNode loadNode)
         {
-            if (currentNode == moonsKeyword.specialKeywordResult)
+            if (currentNode == Keyword_Moons.specialKeywordResult)
                 return (RefreshMoonsCataloguePage(ref currentNode, ref loadNode));
             else
                 return (true);
@@ -222,7 +222,7 @@ namespace LethalLevelLoader
 
             Terminal.textAdded = 0;
 
-            Terminal.currentNode = moonsKeyword.specialKeywordResult;
+            Terminal.currentNode = Keyword_Moons.specialKeywordResult;
             return (false);
         }
 
@@ -291,7 +291,7 @@ namespace LethalLevelLoader
         internal static string GetMoonsTerminalText()
         {
             string fallbackOverviewText = "Welcome to the exomoons catalogue.\r\nTo route the autopilot to a moon, use the word ROUTE.\r\nTo learn about any moon, use the word INFO.\r\n____________________________\r\n\r\n* The Company Building   //   Buying at [companyBuyingPercent].\r\n\r\n";
-            string overviewText = moonsKeyword.specialKeywordResult.displayText;
+            string overviewText = Keyword_Moons.specialKeywordResult.displayText;
             if (overviewText.Contains("\n\n"))
             {
                 overviewText = overviewText.Substring(overviewText.IndexOf("\n\n"));
@@ -299,10 +299,10 @@ namespace LethalLevelLoader
                 if (overviewText.Contains("\n\n"))
                 {
                     overviewText = overviewText.Substring(overviewText.IndexOf("\n\n"));
-                    if (moonsKeyword.specialKeywordResult.displayText.Contains(overviewText))
+                    if (Keyword_Moons.specialKeywordResult.displayText.Contains(overviewText))
                     {
                         overviewText = overviewText.Substring(overviewText.IndexOf("\n\n"));
-                        overviewText = moonsKeyword.specialKeywordResult.displayText.Replace(overviewText, string.Empty) + "\n\n";
+                        overviewText = Keyword_Moons.specialKeywordResult.displayText.Replace(overviewText, string.Empty) + "\n\n";
                     }
                     else
                     {
@@ -528,9 +528,8 @@ namespace LethalLevelLoader
             List<ExtendedLevel> hiddenVanillaLevels = new List<ExtendedLevel>();    
             foreach (ExtendedLevel extendedLevel in PatchedContent.VanillaExtendedLevels)
             {
-                if (!moonsKeyword.specialKeywordResult.displayText.Contains(extendedLevel.NumberlessPlanetName))
+                if (extendedLevel.IsRouteHidden)
                 {
-                    extendedLevel.IsRouteHidden = true;
                     hiddenVanillaLevels.Add(extendedLevel);
                 }
             }
@@ -588,7 +587,7 @@ namespace LethalLevelLoader
             currentMoonsCataloguePage = new MoonsCataloguePage(new List<ExtendedLevelGroup>());
             RefreshExtendedLevelGroups();
         }
-
+        /*
         internal static void CreateLevelTerminalData(ExtendedLevel extendedLevel, int routePrice)
         {
             //Terminal Route Keyword
@@ -682,8 +681,8 @@ namespace LethalLevelLoader
             extendedLevel.RouteNode = terminalNodeRoute;
             extendedLevel.RouteConfirmNode = terminalNodeRouteConfirm;
             extendedLevel.InfoNode = terminalNodeInfo;
-        }
-
+        }*/
+        /*
         internal static void CreateTerminalDataForAllExtendedStoryLogs()
         {
             foreach (ExtendedMod extendedMod in PatchedContent.ExtendedMods)
@@ -703,13 +702,13 @@ namespace LethalLevelLoader
             newStoryLogNode.clearPreviousText = true;
             newStoryLogNode.creatureName = newStoryLog.storyLogTitle;
             newStoryLogNode.storyLogFileID = Terminal.logEntryFiles.Count;
-            newStoryLog.newStoryLogID = Terminal.logEntryFiles.Count;
-            newStoryLog.assignedNode = newStoryLogNode;
+            newStoryLog.StoryLogID = Terminal.logEntryFiles.Count;
+            newStoryLog.StoryLogNode = newStoryLogNode;
 
             Terminal.logEntryFiles.Add(newStoryLogNode);
             viewKeyword.AddCompatibleNoun(newStoryLogKeyword, newStoryLogNode);
-        }
-
+        }*/
+        /*
         internal static void CreateItemTerminalData(ExtendedItem extendedItem)
         {
             int buyableItemIndex = Terminal.buyableItemsList.Count();
@@ -720,7 +719,7 @@ namespace LethalLevelLoader
             TerminalKeyword terminalKeyword = CreateNewTerminalKeyword();
             terminalKeyword.name = extendedItem.Item.itemName.StripSpecialCharacters().Sanitized() + "Keyword";
             terminalKeyword.word = extendedItem.Item.itemName.StripSpecialCharacters().Sanitized();
-            terminalKeyword.defaultVerb = buyKeyword;
+            terminalKeyword.defaultVerb = Keyword_Buy;
 
             //Terminal Buy Keyword
             TerminalNode terminalNodeBuy;
@@ -794,26 +793,22 @@ namespace LethalLevelLoader
 
             //Population Into Base game
 
-            terminalNodeBuy.AddCompatibleNoun(routeConfirmKeyword, terminalNodeBuyConfirm);
-            terminalNodeBuy.AddCompatibleNoun(routeDenyKeyword, cancelPurchaseNode);
-            buyKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeBuy);
+            terminalNodeBuy.AddCompatibleNoun(Keyword_Confirm, terminalNodeBuyConfirm);
+            terminalNodeBuy.AddCompatibleNoun(Keyword_Deny, Node_CancelPurchase);
+            Keyword_Buy.AddCompatibleNoun(terminalKeyword, terminalNodeBuy);
             if (terminalNodeInfo != null)
-                routeInfoKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeInfo);
+                Keyword_Info.AddCompatibleNoun(terminalKeyword, terminalNodeInfo);
 
             extendedItem.BuyNode = terminalNodeBuy;
             extendedItem.BuyConfirmNode = terminalNodeBuyConfirm;
             extendedItem.BuyInfoNode = terminalNodeInfo;
 
             Terminal.buyableItemsList = Terminal.buyableItemsList.AddItem(extendedItem.Item).ToArray();
-        }
-
+        }*/
+        /*
         internal static void CreateEnemyTypeTerminalData(ExtendedEnemyType extendedEnemyType)
         {
-            TerminalKeyword newEnemyInfoKeyword = CreateNewTerminalKeyword();
-            newEnemyInfoKeyword.name = extendedEnemyType.name + "BestiaryKeyword";
-            newEnemyInfoKeyword.word = extendedEnemyType.EnemyDisplayName.ToLower();
-            newEnemyInfoKeyword.defaultVerb = routeInfoKeyword;
-
+            TerminalKeyword newEnemyInfoKeyword = CreateNewTerminalKeyword(extendedEnemyType.name + "BestiaryKeyword", extendedEnemyType.EnemyDisplayName.ToLower(), routeInfoKeyword);
             TerminalNode newEnemyInfoNode = CreateNewTerminalNode();
             newEnemyInfoNode.name = extendedEnemyType.name + "BestiaryNode";
             newEnemyInfoNode.displayText = extendedEnemyType.InfoNodeDescription;
@@ -832,10 +827,11 @@ namespace LethalLevelLoader
             Patches.Terminal.enemyFiles.Add(newEnemyInfoNode);
             routeInfoKeyword.AddCompatibleNoun(newEnemyInfoKeyword, newEnemyInfoNode);
         }
-
+        */
+        /*
         internal static void CreateBuyableVehicleTerminalData(ExtendedBuyableVehicle extendedBuyableVehicle)
         {
-            TerminalKeyword newVehicleTerminalKeyword = CreateNewTerminalKeyword();
+            TerminalKeyword newVehicleTerminalKeyword = CreateNewTerminalKeyword(extendedBuyableVehicle.name + "Keyword", extendedBuyableVehicle.TerminalKeywordName.ToLower(), buyKeyword);
             newVehicleTerminalKeyword.name = extendedBuyableVehicle.name + "Keyword";
             newVehicleTerminalKeyword.word = extendedBuyableVehicle.TerminalKeywordName.ToLower();
             newVehicleTerminalKeyword.defaultVerb = buyKeyword;
@@ -878,8 +874,8 @@ namespace LethalLevelLoader
             newVehicleBuyNode.AddCompatibleNoun(routeDenyKeyword, cancelPurchaseNode);
 
             buyKeyword.AddCompatibleNoun(newVehicleTerminalKeyword, newVehicleBuyNode);
-        }
-
+        }*/
+        /*
         internal static void CreateUnlockableItemTerminalData(ExtendedUnlockableItem extendedUnlockableItem)
         {
             int unlockableItemIndex = Patches.StartOfRound.unlockablesList.unlockables.Count();
@@ -890,7 +886,7 @@ namespace LethalLevelLoader
             TerminalKeyword terminalKeyword = CreateNewTerminalKeyword();
             terminalKeyword.name = extendedUnlockableItem.UnlockableItem.unlockableName.StripSpecialCharacters().Sanitized() + "Keyword";
             terminalKeyword.word = extendedUnlockableItem.UnlockableItem.unlockableName.StripSpecialCharacters().Sanitized();
-            terminalKeyword.defaultVerb = buyKeyword;
+            terminalKeyword.defaultVerb = Keyword_Buy;
 
             //Terminal Buy Keyword
             TerminalNode terminalNodeBuy;
@@ -962,13 +958,13 @@ namespace LethalLevelLoader
 
             //Population Into Base game
 
-            terminalNodeBuy.AddCompatibleNoun(routeConfirmKeyword, terminalNodeBuyConfirm);
-            terminalNodeBuy.AddCompatibleNoun(routeDenyKeyword, cancelPurchaseNode);
+            terminalNodeBuy.AddCompatibleNoun(Keyword_Confirm, terminalNodeBuyConfirm);
+            terminalNodeBuy.AddCompatibleNoun(Keyword_Deny, Node_CancelPurchase);
 
-            buyKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeBuy);
+            Keyword_Buy.AddCompatibleNoun(terminalKeyword, terminalNodeBuy);
 
             if (terminalNodeInfo != null)
-                routeInfoKeyword.AddCompatibleNoun(terminalKeyword, terminalNodeInfo);
+                Keyword_Info.AddCompatibleNoun(terminalKeyword, terminalNodeInfo);
 
             extendedUnlockableItem.BuyNode = terminalNodeBuy;
             extendedUnlockableItem.BuyConfirmNode = terminalNodeBuyConfirm;
@@ -981,7 +977,7 @@ namespace LethalLevelLoader
         {
 
         }
-
+        */
         internal static void CreateMoonsFilterTerminalAssets()
         {
             //Preview & Sort Keywords
@@ -1074,24 +1070,23 @@ namespace LethalLevelLoader
             return (newNode);
         }
 
-        internal static TerminalKeyword CreateNewTerminalKeyword()
+        internal static TerminalKeyword CreateNewTerminalKeyword(string name = null, string word = null, TerminalKeyword defaultVerb = null)
         {
             TerminalKeyword newTerminalKeyword = ScriptableObject.CreateInstance<TerminalKeyword>();
-            newTerminalKeyword.name = "NewLethalLevelLoaderTerminalKeyword";
-
+            newTerminalKeyword.name = string.IsNullOrEmpty(name) ? "NewLethalLevelLoaderTerminalKeyword" : name;
             newTerminalKeyword.compatibleNouns = new CompatibleNoun[0];
-            newTerminalKeyword.defaultVerb = null;
-            Terminal.terminalNodes.allKeywords = Terminal.terminalNodes.allKeywords.AddItem(newTerminalKeyword).ToArray();
-
+            newTerminalKeyword.word = word == null ? null : word;
+            newTerminalKeyword.defaultVerb = defaultVerb;
+            Utilities.Insert(ref Terminal.terminalNodes.allKeywords, newTerminalKeyword);
             return (newTerminalKeyword);
         }
 
-        internal static TerminalNode CreateNewTerminalNode()
+        internal static TerminalNode CreateNewTerminalNode(string name = null, string displayText = null)
         {
             TerminalNode newTerminalNode = ScriptableObject.CreateInstance<TerminalNode>();
-            newTerminalNode.name = "NewLethalLevelLoaderTerminalNode";
+            newTerminalNode.name = string.IsNullOrEmpty(name) ? "NewLethalLevelLoaderTerminalNode" : name;
 
-            newTerminalNode.displayText = string.Empty;
+            newTerminalNode.displayText = string.IsNullOrEmpty(displayText) ? string.Empty : displayText;
             newTerminalNode.terminalEvent = string.Empty;
             newTerminalNode.maxCharactersToType = 25;
             newTerminalNode.buyItemIndex = -1;

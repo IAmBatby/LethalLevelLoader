@@ -9,7 +9,7 @@ using UnityEngine.Events;
 
 namespace LethalLevelLoader
 {
-    public class DungeonManager : ExtendedContentManager<ExtendedDungeonFlow, DungeonFlow, DungeonManager>
+    public class DungeonManager : ExtendedContentManager<ExtendedDungeonFlow, DungeonFlow>
     {
         public static ExtendedDungeonFlow CurrentExtendedDungeonFlow
         {
@@ -24,20 +24,42 @@ namespace LethalLevelLoader
         }
         public static DungeonEvents GlobalDungeonEvents = new DungeonEvents();
 
-        internal static void PatchVanillaDungeonLists()
+        protected override List<DungeonFlow> GetVanillaContent() => new List<DungeonFlow>(RoundManager.dungeonFlowTypes.Select(d => d.dungeonFlow));
+
+        protected override ExtendedDungeonFlow ExtendVanillaContent(DungeonFlow content)
         {
-            foreach (ExtendedDungeonFlow extendedDungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
+            (string, AudioClip) refs = default;
+            if (content.name.Contains("Level1"))
+                refs = ("Facility", RoundManager.firstTimeDungeonAudios[0]);
+            else if (content.name.Contains("Level2"))
+                refs = ("Haunted Mansion", RoundManager.firstTimeDungeonAudios[1]);
+            else if (content.name.Contains("Level3"))
+                refs = ("Mineshaft", RoundManager.firstTimeDungeonAudios[2]);
+
+            ExtendedDungeonFlow extendedDungeonFlow = ExtendedDungeonFlow.Create(content, refs.Item2);
+            extendedDungeonFlow.DungeonName = refs.Item1;
+            return (extendedDungeonFlow);
+        }
+
+        protected override void PatchGame()
+        {
+            DebugHelper.Log(GetType().Name + " Patching Game!", DebugType.User);
+            List<IndoorMapType> indoorMapTypes = new List<IndoorMapType>();
+
+            List<ExtendedDungeonFlow> flows = new List<ExtendedDungeonFlow>(PatchedContent.ExtendedDungeonFlows);
+            for (int i = 0; i < RoundManager.dungeonFlowTypes.Length; i++)
             {
-                extendedDungeonFlow.DungeonID = Patches.RoundManager.dungeonFlowTypes.Length;
-                IndoorMapType newIndoorMapType = new IndoorMapType();
-                newIndoorMapType.dungeonFlow = extendedDungeonFlow.DungeonFlow;
-                newIndoorMapType.MapTileSize = extendedDungeonFlow.MapTileSize;
-                if (extendedDungeonFlow.FirstTimeDungeonAudio != null)
-                    newIndoorMapType.firstTimeAudio = extendedDungeonFlow.FirstTimeDungeonAudio;
-                Patches.RoundManager.dungeonFlowTypes = Patches.RoundManager.dungeonFlowTypes.AddItem(newIndoorMapType).ToArray();
-                if (extendedDungeonFlow.FirstTimeDungeonAudio != null)
-                    Patches.RoundManager.firstTimeDungeonAudios = Patches.RoundManager.firstTimeDungeonAudios.AddItem(extendedDungeonFlow.FirstTimeDungeonAudio).ToArray();
+                flows[i].SetGameID(indoorMapTypes.Count);
+                indoorMapTypes.Add(Utilities.Create(flows[i].DungeonFlow, flows[i].MapTileSize, flows[i].FirstTimeDungeonAudio));
             }
+
+            RoundManager.dungeonFlowTypes = indoorMapTypes.ToArray();
+            RoundManager.firstTimeDungeonAudios = flows.Select(f => f.FirstTimeDungeonAudio).ToArray();
+        }
+
+        protected override void UnpatchGame()
+        {
+            DebugHelper.Log(GetType().Name + " Unpatching Game!", DebugType.User);
         }
 
         public static List<ExtendedDungeonFlowWithRarity> GetValidExtendedDungeonFlows(ExtendedLevel extendedLevel, bool debugResults)
@@ -94,33 +116,6 @@ namespace LethalLevelLoader
             return (returnExtendedDungeonFlowsList);
         }
 
-        internal static void RefreshDungeonFlowIDs()
-        {
-            //DebugHelper.Log("Re-Adjusting DungeonFlowTypes Array For Late Arriving Vanilla DungeonFlow", DebugType.User);
-            
-            List<DungeonFlow> cachedDungeonFlowTypes = new List<DungeonFlow>();
-            List<IndoorMapType> indoorMapTypes = new List<IndoorMapType>();
-            foreach (ExtendedDungeonFlow vanillaDungeonFlow in PatchedContent.VanillaExtendedDungeonFlows)
-            {
-                vanillaDungeonFlow.DungeonID = cachedDungeonFlowTypes.Count;
-                cachedDungeonFlowTypes.Add(vanillaDungeonFlow.DungeonFlow);
-            }
-            foreach (ExtendedDungeonFlow customDungeonFlow in PatchedContent.CustomExtendedDungeonFlows)
-            {
-                customDungeonFlow.DungeonID = cachedDungeonFlowTypes.Count;
-                cachedDungeonFlowTypes.Add(customDungeonFlow.DungeonFlow);
-            }
-
-            foreach (DungeonFlow dungeonFlow in cachedDungeonFlowTypes)
-            {
-                IndoorMapType newIndoorMapType = new IndoorMapType();
-                newIndoorMapType.dungeonFlow = dungeonFlow;
-                newIndoorMapType.MapTileSize = 1f;
-                indoorMapTypes.Add(newIndoorMapType);
-            }
-            Patches.RoundManager.dungeonFlowTypes = indoorMapTypes.ToArray();
-        }
-
         internal static bool TryGetExtendedDungeonFlow(DungeonFlow dungeonFlow, out ExtendedDungeonFlow returnExtendedDungeonFlow, ContentType contentType = ContentType.Any)
         {
             returnExtendedDungeonFlow = null;
@@ -150,6 +145,11 @@ namespace LethalLevelLoader
         protected override (bool result, string log) ValidateExtendedContent(ExtendedDungeonFlow extendedDungeonFlow)
         {
             return (true, string.Empty);
+        }
+
+        protected override void PopulateContentTerminalData(ExtendedDungeonFlow content)
+        {
+
         }
     }
 }

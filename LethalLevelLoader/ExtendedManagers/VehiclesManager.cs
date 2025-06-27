@@ -6,36 +6,30 @@ using Unity.Netcode;
 
 namespace LethalLevelLoader
 {
-    public class VehiclesManager : ExtendedContentManager<ExtendedBuyableVehicle, BuyableVehicle, VehiclesManager>
+    public class VehiclesManager : ExtendedContentManager<ExtendedBuyableVehicle, BuyableVehicle>
     {
-        internal static void PatchVanillaVehiclesLists()
+        protected override List<BuyableVehicle> GetVanillaContent() => new List<BuyableVehicle>(Patches.Terminal.buyableVehicles);
+        protected override ExtendedBuyableVehicle ExtendVanillaContent(BuyableVehicle content) => ExtendedBuyableVehicle.Create(content);
+
+        protected override void PatchGame()
         {
-            Patches.Terminal.buyableVehicles = PatchedContent.ExtendedBuyableVehicles.Select(v => v.BuyableVehicle).ToArray();
-            Patches.StartOfRound.VehiclesList = PatchedContent.ExtendedBuyableVehicles.Select(v => v.BuyableVehicle.vehiclePrefab).ToArray();
+            DebugHelper.Log(GetType().Name + " Patching Game!", DebugType.User);
+
+            Terminal.buyableVehicles = PatchedContent.ExtendedBuyableVehicles.Select(v => v.BuyableVehicle).ToArray();
+            StartOfRound.VehiclesList = PatchedContent.ExtendedBuyableVehicles.Select(v => v.BuyableVehicle.vehiclePrefab).ToArray();
+
+            List<ExtendedBuyableVehicle> vehicles = new List<ExtendedBuyableVehicle>(PatchedContent.ExtendedBuyableVehicles);
+            for (int i = 0; i < vehicles.Count; i++)
+                vehicles[i].SetGameID(i);
+
+            foreach (ExtendedBuyableVehicle vehicle in vehicles)
+                if (!TerminalManager.Keyword_Buy.Contains(vehicle.TerminalKeyword, vehicle.PurchasePromptNode))
+                    TerminalManager.Keyword_Buy.AddCompatibleNoun(vehicle.TerminalKeyword, vehicle.PurchasePromptNode);
         }
 
-        internal static void SetBuyableVehicleIDs()
+        protected override void UnpatchGame()
         {
-            foreach (ExtendedBuyableVehicle extendedBuyableVehicle in PatchedContent.ExtendedBuyableVehicles)
-                extendedBuyableVehicle.VehicleID = -1;
-
-            int vehicleID = 0;
-            foreach (ExtendedBuyableVehicle vanillaBuyableVehicle in PatchedContent.VanillaExtendedBuyableVehicles)
-            {
-                vanillaBuyableVehicle.VehicleID = vehicleID;
-                vehicleID++;
-            }
-
-            foreach (ExtendedBuyableVehicle customBuyableVehicle in PatchedContent.CustomExtendedBuyableVehicles)
-            {
-                customBuyableVehicle.VehicleID = vehicleID;
-                vehicleID++;
-            }
-
-            foreach (ExtendedBuyableVehicle extendedBuyableVehicle in PatchedContent.ExtendedBuyableVehicles)
-                if (extendedBuyableVehicle.BuyableVehicle.vehiclePrefab.TryGetComponent(out VehicleController vehicleController))
-                    vehicleController.vehicleID = extendedBuyableVehicle.VehicleID;
-
+            DebugHelper.Log(GetType().Name + " Unpatching Game!", DebugType.User);
         }
 
         protected override (bool result, string log) ValidateExtendedContent(ExtendedBuyableVehicle extendedBuyableVehicle)
@@ -50,6 +44,47 @@ namespace LethalLevelLoader
                 return (false, "Vehicle Secondary Prefab Is Missing NetworkObject Component");
 
             return (true, string.Empty);
+        }
+
+        protected override void PopulateContentTerminalData(ExtendedBuyableVehicle content)
+        {
+            TerminalKeyword infoKeyword = null;
+            TerminalNode infoNode = null;
+            TerminalNode buyNode = null;
+            TerminalNode buyConfirmNode = null;
+            //if is custom check
+            BuyableVehicle vehicle = content.BuyableVehicle;
+            string displayName = vehicle.vehicleDisplayName;
+            infoKeyword = TerminalManager.CreateNewTerminalKeyword(content.name + "Keyword", content.TerminalKeywordName.ToLower(), TerminalManager.Keyword_Buy);
+
+            buyNode = TerminalManager.CreateNewTerminalNode(content.name + "Buy");
+            buyNode.itemCost = vehicle.creditsWorth;
+            buyNode.isConfirmationNode = true;
+            buyNode.overrideOptions = true;
+            buyNode.clearPreviousText = true;
+            buyNode.maxCharactersToType = 15;
+            buyNode.displayText =
+                "You have requested to order the " + displayName + "." + "\n" +
+                "[warranty] Total cost of items: [totalCost]." + "\n\n" +
+                "Please CONFIRM or DENY." + "\n\n";
+
+            buyConfirmNode = TerminalManager.CreateNewTerminalNode(content.name + "BuyConfirm");
+            buyConfirmNode.itemCost = vehicle.creditsWorth;
+            buyConfirmNode.clearPreviousText = true;
+            buyConfirmNode.maxCharactersToType = 35;
+            buyConfirmNode.playSyncedClip = 0;
+            buyConfirmNode.displayText =
+                "Ordered the " + displayName + ". Your new balance is [playerCredits]." + "\n\n" +
+                "We are so confident in the quality of this product, it comes with a life-time warranty! If your " + displayName + " is lost or destroyed, you can get one free replacement. Items cannot be purchased while the vehicle is en route." + "\n\n";
+            infoNode = TerminalManager.CreateNewTerminalNode(content.name + "Info");
+
+            buyNode.AddCompatibleNoun(TerminalManager.Keyword_Confirm, buyConfirmNode);
+            buyNode.AddCompatibleNoun(TerminalManager.Keyword_Deny, TerminalManager.Node_CancelPurchase);
+
+            content.TerminalKeyword = infoKeyword;
+            content.TerminalEntryNode = infoNode;
+            content.PurchasePromptNode = buyNode;
+            content.PurchaseConfirmNode = buyConfirmNode;
         }
     }
 }

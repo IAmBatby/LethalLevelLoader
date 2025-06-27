@@ -20,6 +20,8 @@ namespace LethalLevelLoader
 
         public string UniqueIdentificationName => AuthorName.ToLowerInvariant() + "." + ModName.ToLowerInvariant() + "." + name.ToLowerInvariant();
         public IntergrationStatus CurrentStatus => ExtendedContentManager.GetContentStatus(this);
+
+        public int GameID { get; private set; }
         //internal abstract void RegisterContent();
 
         internal virtual void TryCreateMatchingProperties()
@@ -30,6 +32,12 @@ namespace LethalLevelLoader
         internal virtual void Initialize()
         {
 
+        }
+
+        internal void SetGameID(int newID)
+        {
+            GameID = newID;
+            OnGameIDChanged();
         }
 
         public bool TryGetTag(string tag)
@@ -66,6 +74,8 @@ namespace LethalLevelLoader
 
         internal virtual void OnBeforeRegistration() { }
 
+        protected virtual void OnGameIDChanged() { }
+
         internal abstract void Register(ExtendedMod mod);
 
         protected List<PrefabReference> NoPrefabReferences { get; private set; } = new List<PrefabReference>();
@@ -74,13 +84,16 @@ namespace LethalLevelLoader
         internal abstract List<GameObject> GetNetworkPrefabsForRegistration();
     }
 
-    public abstract class ExtendedContent<E, C, M> : ExtendedContent, IExtendedContent<E, C, M> where E : ExtendedContent<E, C, M>, IExtendedContent<E, C, M> where M : ExtendedContentManager, IExtendedManager<E, C, M>
+    public abstract class ExtendedContent<C, M> : ExtendedContent, IManagedContent<M>, IExtendedContent<C> where M : UnityEngine.Object, IContentManager
     {
         public abstract C Content { get; }
+    }
 
+    public abstract class ExtendedContent<E,C,M> : ExtendedContent<C,M>, IManagedContent<M>, IExtendedContent<C> where M : UnityEngine.Object, IContentManager where E : ExtendedContent, IExtendedContent<C>, IManagedContent<M>
+    {
         internal override void Register(ExtendedMod mod)
         {
-            ExtendedContentManager<E, C, M>.TryRegisterContent(mod, this as E);
+            ExtendedContentManager<E,C>.TryRegisterContent(mod, this as E);
         }
     }
 

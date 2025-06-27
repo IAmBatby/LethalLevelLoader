@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.ProBuilder;
 
 namespace LethalLevelLoader
 {
@@ -112,6 +113,93 @@ namespace LethalLevelLoader
             terminalNode.terminalOptions = terminalNode.terminalOptions.AddItem(newCompataibleNoun).ToArray();
         }
 
+        public static void TryAdd(this TerminalNode self, TerminalKeyword noun, TerminalNode node)
+        {
+            if (!self.terminalOptions.Contains(noun, node))
+                self.AddCompatibleNoun(noun, node);
+        }
+
+        public static void TryAdd(this TerminalKeyword self, TerminalKeyword noun, TerminalNode node)
+        {
+            if (!self.compatibleNouns.Contains(noun, node))
+                self.AddCompatibleNoun(noun, node);
+        }
+
+
+        public static bool Contains(this TerminalNode self, TerminalKeyword keyword, TerminalNode node)
+        {
+            return (self.terminalOptions.Contains(keyword, node));
+        }
+
+        public static bool Contains(this TerminalKeyword self, TerminalKeyword keyword, TerminalNode node)
+        {
+            return (self.compatibleNouns.Contains(keyword,node));
+        }
+
+        public static bool Contains(this CompatibleNoun[] self, TerminalKeyword keyword, TerminalNode node)
+        {
+            for (int i = 0; i < self.Length; i++)
+                if (self[i].noun == keyword && self[i].result == node)
+                    return (true);
+            return (false);
+        }
+
+        public static bool Contains(this CompatibleNoun[] self, TerminalKeyword keyword)
+        {
+            for (int i = 0; i < self.Length; i++)
+                if (self[i].noun == keyword)
+                    return (true);
+            return (false);
+        }
+
+        public static bool Contains(this CompatibleNoun[] self, TerminalNode node)
+        {
+            for (int i = 0; i < self.Length; i++)
+                if (self[i].result == node)
+                    return (true);
+            return (false);
+        }
+
+        public static bool TryGet(this CompatibleNoun[] self, TerminalKeyword noun, out CompatibleNoun value)
+        {
+            value = null;
+            for (int i = 0; i < self.Length; i++)
+                if (self[i].noun == noun)
+                {
+                    value = self[i];
+                    break;
+                }
+            return (value != null);
+        }
+
+        public static bool TryGet(this CompatibleNoun[] self, TerminalNode result, out CompatibleNoun value)
+        {
+            value = null;
+            for (int i = 0; i < self.Length; i++)
+                if (self[i].result == result)
+                {
+                    value = self[i];
+                    break;
+                }
+            return (value != null);
+        }
+
+        public static bool TryGet(this CompatibleNoun[] self, TerminalNode result, out TerminalKeyword noun)
+        {
+            noun = null;
+            if (self.TryGet(result, out CompatibleNoun pair))
+                noun = pair.noun;
+            return (noun != null);
+        }
+
+        public static bool TryGet(this CompatibleNoun[] self, TerminalKeyword noun, out TerminalNode result)
+        {
+            result = null;
+            if (self.TryGet(noun, out CompatibleNoun pair))
+                result = pair.result;
+            return (result != null);
+        }
+
         public static void Add(this IntWithRarity intWithRarity, int id, int rarity)
         {
             intWithRarity.id = id;
@@ -170,6 +258,11 @@ namespace LethalLevelLoader
             return roundManager.dungeonFlowTypes.Select(i => i.dungeonFlow).ToList();
 
             
+        }
+
+        public static T[] Add<T>(this T[] array, T newValue)
+        {
+            return (array.AddItem(newValue)).ToArray();
         }
     }
 }

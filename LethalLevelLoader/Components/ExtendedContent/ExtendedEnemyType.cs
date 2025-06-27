@@ -31,20 +31,20 @@ namespace LethalLevelLoader
         [field: SerializeField] [field: TextArea(2,20)] public string InfoNodeDescription { get; set; } = string.Empty;
         [field: SerializeField] public VideoClip InfoNodeVideoClip { get; set; }
 
+        public EnemyAI Prefab { get; private set; }
         public ScanNodeProperties ScanNodeProperties { get; internal set; }
-        public int EnemyID { get; internal set; }
+        public int EnemyID => GameID;
+        public TerminalKeyword EnemyInfoKeyword { get; internal set; }
         public TerminalNode EnemyInfoNode { get; internal set; }
 
-        public static ExtendedEnemyType Create(EnemyType enemyType, ExtendedMod extendedMod, ContentType contentType)
+        //Might be obsolete
+        public static ExtendedEnemyType Create(EnemyType enemyType, ExtendedMod extendedMod, ContentType contentType) => Create(enemyType);
+        public static ExtendedEnemyType Create(EnemyType enemyType)
         {
             ExtendedEnemyType extendedEnemyType = ScriptableObject.CreateInstance<ExtendedEnemyType>();
             extendedEnemyType.EnemyType = enemyType;
             extendedEnemyType.name = enemyType.enemyName.SkipToLetters().RemoveWhitespace() + "ExtendedEnemyType";
-            extendedEnemyType.ContentType = contentType;
-            extendedMod.RegisterExtendedContent(extendedEnemyType);
-
             extendedEnemyType.TryCreateMatchingProperties();
-
             return (extendedEnemyType);
         }
 
@@ -52,7 +52,16 @@ namespace LethalLevelLoader
         {
             DebugHelper.Log("Initializing Custom Enemy: " + EnemyType.enemyName, DebugType.Developer);
 
+            Prefab = EnemyType.enemyPrefab.GetComponent<EnemyAI>();
+            ScanNodeProperties = Prefab.GetComponentInChildren<ScanNodeProperties>();
+
             TryCreateMatchingProperties();
+        }
+
+        protected override void OnGameIDChanged()
+        {
+            if (ScanNodeProperties != null) ScanNodeProperties.creatureScanID = GameID;
+            if (EnemyInfoNode != null) EnemyInfoNode.creatureFileID = GameID;
         }
 
         internal override void TryCreateMatchingProperties()

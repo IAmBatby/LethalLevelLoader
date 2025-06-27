@@ -67,18 +67,6 @@ namespace LethalLevelLoader
 
         public static List<EnemyType> Enemies { get; internal set; } = new List<EnemyType>();
 
-
-        internal static List<ExtendedContentManager> ExtendedContentManagers = new List<ExtendedContentManager>();
-
-        public static M GetExtendedManager<E,C,M>() where M : ExtendedContentManager, IExtendedManager<E,C,M> where E : ExtendedContent<E,C,M>
-        {
-            foreach (ExtendedContentManager manager in ExtendedContentManagers)
-                if (manager is ExtendedContentManager<E, C, M> castManager)
-                    return (castManager as M);
-            return (null);
-        }
-
-
         public static void RegisterExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
         {
            // extendedDungeonFlow.ConvertObsoleteValues();

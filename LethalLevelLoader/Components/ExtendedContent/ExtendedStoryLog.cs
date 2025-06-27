@@ -29,9 +29,15 @@ namespace LethalLevelLoader
         public string storyLogTitle = string.Empty;
         [TextArea] public string storyLogDescription = string.Empty;
 
-        [HideInInspector] internal int newStoryLogID;
+        internal int StoryLogID => GameID;
 
-        [HideInInspector] internal TerminalNode assignedNode;
+        public TerminalKeyword StoryLogKeyword { get; internal set; }
+        public TerminalNode StoryLogNode { get; internal set; }
+
+        protected override void OnGameIDChanged()
+        {
+            if (StoryLogNode != null) StoryLogNode.storyLogFileID = GameID;
+        }
 
         internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration() => NoPrefabReferences;
         internal override List<GameObject> GetNetworkPrefabsForRegistration() => NoNetworkPrefabs;

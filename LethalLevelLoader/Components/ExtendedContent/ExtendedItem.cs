@@ -31,6 +31,7 @@ namespace LethalLevelLoader
         [field: SerializeField] public string OverrideBuyNodeDescription { get; set; } = string.Empty;
         [field: SerializeField] public string OverrideBuyConfirmNodeDescription { get; set; } = string.Empty;
 
+        public TerminalKeyword BuyKeyword { get; internal set; }
         public TerminalNode BuyNode { get; internal set; }
         public TerminalNode BuyConfirmNode { get; internal set; }
         public TerminalNode BuyInfoNode { get; internal set; }
@@ -64,16 +65,15 @@ namespace LethalLevelLoader
             }
         }
 
-        public static ExtendedItem Create(Item newItem, ExtendedMod extendedMod, ContentType contentType)
+        //Might be obsolete
+        public static ExtendedItem Create(Item newItem, ExtendedMod extendedMod, ContentType contentType) => Create(newItem);
+
+        public static ExtendedItem Create(Item newItem)
         {
             ExtendedItem extendedItem = ScriptableObject.CreateInstance<ExtendedItem>();
             extendedItem.Item = newItem;
             extendedItem.name = newItem.itemName.SkipToLetters().RemoveWhitespace() + "ExtendedItem";
-            extendedItem.ContentType = contentType;
-            extendedMod.RegisterExtendedContent(extendedItem);
-
             extendedItem.TryCreateMatchingProperties();
-
             return (extendedItem);
         }
 
@@ -82,10 +82,6 @@ namespace LethalLevelLoader
             DebugHelper.Log("Initializing Custom Item: " + Item.itemName + ". Is Buyable: " + IsBuyableItem + ". Is Scrap: " + Item.isScrap, DebugType.Developer);
 
             TryCreateMatchingProperties();
-            if (!Patches.StartOfRound.allItemsList.itemsList.Contains(Item))
-                Patches.StartOfRound.allItemsList.itemsList.Add(Item);
-            if (IsBuyableItem)
-                TerminalManager.CreateItemTerminalData(this);
         }
 
         internal override void TryCreateMatchingProperties()

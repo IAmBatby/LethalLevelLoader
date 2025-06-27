@@ -4,38 +4,30 @@ using Unity.Netcode;
 
 namespace LethalLevelLoader
 {
-    public class UnlockableItemManager : ExtendedContentManager<ExtendedUnlockableItem, UnlockableItem, UnlockableItemManager>
+    public class UnlockableItemManager : ExtendedContentManager<ExtendedUnlockableItem, UnlockableItem>
     {
-        internal static void PatchVanillaUnlockableItemLists()
+        protected override List<UnlockableItem> GetVanillaContent() => OriginalContent.UnlockableItems;
+        protected override ExtendedUnlockableItem ExtendVanillaContent(UnlockableItem content) => ExtendedUnlockableItem.Create(content);
+
+        protected override void PatchGame()
         {
-            Patches.StartOfRound.unlockablesList.unlockables = [.. PatchedContent.ExtendedUnlockableItems.Select(u => u.UnlockableItem)];
+            DebugHelper.Log(GetType().Name + " Patching Game!", DebugType.User);
+
+            StartOfRound.unlockablesList.unlockables = [.. PatchedContent.ExtendedUnlockableItems.Select(u => u.UnlockableItem)];
+            List<ExtendedUnlockableItem> unlockableItems = new List<ExtendedUnlockableItem>(PatchedContent.ExtendedUnlockableItems);
+            for (int i = 0; i < unlockableItems.Count; i++)
+                unlockableItems[i].SetGameID(i);
+
+            foreach (ExtendedUnlockableItem item in unlockableItems)
+            {
+                TerminalManager.Keyword_Buy.TryAdd(item.BuyKeyword, item.BuyNode);
+                TerminalManager.Keyword_Info.TryAdd(item.BuyKeyword, item.BuyInfoNode);
+            }
         }
 
-        internal static void SetUnlockableItemIDs()
+        protected override void UnpatchGame()
         {
-            int unlockableID = 0;
-            foreach (ExtendedUnlockableItem vanillaUnlockableItem in PatchedContent.VanillaExtendedUnlockableItems)
-                vanillaUnlockableItem.UnlockableItemID = unlockableID++;
-
-            foreach (ExtendedUnlockableItem customUnlockableItem in PatchedContent.CustomExtendedUnlockableItems)
-                customUnlockableItem.UnlockableItemID = unlockableID++;
-
-            foreach (ExtendedUnlockableItem extendedUnlockableItem in PatchedContent.ExtendedUnlockableItems)
-            {
-                if (extendedUnlockableItem.UnlockableItemID != 1) continue;
-                if (extendedUnlockableItem.UnlockableItem.prefabObject == null) continue;
-                if (extendedUnlockableItem.UnlockableItem.alreadyUnlocked) continue;
-
-                AutoParentToShip autoParentToShip = extendedUnlockableItem.UnlockableItem.prefabObject.GetComponent<AutoParentToShip>();
-                autoParentToShip.unlockableID = extendedUnlockableItem.UnlockableItemID;
-
-                PlaceableShipObject placeableShipObject = extendedUnlockableItem.UnlockableItem.prefabObject.GetComponentInChildren<PlaceableShipObject>();
-                if (placeableShipObject != null)
-                {
-                    placeableShipObject.parentObject = autoParentToShip;
-                    placeableShipObject.unlockableID = extendedUnlockableItem.UnlockableItemID;
-                }
-            }
+            DebugHelper.Log(GetType().Name + " Unpatching Game!", DebugType.User);
         }
 
         protected override (bool result, string log) ValidateExtendedContent(ExtendedUnlockableItem extendedUnlockableItem)
@@ -53,6 +45,76 @@ namespace LethalLevelLoader
                 return (false, "Unlockable Suit Is Missing Suit Material");
 
             return (true, string.Empty);
+        }
+
+        protected override void PopulateContentTerminalData(ExtendedUnlockableItem content)
+        {
+            TerminalKeyword keyword = null;
+            TerminalNode buyNode = null;
+            TerminalNode buyConfirmNode = null;
+            TerminalNode infoNode = null;
+
+            if (content.UnlockableItem.shopSelectionNode != null)
+            {
+                buyNode = content.UnlockableItem.shopSelectionNode;
+                buyConfirmNode = buyNode?.terminalOptions[1].result;
+                if (TerminalManager.Keyword_Buy.compatibleNouns.TryGet(buyNode, out TerminalKeyword noun))
+                    keyword = noun;
+                if (TerminalManager.Keyword_Info.compatibleNouns.TryGet(keyword, out TerminalNode node))
+                    infoNode = node;
+            }
+            else
+            {
+                string sanitisedName = content.UnlockableItem.unlockableName.StripSpecialCharacters().Sanitized();
+                keyword = TerminalManager.CreateNewTerminalKeyword(sanitisedName + "Keyword", sanitisedName, TerminalManager.Keyword_Buy);
+
+                buyNode = TerminalManager.CreateNewTerminalNode(sanitisedName + "Buy");
+                buyNode.itemCost = content.ItemCost;
+                buyNode.isConfirmationNode = false;
+                buyNode.overrideOptions = true;
+                buyNode.clearPreviousText = true;
+                buyNode.maxCharactersToType = 15;
+                buyNode.creatureName = content.UnlockableItem.unlockableName;
+                if (!string.IsNullOrEmpty(content.OverrideBuyNodeDescription))
+                    buyNode.displayText = content.OverrideBuyNodeDescription;
+                else
+                {
+                    buyNode.displayText = $"You have requested to order the {buyNode.creatureName}.";
+                    buyNode.displayText += "\n Total cost of item: [totalCost].";
+                    buyNode.displayText += "\n" + "\n" + "Please CONFIRM or DENY." + "\n" + "\n";
+                }
+
+                buyConfirmNode = TerminalManager.CreateNewTerminalNode(sanitisedName + "BuyConfirm");
+                buyConfirmNode.itemCost = content.ItemCost;
+                buyConfirmNode.isConfirmationNode = true;
+                buyConfirmNode.clearPreviousText = true;
+                buyConfirmNode.buyUnlockable = true;
+                buyConfirmNode.maxCharactersToType = 35;
+                buyConfirmNode.playSyncedClip = 0;
+                buyConfirmNode.creatureName = content.UnlockableItem.unlockableName;
+                if (!string.IsNullOrEmpty(content.OverrideBuyConfirmNodeDescription))
+                    buyConfirmNode.displayText = content.OverrideBuyConfirmNodeDescription;
+                else
+                {
+                    buyConfirmNode.displayText = $"Ordered the {buyConfirmNode.creatureName}! ";
+                    buyConfirmNode.displayText += "Your new balance is [playerCredits]";
+                }
+
+                infoNode = TerminalManager.CreateNewTerminalNode(sanitisedName + "Info");
+                infoNode.clearPreviousText = true;
+                infoNode.maxCharactersToType = 35;
+                infoNode.creatureName = content.UnlockableItem.unlockableName;
+                infoNode.displayText = content.OverrideInfoNodeDescription;
+
+                buyNode.AddCompatibleNoun(TerminalManager.Keyword_Confirm, buyConfirmNode);
+                buyNode.AddCompatibleNoun(TerminalManager.Keyword_Deny, TerminalManager.Node_CancelPurchase);
+            }
+
+            content.BuyKeyword = keyword;
+            content.UnlockableItem.shopSelectionNode = buyNode;
+            content.BuyNode = buyNode;
+            content.BuyConfirmNode = buyConfirmNode;
+            content.BuyInfoNode = infoNode;
         }
     }
 }

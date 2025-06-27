@@ -6,16 +6,17 @@ using UnityEngine;
 
 namespace LethalLevelLoader
 {
+    /*
     public interface IExtendedContent<E,C,M> where E : ExtendedContent<E,C,M>, IExtendedContent<E,C,M> where M : ExtendedContentManager, IExtendedManager<E,C,M>
     {
         public C Content { get; }
 
-    }
+    }*/
 
     public interface IExtendedContent;
     public interface IExtendedContent<C> : IExtendedContent
     {
-        public C GetContent();
+        public C Content { get; }
     }
     public interface IManagedContent;
     public interface IContentManager;
@@ -58,21 +59,20 @@ namespace LethalLevelLoader
 
         protected sealed override void RegisterContent(E extendedContent)
         {
-            ExtendedContentsDict.Add(extendedContent.GetContent(), extendedContent);
+            ExtendedContentsDict.Add(extendedContent.Content, extendedContent);
             base.RegisterContent(extendedContent);
         }
     }
 
     public abstract class BaseBaseContent<C, M> : ScriptableObject, IManagedContent<M>, IExtendedContent<C> where M : UnityEngine.Object, IContentManager
     {
-        public virtual void OnDoStuff() { }
         [field: SerializeField] public C Content { get; set; }
         public C GetContent() => Content;
     }
 
     public abstract class BaseContent<E,C,M> : BaseBaseContent<C,M>, IManagedContent<M>, IExtendedContent<C> where M : UnityEngine.Object, IContentManager where E : UnityEngine.Object, IExtendedContent<C>, IManagedContent<M>
     {
-        public static List<E> Contents => BaseBaseManager<E>.GetExtendedContents();
+
     }
 
     public class Content
@@ -82,14 +82,6 @@ namespace LethalLevelLoader
 
     public class CoolContent : BaseContent<CoolContent, Content, CoolContentManager>
     {
-
-        public override void OnDoStuff()
-        {
-            foreach (CoolContent content in Contents)
-            {
-
-            }
-        }
     }
 
     public class CoolContentManager : BaseManager<CoolContent, Content>
@@ -120,6 +112,10 @@ namespace LethalLevelLoader
         public static void Test()
         {
             Content example = null;
+
+            string text = null;
+
+            if (text.Contains(':'))
 
             if (TryGetContent(example, out CoolContent extendedExample))
             {

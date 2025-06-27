@@ -8,18 +8,13 @@ namespace LethalLevelLoader
     public abstract class PrefabReference
     {
         internal virtual GameObject Prefab { get; private set; }
-
         internal void Restore(GameObject restoredReference) => Prefab = restoredReference;
     }
 
     public abstract class PrefabReference<T> : PrefabReference
     {
         internal T PrefabHolder { get; private set; }
-
-        public PrefabReference(T newPrefabHolder)
-        {
-            PrefabHolder = newPrefabHolder;
-        }
+        public PrefabReference(T newPrefabHolder) { PrefabHolder = newPrefabHolder; }
     }
 
     public class SpawnSyncedObjectReference : PrefabReference<SpawnSyncedObject>

@@ -4,11 +4,61 @@ using System.Linq;
 using System.Text;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Video;
 
 namespace LethalLevelLoader
 {
-    public class EnemyManager : ExtendedContentManager<ExtendedEnemyType, EnemyType, EnemyManager>
+    public class EnemyManager : ExtendedContentManager<ExtendedEnemyType, EnemyType>
     {
+        protected override List<EnemyType> GetVanillaContent() => OriginalContent.Enemies;
+
+        protected override ExtendedEnemyType ExtendVanillaContent(EnemyType content)
+        {
+            ExtendedEnemyType newExtendedEnemyType = ExtendedEnemyType.Create(content);
+            ScanNodeProperties enemyScanNode = newExtendedEnemyType.EnemyType.enemyPrefab.GetComponentInChildren<ScanNodeProperties>();
+            if (enemyScanNode == null)
+                DebugHelper.LogError(content.name + " Missing ScanNode!", DebugType.User);
+            else
+                newExtendedEnemyType.EnemyDisplayName = enemyScanNode.headerText;
+            //Setting ID
+            //Terminal stuff
+            return (newExtendedEnemyType);
+        }
+
+        protected override void PatchGame()
+        {
+            DebugHelper.Log(GetType().Name + " Patching Game!", DebugType.User);
+
+            List<ExtendedEnemyType> enemies = new List<ExtendedEnemyType>(PatchedContent.ExtendedEnemyTypes);
+            for (int i = 0; i < enemies.Count; i++)
+                enemies[i].SetGameID(i);
+
+            QuickMenuManager quickMenuManager = UnityEngine.Object.FindAnyObjectByType<QuickMenuManager>();
+            if (quickMenuManager == null) return;
+            SelectableLevel test = quickMenuManager.testAllEnemiesLevel;
+            List<EnemyType> existingEnemies = test.Enemies.Concat(test.OutsideEnemies).Concat(test.DaytimeEnemies).Select(s => s.enemyType).Distinct().ToList();
+            foreach (ExtendedEnemyType enemy in enemies)
+            {
+                if (existingEnemies.Contains(enemy.EnemyType)) continue;
+                SpawnableEnemyWithRarity spawnableEnemyWithRarity = Utilities.Create(enemy.EnemyType, 300);
+                test.Enemies.Add(spawnableEnemyWithRarity);
+                test.OutsideEnemies.Add(spawnableEnemyWithRarity);
+                test.DaytimeEnemies.Add(spawnableEnemyWithRarity);
+            }
+
+            foreach (ExtendedEnemyType enemy in enemies)
+            {
+                if (!Terminal.enemyFiles.Contains(enemy.EnemyInfoNode))
+                    Terminal.enemyFiles.Add(enemy.EnemyInfoNode);
+                TerminalManager.Keyword_Info.TryAdd(enemy.EnemyInfoKeyword, enemy.EnemyInfoNode);
+            }
+        }
+
+        protected override void UnpatchGame()
+        {
+            DebugHelper.Log(GetType().Name + " Unpatching Game!", DebugType.User);
+        }
+
         public static void RefreshDynamicEnemyTypeRarityOnAllExtendedLevels()
         {
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
@@ -68,65 +118,12 @@ namespace LethalLevelLoader
             }
             else
             {
-                SpawnableEnemyWithRarity newSpawnableEnemy = new SpawnableEnemyWithRarity();
-                newSpawnableEnemy.enemyType = extendedEnemy.EnemyType;
-                newSpawnableEnemy.rarity = newRarity;
-                spawnableEnemyWithRarity = newSpawnableEnemy;
-                enemyPool.Add(newSpawnableEnemy);
+                SpawnableEnemyWithRarity newEnemy = Utilities.Create(extendedEnemy.EnemyType, newRarity);
+                spawnableEnemyWithRarity = newEnemy;
+                enemyPool.Add(newEnemy);
             }
 
-
-            if (spawnableEnemyWithRarity.rarity == 0)
-                return (false);
-            else
-                return (true);
-        }
-
-        internal static void UpdateEnemyIDs()
-        {
-            
-            /*foreach (ExtendedEnemyType extendedEnemyType in PatchedContent.VanillaExtendedEnemyTypes)
-            {
-
-            }*/
-
-            List<ExtendedEnemyType> vanillaEnemyTypes = PatchedContent.VanillaExtendedEnemyTypes;
-            List<ExtendedEnemyType> customEnemyTypes = PatchedContent.CustomExtendedEnemyTypes;
-            int highestVanillaEnemyScanNodeCreatureID = -1;
-
-            foreach (ExtendedEnemyType extendedEnemyType in vanillaEnemyTypes)
-                if (extendedEnemyType.EnemyID > highestVanillaEnemyScanNodeCreatureID)
-                    highestVanillaEnemyScanNodeCreatureID = extendedEnemyType.EnemyID;
-
-
-            int counter = 1; //we want this to be 1
-            foreach (ExtendedEnemyType extendedEnemyType in customEnemyTypes)
-            {
-                ScanNodeProperties enemyScanNode = extendedEnemyType.EnemyType.enemyPrefab.GetComponentInChildren<ScanNodeProperties>();
-                if (enemyScanNode != null)
-                {
-                    extendedEnemyType.ScanNodeProperties = enemyScanNode;
-                    extendedEnemyType.ScanNodeProperties.creatureScanID = (highestVanillaEnemyScanNodeCreatureID + counter);
-                    extendedEnemyType.EnemyID = (highestVanillaEnemyScanNodeCreatureID + counter);
-                    DebugHelper.Log("Setting Custom EnemyType: " + extendedEnemyType.EnemyType.enemyName + " ID To: " + (highestVanillaEnemyScanNodeCreatureID + counter), DebugType.Developer);
-                }
-                counter++;
-            }
-        }
-
-        internal static void AddCustomEnemyTypesToTestAllEnemiesLevel()
-        {
-            QuickMenuManager quickMenuManager = UnityEngine.Object.FindAnyObjectByType<QuickMenuManager>();
-            if (quickMenuManager == null) return;
-            foreach (ExtendedEnemyType customEnemyType in PatchedContent.CustomExtendedEnemyTypes)
-            {
-                SpawnableEnemyWithRarity spawnableEnemyWithRarity = new SpawnableEnemyWithRarity();
-                spawnableEnemyWithRarity.enemyType = customEnemyType.EnemyType;
-                spawnableEnemyWithRarity.rarity = 300;
-                quickMenuManager.testAllEnemiesLevel.Enemies.Add(spawnableEnemyWithRarity);
-                quickMenuManager.testAllEnemiesLevel.OutsideEnemies.Add(spawnableEnemyWithRarity);
-                quickMenuManager.testAllEnemiesLevel.DaytimeEnemies.Add(spawnableEnemyWithRarity);
-            }
+            return (spawnableEnemyWithRarity.rarity > 0);
         }
 
         protected override (bool result, string log) ValidateExtendedContent(ExtendedEnemyType extendedEnemyType)
@@ -146,6 +143,32 @@ namespace LethalLevelLoader
                 return ((false, "EnemyAI.enemyType Did Not Match ExtendedEnemyType.EnemyType"));
 
             return (true, string.Empty);
+        }
+
+        protected override void PopulateContentTerminalData(ExtendedEnemyType content)
+        {
+            TerminalNode infoNode = null;
+            TerminalKeyword infoKeyword = null;
+            VideoClip videoClip = content.InfoNodeVideoClip;
+            if (Terminal.enemyFiles.Count > content.GameID)
+            {
+                infoNode = Terminal.enemyFiles[content.GameID];
+                videoClip = infoNode.displayVideo;
+                if (TerminalManager.Keyword_Info.compatibleNouns.TryGet(infoNode, out TerminalKeyword noun))
+                    infoKeyword = noun;
+            }
+            else
+            {
+                infoKeyword = TerminalManager.CreateNewTerminalKeyword(content.name + "BestiaryKeyword", content.EnemyDisplayName.ToLower(), TerminalManager.Keyword_Info);
+                infoNode = TerminalManager.CreateNewTerminalNode(content.name + "BestiaryNode", content.InfoNodeDescription);
+                infoNode.creatureName = content.EnemyDisplayName;
+                infoNode.playSyncedClip = 2;
+                infoNode.displayVideo = content.InfoNodeVideoClip;
+                infoNode.loadImageSlowly = content.InfoNodeVideoClip != null;
+            }
+            content.EnemyInfoKeyword = infoKeyword;
+            content.EnemyInfoNode = infoNode;
+            content.InfoNodeVideoClip = videoClip;
         }
     }
 

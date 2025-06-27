@@ -6,11 +6,12 @@ using Unity.AI.Navigation;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem.Utilities;
 using UnityEngine.SceneManagement;
 
 namespace LethalLevelLoader
 {
-    public class LevelManager : ExtendedContentManager<ExtendedLevel, SelectableLevel, LevelManager>
+    public class LevelManager : ExtendedContentManager<ExtendedLevel, SelectableLevel>
     {
         public static ExtendedLevel CurrentExtendedLevel
         {
@@ -52,10 +53,34 @@ namespace LethalLevelLoader
             {"S+++", 0}
         };
 
-        internal static void PatchVanillaLevelLists()
+
+        protected override List<SelectableLevel> GetVanillaContent() => new List<SelectableLevel>(StartOfRound.levels);
+        protected override ExtendedLevel ExtendVanillaContent(SelectableLevel content)
         {
-            Patches.StartOfRound.levels = PatchedContent.SelectableLevels.ToArray();
-            TerminalManager.Terminal.moonsCatalogueList = PatchedContent.MoonsCatalogue.ToArray();
+            ExtendedLevel extendedLevel = ExtendedLevel.Create(content);
+            PatchedContent.AllLevelSceneNames.Add(extendedLevel.SelectableLevel.sceneName);
+            extendedLevel.name = extendedLevel.NumberlessPlanetName + "ExtendedLevel";
+            extendedLevel.IsRouteHidden = TerminalManager.Keyword_Moons.specialKeywordResult.displayText.Contains(extendedLevel.NumberlessPlanetName);
+            return (extendedLevel);
+        }
+
+        protected override void PatchGame()
+        {
+            DebugHelper.Log(GetType().Name + " Patching Game!", DebugType.User);
+
+            StartOfRound.levels = ExtendedContents.Select(e => e.SelectableLevel).ToArray();
+            Terminal.moonsCatalogueList = ExtendedContents.Where(e => e.IsRouteHidden == false).Select(e => e.SelectableLevel).ToArray();
+            foreach (ExtendedLevel level in ExtendedContents)
+            {
+                level.SetGameID(StartOfRound.levels.IndexOf(level.SelectableLevel));
+                TerminalManager.Keyword_Route.TryAdd(level.RouteKeyword, level.RouteNode);
+                TerminalManager.Keyword_Info.TryAdd(level.RouteKeyword, level.InfoNode);
+            }
+        }
+
+        protected override void UnpatchGame()
+        {
+            DebugHelper.Log(GetType().Name + " Unpatching Game!", DebugType.User);
         }
 
         internal static void InitializeShipAnimatorOverrideController()
@@ -182,14 +207,10 @@ namespace LethalLevelLoader
 
             foreach (ExtendedLevel vanillaLevel in PatchedContent.VanillaExtendedLevels)
             {
-                DebugHelper.Log("Risk Level Of " + vanillaLevel.NumberlessPlanetName + " Is: " + vanillaLevel.SelectableLevel.riskLevel, DebugType.Developer);
-                if (!vanillaLevel.SelectableLevel.riskLevel.Contains("Safe") && !string.IsNullOrEmpty(vanillaLevel.SelectableLevel.riskLevel))
-                {
-                    if (vanillaRiskLevelDictionary.TryGetValue(vanillaLevel.SelectableLevel.riskLevel, out List<int> dynamicDifficultyRatingList))
-                        dynamicDifficultyRatingList.Add(vanillaLevel.CalculatedDifficultyRating);
-                    else
-                        vanillaRiskLevelDictionary.Add(vanillaLevel.SelectableLevel.riskLevel, new List<int>() { vanillaLevel.CalculatedDifficultyRating });
-                }
+                string risk = vanillaLevel.SelectableLevel.riskLevel;
+                DebugHelper.Log("Risk Level Of " + vanillaLevel.NumberlessPlanetName + " Is: " + risk, DebugType.Developer);
+                if (string.IsNullOrEmpty(risk) || risk.Contains("Safe")) continue;
+                vanillaRiskLevelDictionary.AddOrAddAdd(risk, vanillaLevel.CalculatedDifficultyRating);
             }
 
             foreach (KeyValuePair<string, List<int>> vanillaRiskLevel in vanillaRiskLevelDictionary)
@@ -374,6 +395,87 @@ namespace LethalLevelLoader
                 return ((false, "SelectableLevel PlanetPrefab Animator AnimatorController Was Null"));
             else
                 return (true, string.Empty);
+        }
+
+        protected override void PopulateContentTerminalData(ExtendedLevel content)
+        {
+            TerminalKeyword keyword = null;
+            TerminalNode routeNode = null;
+            TerminalNode routeConfirmNode = null;
+            TerminalNode routeInfoNode = null;
+
+            if (TerminalManager.Keyword_Route.compatibleNouns.Length > content.GameID)
+            {
+                foreach (CompatibleNoun noun in TerminalManager.Keyword_Route.compatibleNouns)
+                    if (noun.result.displayPlanetInfo == content.GameID)
+                    {
+                        keyword = noun.noun;
+                        routeNode = noun.result;
+                        routeConfirmNode = routeNode.terminalOptions[1].result;
+                        content.RoutePrice = routeNode.itemCost; //This should not be here but it's difficult to find a more appropiate spot rn
+                        break;
+                    }
+                if (TerminalManager.Keyword_Info.compatibleNouns.TryGet(keyword, out TerminalNode result))
+                    routeInfoNode = result;  
+            }
+            else
+            {
+                string sanitisedName = content.NumberlessPlanetName.StripSpecialCharacters().Sanitized();
+                keyword = TerminalManager.CreateNewTerminalKeyword(sanitisedName + "Keyword", content.TerminalNoun, TerminalManager.Keyword_Route);
+
+                routeNode = TerminalManager.CreateNewTerminalNode(sanitisedName + "Route");
+                if (content.OverrideRouteNodeDescription != string.Empty)
+                    routeNode.displayText = content.OverrideRouteNodeDescription;
+                else
+                {
+                    routeNode.displayText = "The cost to route to " + content.SelectableLevel.PlanetName + " is [totalCost]. It is currently [currentPlanetTime] on this moon.";
+                    routeNode.displayText += "\n" + "\n" + "Please CONFIRM or DENY." + "\n" + "\n";
+                }
+                routeNode.clearPreviousText = true;
+                routeNode.buyRerouteToMoon = -2;
+                routeNode.itemCost = content.RoutePrice;
+                routeNode.overrideOptions = true;
+
+                routeConfirmNode = TerminalManager.CreateNewTerminalNode(sanitisedName + "RouteConfirm");
+                if (content.OverrideRouteConfirmNodeDescription != string.Empty)
+                    routeConfirmNode.displayText = content.OverrideRouteConfirmNodeDescription;
+                else
+                    routeConfirmNode.displayText = "Routing autopilot to " + content.SelectableLevel.PlanetName + " Your new balance is [playerCredits]. \n\nPlease enjoy your flight.";
+                routeConfirmNode.clearPreviousText = true;
+                routeConfirmNode.itemCost = content.RoutePrice;
+
+                routeInfoNode = TerminalManager.CreateNewTerminalNode(sanitisedName + "Info");
+                routeInfoNode.clearPreviousText = true;
+                routeInfoNode.maxCharactersToType = 35;
+                string infoString;
+                if (content.OverrideInfoNodeDescription != string.Empty)
+                    infoString = content.OverrideInfoNodeDescription;
+                else
+                {
+                    infoString = content.SelectableLevel.PlanetName + "\n" + "----------------------" + "\n";
+                    List<string> selectableLevelLines = new List<string>();
+                    string inputString = content.SelectableLevel.LevelDescription;
+                    while (inputString.Contains("\n"))
+                    {
+                        string inputStringWithoutTextBeforeFirstComma = inputString.Substring(inputString.IndexOf("\n"));
+                        selectableLevelLines.Add(inputString.Replace(inputStringWithoutTextBeforeFirstComma, ""));
+                        if (inputStringWithoutTextBeforeFirstComma.Contains("\n"))
+                            inputString = inputStringWithoutTextBeforeFirstComma.Substring(inputStringWithoutTextBeforeFirstComma.IndexOf("\n") + 1);
+                    }
+                    selectableLevelLines.Add(inputString);
+                    foreach (string line in selectableLevelLines)
+                        infoString += "\n" + line + "\n";
+                }
+                routeInfoNode.displayText = infoString;
+
+                routeNode.AddCompatibleNoun(TerminalManager.Keyword_Deny, TerminalManager.Node_CancelRoute);
+                routeNode.AddCompatibleNoun(TerminalManager.Keyword_Confirm, routeConfirmNode);
+            }
+
+            content.RouteNode = routeNode;
+            content.RouteConfirmNode = routeConfirmNode;
+            content.InfoNode = routeInfoNode;
+            content.RouteKeyword = keyword;
         }
     }
 

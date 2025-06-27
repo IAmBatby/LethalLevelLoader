@@ -18,6 +18,9 @@ namespace LethalLevelLoader
         public static ExtendedEvent<GameStates> OnFurthestStateChanged { get; private set; } = new ExtendedEvent<GameStates>();
         public static ExtendedEvent<bool> OnInInitalizedLobbyStateChanged { get; private set; } = new ExtendedEvent<bool>();
 
+        public static ExtendedStepEvent OnInitializeContent { get; private set; } = new ExtendedStepEvent();
+        public static ExtendedStepEvent OnPatchGame { get; private set; } = new ExtendedStepEvent();
+
         internal static void ChangeGameState(GameStates newState)
         {
             if (newState == CurrentState) return;
@@ -50,12 +53,6 @@ namespace LethalLevelLoader
             };
             if (newState != GameStates.Uninitialized)
                 ChangeGameState(newState);
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
-        internal static void Test()
-        {
-            DebugHelper.Log("InitAttributeWork!", DebugType.User);
         }
     }
 }

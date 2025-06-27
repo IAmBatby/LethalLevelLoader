@@ -114,6 +114,7 @@ namespace LethalLevelLoader
 
         [HideInInspector] public LevelEvents LevelEvents { get; internal set; } = new LevelEvents();
 
+        public TerminalKeyword RouteKeyword { get; internal set; }
         public TerminalNode RouteNode { get; internal set; }
         public TerminalNode RouteConfirmNode { get; internal set; }
         public TerminalNode InfoNode { get; internal set; }
@@ -163,16 +164,8 @@ namespace LethalLevelLoader
             {
                 name = NumberlessPlanetName.StripSpecialCharacters() + "ExtendedLevel";
                 SelectableLevel.name = NumberlessPlanetName.StripSpecialCharacters() + "Level";
-                if (RouteNode == null) //Needs to be after levelID setting above.
-                {
-                    //DebugHelper.Log("Generating Terminal Assets For: " + NumberlessPlanetName);
-                    TerminalManager.CreateLevelTerminalData(this, routePrice);
-                }
             }
-            
 
-            if (ContentType == ContentType.Vanilla)
-                GetVanillaInfoNode();
             SetExtendedDungeonFlowMatches();
 
             //Obsolete
@@ -206,16 +199,11 @@ namespace LethalLevelLoader
                 return string.Empty;
         }
 
-        internal void SetLevelID()
+        protected override void OnGameIDChanged()
         {
-            if (ContentType == ContentType.Custom)
-            {
-                SelectableLevel.levelID = PatchedContent.ExtendedLevels.IndexOf(this);
-                if (RouteNode != null)
-                    RouteNode.displayPlanetInfo = SelectableLevel.levelID;
-                if (RouteConfirmNode != null)
-                    RouteConfirmNode.buyRerouteToMoon = SelectableLevel.levelID;
-            }
+            SelectableLevel.levelID = GameID;
+            if (RouteNode != null) RouteNode.displayPlanetInfo = GameID;
+            if (RouteConfirmNode != null) RouteConfirmNode.buyRerouteToMoon = GameID;
         }
 
         internal void SetExtendedDungeonFlowMatches()
@@ -234,7 +222,7 @@ namespace LethalLevelLoader
 
         internal void GetVanillaInfoNode()
         {
-            foreach (CompatibleNoun infoNoun in TerminalManager.routeInfoKeyword.compatibleNouns)
+            foreach (CompatibleNoun infoNoun in TerminalManager.Keyword_Info.compatibleNouns)
                 if (infoNoun.noun.word == NumberlessPlanetName.ToLower())
                 {
                     InfoNode = infoNoun.result;
@@ -252,10 +240,8 @@ namespace LethalLevelLoader
         internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration()
         {
             List<PrefabReference> returnList = new List<PrefabReference>();
-            foreach (SpawnableOutsideObject outsideMapObj in SelectableLevel.spawnableOutsideObjects.Select(s => s.spawnableObject))
-                returnList.Add(new SpawnableOutsideObjectReference(outsideMapObj));
-            foreach (SpawnableMapObject outsideMapObj in SelectableLevel.spawnableMapObjects)
-                returnList.Add(new SpawnableMapObjectReference(outsideMapObj));
+            returnList.AddRange(SelectableLevel.spawnableOutsideObjects.Select(s => new SpawnableOutsideObjectReference(s.spawnableObject)));
+            returnList.AddRange(SelectableLevel.spawnableMapObjects.Select(s => new SpawnableMapObjectReference(s)));
             return (returnList);
         }
         internal override List<GameObject> GetNetworkPrefabsForRegistration() => NoNetworkPrefabs;
