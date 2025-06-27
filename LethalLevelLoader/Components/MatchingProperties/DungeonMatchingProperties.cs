@@ -11,12 +11,8 @@ namespace LethalLevelLoader
         [Space(5)] public List<StringWithRarity> dungeonTags = new List<StringWithRarity>();
         [Space(5)] public List<StringWithRarity> dungeonNames = new List<StringWithRarity>();
 
-        public static new DungeonMatchingProperties Create(ExtendedContent extendedContent)
-        {
-            DungeonMatchingProperties dungeonMatchingProperties = ScriptableObject.CreateInstance<DungeonMatchingProperties>();
-            dungeonMatchingProperties.name = extendedContent.name + "DungeonMatchingProperties";
-            return (dungeonMatchingProperties);
-        }
+        //Obsolete.
+        public static new DungeonMatchingProperties Create(ExtendedContent extendedContent) => Create<DungeonMatchingProperties>(extendedContent);
         public int GetDynamicRarity(ExtendedDungeonFlow extendedDungeonFlow)
         {
             int returnRarity = 0;

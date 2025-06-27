@@ -9,22 +9,13 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedWeatherEffect", menuName = "Lethal Level Loader/Extended Content/ExtendedWeatherEffect", order = 25)]
     public class ExtendedWeatherEffect : ExtendedContent<ExtendedWeatherEffect, WeatherEffect, WeatherManager>
     {
-        public override RestorationPeriod RestorationPeriod => RestorationPeriod.Lobby;
         public override WeatherEffect Content => null;
-        [field: Header("General Settings")]
 
+        [field: Header("General Settings")]
         [field: SerializeField] public LevelWeatherType BaseWeatherType { get; set; } = LevelWeatherType.None;
         [field: SerializeField] public string WeatherDisplayName { get; set; } = string.Empty;
-
         [field: SerializeField] public GameObject WorldObject { get; set; }
         [field: SerializeField] public GameObject GlobalObject { get; set; }
-
-        public ContentType contentType;
-
-        //public bool lerpPosition;
-        //public bool sunAnimatorBool;
-        //public bool transitioning;
-        //public bool effectEnabled;
 
         internal static ExtendedWeatherEffect Create(LevelWeatherType levelWeatherType, WeatherEffect weatherEffect, string weatherDisplayName, ContentType newContentType)
         {
@@ -39,7 +30,6 @@ namespace LethalLevelLoader
             newExtendedWeatherEffect.BaseWeatherType = levelWeatherType;
             newExtendedWeatherEffect.WorldObject = worldObject;
             newExtendedWeatherEffect.GlobalObject = globalObject;
-
             return (newExtendedWeatherEffect);
         }
 

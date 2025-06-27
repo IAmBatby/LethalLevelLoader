@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DunGen.Graph;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -8,8 +9,7 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedBuyableVehicle", menuName = "Lethal Level Loader/Extended Content/ExtendedBuyableVehicle", order = 21)]
     public class ExtendedBuyableVehicle : ExtendedContent<ExtendedBuyableVehicle, BuyableVehicle, VehiclesManager>
     {
-        public override RestorationPeriod RestorationPeriod => RestorationPeriod.MainMenu;
-        public override BuyableVehicle Content => BuyableVehicle;
+        public override BuyableVehicle Content { get => BuyableVehicle; protected set => BuyableVehicle = value; }
         [field: SerializeField] public BuyableVehicle BuyableVehicle { get; set; }
         [field: SerializeField] public string TerminalKeywordName { get; set; } = string.Empty;
 

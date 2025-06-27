@@ -11,11 +11,21 @@ namespace LethalLevelLoader
         [Space(5)] public List<StringWithRarity> modNames = new List<StringWithRarity>();
         [Space(5)] public List<StringWithRarity> authorNames = new List<StringWithRarity>();
 
-        public static MatchingProperties Create(ExtendedContent extendedContent)
+        //Obsolete.
+        public static MatchingProperties Create(ExtendedContent extendedContent) => Create(extendedContent);
+
+        public static T Create<T>(ExtendedContent extendedContent) where T : MatchingProperties
         {
-            MatchingProperties matchingProperties = ScriptableObject.CreateInstance<MatchingProperties>();
-            matchingProperties.name = extendedContent.name + "MatchingProperties";
-            return (matchingProperties);
+            T newProp = ScriptableObject.CreateInstance<T>();
+            newProp.name = extendedContent.name + typeof(T).Name;
+            return (newProp);
+        }
+        public static T TryCreate<T>(T matchingProperties, ExtendedContent content) where T : MatchingProperties
+        {
+            if (matchingProperties == null)
+                return (Create<T>(content));
+            else
+                return (matchingProperties);
         }
 
         internal static bool UpdateRarity(ref int currentValue, int newValue, string debugActionObject = null, string debugActionReason = null)

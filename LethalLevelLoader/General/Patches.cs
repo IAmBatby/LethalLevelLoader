@@ -315,8 +315,6 @@ namespace LethalLevelLoader
             DebugStopwatch.StopStopWatch("Initialize Save");
             if (Plugin.IsSetupComplete == false)
             {
-                WeatherManager.PopulateVanillaExtendedWeatherEffectsDictionary();
-                WeatherManager.PopulateExtendedLevelEnabledExtendedWeatherEffects();
                 Plugin.CompleteSetup();
                 StartOfRound.SetPlanetsWeather();
             }

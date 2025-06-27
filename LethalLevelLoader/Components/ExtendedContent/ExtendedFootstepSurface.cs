@@ -8,8 +8,7 @@ namespace LethalLevelLoader;
 [CreateAssetMenu(fileName = "ExtendedFootstepSurface", menuName = "Lethal Level Loader/Extended Content/ExtendedFootstepSurface", order = 27)]
 public class ExtendedFootstepSurface : ExtendedContent<ExtendedFootstepSurface,FootstepSurface,FootstepManager>
 {
-    public override RestorationPeriod RestorationPeriod => RestorationPeriod.MainMenu;
-    public override FootstepSurface Content => footstepSurface;
+    public override FootstepSurface Content { get => footstepSurface; protected set => footstepSurface = value; }
     public FootstepSurface footstepSurface;
     public List<Material> associatedMaterials;
 

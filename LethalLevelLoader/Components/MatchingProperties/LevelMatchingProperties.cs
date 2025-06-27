@@ -13,13 +13,8 @@ namespace LethalLevelLoader
         [Space(5)] public List<StringWithRarity> currentWeather = new List<StringWithRarity>();
         [Space(5)] public List<StringWithRarity> planetNames = new List<StringWithRarity>();
 
-        public static new LevelMatchingProperties Create(ExtendedContent extendedContent)
-        {
-            LevelMatchingProperties levelMatchingProperties = ScriptableObject.CreateInstance<LevelMatchingProperties>();
-            levelMatchingProperties.name = extendedContent.name + "LevelMatchingProperties";
-            return (levelMatchingProperties);
-        }
-
+        //Obsolete.
+        public static new LevelMatchingProperties Create(ExtendedContent extendedContent) => Create<LevelMatchingProperties>(extendedContent);
         public int GetDynamicRarity(ExtendedLevel extendedLevel)
         {
             int returnRarity = 0;

@@ -1,4 +1,5 @@
-﻿using GameNetcodeStuff;
+﻿using DunGen.Graph;
+using GameNetcodeStuff;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,9 +14,7 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedLevel", menuName = "Lethal Level Loader/Extended Content/ExtendedLevel", order = 20)]
     public class ExtendedLevel : ExtendedContent<ExtendedLevel, SelectableLevel, LevelManager>
     {
-        public override RestorationPeriod RestorationPeriod => RestorationPeriod.Lobby;
-        public override SelectableLevel Content => SelectableLevel;
-
+        public override SelectableLevel Content { get => SelectableLevel; protected set => SelectableLevel = value; }
 
         [field: Header("General Settings")]
         [field: SerializeField] public SelectableLevel SelectableLevel { get; set; }
@@ -25,52 +24,38 @@ namespace LethalLevelLoader
         [field: SerializeField] public bool OverrideDynamicRiskLevelAssignment { get; set; } = false;
 
         [field: Space(5)]
-
         [field: SerializeField] public GameObject OverrideQuicksandPrefab { get; set; }
 
         [field: Space(5)]
-
         [field: SerializeField] public bool IsRouteHidden { get; set; } = false;
         [field: SerializeField] public bool IsRouteLocked { get; set; } = false;
         public bool IsRouteRemoved { get; set; } = false;
         [field: SerializeField] public string LockedRouteNodeText { get; set; } = string.Empty;
 
         [field: Space(5)]
-
         [field: SerializeField] public AnimationClip ShipFlyToMoonClip { get; set; }
         [field: SerializeField] public AnimationClip ShipFlyFromMoonClip { get; set; }
 
-        [field: Space(5)]
+        [field: Space(5), SerializeField] public List<StringWithRarity> SceneSelections { get; set; } = new List<StringWithRarity>();
 
-        [field: SerializeField] public List<StringWithRarity> SceneSelections { get; set; } = new List<StringWithRarity>();
-
-        [field: Space(5)]
-        [field: Tooltip("Overrides vanilla camera Far Plane Clip Distance, The highest value between current Level and Interior will be used.")]
+        [field: Space(5), Tooltip("Overrides vanilla camera Far Plane Clip Distance, The highest value between current Level and Interior will be used.")]
         [field: Range(0f, 10000f)]
         [field: SerializeField] public float OverrideCameraMaxDistance = 400;
 
-        [field: Space(5)]
-        [field: Header("Weather Fog Distance Override Settings")]
-
+        [field: Space(5), Header("Weather Fog Distance Override Settings")]
         [field: SerializeField] public Vector3 OverrideDustStormVolumeSize { get; set; } = Vector3.zero;
         [field: SerializeField] public Vector3 OverrideFoggyVolumeSize { get; set; } = Vector3.zero;
 
-
-        [field: Space(5)]
-        [field: Header("Terminal Route Override Settings")]
-
+        [field: Space(5), Header("Terminal Route Override Settings")]
         [field: SerializeField] public string OverrideRouteNoun { get; set; } = string.Empty;   
         [field: SerializeField] [field: TextArea(2, 20)] public string OverrideInfoNodeDescription { get; set; } = string.Empty;
         [field: SerializeField] [field: TextArea(2, 20)] public string OverrideRouteNodeDescription { get; set; } = string.Empty;
         [field: SerializeField] [field: TextArea(2, 20)] public string OverrideRouteConfirmNodeDescription { get; set; } = string.Empty;
 
-        [field: Space(10)]
-        [field: Header("Misc. Settings")]
-        [field: Space(5)]
+        [field: Space(10), Header("Misc. Settings"), Space(5)]
         [field: SerializeField] public bool GenerateAutomaticConfigurationOptions { get; set; } = true;
 
-        [Space(25)]
-        [Header("Obsolete (Legacy Fields, Will Be Removed In The Future)")]
+        [Space(25), Header("Obsolete (Legacy Fields, Will Be Removed In The Future)")]
         [Obsolete] public SelectableLevel selectableLevel;
         [Obsolete][Space(5)] public string contentSourceName = string.Empty; //Levels from AssetBundles will have this as their Assembly Name.
         [Obsolete][Space(5)] public List<string> levelTags = new List<string>();
@@ -106,8 +91,7 @@ namespace LethalLevelLoader
         }
 
         public string TerminalNoun => string.IsNullOrEmpty(OverrideRouteNoun) ? NumberlessPlanetName.StripSpecialCharacters().Sanitized() : OverrideRouteNoun.StripSpecialCharacters().Sanitized();
-
-        public string NumberlessPlanetName => GetNumberlessPlanetName(SelectableLevel);
+        public string NumberlessPlanetName => new string(SelectableLevel.PlanetName.SkipWhile(c => !char.IsLetter(c)).ToArray());
         public int CalculatedDifficultyRating => LevelManager.CalculateExtendedLevelDifficultyRating(this);
         public bool IsCurrentLevel => LevelManager.CurrentExtendedLevel == this;
         public bool IsLevelLoaded => SceneManager.GetSceneByName(SelectableLevel.sceneName).isLoaded;
@@ -120,30 +104,12 @@ namespace LethalLevelLoader
         public TerminalNode InfoNode { get; internal set; }
         public TerminalNode SimulateNode { get; internal set; }
 
-        //Dunno about these yet
-        public List<ExtendedWeatherEffect> EnabledExtendedWeatherEffects { get; set; } = new List<ExtendedWeatherEffect>();
-        public ExtendedWeatherEffect CurrentExtendedWeatherEffect { get; set; }
+        internal static ExtendedLevel Create(SelectableLevel newSelectableLevel) => Create<ExtendedLevel, SelectableLevel, LevelManager>(newSelectableLevel.name, newSelectableLevel);
 
-        internal static ExtendedLevel Create(SelectableLevel newSelectableLevel)
-        {
-            ExtendedLevel newExtendedLevel = ScriptableObject.CreateInstance<ExtendedLevel>();
-            newExtendedLevel.SelectableLevel = newSelectableLevel;
-
-            return (newExtendedLevel);
-        }
         internal override void Initialize()
         {
-            bool mainSceneRegistered = false;
-            
-            foreach (StringWithRarity sceneSelection in SceneSelections)
-                if (sceneSelection.Name == SelectableLevel.sceneName)
-                    mainSceneRegistered = true;
-
-            if (mainSceneRegistered == false)
-            {
-                StringWithRarity newSceneSelection = new StringWithRarity(SelectableLevel.sceneName, 300);
-                SceneSelections.Add(newSceneSelection);
-            }
+            if (!SceneSelections.Select(s => s.Name).Contains(SelectableLevel.sceneName))
+                SceneSelections.Add(new StringWithRarity(SelectableLevel.sceneName, 300));
 
             foreach (StringWithRarity sceneSelection in new List<StringWithRarity>(SceneSelections))
                 if (!PatchedContent.AllLevelSceneNames.Contains(sceneSelection.Name))
@@ -152,13 +118,9 @@ namespace LethalLevelLoader
                     SceneSelections.Remove(sceneSelection);
                 }
 
-            if (ShipFlyToMoonClip == null)
-                ShipFlyToMoonClip = LevelLoader.defaultShipFlyToMoonClip;
-            if (ShipFlyFromMoonClip == null)
-                ShipFlyFromMoonClip = LevelLoader.defaultShipFlyFromMoonClip;
-
-            if (OverrideQuicksandPrefab == null)
-                OverrideQuicksandPrefab = LevelLoader.defaultQuicksandPrefab;
+            ShipFlyToMoonClip = ShipFlyToMoonClip != null ? ShipFlyToMoonClip : LevelLoader.defaultShipFlyToMoonClip;
+            ShipFlyFromMoonClip = ShipFlyFromMoonClip != null ? ShipFlyFromMoonClip : LevelLoader.defaultShipFlyFromMoonClip;
+            OverrideQuicksandPrefab = OverrideQuicksandPrefab != null ? OverrideQuicksandPrefab : LevelLoader.defaultQuicksandPrefab;
 
             if (ContentType == ContentType.Custom)
             {
@@ -167,8 +129,6 @@ namespace LethalLevelLoader
             }
 
             SetExtendedDungeonFlowMatches();
-
-            //Obsolete
         }
 
         internal override void OnBeforeRegistration()
@@ -191,14 +151,6 @@ namespace LethalLevelLoader
                 DebugHelper.LogWarning("ExtendedLevel.contentSourceName is Obsolete and will be removed in following releases, Please use ExtendedMod.AuthorName instead.", DebugType.Developer);
         }
 
-        internal static string GetNumberlessPlanetName(SelectableLevel selectableLevel)
-        {
-            if (selectableLevel != null)
-                return new string(selectableLevel.PlanetName.SkipWhile(c => !char.IsLetter(c)).ToArray());
-            else
-                return string.Empty;
-        }
-
         protected override void OnGameIDChanged()
         {
             SelectableLevel.levelID = GameID;
@@ -218,23 +170,6 @@ namespace LethalLevelLoader
                     if (indoorMapType.dungeonFlow.name == "Level1Flow3Exits")
                         if (DungeonManager.TryGetExtendedDungeonFlow(indoorMapType.dungeonFlow, out ExtendedDungeonFlow marchDungeonFlow))
                             marchDungeonFlow.LevelMatchingProperties.planetNames.Add(new StringWithRarity(NumberlessPlanetName, 300));
-        }
-
-        internal void GetVanillaInfoNode()
-        {
-            foreach (CompatibleNoun infoNoun in TerminalManager.Keyword_Info.compatibleNouns)
-                if (infoNoun.noun.word == NumberlessPlanetName.ToLower())
-                {
-                    InfoNode = infoNoun.result;
-                    break;
-                }
-        }
-
-        public void ForceSetRoutePrice(int newValue)
-        {
-            if (Plugin.Instance != null)
-                Debug.LogWarning("ForceSetRoutePrice Should Only Be Used In Editor! Consider Using RoutePrice Property To Sync TerminalNode's With New Value.");
-            routePrice = newValue;
         }
 
         internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration()

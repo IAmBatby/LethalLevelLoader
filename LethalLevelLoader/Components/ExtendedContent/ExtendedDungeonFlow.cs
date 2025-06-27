@@ -14,8 +14,7 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedDungeonFlow", menuName = "Lethal Level Loader/Extended Content/ExtendedDungeonFlow", order = 21)]
     public class ExtendedDungeonFlow : ExtendedContent<ExtendedDungeonFlow, DungeonFlow, DungeonManager>
     {
-        public override RestorationPeriod RestorationPeriod => RestorationPeriod.MainMenu;
-        public override DungeonFlow Content => DungeonFlow;
+        public override DungeonFlow Content { get => DungeonFlow; protected set => DungeonFlow = value; }
         [field: Header("General Settings")]
         [field: SerializeField] public DungeonFlow DungeonFlow { get; set; }
         [field: SerializeField] public string DungeonName { get; set; } = string.Empty;
@@ -78,19 +77,15 @@ namespace LethalLevelLoader
 
         internal static ExtendedDungeonFlow Create(DungeonFlow newDungeonFlow, AudioClip newFirstTimeDungeonAudio)
         {
-            ExtendedDungeonFlow newExtendedDungeonFlow = ScriptableObject.CreateInstance<ExtendedDungeonFlow>();
-            newExtendedDungeonFlow.DungeonFlow = newDungeonFlow;
+            ExtendedDungeonFlow newExtendedDungeonFlow = Create<ExtendedDungeonFlow,DungeonFlow,DungeonManager>(newDungeonFlow.name, newDungeonFlow);
             newExtendedDungeonFlow.FirstTimeDungeonAudio = newFirstTimeDungeonAudio;
-
-            if (newExtendedDungeonFlow.LevelMatchingProperties == null)
-                newExtendedDungeonFlow.LevelMatchingProperties = LevelMatchingProperties.Create(newExtendedDungeonFlow);
+            newExtendedDungeonFlow.LevelMatchingProperties = LevelMatchingProperties.Create(newExtendedDungeonFlow);
             return (newExtendedDungeonFlow);
         }
 
         internal override void Initialize()
         {
-            if (LevelMatchingProperties == null)
-                LevelMatchingProperties = LevelMatchingProperties.Create(this);
+            LevelMatchingProperties = MatchingProperties.TryCreate(LevelMatchingProperties, this);
 
             DungeonName = string.IsNullOrEmpty(DungeonName) ? DungeonFlow.name : DungeonName;
             name = DungeonFlow.name.Replace("Flow", "") + "ExtendedDungeonFlow";
@@ -100,13 +95,6 @@ namespace LethalLevelLoader
                 DebugHelper.LogWarning("Custom Dungeon: " + DungeonName + " Is Missing A DungeonFirstTimeAudio Reference! Assigning Facility Audio To Prevent Errors.", DebugType.User);
                 FirstTimeDungeonAudio = Patches.RoundManager.firstTimeDungeonAudios[0];
             }
-        }
-
-        internal override void TryCreateMatchingProperties()
-        {
-            if (LevelMatchingProperties == null)
-                LevelMatchingProperties = LevelMatchingProperties.Create(this);
-            LevelMatchingProperties.ApplyValues(newAuthorNames: manualContentSourceNameReferenceList, newPlanetNames: manualPlanetNameReferenceList, newLevelTags: dynamicLevelTagsList, newRoutePrices: dynamicRoutePricesList, newCurrentWeathers: dynamicCurrentWeatherList);
         }
 
         internal override void OnBeforeRegistration()
@@ -141,7 +129,8 @@ namespace LethalLevelLoader
             if (LevelMatchingProperties == null && (dynamicLevelTagsList.Count > 0 || dynamicRoutePricesList.Count > 0 || dynamicCurrentWeatherList.Count > 0 || manualContentSourceNameReferenceList.Count > 0 || manualContentSourceNameReferenceList.Count > 0))
             {
                 DebugHelper.LogWarning("ExtendedDungeonFlow dynamic and manual match reference lists are Obsolete and will be removed in following releases, Please use ExtendedDungeonFlow.LevelMatchingProperties instead.", DebugType.Developer);
-                TryCreateMatchingProperties();
+                LevelMatchingProperties = MatchingProperties.TryCreate(LevelMatchingProperties, this);
+                LevelMatchingProperties.ApplyValues(newAuthorNames: manualContentSourceNameReferenceList, newPlanetNames: manualPlanetNameReferenceList, newLevelTags: dynamicLevelTagsList, newRoutePrices: dynamicRoutePricesList, newCurrentWeathers: dynamicCurrentWeatherList);
             }
             if (enableDynamicDungeonSizeRestriction != false || (IsDynamicDungeonSizeRestrictionEnabled != enableDynamicDungeonSizeRestriction))
             {

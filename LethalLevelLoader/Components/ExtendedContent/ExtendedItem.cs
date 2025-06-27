@@ -10,23 +10,18 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedItem", menuName = "Lethal Level Loader/Extended Content/ExtendedItem", order = 23)]
     public class ExtendedItem : ExtendedContent<ExtendedItem, Item, ItemManager>
     {
-        public override RestorationPeriod RestorationPeriod => RestorationPeriod.MainMenu;
-        public override Item Content => Item;
-        [field: Header("General Settings")]
+        public override Item Content { get => Item; protected set => Item = value; }
 
+        [field: Header("General Settings")]
         [field: SerializeField] public Item Item { get; set; }
         [field: SerializeField] public string PluralisedItemName { get; set; } = string.Empty;
         [field: SerializeField] public bool IsBuyableItem { get; set; }
 
-        [field: Space(5)]
-        [field: Header("Dynamic Injection Matching Settings")]
-
+        [field: Space(5), Header("Dynamic Injection Matching Settings")]
         [field: SerializeField] public LevelMatchingProperties LevelMatchingProperties { get; set; }
         [field: SerializeField] public DungeonMatchingProperties DungeonMatchingProperties { get; set; }
 
-        [field: Space(5)]
-        [field: Header("Terminal Store & Info Override Settings")]
-
+        [field: Space(5), Header("Terminal Store & Info Override Settings")]
         [field: SerializeField] public string OverrideInfoNodeDescription { get; set; } = string.Empty;
         [field: SerializeField] public string OverrideBuyNodeDescription { get; set; } = string.Empty;
         [field: SerializeField] public string OverrideBuyConfirmNodeDescription { get; set; } = string.Empty;
@@ -67,42 +62,25 @@ namespace LethalLevelLoader
 
         //Might be obsolete
         public static ExtendedItem Create(Item newItem, ExtendedMod extendedMod, ContentType contentType) => Create(newItem);
-
         public static ExtendedItem Create(Item newItem)
         {
-            ExtendedItem extendedItem = ScriptableObject.CreateInstance<ExtendedItem>();
-            extendedItem.Item = newItem;
-            extendedItem.name = newItem.itemName.SkipToLetters().RemoveWhitespace() + "ExtendedItem";
+            ExtendedItem extendedItem = Create<ExtendedItem, Item, ItemManager>(newItem.itemName.SkipToLetters().RemoveWhitespace() + "ExtendedItem", newItem);
             extendedItem.TryCreateMatchingProperties();
             return (extendedItem);
         }
 
         internal override void Initialize()
         {
-            DebugHelper.Log("Initializing Custom Item: " + Item.itemName + ". Is Buyable: " + IsBuyableItem + ". Is Scrap: " + Item.isScrap, DebugType.Developer);
-
             TryCreateMatchingProperties();
         }
 
         internal override void TryCreateMatchingProperties()
         {
-            if (LevelMatchingProperties == null)
-                LevelMatchingProperties = LevelMatchingProperties.Create(this);
-            if (DungeonMatchingProperties == null)
-                DungeonMatchingProperties = DungeonMatchingProperties.Create(this);
-        }
-
-        public void SetLevelMatchingProperties(LevelMatchingProperties newLevelMatchingProperties)
-        {
-            if (Plugin.Instance != null)
-                Debug.LogError("SetLevelMatchingProperties() Should Only Be Used In Editor!");
-            LevelMatchingProperties = newLevelMatchingProperties;
+            LevelMatchingProperties = MatchingProperties.TryCreate(LevelMatchingProperties, this);
+            DungeonMatchingProperties = MatchingProperties.TryCreate(DungeonMatchingProperties, this);
         }
 
         internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration() => NoPrefabReferences;
-        internal override List<GameObject> GetNetworkPrefabsForRegistration()
-        {
-            return (Item.spawnPrefab.GetComponentsInChildren<NetworkObject>().Select(n => n.gameObject).ToList());
-        }
+        internal override List<GameObject> GetNetworkPrefabsForRegistration() => Item.spawnPrefab.GetComponentsInChildren<NetworkObject>().Select(n => n.gameObject).ToList();
     }
 }

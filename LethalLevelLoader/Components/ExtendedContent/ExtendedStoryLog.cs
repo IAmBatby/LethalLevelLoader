@@ -8,7 +8,6 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedStoryLog", menuName = "Lethal Level Loader/Extended Content/ExtendedStoryLog", order = 26)]
     public class ExtendedStoryLog : ExtendedContent<ExtendedStoryLog,StoryLogInfo,StoryLogManager>
     {
-        public override RestorationPeriod RestorationPeriod => RestorationPeriod.Lobby;
         public override StoryLogInfo Content
         {
             get
@@ -16,6 +15,10 @@ namespace LethalLevelLoader
                 if (Info == null)
                     Info = new StoryLogInfo(sceneName, storyLogID);
                 return (Info);
+            }
+            protected set
+            {
+                Info = value;
             }
         }
 

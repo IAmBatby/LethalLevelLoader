@@ -8,7 +8,6 @@ namespace LethalLevelLoader
 {
     public abstract class ExtendedContent : ScriptableObject
     {
-        public abstract RestorationPeriod RestorationPeriod { get; }
         public ExtendedMod ExtendedMod { get; internal set; }
         public ContentType ContentType { get; internal set; } = ContentType.Vanilla;
         /*Obsolete*/ public List<string> ContentTagStrings { get; internal set; } = new List<string>();
@@ -23,6 +22,14 @@ namespace LethalLevelLoader
 
         public int GameID { get; private set; }
         //internal abstract void RegisterContent();
+
+        internal static E Create<E,C,M>(string newName, C newContent) where E : ExtendedContent<C,M> where M : UnityEngine.Object, IContentManager
+        {
+            E instance = ScriptableObject.CreateInstance<E>();
+            instance.SetContent(newContent);
+            instance.name = newName;
+            return (instance);
+        }
 
         internal virtual void TryCreateMatchingProperties()
         {
@@ -86,7 +93,8 @@ namespace LethalLevelLoader
 
     public abstract class ExtendedContent<C, M> : ExtendedContent, IManagedContent<M>, IExtendedContent<C> where M : UnityEngine.Object, IContentManager
     {
-        public abstract C Content { get; }
+        public virtual C Content { get; protected set; }
+        internal void SetContent(C newContent) => Content = newContent;
     }
 
     public abstract class ExtendedContent<E,C,M> : ExtendedContent<C,M>, IManagedContent<M>, IExtendedContent<C> where M : UnityEngine.Object, IContentManager where E : ExtendedContent, IExtendedContent<C>, IManagedContent<M>

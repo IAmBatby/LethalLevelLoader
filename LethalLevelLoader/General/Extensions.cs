@@ -217,30 +217,15 @@ namespace LethalLevelLoader
         public static void AddOrAddAdd<K,V>(this Dictionary<K,List<V>> dict, K key, V value)
         {
             if (key == null || value == null) return;
-            if (dict.TryGetValue(key, out List<V> list))
-            {
-                if (!list.Contains(value))
-                    list.Add(value);
-            }
-            else
-                dict.Add(key, new List<V>() { value });
+            if (dict.TryGetValue(key, out List<V> list) == false)
+                dict.Add(key, new List<V> { value });
+            else if (!list.Contains(value))
+                list.Add(value);
         }
 
-        public static string Sanitized(this string currentString)
-        {
-            return new string(currentString.SkipToLetters().RemoveWhitespace().ToLowerInvariant());
-        }
-
-        public static string RemoveWhitespace(this string input)
-        {
-            return new string(input.ToCharArray().Where(c => !Char.IsWhiteSpace(c)).ToArray());
-        }
-
-        public static string SkipToLetters(this string input)
-        {
-            return new string(input.SkipWhile(c => !char.IsLetter(c)).ToArray());
-        }
-
+        public static string Sanitized(this string currentString) => new string(currentString.SkipToLetters().RemoveWhitespace().ToLowerInvariant());
+        public static string RemoveWhitespace(this string input) => new string(input.ToCharArray().Where(c => !Char.IsWhiteSpace(c)).ToArray());
+        public static string SkipToLetters(this string input) => new string(input.SkipWhile(c => !char.IsLetter(c)).ToArray());
         public static string StripSpecialCharacters(this string input)
         {
             string returnString = string.Empty;

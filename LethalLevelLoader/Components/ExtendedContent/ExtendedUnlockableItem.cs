@@ -1,3 +1,4 @@
+using Steamworks.Data;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,23 +7,16 @@ namespace LethalLevelLoader
     [CreateAssetMenu(fileName = "ExtendedUnlockableItem", menuName = "Lethal Level Loader/Extended Content/ExtendedUnlockableItem", order = 21)]
     public class ExtendedUnlockableItem : ExtendedContent<ExtendedUnlockableItem, UnlockableItem, UnlockableItemManager>
     {
-        public override RestorationPeriod RestorationPeriod => RestorationPeriod.Lobby;
-        public override UnlockableItem Content => UnlockableItem;
+        public override UnlockableItem Content { get => UnlockableItem; protected set => UnlockableItem = value; }
+
         [field: Header("General Settings")]
-
         [field: SerializeField] public UnlockableItem UnlockableItem { get; set; }
-
         [field: SerializeField] public int ItemCost { get; set; }
 
-        [field: Space(5)]
-        [field: Header("Terminal Store & Info Override Settings")]
-
-        [field: TextArea(2, 20)]
-        [field: SerializeField] public string OverrideInfoNodeDescription { get; set; } = string.Empty;
-        [field: TextArea(2, 20)]
-        [field: SerializeField] public string OverrideBuyNodeDescription { get; set; } = string.Empty;
-        [field: TextArea(2, 20)]
-        [field: SerializeField] public string OverrideBuyConfirmNodeDescription { get; set; } = string.Empty;
+        [field: Space(5), Header("Terminal Store & Info Override Settings")]
+        [field: SerializeField, TextArea(2, 20)] public string OverrideInfoNodeDescription { get; set; } = string.Empty;
+        [field: SerializeField, TextArea(2, 20)] public string OverrideBuyNodeDescription { get; set; } = string.Empty;
+        [field: SerializeField, TextArea(2, 20)] public string OverrideBuyConfirmNodeDescription { get; set; } = string.Empty;
 
         public int UnlockableItemID => GameID;
 
@@ -46,13 +40,12 @@ namespace LethalLevelLoader
         public TerminalNode BuyConfirmNode { get; internal set; }
         public TerminalNode BuyInfoNode { get; internal set; }
 
+        internal static ExtendedUnlockableItem Create(UnlockableItem newUnlockableItem) => Create<ExtendedUnlockableItem, UnlockableItem, UnlockableItemManager>(newUnlockableItem.unlockableName.SkipToLetters().RemoveWhitespace() + "ExtendedUnlockableItem", newUnlockableItem);
+
         internal override void Initialize()
         {
-            if (Prefab != null)
-            {
-                AutoParentToShip = Prefab.GetComponent<AutoParentToShip>();
-                PlaceableShipObject = Prefab.GetComponentInChildren<PlaceableShipObject>();
-            }
+            AutoParentToShip = Prefab?.GetComponent<AutoParentToShip>();
+            PlaceableShipObject = Prefab?.GetComponentInChildren<PlaceableShipObject>();
         }
 
         protected override void OnGameIDChanged()
@@ -63,29 +56,9 @@ namespace LethalLevelLoader
             if (BuyConfirmNode != null) BuyConfirmNode.shipUnlockableID = GameID;
         }
 
-        internal static ExtendedUnlockableItem Create(UnlockableItem newUnlockableItem)
-        {
-            ExtendedUnlockableItem extendedUnlockableItem = ScriptableObject.CreateInstance<ExtendedUnlockableItem>();
-            extendedUnlockableItem.UnlockableItem = newUnlockableItem;
-            extendedUnlockableItem.name = newUnlockableItem.unlockableName.SkipToLetters().RemoveWhitespace() + "ExtendedUnlockableItem";
-            return (extendedUnlockableItem);
-        }
-
         internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration() => NoPrefabReferences;
-        internal override List<GameObject> GetNetworkPrefabsForRegistration()
-        {
-            if (UnlockableItem.unlockableType == 1 && UnlockableItem.prefabObject != null)
-                return (new List<GameObject>() { UnlockableItem.prefabObject});
-            else
-                return (NoNetworkPrefabs);
-        }
+        internal override List<GameObject> GetNetworkPrefabsForRegistration() => (Prefab != null ? new List<GameObject>() { Prefab } : NoNetworkPrefabs);
     }
 
-    public enum UnlockableType
-    {
-        Invalid,
-        Suit,
-        Furniture,
-        Unknown,
-    }
+    public enum UnlockableType { Invalid, Suit, Furniture, Unknown, }
 }
