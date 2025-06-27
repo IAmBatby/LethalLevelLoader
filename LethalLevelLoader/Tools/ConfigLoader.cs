@@ -235,7 +235,7 @@ namespace LethalLevelLoader.Tools
 
                 subCategory = "General Settings - ";
 
-                routePrice = BindValue("Planet Route Price", "Override The Route Price For This Level.", extendedLevel.RoutePrice);
+                routePrice = BindValue("Planet Route Price", "Override The Route Price For This Level.", extendedLevel.PurchasePrice);
                 daySpeedMultiplier = BindValue("Day Speed Multiplier", "Override The Day Speed Multiplier For This Level.", selectableLevel.DaySpeedMultiplier);
                 doesPlanetHaveTime = BindValue("Does Planet Have Time", "Override If Time Passes In This Level.", selectableLevel.planetHasTime);
 
@@ -265,13 +265,13 @@ namespace LethalLevelLoader.Tools
                     // ----- Setting ----- //
 
                     //General
-                    extendedLevel.RoutePrice = routePrice.Value;
+                    extendedLevel.SetPurchasePrice(routePrice.Value);
                     selectableLevel.DaySpeedMultiplier = daySpeedMultiplier.Value;
                     selectableLevel.planetHasTime = doesPlanetHaveTime.Value;
                     extendedLevel.IsRouteHidden = isLevelHidden.Value;
                     if (isLevelRegistered.Value == false)
                         foreach (CompatibleNoun compatibleNoun in new List<CompatibleNoun>(TerminalManager.Keyword_Route.compatibleNouns))
-                            if (compatibleNoun.result == extendedLevel.RouteNode)
+                            if (compatibleNoun.result == extendedLevel.PurchasePromptNode)
                             {
                                 List<CompatibleNoun> modifiedNounsList = new List<CompatibleNoun>(TerminalManager.Keyword_Route.compatibleNouns);
                                 modifiedNounsList.Remove(compatibleNoun);

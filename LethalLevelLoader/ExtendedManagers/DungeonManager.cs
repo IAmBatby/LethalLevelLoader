@@ -90,7 +90,7 @@ namespace LethalLevelLoader
                 foreach (ContentTag tag in extendedLevel.ContentTags)
                     debugString += tag.contentTagName + ", ";
                 debugString = debugString.TrimEnd([',', ' ']);
-                debugString += " | Route Price: " + extendedLevel.RoutePrice + " | Current Weather: " + extendedLevel.SelectableLevel.currentWeather.ToString();
+                debugString += " | Route Price: " + extendedLevel.PurchasePrice + " | Current Weather: " + extendedLevel.SelectableLevel.currentWeather.ToString();
                 debugString += "\n";
 
                 List<ExtendedDungeonFlow> viableDungeonFlows = returnExtendedDungeonFlowsList.Select(d => d.extendedDungeonFlow).ToList();

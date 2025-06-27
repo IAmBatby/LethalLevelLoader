@@ -12,13 +12,14 @@ public enum ContentType { Vanilla, Custom, Any } //Any & All included for built 
 namespace LethalLevelLoader
 {
     [CreateAssetMenu(fileName = "ExtendedLevel", menuName = "Lethal Level Loader/Extended Content/ExtendedLevel", order = 20)]
-    public class ExtendedLevel : ExtendedContent<ExtendedLevel, SelectableLevel, LevelManager>
+    public class ExtendedLevel : ExtendedContent<ExtendedLevel, SelectableLevel, LevelManager>, ITerminalInfoEntry, ITerminalPurchasableEntry
     {
         public override SelectableLevel Content { get => SelectableLevel; protected set => SelectableLevel = value; }
 
         [field: Header("General Settings")]
         [field: SerializeField] public SelectableLevel SelectableLevel { get; set; }
         [Space(5)] [SerializeField] private int routePrice = 0;
+        public int PurchasePrice { get => routePrice; private set => routePrice = value; }
 
         [field: Header("Extended Feature Settings")]
         [field: SerializeField] public bool OverrideDynamicRiskLevelAssignment { get; set; } = false;
@@ -61,34 +62,6 @@ namespace LethalLevelLoader
         [Obsolete][Space(5)] public List<string> levelTags = new List<string>();
 
         //Runtime Stuff
-        public int RoutePrice
-        {
-            get
-            {
-                if (RouteNode != null)
-                {
-                    routePrice = RouteNode.itemCost;
-                    RouteConfirmNode.itemCost = routePrice;
-                    return (RouteNode.itemCost);
-                }
-                else
-                {
-                    DebugHelper.LogWarning("routeNode Is Missing! Using internal value!", DebugType.Developer);
-                    return (routePrice);
-                }
-            }
-            set
-            {
-                if (RouteNode != null && RouteConfirmNode != null)
-                {
-                    RouteNode.itemCost = value;
-                    RouteConfirmNode.itemCost = value;
-                }
-                else
-                    DebugHelper.LogWarning("routeNode Is Missing! Only setting internal value!", DebugType.Developer);
-                routePrice = value;
-            }
-        }
 
         public string TerminalNoun => string.IsNullOrEmpty(OverrideRouteNoun) ? NumberlessPlanetName.StripSpecialCharacters().Sanitized() : OverrideRouteNoun.StripSpecialCharacters().Sanitized();
         public string NumberlessPlanetName => new string(SelectableLevel.PlanetName.SkipWhile(c => !char.IsLetter(c)).ToArray());
@@ -98,11 +71,15 @@ namespace LethalLevelLoader
 
         [HideInInspector] public LevelEvents LevelEvents { get; internal set; } = new LevelEvents();
 
-        public TerminalKeyword RouteKeyword { get; internal set; }
-        public TerminalNode RouteNode { get; internal set; }
-        public TerminalNode RouteConfirmNode { get; internal set; }
+        public TerminalKeyword NounKeyword { get; internal set; }
+        public TerminalNode PurchasePromptNode { get; internal set; }
+        public TerminalNode PurchaseConfirmNode { get; internal set; }
         public TerminalNode InfoNode { get; internal set; }
         public TerminalNode SimulateNode { get; internal set; }
+
+        TerminalKeyword ITerminalPurchasableEntry.RegistryKeyword => TerminalManager.Keyword_Route;
+        TerminalKeyword ITerminalInfoEntry.RegistryKeyword => TerminalManager.Keyword_Info;
+        public List<CompatibleNoun> GetRegistrations() => new() { (this as ITerminalInfoEntry).GetPair(), (this as ITerminalPurchasableEntry).GetPair() };
 
         internal static ExtendedLevel Create(SelectableLevel newSelectableLevel) => Create<ExtendedLevel, SelectableLevel, LevelManager>(newSelectableLevel.name, newSelectableLevel);
 
@@ -154,8 +131,15 @@ namespace LethalLevelLoader
         protected override void OnGameIDChanged()
         {
             SelectableLevel.levelID = GameID;
-            if (RouteNode != null) RouteNode.displayPlanetInfo = GameID;
-            if (RouteConfirmNode != null) RouteConfirmNode.buyRerouteToMoon = GameID;
+            if (PurchasePromptNode != null) PurchasePromptNode.displayPlanetInfo = GameID;
+            if (PurchaseConfirmNode != null) PurchaseConfirmNode.buyRerouteToMoon = GameID;
+        }
+
+        public void SetPurchasePrice(int newPrice)
+        {
+            PurchasePrice = newPrice;
+            if (PurchasePromptNode != null) PurchasePromptNode.itemCost = newPrice;
+            if (PurchaseConfirmNode != null) PurchaseConfirmNode.itemCost = newPrice;
         }
 
         internal void SetExtendedDungeonFlowMatches()

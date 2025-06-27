@@ -8,9 +8,11 @@ using UnityEngine;
 namespace LethalLevelLoader
 {
     [CreateAssetMenu(fileName = "ExtendedItem", menuName = "Lethal Level Loader/Extended Content/ExtendedItem", order = 23)]
-    public class ExtendedItem : ExtendedContent<ExtendedItem, Item, ItemManager>
+    public class ExtendedItem : ExtendedContent<ExtendedItem, Item, ItemManager>, ITerminalInfoEntry, ITerminalPurchasableEntry
     {
         public override Item Content { get => Item; protected set => Item = value; }
+
+        public int PurchasePrice { get; private set; }
 
         [field: Header("General Settings")]
         [field: SerializeField] public Item Item { get; set; }
@@ -26,39 +28,14 @@ namespace LethalLevelLoader
         [field: SerializeField] public string OverrideBuyNodeDescription { get; set; } = string.Empty;
         [field: SerializeField] public string OverrideBuyConfirmNodeDescription { get; set; } = string.Empty;
 
-        public TerminalKeyword BuyKeyword { get; internal set; }
-        public TerminalNode BuyNode { get; internal set; }
-        public TerminalNode BuyConfirmNode { get; internal set; }
-        public TerminalNode BuyInfoNode { get; internal set; }
+        public TerminalKeyword NounKeyword { get; internal set; }
+        public TerminalNode PurchasePromptNode { get; internal set; }
+        public TerminalNode PurchaseConfirmNode { get; internal set; }
+        public TerminalNode InfoNode { get; internal set; }
 
-        public int CreditsWorth
-        {
-            get
-            {
-                if (BuyNode != null && BuyConfirmNode != null)
-                {
-                    BuyNode.itemCost = Item.creditsWorth;
-                    BuyConfirmNode.itemCost = Item.creditsWorth;
-                }
-                else
-                    Debug.LogWarning("BuyNode And/Or BuyConfirm Node Missing!");
-                return (Item.creditsWorth);
-            }
-            set
-            {
-                if (value >= 0)
-                {
-                    if (BuyNode != null && BuyConfirmNode != null)
-                    {
-                        BuyNode.itemCost = value;
-                        BuyConfirmNode.itemCost = value;
-                    }
-                    else
-                        Debug.LogWarning("BuyNode And/Or BuyConfirm Node Missing!");
-                    Item.creditsWorth = value;
-                }
-            }
-        }
+        TerminalKeyword ITerminalPurchasableEntry.RegistryKeyword => TerminalManager.Keyword_Buy;
+        TerminalKeyword ITerminalInfoEntry.RegistryKeyword => TerminalManager.Keyword_Info;
+        public List<CompatibleNoun> GetRegistrations() => new() { (this as ITerminalInfoEntry).GetPair(), (this as ITerminalPurchasableEntry).GetPair() };
 
         //Might be obsolete
         public static ExtendedItem Create(Item newItem, ExtendedMod extendedMod, ContentType contentType) => Create(newItem);
@@ -72,6 +49,20 @@ namespace LethalLevelLoader
         internal override void Initialize()
         {
             TryCreateMatchingProperties();
+        }
+
+        protected override void OnGameIDChanged()
+        {
+            if (PurchasePromptNode != null) PurchasePromptNode.buyItemIndex = GameID;
+            if (PurchaseConfirmNode != null) PurchaseConfirmNode.buyItemIndex = GameID;
+        }
+
+        public void SetPurchasePrice(int newPrice)
+        {
+            PurchasePrice = newPrice;
+            Item.creditsWorth = newPrice;
+            if (PurchasePromptNode != null) PurchasePromptNode.itemCost = newPrice;
+            if (PurchaseConfirmNode != null) PurchaseConfirmNode.itemCost = newPrice;
         }
 
         internal override void TryCreateMatchingProperties()

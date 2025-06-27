@@ -148,10 +148,8 @@ namespace LethalLevelLoader
         internal override List<PrefabReference> GetPrefabReferencesForRestorationOrRegistration()
         {
             List<PrefabReference> returnList = new List<PrefabReference>();
-            foreach (SpawnSyncedObject spawnSyncedObject in DungeonFlow.GetSpawnSyncedObjects())
-                returnList.Add(new SpawnSyncedObjectReference(spawnSyncedObject));
-            foreach (SpawnableMapObject mapObject in SpawnableMapObjects)
-                returnList.Add(new SpawnableMapObjectReference(mapObject));
+            returnList.AddRange(DungeonFlow.GetSpawnSyncedObjects().Select(s => new SpawnSyncedObjectReference(s)));
+            returnList.AddRange(SpawnableMapObjects.Select(s => new SpawnableMapObjectReference(s)));
             return (returnList);
         }
     }

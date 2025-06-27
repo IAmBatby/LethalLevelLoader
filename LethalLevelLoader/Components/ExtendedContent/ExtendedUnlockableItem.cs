@@ -20,16 +20,13 @@ namespace LethalLevelLoader
 
         public int UnlockableItemID => GameID;
 
-        public UnlockableType UnlockableType
-        {
-            get
+        public UnlockableType UnlockableType { get
             {
                 if (UnlockableItem.unlockableType == 0) return (UnlockableType.Suit);
                 else if (UnlockableItem.unlockableType == 1) return (UnlockableType.Furniture);
                 else if (UnlockableItem.unlockableType < 0) return (UnlockableType.Invalid);
                 return (UnlockableType.Unknown);
-            }
-        }
+            } }
 
         public GameObject Prefab => UnlockableItem.prefabObject;
         public AutoParentToShip AutoParentToShip { get; private set; }

@@ -236,7 +236,7 @@ namespace LethalLevelLoader
                     bool removeExtendedLevel = extendedLevel.IsRouteHidden;
 
                     if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Price))
-                        removeExtendedLevel = (extendedLevel.RoutePrice > Terminal.groupCredits);
+                        removeExtendedLevel = (extendedLevel.PurchasePrice > Terminal.groupCredits);
                     else if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Weather))
                         removeExtendedLevel = (GetWeatherConditions(extendedLevel) != string.Empty);
                     else if (Settings.levelPreviewFilterType.Equals(FilterInfoType.Tag))
@@ -258,7 +258,7 @@ namespace LethalLevelLoader
         internal static void SortMoonsCataloguePage(MoonsCataloguePage cataloguePage)
         {
             if (Settings.levelPreviewSortType.Equals(SortInfoType.Price))
-                cataloguePage.RebuildLevelGroups(cataloguePage.ExtendedLevels.OrderBy(o => o.RoutePrice), Settings.moonsCatalogueSplitCount);
+                cataloguePage.RebuildLevelGroups(cataloguePage.ExtendedLevels.OrderBy(o => o.PurchasePrice), Settings.moonsCatalogueSplitCount);
             else if (Settings.levelPreviewSortType.Equals(SortInfoType.Difficulty))
                 cataloguePage.RebuildLevelGroups(cataloguePage.ExtendedLevels.OrderBy(o => o.CalculatedDifficultyRating), Settings.moonsCatalogueSplitCount);
         }
@@ -359,13 +359,13 @@ namespace LethalLevelLoader
             if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Weather))
                 levelPreviewInfo = GetWeatherConditions(extendedLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Price))
-                levelPreviewInfo = offset + "($" + extendedLevel.RoutePrice + ")";
+                levelPreviewInfo = offset + "($" + extendedLevel.PurchasePrice + ")";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Difficulty))
                 levelPreviewInfo = offset + "(" + extendedLevel.SelectableLevel.riskLevel + ")";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.History))
                 levelPreviewInfo = offset + GetHistoryConditions(extendedLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.All))
-                levelPreviewInfo = offset + "(" + extendedLevel.SelectableLevel.riskLevel + ") " + "($" + extendedLevel.RoutePrice + ") " + GetWeatherConditions(extendedLevel);
+                levelPreviewInfo = offset + "(" + extendedLevel.SelectableLevel.riskLevel + ") " + "($" + extendedLevel.PurchasePrice + ") " + GetWeatherConditions(extendedLevel);
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Vanilla))
                 levelPreviewInfo = offset + "[planetTime]";
             else if (Settings.levelPreviewInfoType.Equals(PreviewInfoType.Override))

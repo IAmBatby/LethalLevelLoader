@@ -23,8 +23,8 @@ namespace LethalLevelLoader
                 vehicles[i].SetGameID(i);
 
             foreach (ExtendedBuyableVehicle vehicle in vehicles)
-                if (!TerminalManager.Keyword_Buy.Contains(vehicle.TerminalKeyword, vehicle.PurchasePromptNode))
-                    TerminalManager.Keyword_Buy.AddCompatibleNoun(vehicle.TerminalKeyword, vehicle.PurchasePromptNode);
+                if (!TerminalManager.Keyword_Buy.Contains(vehicle.NounKeyword, vehicle.PurchasePromptNode))
+                    TerminalManager.Keyword_Buy.AddCompatibleNoun(vehicle.NounKeyword, vehicle.PurchasePromptNode);
         }
 
         protected override void UnpatchGame()
@@ -81,8 +81,8 @@ namespace LethalLevelLoader
             buyNode.AddCompatibleNoun(TerminalManager.Keyword_Confirm, buyConfirmNode);
             buyNode.AddCompatibleNoun(TerminalManager.Keyword_Deny, TerminalManager.Node_CancelPurchase);
 
-            content.TerminalKeyword = infoKeyword;
-            content.TerminalEntryNode = infoNode;
+            content.NounKeyword = infoKeyword;
+            content.InfoNode = infoNode;
             content.PurchasePromptNode = buyNode;
             content.PurchaseConfirmNode = buyConfirmNode;
         }

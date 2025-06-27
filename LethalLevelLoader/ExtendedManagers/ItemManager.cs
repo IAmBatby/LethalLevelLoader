@@ -32,9 +32,10 @@ namespace LethalLevelLoader
             {
                 if (!StartOfRound.allItemsList.itemsList.Contains(item.Item)) //Dunno about this one
                     StartOfRound.allItemsList.itemsList.Add(item.Item);
-                if (!item.IsBuyableItem) continue;
-                TerminalManager.Keyword_Buy.TryAdd(item.BuyKeyword, item.BuyNode);
-                TerminalManager.Keyword_Info.TryAdd(item.BuyKeyword, item.BuyInfoNode);
+                if (item.IsBuyableItem == false) continue;
+
+                if (item is ITerminalEntry terminalEntry)
+                    terminalEntry.TryRegister();
                 if (!Terminal.buyableItemsList.Contains(item.Item))
                     Terminal.buyableItemsList.Add(item.Item);
             }
@@ -159,10 +160,10 @@ namespace LethalLevelLoader
                 buyNode.AddCompatibleNoun(TerminalManager.Keyword_Deny, TerminalManager.Node_CancelPurchase);
             }
 
-            content.BuyKeyword = keyword;
-            content.BuyNode = buyNode;
-            content.BuyConfirmNode = buyConfirmNode;
-            content.BuyInfoNode = buyInfoNode;
+            content.NounKeyword = keyword;
+            content.PurchasePromptNode = buyNode;
+            content.PurchaseConfirmNode = buyConfirmNode;
+            content.InfoNode = buyInfoNode;
         }
     }
 }

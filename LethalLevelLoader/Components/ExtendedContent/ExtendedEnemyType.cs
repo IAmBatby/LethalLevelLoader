@@ -7,7 +7,7 @@ using UnityEngine.Video;
 namespace LethalLevelLoader
 {
     [CreateAssetMenu(fileName = "ExtendedEnemyType", menuName = "Lethal Level Loader/Extended Content/ExtendedEnemyType", order = 24)]
-    public class ExtendedEnemyType : ExtendedContent<ExtendedEnemyType, EnemyType, EnemyManager>
+    public class ExtendedEnemyType : ExtendedContent<ExtendedEnemyType, EnemyType, EnemyManager>, ITerminalInfoEntry
     {
         public override EnemyType Content { get => EnemyType; protected set => EnemyType = value; }
 
@@ -28,8 +28,11 @@ namespace LethalLevelLoader
         public EnemyAI Prefab { get; private set; }
         public ScanNodeProperties ScanNodeProperties { get; internal set; }
         public int EnemyID => GameID;
-        public TerminalKeyword EnemyInfoKeyword { get; internal set; }
-        public TerminalNode EnemyInfoNode { get; internal set; }
+
+        public TerminalKeyword NounKeyword { get; internal set; }
+        public TerminalNode InfoNode { get; internal set; }
+        TerminalKeyword ITerminalInfoEntry.RegistryKeyword => TerminalManager.Keyword_Info;
+        public List<CompatibleNoun> GetRegistrations() => new() {(this as ITerminalInfoEntry).GetPair()};
 
         //Might be obsolete
         public static ExtendedEnemyType Create(EnemyType enemyType, ExtendedMod extendedMod, ContentType contentType) => Create(enemyType);
@@ -51,7 +54,7 @@ namespace LethalLevelLoader
         protected override void OnGameIDChanged()
         {
             if (ScanNodeProperties != null) ScanNodeProperties.creatureScanID = GameID;
-            if (EnemyInfoNode != null) EnemyInfoNode.creatureFileID = GameID;
+            if (InfoNode != null) InfoNode.creatureFileID = GameID;
         }
 
         internal override void TryCreateMatchingProperties()

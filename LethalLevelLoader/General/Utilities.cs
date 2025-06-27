@@ -60,6 +60,14 @@ namespace LethalLevelLoader
             return (returnR);
         }
 
+        public static CompatibleNoun Create(TerminalKeyword noun, TerminalNode result)
+        {
+            CompatibleNoun returnR = new CompatibleNoun();
+            returnR.result = result;
+            returnR.noun = noun;
+            return (returnR);
+        }
+
         internal static void Insert<T>(ref T[] array, T newItem)
         {
             array = array.AddItem(newItem).ToArray();

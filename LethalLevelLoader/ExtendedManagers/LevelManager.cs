@@ -73,8 +73,8 @@ namespace LethalLevelLoader
             foreach (ExtendedLevel level in ExtendedContents)
             {
                 level.SetGameID(StartOfRound.levels.IndexOf(level.SelectableLevel));
-                TerminalManager.Keyword_Route.TryAdd(level.RouteKeyword, level.RouteNode);
-                TerminalManager.Keyword_Info.TryAdd(level.RouteKeyword, level.InfoNode);
+                if (level is ITerminalEntry terminalEntry)
+                    terminalEntry.TryRegister();
             }
         }
 
@@ -297,7 +297,7 @@ namespace LethalLevelLoader
         public static int CalculateExtendedLevelDifficultyRating(ExtendedLevel extendedLevel, bool debugResults = false)
         {
             int returnRating = 0;
-            int baselineRouteValue = extendedLevel.RoutePrice;
+            int baselineRouteValue = extendedLevel.PurchasePrice;
             baselineRouteValue += extendedLevel.SelectableLevel.maxTotalScrapValue;
             returnRating += baselineRouteValue;
             int scrapValue = 0;
@@ -357,7 +357,7 @@ namespace LethalLevelLoader
                         keyword = noun.noun;
                         routeNode = noun.result;
                         routeConfirmNode = routeNode.terminalOptions[1].result;
-                        content.RoutePrice = routeNode.itemCost; //This should not be here but it's difficult to find a more appropiate spot rn
+                        content.SetPurchasePrice(routeNode.itemCost);  //This should not be here but it's difficult to find a more appropiate spot rn
                         break;
                     }
                 if (TerminalManager.Keyword_Info.compatibleNouns.TryGet(keyword, out TerminalNode result))
@@ -378,7 +378,7 @@ namespace LethalLevelLoader
                 }
                 routeNode.clearPreviousText = true;
                 routeNode.buyRerouteToMoon = -2;
-                routeNode.itemCost = content.RoutePrice;
+                routeNode.itemCost = content.PurchasePrice;
                 routeNode.overrideOptions = true;
 
                 routeConfirmNode = TerminalManager.CreateNewTerminalNode(sanitisedName + "RouteConfirm");
@@ -387,7 +387,7 @@ namespace LethalLevelLoader
                 else
                     routeConfirmNode.displayText = "Routing autopilot to " + content.SelectableLevel.PlanetName + " Your new balance is [playerCredits]. \n\nPlease enjoy your flight.";
                 routeConfirmNode.clearPreviousText = true;
-                routeConfirmNode.itemCost = content.RoutePrice;
+                routeConfirmNode.itemCost = content.PurchasePrice;
 
                 routeInfoNode = TerminalManager.CreateNewTerminalNode(sanitisedName + "Info");
                 routeInfoNode.clearPreviousText = true;
@@ -417,10 +417,10 @@ namespace LethalLevelLoader
                 routeNode.AddCompatibleNoun(TerminalManager.Keyword_Confirm, routeConfirmNode);
             }
 
-            content.RouteNode = routeNode;
-            content.RouteConfirmNode = routeConfirmNode;
+            content.PurchasePromptNode = routeNode;
+            content.PurchaseConfirmNode = routeConfirmNode;
             content.InfoNode = routeInfoNode;
-            content.RouteKeyword = keyword;
+            content.NounKeyword = keyword;
         }
     }
 

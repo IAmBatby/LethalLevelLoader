@@ -48,9 +48,10 @@ namespace LethalLevelLoader
 
             foreach (ExtendedEnemyType enemy in enemies)
             {
-                if (!Terminal.enemyFiles.Contains(enemy.EnemyInfoNode))
-                    Terminal.enemyFiles.Add(enemy.EnemyInfoNode);
-                TerminalManager.Keyword_Info.TryAdd(enemy.EnemyInfoKeyword, enemy.EnemyInfoNode);
+                if (!Terminal.enemyFiles.Contains(enemy.InfoNode))
+                    Terminal.enemyFiles.Add(enemy.InfoNode);
+                if (enemy is ITerminalEntry terminalEntry)
+                    terminalEntry.TryRegister();
             }
         }
 
@@ -166,8 +167,8 @@ namespace LethalLevelLoader
                 infoNode.displayVideo = content.InfoNodeVideoClip;
                 infoNode.loadImageSlowly = content.InfoNodeVideoClip != null;
             }
-            content.EnemyInfoKeyword = infoKeyword;
-            content.EnemyInfoNode = infoNode;
+            content.NounKeyword = infoKeyword;
+            content.InfoNode = infoNode;
             content.InfoNodeVideoClip = videoClip;
         }
     }
