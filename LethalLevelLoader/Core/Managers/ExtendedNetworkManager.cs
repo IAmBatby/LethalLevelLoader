@@ -240,6 +240,18 @@ namespace LethalLevelLoader
                 DebugHelper.LogWarning("Attempted To Register NetworkPrefab: " + prefab + " After GameNetworkManager Has Started!", DebugType.User);
         }
 
+        [ServerRpc]
+        public void TestContentReferenceServerRpc<E>(E content) where E : ExtendedContent
+        {
+            TestContentReferenceClientRpc
+        }
+
+        [ClientRpc]
+        public void TestContentReferenceClientRpc()
+        {
+
+        }
+
 
         internal static void RegisterNetworkPrefab(GameObject prefab)
         {

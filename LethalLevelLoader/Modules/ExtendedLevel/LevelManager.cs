@@ -1,29 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Unity.AI.Navigation;
-using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.InputSystem.Utilities;
-using UnityEngine.SceneManagement;
 
 namespace LethalLevelLoader
 {
     public class LevelManager : ExtendedContentManager<ExtendedLevel, SelectableLevel>
     {
-        public static ExtendedLevel CurrentExtendedLevel
-        {
-            get
-            {
-                ExtendedLevel returnLevel = null;
-                if (Patches.StartOfRound != null)
-                    if (TryGetExtendedLevel(Patches.StartOfRound.currentLevel, out ExtendedLevel level))
-                        returnLevel = level;
-                return returnLevel;
-            }
-        }
+        public static ExtendedLevel CurrentExtendedLevel => Patches.StartOfRound != null ? Patches.StartOfRound.currentLevel.GetExtendedLevel() : null;
+
         public static LevelEvents GlobalLevelEvents = new LevelEvents();
 
         public static List<DayHistory> dayHistoryList = new List<DayHistory>();
@@ -108,42 +94,13 @@ namespace LethalLevelLoader
 
         public static bool TryGetExtendedLevel(SelectableLevel selectableLevel, out ExtendedLevel returnExtendedLevel, ContentType levelType = ContentType.Any)
         {
-            returnExtendedLevel = null;
-            List<ExtendedLevel> extendedLevelsList = null;
-
-            if (selectableLevel == null) return false;
-
-            if (levelType == ContentType.Any)
-                extendedLevelsList = PatchedContent.ExtendedLevels;
-            else if (levelType == ContentType.Custom)
-                extendedLevelsList = PatchedContent.CustomExtendedLevels;
-            else if (levelType == ContentType.Vanilla)
-                extendedLevelsList = PatchedContent.VanillaExtendedLevels;
-
-            foreach (ExtendedLevel extendedLevel in extendedLevelsList)
-                if (extendedLevel.SelectableLevel == selectableLevel)
-                    returnExtendedLevel = extendedLevel;
-
+            returnExtendedLevel = GetExtendedLevel(selectableLevel);
             return (returnExtendedLevel != null);
         }
 
         public static ExtendedLevel GetExtendedLevel(SelectableLevel selectableLevel)
         {
-            ExtendedLevel returnExtendedLevel = null;
-
-            foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                if (extendedLevel.SelectableLevel == selectableLevel)
-                    returnExtendedLevel = extendedLevel;
-
-            return (returnExtendedLevel);
-        }
-
-        public static void RegisterExtendedFootstepSurfaces(ExtendedLevel extendedLevel)
-        {
-        }
-
-        public static void RefreshCachedFootstepSurfaceData()
-        {
+            return (selectableLevel != null ? selectableLevel.GetExtendedLevel() : null);
         }
 
         public static void PopulateDynamicRiskLevelDictionary()
@@ -265,33 +222,27 @@ namespace LethalLevelLoader
                 return;
             }
 
-            DayHistory newDayHistory = new DayHistory();
+            DayHistory newDay = new DayHistory();
             daysTotal++;
 
-            newDayHistory.allViableOptions = DungeonManager.GetValidExtendedDungeonFlows(CurrentExtendedLevel, false).Select(e => e.extendedDungeonFlow).ToList();
-            newDayHistory.extendedLevel = LevelManager.CurrentExtendedLevel;
-            newDayHistory.extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
-            newDayHistory.day = daysTotal;
-            newDayHistory.quota = TimeOfDay.Instance.timesFulfilledQuota;
-            newDayHistory.weatherEffect = Patches.StartOfRound.currentLevel.currentWeather;
+            newDay.allViableOptions = DungeonManager.GetValidExtendedDungeonFlows(CurrentExtendedLevel, false).Select(e => e.extendedDungeonFlow).ToList();
+            newDay.extendedLevel = LevelManager.CurrentExtendedLevel;
+            newDay.extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
+            newDay.day = daysTotal;
+            newDay.quota = TimeOfDay.Instance.timesFulfilledQuota;
+            newDay.weatherEffect = Patches.StartOfRound.currentLevel.currentWeather;
 
             string debugString = "Created New Day History Log! PlanetName: ";
-            if (newDayHistory.extendedLevel != null)
-                debugString += newDayHistory.extendedLevel.NumberlessPlanetName + " ,";
-            else
-                debugString += "MISSING EXTENDEDLEVEL ,";
-            if (newDayHistory.extendedDungeonFlow != null)
-                debugString += newDayHistory.extendedDungeonFlow.DungeonName + " ,";
-            else
-                debugString += "MISSING EXTENDEDDUNGEONFLOW ,";
-            debugString += "Quota: " + newDayHistory.quota + " , Day: " + newDayHistory.day + " , Weather: " + newDayHistory.weatherEffect.ToString();
+            debugString += newDay.extendedLevel != null ? newDay.extendedLevel.NumberlessPlanetName + " ," : "MISSING EXTENDEDLEVEL ,";
+            debugString += newDay.extendedDungeonFlow != null ? newDay.extendedDungeonFlow.DungeonName + " ," : "MISSING EXTENDEDDUNGEONFLOW ,";
+            debugString += "Quota: " + newDay.quota + " , Day: " + newDay.day + " , Weather: " + newDay.weatherEffect.ToString();
 
             DebugHelper.Log(debugString, DebugType.User);
 
             if (dayHistoryList == null)
                 dayHistoryList = new List<DayHistory>();
 
-            dayHistoryList.Add(newDayHistory);
+            dayHistoryList.Add(newDay);
         }
 
         public static int CalculateExtendedLevelDifficultyRating(ExtendedLevel extendedLevel, bool debugResults = false)

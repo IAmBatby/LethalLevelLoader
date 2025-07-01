@@ -72,13 +72,14 @@ namespace LethalLevelLoader
         protected void AddPrefab(ExtendedContentManager contentManager) => allContentManagerPrefabs.Add(contentManager);
     }
 
-    public abstract class ExtendedContentManager<E> : ExtendedContentManager, IContentManager<E> where E : UnityEngine.Object, IManagedContent, IExtendedContent;
-
+    public abstract class ExtendedContentManager<E> : ExtendedContentManager, IContentManager<E> where E : UnityEngine.Object, IManagedContent, IExtendedContent
+    {
+        internal static List<E> ExtendedContents { get; set; } = new List<E>();
+    }
     public abstract class ExtendedContentManager<E, C> : ExtendedContentManager<E> where E : ExtendedContent, IManagedContent, IExtendedContent<C>
     {
         private static ExtendedContentManager<E, C> Prefab;
 
-        internal static List<E> ExtendedContents { get; private set; } = new List<E>();
         internal static Dictionary<C, E> ExtensionDictionary { get; private set; } = new Dictionary<C, E>();
 
         internal static List<E> ActiveContents { get; private set; } = new List<E>();
