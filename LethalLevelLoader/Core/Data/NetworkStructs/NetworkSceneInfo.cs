@@ -7,10 +7,10 @@ namespace LethalLevelLoader
     public struct NetworkSceneInfo : INetworkSerializable
     {
         private uint m_levelSceneIndex;
-        private StringContainer m_levelScenePath;
+        private NetworkString m_levelScenePath;
 
 
-        public string LevelScenePath => m_levelScenePath.SomeText;
+        public string LevelScenePath => m_levelScenePath.StringValue;
         public int LevelSceneIndex => (int)m_levelSceneIndex;
         public int SceneIndex
         {
@@ -48,8 +48,8 @@ namespace LethalLevelLoader
 
         public NetworkSceneInfo(int levelSceneIndex, string levelScenePath)
         {
-            m_levelScenePath = new StringContainer();
-            m_levelScenePath.SomeText = levelScenePath;
+            m_levelScenePath = new NetworkString();
+            m_levelScenePath.StringValue = levelScenePath;
             m_levelSceneIndex = (uint)levelSceneIndex;
         }
 

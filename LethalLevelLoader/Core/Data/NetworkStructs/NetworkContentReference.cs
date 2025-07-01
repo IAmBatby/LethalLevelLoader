@@ -19,11 +19,13 @@ namespace LethalLevelLoader
             m_NetworkContentIndexId = extendedContent == null ? s_NullId : (uint)ExtendedContentManager<E>.ExtendedContents.IndexOf(extendedContent);
         }
 
-        public bool TryGet(out E extendedContent, NetworkManager networkManager = null)
+        public bool TryGetComponent(out E extendedContent, NetworkManager networkManager = null)
         {
             extendedContent = Resolve(this);
             return (extendedContent != null);
         }
+
+        public E GetContent() => Resolve(this);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static E Resolve(NetworkContentReference<E> networkContent)

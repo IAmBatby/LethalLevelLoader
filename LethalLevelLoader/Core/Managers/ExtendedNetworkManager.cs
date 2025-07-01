@@ -73,30 +73,6 @@ namespace LethalLevelLoader
             IsLobbyNetworkInitialized = true;
         }
 
-        //private static Dictionary<Type, NetworkSingleton> networkSingletonNetworkPrefabs = new Dictionary<Type, NetworkSingleton>();
-        //private static Dictionary<NetworkSingleton, NetworkSingleton> networkSingletonSpawnedPrefabs = new Dictionary<NetworkSingleton, NetworkSingleton>();
-        /*
-        public static void SpawnNetworkSingleton<T>(T networkSingletonPrefab, bool destroyWithScene = false) where T : NetworkSingleton<T>
-        {
-            if (networkSingletonNetworkPrefabs.ContainsKey(typeof(T))) return;
-            networkSingletonNetworkPrefabs.Add(typeof(T), networkSingletonPrefab); //Gotta add on clients
-            if (!networkManager.IsServer) return;
-            Instantiate(networkSingletonPrefab).GetComponent<NetworkObject>().Spawn(destroyWithScene);
-        }
-
-        internal static void OnNetworkSingletonSpawn<T>(T networkSingletonInstance) where T : NetworkSingleton<T>
-        {
-            if (networkSingletonNetworkPrefabs.TryGetValue(typeof(T), out NetworkSingleton prefab))
-                networkSingletonSpawnedPrefabs.Add(prefab, networkSingletonInstance);
-        }
-
-        //Needs work
-        internal static void OnNetworkSingletonDespawn<T>(T networkSingletonInstance) where T : NetworkSingleton<T>
-        {
-            if (networkSingletonSpawnedPrefabs.ContainsKey(networkSingletonNetworkPrefabs[typeof(T)]))
-                networkSingletonSpawnedPrefabs.Remove(networkSingletonNetworkPrefabs[typeof(T)]);
-        }*/
-
         protected override void OnNetworkSingletonSpawn()
         {
             gameObject.name = "LethalLevelLoaderNetworkManager";
@@ -117,15 +93,15 @@ namespace LethalLevelLoader
             List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = DungeonManager.GetValidExtendedDungeonFlows(LevelManager.CurrentExtendedLevel, debugResults: true);
 
             //List<string> dungeonFlowNames = new List<string>();
-            List<StringContainer> dungeonFlowNames = new List<StringContainer>();
+            List<NetworkString> dungeonFlowNames = new List<NetworkString>();
             List<int> rarities = new List<int>();
 
             if (availableExtendedFlowsList.Count == 0)
             {
                 DebugHelper.LogError("No ExtendedDungeonFlow's could be found! This should only happen if the Host's requireMatchesOnAllDungeonFlows is set to true!", DebugType.User);
                 DebugHelper.LogError("Loading Facility DungeonFlow to prevent infinite loading!", DebugType.User);
-                StringContainer newStringContainer = new StringContainer();
-                newStringContainer.SomeText = PatchedContent.ExtendedDungeonFlows[0].DungeonFlow.name;
+                NetworkString newStringContainer = new NetworkString();
+                newStringContainer.StringValue = PatchedContent.ExtendedDungeonFlows[0].DungeonFlow.name;
                 dungeonFlowNames.Add(newStringContainer);
                 rarities.Add(300);
             }
@@ -134,8 +110,8 @@ namespace LethalLevelLoader
                 List<DungeonFlow> dungeonFlowTypes = Patches.RoundManager.GetDungeonFlows();
                 foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowWithRarity in availableExtendedFlowsList)
                 {
-                    StringContainer newStringContainer = new StringContainer();
-                    newStringContainer.SomeText = dungeonFlowTypes[dungeonFlowTypes.IndexOf(extendedDungeonFlowWithRarity.extendedDungeonFlow.DungeonFlow)].name;
+                    NetworkString newStringContainer = new NetworkString();
+                    newStringContainer.StringValue = dungeonFlowTypes[dungeonFlowTypes.IndexOf(extendedDungeonFlowWithRarity.extendedDungeonFlow.DungeonFlow)].name;
                     dungeonFlowNames.Add(newStringContainer);
 
                     rarities.Add(extendedDungeonFlowWithRarity.rarity);
@@ -148,12 +124,12 @@ namespace LethalLevelLoader
         [ServerRpc]
         private void GetUpdatedLevelCurrentWeatherServerRpc()
         {
-            List<StringContainer> levelNames = new List<StringContainer>();
+            List<NetworkString> levelNames = new List<NetworkString>();
             List<LevelWeatherType> weatherTypes = new List<LevelWeatherType>();
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
             {
-                StringContainer stringContainer = new StringContainer();
-                stringContainer.SomeText = extendedLevel.name;
+                NetworkString stringContainer = new NetworkString();
+                stringContainer.StringValue = extendedLevel.name;
                 levelNames.Add(stringContainer);
                 weatherTypes.Add(extendedLevel.SelectableLevel.currentWeather);
             }
@@ -162,13 +138,13 @@ namespace LethalLevelLoader
         }
 
         [ClientRpc]
-        public void SetUpdatedLevelCurrentWeatherClientRpc(StringContainer[] levelNames, LevelWeatherType[] weatherTypes)
+        public void SetUpdatedLevelCurrentWeatherClientRpc(NetworkString[] levelNames, LevelWeatherType[] weatherTypes)
         {
             Dictionary<ExtendedLevel, LevelWeatherType> syncedLevelCurrentWeathers = new Dictionary<ExtendedLevel, LevelWeatherType>();
 
             for (int i = 0; i < levelNames.Length; i++)
                 foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
-                    if (levelNames[i].SomeText == extendedLevel.name)
+                    if (levelNames[i].StringValue == extendedLevel.name)
                         syncedLevelCurrentWeathers.Add(extendedLevel, weatherTypes[i]);
 
             foreach (KeyValuePair<ExtendedLevel, LevelWeatherType> syncedWeather in syncedLevelCurrentWeathers)
@@ -182,7 +158,7 @@ namespace LethalLevelLoader
         }
 
         [ClientRpc]
-        public void SetRandomExtendedDungeonFlowClientRpc(StringContainer[] dungeonFlowNames, int[] rarities)
+        public void SetRandomExtendedDungeonFlowClientRpc(NetworkString[] dungeonFlowNames, int[] rarities)
         {
             DebugHelper.Log("Setting Random DungeonFlows!", DebugType.User);
             List<DungeonFlow> roundManagerFlows = Patches.RoundManager.GetDungeonFlows();
@@ -194,7 +170,7 @@ namespace LethalLevelLoader
                 dungeonFlowIds.Add(roundManagerFlows[i].name, i);
 
             for (int i = 0; i < dungeonFlowNames.Length; i++)
-                injectedDungeons[i] = Utilities.Create(dungeonFlowIds[dungeonFlowNames[i].SomeText], rarities[i]);
+                injectedDungeons[i] = Utilities.Create(dungeonFlowIds[dungeonFlowNames[i].StringValue], rarities[i]);
 
             LevelManager.CurrentExtendedLevel.SelectableLevel.dungeonFlowTypes = injectedDungeons;
             Patches.RoundManager.GenerateNewFloor();
@@ -240,19 +216,6 @@ namespace LethalLevelLoader
                 DebugHelper.LogWarning("Attempted To Register NetworkPrefab: " + prefab + " After GameNetworkManager Has Started!", DebugType.User);
         }
 
-        [ServerRpc]
-        public void TestContentReferenceServerRpc<E>(E content) where E : ExtendedContent
-        {
-            TestContentReferenceClientRpc
-        }
-
-        [ClientRpc]
-        public void TestContentReferenceClientRpc()
-        {
-
-        }
-
-
         internal static void RegisterNetworkPrefab(GameObject prefab)
         {
             if (prefab == null || queuedInternalNetworkPrefabs.Contains(prefab)) return;
@@ -285,24 +248,17 @@ namespace LethalLevelLoader
             NetworkPrefabsList prefabList = Resources.FindObjectsOfTypeAll<NetworkPrefabsList>()[0]; //Need this because runs before singleton is set
             foreach (NetworkPrefab networkPrefab in prefabList.PrefabList)
             {
-                DebugHelper.Log("Tracvking Vanilla1212", DebugType.User);
                 AddNetworkPrefabToRegistry(networkPrefab);
                 networkPrefabCollections.AddOrAddAdd(PatchedContent.VanillaMod, networkPrefab.Prefab);
                 VanillaNetworkPrefabNameDict.Add(networkPrefab.Prefab.name, networkPrefab.Prefab);
             }
         }
 
-        internal static void RegisterPrefabs()
+        internal static void RegisterInternalNetworkPrefabs()
         {
             //Register LethalLevelLoader's various Managers (Tracked via NetworkPrefabHandler Postfix)
             foreach (GameObject queuedPrefab in queuedInternalNetworkPrefabs)
                 TryRegisterNetworkPrefab(queuedPrefab);
-
-            //Register Each Mod's NetworkPrefabs (Tracked via NetworkPrefabHandler Postfix)
-            //foreach (KeyValuePair<ExtendedMod, List<GameObject>> kvp in networkPrefabCollections)
-                //foreach (GameObject prefab in kvp.Value)
-                    //TryRegisterNetworkPrefab(prefab);
-
             networkHasStarted = true;      
         }
 
@@ -338,19 +294,6 @@ namespace LethalLevelLoader
         {
             if (NetworkPrefabRegistry.ContainsKey(registeredPrefab.Prefab)) return;
             NetworkPrefabRegistry.Add(registeredPrefab.Prefab, registeredPrefab);
-        }
-
-
-        public class StringContainer : INetworkSerializable
-        {
-            public string SomeText;
-            public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
-            {
-                if (serializer.IsWriter)
-                    serializer.GetFastBufferWriter().WriteValueSafe(SomeText);
-                else
-                    serializer.GetFastBufferReader().ReadValueSafe(out SomeText);
-            }
         }
     }
 }

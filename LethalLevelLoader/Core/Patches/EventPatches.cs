@@ -4,6 +4,7 @@ using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -16,267 +17,143 @@ namespace LethalLevelLoader
     {
         internal static DayMode previousDayMode = DayMode.None;
         internal static bool firedDawnEvent = false;
-        ////////// Level Patches //////////
+
+        internal static bool IsServer => NetworkManager.Singleton.IsServer;
+        internal static ExtendedLevel CurrentLevel => LevelManager.CurrentExtendedLevel;
+        internal static ExtendedDungeonFlow CurrentDungeon => DungeonManager.CurrentExtendedDungeonFlow;
+        internal static LevelEvents[] LevelEvents => new [] { LevelManager.GlobalLevelEvents, CurrentLevel?.LevelEvents };
+        internal static DungeonEvents[] DungeonEvents => new[] {DungeonManager.GlobalDungeonEvents, CurrentDungeon?.DungeonEvents }; 
 
         internal static void InvokeExtendedEvent<T>(ExtendedEvent<T> extendedEvent, T eventParameter)
         {
             extendedEvent.Invoke(eventParameter);
         }
 
+        internal static void Invoke(IEnumerable<ExtendedEvent> events)
+        {
+            foreach (ExtendedEvent extendedEvent in events)
+                extendedEvent.Invoke();
+        }
+
+        internal static void InvokeIf(bool condition, IEnumerable<ExtendedEvent> events)
+        {
+            if (condition)
+                Invoke(events);
+        }
+
+        internal static void Invoke<T>(IEnumerable<ExtendedEvent<T>> events, T value)
+        {
+            foreach (ExtendedEvent<T> extendedEvent in events)
+                extendedEvent.Invoke(value);
+        }
+
+        internal static void InvokeIf<T>(bool condition, IEnumerable<ExtendedEvent<T>> events, T value)
+        {
+            if (condition)
+                Invoke(events, value);
+        }
+
         internal static void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
-            if (LevelManager.CurrentExtendedLevel != null && LevelManager.CurrentExtendedLevel.IsLevelLoaded)
-            {
-                previousDayMode = DayMode.None;
-
-                LevelManager.CurrentExtendedLevel.LevelEvents.onLevelLoaded.Invoke();
-                LevelManager.GlobalLevelEvents.onLevelLoaded.Invoke();
-            }
+            if (CurrentLevel == null || CurrentLevel.IsLevelLoaded == false) return;
+            previousDayMode = DayMode.None;
+            Invoke(LevelEvents.Select(e => e.onLevelLoaded));
         }
 
-        [HarmonyPriority(Patches.priority)]
-        [HarmonyPatch(typeof(StoryLog), "CollectLog")]
-        [HarmonyPrefix]
+        [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(StoryLog), "CollectLog"), HarmonyPrefix]
         internal static void StoryLogCollectLog_Prefix(StoryLog __instance)
         {
-            if (LevelManager.CurrentExtendedLevel != null && __instance.IsServer)
-            {
-                LevelManager.CurrentExtendedLevel.LevelEvents.onStoryLogCollected.Invoke(__instance);
-                LevelManager.GlobalLevelEvents.onStoryLogCollected.Invoke(__instance);
-            }
-        }
-        /*
-        [HarmonyPriority(Patches.harmonyPriority)]
-        [HarmonyPatch(typeof(RoundManager), "SpawnRandomDaytimeEnemy")]
-        [HarmonyPostfix]
-        internal static void RoundManagerSpawnRandomDaytimeEnemy_Postfix(RoundManager __instance, GameObject __result)
-        {
-            if (LevelManager.CurrentExtendedLevel != null && __instance.IsServer)
-                if (__result != null && __result.TryGetComponent(out EnemyAI enemyAI))
-                {
-                    LevelManager.CurrentExtendedLevel.LevelEvents.onDaytimeEnemySpawn.Invoke(enemyAI);
-                    LevelManager.GlobalLevelEvents.onDaytimeEnemySpawn.Invoke(enemyAI);
-                }
+            InvokeIf(CurrentLevel && IsServer, LevelEvents.Select(e => e.onStoryLogCollected), __instance);
         }
 
-        [HarmonyPriority(Patches.harmonyPriority)]
-        [HarmonyPatch(typeof(RoundManager), "SpawnRandomOutsideEnemy")]
-        [HarmonyPostfix]
-        internal static void RoundManagerSpawnRandomOutsideEnemy_Postfix(RoundManager __instance, GameObject __result)
-        {
-            if (LevelManager.CurrentExtendedLevel != null && __instance.IsServer)
-                if (__result != null && __result.TryGetComponent(out EnemyAI enemyAI))
-                {
-                    LevelManager.CurrentExtendedLevel.LevelEvents.onNighttimeEnemySpawn.Invoke(enemyAI);
-                    LevelManager.GlobalLevelEvents.onNighttimeEnemySpawn.Invoke(enemyAI);
-                }
-        }*/
-
-
-
-
-        ////////// Dungeon Patches //////////
-
-        [HarmonyPriority(Patches.priority + 1)] // +1 Because this needs to run after the Patch in Patches, second patch here for consistency.
-        [HarmonyPatch(typeof(DungeonGenerator), "Generate")]
-        [HarmonyPrefix]
+        [HarmonyPriority(Patches.priority + 1), HarmonyPatch(typeof(DungeonGenerator), "Generate"), HarmonyPrefix] // +1 Because this needs to run after the Patch in Patches, second patch here for consistency.
         internal static void DungeonGeneratorGenerate_Prefix()
         {
-            if (DungeonManager.CurrentExtendedDungeonFlow != null)
-            {
-                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onBeforeDungeonGenerate.Invoke(Patches.RoundManager);
-                DungeonManager.GlobalDungeonEvents.onBeforeDungeonGenerate.Invoke(Patches.RoundManager);
-            }
+            InvokeIf(CurrentDungeon != null, DungeonEvents.Select(e => e.onBeforeDungeonGenerate), Patches.RoundManager);
         }
 
-        [HarmonyPriority(Patches.priority)]
-        [HarmonyPatch(typeof(RoundManager), "SwitchPower")]
-        [HarmonyPrefix]
+        [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(RoundManager), "SwitchPower"), HarmonyPrefix]
         internal static void RoundManagerSwitchPower_Prefix(bool on)
         {
-            if (DungeonManager.CurrentExtendedDungeonFlow != null)
-            {
-                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onPowerSwitchToggle.Invoke(on);
-                DungeonManager.GlobalDungeonEvents.onPowerSwitchToggle.Invoke(on);
-            }
-            if (LevelManager.CurrentExtendedLevel != null)
-            {
-                LevelManager.CurrentExtendedLevel.LevelEvents.onPowerSwitchToggle.Invoke(on);
-                LevelManager.GlobalLevelEvents.onPowerSwitchToggle.Invoke(on);
-            }
+            InvokeIf(CurrentLevel != null, LevelEvents.Select(e => e.onPowerSwitchToggle), on);
+            InvokeIf(CurrentDungeon != null, DungeonEvents.Select(e => e.onPowerSwitchToggle), on);
         }
 
-        [HarmonyPriority(Patches.priority)]
-        [HarmonyPatch(typeof(RoundManager), "SpawnScrapInLevel")]
-        [HarmonyPostfix]
+        [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(RoundManager), "SpawnScrapInLevel"), HarmonyPostfix]
         internal static void RoundManagerSpawnScrapInLevel_Postfix()
         {
-            if (DungeonManager.CurrentExtendedDungeonFlow != null)
-            {
-                List<GrabbableObject> scrap = UnityEngine.Object.FindObjectsOfType<GrabbableObject>().ToList();
-                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onSpawnedScrapObjects.Invoke(scrap);
-                DungeonManager.GlobalDungeonEvents.onSpawnedScrapObjects.Invoke(scrap);
-            }
+            InvokeIf(CurrentDungeon != null, DungeonEvents.Select(e => e.onSpawnedScrapObjects), UnityEngine.Object.FindObjectsOfType<GrabbableObject>().ToList());
         }
 
-        [HarmonyPriority(Patches.priority)]
-        [HarmonyPatch(typeof(RoundManager), "SpawnSyncedProps")]
-        [HarmonyPostfix]
+        [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(RoundManager), "SpawnSyncedProps"), HarmonyPostfix]
         internal static void RoundManagerSpawnSyncedProps_Postfix()
         {
-            if (DungeonManager.CurrentExtendedDungeonFlow != null)
-            {
-                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onSpawnedSyncedObjects.Invoke(Patches.RoundManager.spawnedSyncedObjects);
-                DungeonManager.GlobalDungeonEvents.onSpawnedSyncedObjects.Invoke(Patches.RoundManager.spawnedSyncedObjects);
-            }
+            InvokeIf(CurrentDungeon != null, DungeonEvents.Select(e => e.onSpawnedSyncedObjects), Patches.RoundManager.spawnedSyncedObjects);
         }
 
         private static EnemyVent cachedSelectedVent;
-        [HarmonyPriority(Patches.priority)]
-        [HarmonyPatch(typeof(RoundManager), "SpawnEnemyFromVent")]
-        [HarmonyPrefix]
+        [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(RoundManager), "SpawnEnemyFromVent"), HarmonyPrefix]
         internal static void RoundManagerSpawnEventFromVent_Prefix(EnemyVent vent)
         {
-            if (DungeonManager.CurrentExtendedDungeonFlow != null)
-                cachedSelectedVent = vent;
+            cachedSelectedVent = CurrentDungeon != null ? vent : cachedSelectedVent;
         }
 
-        [HarmonyPriority(Patches.priority)]
-        [HarmonyPatch(typeof(RoundManager), "SpawnEnemyGameObject")]
-        [HarmonyPostfix]
+        [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(RoundManager), "SpawnEnemyGameObject"), HarmonyPostfix]
         internal static void RoundManagerSpawnEventFromVent_Postfix()
         {
-            if (DungeonManager.CurrentExtendedDungeonFlow != null && cachedSelectedVent != null)
-            {
-                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onEnemySpawnedFromVent.Invoke((cachedSelectedVent, Patches.RoundManager.SpawnedEnemies.Last()));
-                DungeonManager.GlobalDungeonEvents.onEnemySpawnedFromVent.Invoke((cachedSelectedVent, Patches.RoundManager.SpawnedEnemies.Last()));
-                cachedSelectedVent = null;
-            }
+            if (CurrentDungeon == null || cachedSelectedVent == null) return;
+            Invoke(DungeonEvents.Select(e => e.onEnemySpawnedFromVent), (cachedSelectedVent, Patches.RoundManager.SpawnedEnemies.Last()));
+            cachedSelectedVent = null;
         }
 
-        [HarmonyPriority(Patches.priority)]
-        [HarmonyPatch(typeof(RoundManager), "SpawnMapObjects")]
-        [HarmonyPostfix]
+        [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(RoundManager), "SpawnMapObjects"), HarmonyPostfix]
         internal static void RoundManagerSpawnMapObjects_Postfix()
         {
-            if (DungeonManager.CurrentExtendedDungeonFlow != null)
-            {
-                List<GameObject> mapObjects = new List<GameObject>();
-                foreach (GameObject rootObject in SceneManager.GetSceneByName(LevelManager.CurrentExtendedLevel.SelectableLevel.sceneName).GetRootGameObjects())
-                    foreach (SpawnableMapObject randomMapObject in LevelManager.CurrentExtendedLevel.SelectableLevel.spawnableMapObjects)
-                        if (rootObject.name.Sanitized().Contains(randomMapObject.prefabToSpawn.name.Sanitized())) //To ensure were only getting the Dungeon relevant objects.
-                            mapObjects.Add(rootObject);
-                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onSpawnedMapObjects.Invoke(mapObjects);
-                DungeonManager.GlobalDungeonEvents.onSpawnedMapObjects.Invoke(mapObjects);
-            }
+            if (CurrentDungeon == null) return;
+
+            List<GameObject> mapObjects = new List<GameObject>();
+            foreach (GameObject rootObject in SceneManager.GetSceneByName(CurrentLevel.SelectableLevel.sceneName).GetRootGameObjects())
+                foreach (SpawnableMapObject randomMapObject in CurrentLevel.SelectableLevel.spawnableMapObjects)
+                    if (rootObject.name.Sanitized().Contains(randomMapObject.prefabToSpawn.name.Sanitized())) //To ensure were only getting the Dungeon relevant objects.
+                        mapObjects.Add(rootObject);
+            Invoke(DungeonEvents.Select(e => e.onSpawnedMapObjects), mapObjects);
         }
 
-        [HarmonyPriority(Patches.priority)]
-        [HarmonyPatch(typeof(StartOfRound), "OnShipLandedMiscEvents")]
-        [HarmonyPrefix]
+        [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(StartOfRound), "OnShipLandedMiscEvents"), HarmonyPrefix]
         internal static void StartOfRoundOnShipLandedMiscEvents_Prefix()
         {
-            if (LevelManager.CurrentExtendedLevel != null)
-            {
-                LevelManager.CurrentExtendedLevel.LevelEvents.onShipLand.Invoke();
-                LevelManager.GlobalLevelEvents.onShipLand.Invoke();
-            }
-            if (DungeonManager.CurrentExtendedDungeonFlow != null)
-            {
-                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onShipLand.Invoke();
-                DungeonManager.GlobalDungeonEvents.onShipLand.Invoke();
-            }
+            InvokeIf(CurrentLevel != null, LevelEvents.Select(e => e.onShipLand));
+            InvokeIf(CurrentDungeon != null, DungeonEvents.Select(e => e.onShipLand));
         }
 
-        [HarmonyPriority(Patches.priority)]
-        [HarmonyPatch(typeof(StartOfRound), "ShipLeave")]
-        [HarmonyPrefix]
+        [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(StartOfRound), "ShipLeave"), HarmonyPrefix]
         internal static void StartOfRoundShipLeave_Prefix()
         {
-            if (LevelManager.CurrentExtendedLevel != null)
-            {
-                LevelManager.CurrentExtendedLevel.LevelEvents.onShipLeave.Invoke();
-                LevelManager.GlobalLevelEvents.onShipLeave.Invoke();
-            }
-            if (DungeonManager.CurrentExtendedDungeonFlow != null)
-            {
-                DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onShipLeave.Invoke();
-                DungeonManager.GlobalDungeonEvents.onShipLeave.Invoke();
-            }
+            InvokeIf(CurrentLevel != null, LevelEvents.Select(e => e.onShipLeave));
+            InvokeIf(CurrentDungeon != null, DungeonEvents.Select(e => e.onShipLeave));
         }
 
-        [HarmonyPriority(Patches.priority)]
-        [HarmonyPatch(typeof(EntranceTeleport), "TeleportPlayerServerRpc")]
-        [HarmonyPrefix]
+        [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(EntranceTeleport), "TeleportPlayerServerRpc"), HarmonyPrefix]
         internal static void EntranceTeleportTeleportPlayerServerRpc_Prefix(EntranceTeleport __instance, int playerObj)
         {
-            if (__instance.IsHost == false) return;
-
-            if (DungeonManager.CurrentExtendedDungeonFlow != null)
-            {
-                PlayerControllerB player = Patches.StartOfRound.allPlayerScripts[playerObj];
-                if (__instance.isEntranceToBuilding == true)
-                {
-                    DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onPlayerEnterDungeon.Invoke((__instance, player));
-                    DungeonManager.GlobalDungeonEvents.onPlayerEnterDungeon.Invoke((__instance, player));
-                }
-                else
-                {
-                    DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onPlayerExitDungeon.Invoke((__instance, player));
-                    DungeonManager.GlobalDungeonEvents.onPlayerExitDungeon.Invoke((__instance, player));
-                }
-            }
-
-            if (LevelManager.CurrentExtendedLevel != null)
-            {
-                PlayerControllerB player = Patches.StartOfRound.allPlayerScripts[playerObj];
-                if (__instance.isEntranceToBuilding == true)
-                {
-                    LevelManager.CurrentExtendedLevel.LevelEvents.onPlayerEnterDungeon.Invoke((__instance, player));
-                    LevelManager.GlobalLevelEvents.onPlayerEnterDungeon.Invoke((__instance, player));
-
-                }
-                else
-                {
-                    LevelManager.CurrentExtendedLevel.LevelEvents.onPlayerExitDungeon.Invoke((__instance, player));
-                    LevelManager.GlobalLevelEvents.onPlayerExitDungeon.Invoke((__instance, player));
-                }
-            }
+            if (!IsServer) return;
+            InvokeIf(CurrentLevel != null, LevelEvents.Select(e => __instance.isEntranceToBuilding ? e.onPlayerEnterDungeon : e.onPlayerExitDungeon), (__instance, Patches.StartOfRound.allPlayerScripts[playerObj]));
+            InvokeIf(CurrentDungeon != null, DungeonEvents.Select(e => __instance.isEntranceToBuilding ? e.onPlayerEnterDungeon : e.onPlayerExitDungeon), (__instance, Patches.StartOfRound.allPlayerScripts[playerObj]));
         }
 
-        [HarmonyPriority(Patches.priority)]
-        [HarmonyPatch(typeof(LungProp), "EquipItem")]
-        [HarmonyPrefix]
+        [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(LungProp), "EquipItem"), HarmonyPrefix]
         internal static void LungPropEquipItem_Prefix(LungProp __instance)
         {
-            if (__instance.IsServer == true && __instance.isLungDocked)
-            {
-                if (DungeonManager.CurrentExtendedDungeonFlow != null)
-                {
-                    DungeonManager.CurrentExtendedDungeonFlow.DungeonEvents.onApparatusTaken.Invoke(__instance);
-                    DungeonManager.GlobalDungeonEvents.onApparatusTaken.Invoke(__instance);
-                }
-                if (LevelManager.CurrentExtendedLevel != null)
-                {
-                    LevelManager.CurrentExtendedLevel.LevelEvents.onApparatusTaken.Invoke(__instance);
-                    LevelManager.GlobalLevelEvents.onApparatusTaken.Invoke(__instance);
-                }
-            }
+            if (IsServer == false || __instance.isLungDocked == false) return;
+            InvokeIf(CurrentLevel != null, LevelEvents.Select(e => e.onApparatusTaken), __instance);
+            InvokeIf(CurrentDungeon != null, DungeonEvents.Select(e => e.onApparatusTaken), __instance);
         }
 
-        [HarmonyPriority(Patches.priority)]
-        [HarmonyPatch(typeof(TimeOfDay), "GetDayPhase")]
-        [HarmonyPostfix]
+        [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(TimeOfDay), "GetDayPhase"), HarmonyPostfix]
         internal static void TimeOfDayGetDayPhase_Postfix(DayMode __result)
         {
-            if (previousDayMode == DayMode.None || previousDayMode != __result)
-            {
-                LevelManager.CurrentExtendedLevel.LevelEvents.onDayModeToggle.Invoke(__result);
-                LevelManager.GlobalLevelEvents.onDayModeToggle.Invoke(__result);
-            }
-
+            InvokeIf(CurrentLevel != null && (previousDayMode == DayMode.None || previousDayMode != __result), LevelEvents.Select(e => e.onDayModeToggle), __result);
             previousDayMode = __result;
-
         }
     }
 }

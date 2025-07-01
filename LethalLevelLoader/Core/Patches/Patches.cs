@@ -104,7 +104,7 @@ namespace LethalLevelLoader
                             OriginalContent.AudioMixers.Add(source.outputAudioMixerGroup.audioMixer);
 
                 ExtendedContentManager.ProcessContentNetworking();
-                ExtendedNetworkManager.RegisterPrefabs();
+                ExtendedNetworkManager.RegisterInternalNetworkPrefabs();
             }
         }
 

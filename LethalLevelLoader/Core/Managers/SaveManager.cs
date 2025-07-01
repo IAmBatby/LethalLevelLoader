@@ -12,6 +12,8 @@ namespace LethalLevelLoader
         public static LLLSaveFile currentSaveFile;
         public static bool parityCheck;
 
+        public static string CurrentSavePath => GameNetworkManager.Instance.currentSaveFileName;
+
         internal static void InitializeSave()
         {
             if (ExtendedNetworkManager.NetworkManagerInstance.IsServer == false)
@@ -89,42 +91,25 @@ namespace LethalLevelLoader
             OverrideCurrentSaveFileItemData(loadedShipItemData);
         }
 
-        internal static void OverrideCurrentSaveFileItemData(List<SavedShipItemData> savedShipItemDatas)
+        internal static void OverrideCurrentSaveFileItemData(List<SavedShipItemData> savedData)
         {
-            List<int> shipGrabbableItemIDs = new List<int>();
-            List<Vector3> shipGrabbableItemPos = new List<Vector3>();
-            List<int> shipScrapValues = new List<int>();
-            List<int> shipItemSaveData = new List<int>();
+            TryResetValue("shipGrabbableItemIDs", savedData.Select(s => s.itemAllItemsListIndex));
+            TryResetValue("shipGrabbableItemPos", savedData.Select(s => s.itemPosition));
+            TryResetValue("shipScrapValues", savedData.Select(s => s.itemScrapValue).Where(v => v != -1));
+            TryResetValue("shipItemSaveData", savedData.Select(s => s.itemAdditionalSavedData).Where(d => d != -1));
+        }
 
-            string currentSaveFileName = GameNetworkManager.Instance.currentSaveFileName;
+        private static void TryDeleteKey(string keyName)
+        {
+            if (ES3.KeyExists(keyName, CurrentSavePath))
+                ES3.DeleteKey(keyName, CurrentSavePath);    
+        }
 
-            foreach (SavedShipItemData savedShipItemData in savedShipItemDatas)
-            {
-                shipGrabbableItemIDs.Add(savedShipItemData.itemAllItemsListIndex);
-                shipGrabbableItemPos.Add(savedShipItemData.itemPosition);
-                if (savedShipItemData.itemScrapValue != -1)
-                    shipScrapValues.Add(savedShipItemData.itemScrapValue);
-                if (savedShipItemData.itemAdditionalSavedData != -1)
-                    shipItemSaveData.Add(savedShipItemData.itemAdditionalSavedData);
-            }
-
-            if (ES3.KeyExists("shipGrabbableItemIDs", currentSaveFileName))
-                ES3.DeleteKey("shipGrabbableItemIDs", currentSaveFileName);
-            if (ES3.KeyExists("shipGrabbableItemPos", currentSaveFileName))
-                ES3.DeleteKey("shipGrabbableItemPos", currentSaveFileName);
-            if (ES3.KeyExists("shipScrapValues", currentSaveFileName))
-                ES3.DeleteKey("shipScrapValues", currentSaveFileName);
-            if (ES3.KeyExists("shipItemSaveData", currentSaveFileName))
-                ES3.DeleteKey("shipItemSaveData", currentSaveFileName);
-
-            if (shipGrabbableItemIDs.Count > 0)
-                ES3.Save<int[]>("shipGrabbableItemIDs", shipGrabbableItemIDs.ToArray(), currentSaveFileName);
-            if (shipGrabbableItemPos.Count > 0)
-                ES3.Save<Vector3[]>("shipGrabbableItemPos", shipGrabbableItemPos.ToArray(), currentSaveFileName);
-            if (shipScrapValues.Count > 0)
-                ES3.Save<int[]>("shipScrapValues", shipScrapValues.ToArray(), currentSaveFileName);
-            if (shipItemSaveData.Count > 0)
-                ES3.Save<int[]>("shipItemSaveData", shipItemSaveData.ToArray(), currentSaveFileName);
+        private static void TryResetValue<T>(string keyName, IEnumerable<T> values)
+        {
+            TryDeleteKey(keyName);
+            if (values != null && values.Count() > 0)
+                ES3.Save(keyName, values.ToArray(), CurrentSavePath);
         }
 
         internal static void FixMismatchedSavedItemData(List<SavedShipItemData> savedShipItemDatas)
@@ -135,12 +120,12 @@ namespace LethalLevelLoader
 
             foreach (SavedShipItemData savedShipItemData in savedShipItemDatas)
             {
-                int allitemsListIndex = savedShipItemData.itemAllItemsListIndex;
+                int index = savedShipItemData.itemAllItemsListIndex;
                 if (!itemDataDict.ContainsKey(savedShipItemData.itemAllItemsListIndex))
                     break;
 
                 AllItemsListItemData itemData = savedShipItemData.itemAllItemsListData;
-                AllItemsListItemData newItemData = itemDataDict[allitemsListIndex];
+                AllItemsListItemData newItemData = itemDataDict[index];
 
                 if (newItemData.itemName != itemData.itemName)
                     break;
