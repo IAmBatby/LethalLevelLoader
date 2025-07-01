@@ -16,7 +16,7 @@ namespace LethalLevelLoader
         protected override ExtendedItem ExtendVanillaContent(Item content)
         {
             ExtendedItem extendedVanillaItem = ExtendedItem.Create(content);
-            extendedVanillaItem.IsBuyableItem = Patches.Terminal.buyableItemsList.Contains(content);
+            extendedVanillaItem.IsBuyableItem = Terminal.buyableItemsList.Contains(content);
 
             //Terminal finding stuff
 
@@ -109,20 +109,20 @@ namespace LethalLevelLoader
 
             if (Terminal.buyableItemsList.Contains(content.Item))
             {
-                CompatibleNoun pair = TerminalManager.Keyword_Buy.compatibleNouns.Where(b => b.result.buyItemIndex == content.GameID).FirstOrDefault();
+                CompatibleNoun pair = Keywords.Buy.compatibleNouns.Where(b => b.result.buyItemIndex == content.GameID).FirstOrDefault();
                 keyword = pair?.noun;
                 buyNode = pair?.result;
                 buyConfirmNode = buyNode?.terminalOptions[1].result;
-                if (TerminalManager.Keyword_Info.compatibleNouns.TryGet(keyword, out TerminalNode result))
+                if (Keywords.Info.compatibleNouns.TryGet(keyword, out TerminalNode result))
                     buyInfoNode = result;
             }
             else
             {
                 string sanitised = content.Item.itemName.StripSpecialCharacters().Sanitized();
                 string plural = !string.IsNullOrEmpty(content.PluralisedItemName) ? content.PluralisedItemName : content.Item.itemName;
-                keyword = TerminalManager.CreateNewTerminalKeyword(sanitised + "Keyword", sanitised, TerminalManager.Keyword_Buy);
+                keyword = Terminal.CreateKeyword(sanitised + "Keyword", sanitised, Keywords.Buy);
 
-                buyNode = TerminalManager.CreateNewTerminalNode(sanitised + "Buy");
+                buyNode = Terminal.CreateNode(sanitised + "Buy");
                 if (!string.IsNullOrEmpty(content.OverrideBuyNodeDescription))
                     buyNode.displayText = content.OverrideBuyNodeDescription;
                 else
@@ -137,7 +137,7 @@ namespace LethalLevelLoader
                 buyNode.itemCost = content.Item.creditsWorth;
                 buyNode.overrideOptions = true;
 
-                buyConfirmNode = TerminalManager.CreateNewTerminalNode(sanitised + "BuyConfirm");
+                buyConfirmNode = Terminal.CreateNode(sanitised + "BuyConfirm");
                 if (!string.IsNullOrEmpty(content.OverrideBuyConfirmNodeDescription))
                     buyConfirmNode.displayText = content.OverrideBuyConfirmNodeDescription;
                 else
@@ -151,13 +151,13 @@ namespace LethalLevelLoader
                 buyConfirmNode.isConfirmationNode = false;
                 buyConfirmNode.playSyncedClip = 0;
 
-                buyInfoNode = TerminalManager.CreateNewTerminalNode(sanitised + "Info");
+                buyInfoNode = Terminal.CreateNode(sanitised + "Info");
                 buyInfoNode.clearPreviousText = true;
                 buyInfoNode.maxCharactersToType = 25;
                 buyInfoNode.displayText = "\n" + content.OverrideInfoNodeDescription;
 
-                buyNode.AddCompatibleNoun(TerminalManager.Keyword_Confirm, buyConfirmNode);
-                buyNode.AddCompatibleNoun(TerminalManager.Keyword_Deny, TerminalManager.Node_CancelPurchase);
+                buyNode.AddNoun(Keywords.Confirm, buyConfirmNode);
+                buyNode.AddNoun(Keywords.Deny, Nodes.CancelBuy);
             }
 
             content.NounKeyword = keyword;

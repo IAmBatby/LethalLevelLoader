@@ -77,8 +77,8 @@ namespace LethalLevelLoader
         public TerminalNode InfoNode { get; internal set; }
         public TerminalNode SimulateNode { get; internal set; }
 
-        TerminalKeyword ITerminalPurchasableEntry.RegistryKeyword => TerminalManager.Keyword_Route;
-        TerminalKeyword ITerminalInfoEntry.RegistryKeyword => TerminalManager.Keyword_Info;
+        TerminalKeyword ITerminalPurchasableEntry.RegistryKeyword => TerminalManager.Keywords.Route;
+        TerminalKeyword ITerminalInfoEntry.RegistryKeyword => TerminalManager.Keywords.Info;
         public List<CompatibleNoun> GetRegistrations() => new() { (this as ITerminalInfoEntry).GetPair(), (this as ITerminalPurchasableEntry).GetPair() };
 
         internal static ExtendedLevel Create(SelectableLevel newSelectableLevel) => Create<ExtendedLevel, SelectableLevel, LevelManager>(newSelectableLevel.name, newSelectableLevel);

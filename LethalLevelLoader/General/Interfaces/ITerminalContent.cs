@@ -14,7 +14,7 @@ namespace LethalLevelLoader
         {
             foreach (CompatibleNoun noun in GetRegistrations())
                 if (!noun.noun.Contains(NounKeyword,noun.result))
-                    noun.noun.AddCompatibleNoun(NounKeyword,noun.result);
+                    noun.noun.AddNoun(NounKeyword,noun.result);
         }
     }
 

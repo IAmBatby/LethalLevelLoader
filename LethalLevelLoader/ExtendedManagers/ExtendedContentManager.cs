@@ -24,6 +24,8 @@ namespace LethalLevelLoader
         protected static RoundManager RoundManager => Patches.RoundManager;
         protected static StartOfRound StartOfRound => Patches.StartOfRound;
         protected static Terminal Terminal => Patches.Terminal;
+        protected static TerminalManager.KeywordReferences Keywords => TerminalManager.Keywords;
+        protected static TerminalManager.NodeReferences Nodes => TerminalManager.Nodes;
 
         //This is pretty cursed but basicially I need to setup a static prefab for every ExtendedContentManager dynamically
         //and this is the best way to do so with no hardcoding and potential support for non LLL mods to implement content types.

@@ -23,8 +23,8 @@ namespace LethalLevelLoader
                 vehicles[i].SetGameID(i);
 
             foreach (ExtendedBuyableVehicle vehicle in vehicles)
-                if (!TerminalManager.Keyword_Buy.Contains(vehicle.NounKeyword, vehicle.PurchasePromptNode))
-                    TerminalManager.Keyword_Buy.AddCompatibleNoun(vehicle.NounKeyword, vehicle.PurchasePromptNode);
+                if (!TerminalManager.Keywords.Buy.Contains(vehicle.NounKeyword, vehicle.PurchasePromptNode))
+                    TerminalManager.Keywords.Buy.AddNoun(vehicle.NounKeyword, vehicle.PurchasePromptNode);
         }
 
         protected override void UnpatchGame()
@@ -55,7 +55,7 @@ namespace LethalLevelLoader
             //if is custom check
             BuyableVehicle vehicle = content.BuyableVehicle;
             string displayName = vehicle.vehicleDisplayName;
-            infoKeyword = TerminalManager.CreateNewTerminalKeyword(content.name + "Keyword", content.TerminalKeywordName.ToLower(), TerminalManager.Keyword_Buy);
+            infoKeyword = TerminalManager.CreateNewTerminalKeyword(content.name + "Keyword", content.TerminalKeywordName.ToLower(), TerminalManager.Keywords.Buy);
 
             buyNode = TerminalManager.CreateNewTerminalNode(content.name + "Buy");
             buyNode.itemCost = vehicle.creditsWorth;
@@ -78,8 +78,8 @@ namespace LethalLevelLoader
                 "We are so confident in the quality of this product, it comes with a life-time warranty! If your " + displayName + " is lost or destroyed, you can get one free replacement. Items cannot be purchased while the vehicle is en route." + "\n\n";
             infoNode = TerminalManager.CreateNewTerminalNode(content.name + "Info");
 
-            buyNode.AddCompatibleNoun(TerminalManager.Keyword_Confirm, buyConfirmNode);
-            buyNode.AddCompatibleNoun(TerminalManager.Keyword_Deny, TerminalManager.Node_CancelPurchase);
+            buyNode.AddNoun(TerminalManager.Keywords.Confirm, buyConfirmNode);
+            buyNode.AddNoun(TerminalManager.Keywords.Deny, TerminalManager.Nodes.CancelBuy);
 
             content.NounKeyword = infoKeyword;
             content.InfoNode = infoNode;

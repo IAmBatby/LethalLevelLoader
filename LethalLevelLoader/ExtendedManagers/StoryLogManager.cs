@@ -22,8 +22,8 @@ namespace LethalLevelLoader
 
                 log.SetGameID(Terminal.logEntryFiles.IndexOf(log.StoryLogNode));
 
-                if (!TerminalManager.Keyword_View.Contains(log.StoryLogKeyword, log.StoryLogNode))
-                    TerminalManager.Keyword_View.AddCompatibleNoun(log.StoryLogKeyword,log.StoryLogNode);
+                if (!TerminalManager.Keywords.View.Contains(log.StoryLogKeyword, log.StoryLogNode))
+                    TerminalManager.Keywords.View.AddNoun(log.StoryLogKeyword,log.StoryLogNode);
             }
 
         }
@@ -54,7 +54,7 @@ namespace LethalLevelLoader
             if (Terminal.logEntryFiles.Count > content.GameID)
             {
                 node = Terminal.logEntryFiles[content.GameID];
-                foreach (CompatibleNoun noun in TerminalManager.Keyword_View.compatibleNouns)
+                foreach (CompatibleNoun noun in TerminalManager.Keywords.View.compatibleNouns)
                     if (noun.result == node)
                     {
                         keyword = noun.noun;
@@ -63,7 +63,7 @@ namespace LethalLevelLoader
             }
             else
             {
-                keyword = TerminalManager.CreateNewTerminalKeyword(content.terminalKeywordNoun + "Keyword", content.terminalKeywordNoun, TerminalManager.Keyword_View);
+                keyword = TerminalManager.CreateNewTerminalKeyword(content.terminalKeywordNoun + "Keyword", content.terminalKeywordNoun, TerminalManager.Keywords.View);
                 node = TerminalManager.CreateNewTerminalNode("LogFile" + (Terminal.logEntryFiles.Count + 1), content.storyLogDescription);
                 node.clearPreviousText = true;
                 node.creatureName = content.storyLogTitle;

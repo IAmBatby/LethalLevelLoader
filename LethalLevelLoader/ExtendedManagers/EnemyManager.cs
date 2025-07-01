@@ -155,13 +155,13 @@ namespace LethalLevelLoader
             {
                 infoNode = Terminal.enemyFiles[content.GameID];
                 videoClip = infoNode.displayVideo;
-                if (TerminalManager.Keyword_Info.compatibleNouns.TryGet(infoNode, out TerminalKeyword noun))
+                if (Keywords.Info.compatibleNouns.TryGet(infoNode, out TerminalKeyword noun))
                     infoKeyword = noun;
             }
             else
             {
-                infoKeyword = TerminalManager.CreateNewTerminalKeyword(content.name + "BestiaryKeyword", content.EnemyDisplayName.ToLower(), TerminalManager.Keyword_Info);
-                infoNode = TerminalManager.CreateNewTerminalNode(content.name + "BestiaryNode", content.InfoNodeDescription);
+                infoKeyword = Terminal.CreateKeyword(content.name + "BestiaryKeyword", content.EnemyDisplayName.ToLower(), Keywords.Info);
+                infoNode = Terminal.CreateNode(content.name + "BestiaryNode", content.InfoNodeDescription);
                 infoNode.creatureName = content.EnemyDisplayName;
                 infoNode.playSyncedClip = 2;
                 infoNode.displayVideo = content.InfoNodeVideoClip;

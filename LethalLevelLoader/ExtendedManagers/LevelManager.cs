@@ -60,7 +60,7 @@ namespace LethalLevelLoader
             ExtendedLevel extendedLevel = ExtendedLevel.Create(content);
             PatchedContent.AllLevelSceneNames.Add(extendedLevel.SelectableLevel.sceneName);
             extendedLevel.name = extendedLevel.NumberlessPlanetName + "ExtendedLevel";
-            extendedLevel.IsRouteHidden = TerminalManager.Keyword_Moons.specialKeywordResult.displayText.Contains(extendedLevel.NumberlessPlanetName);
+            extendedLevel.IsRouteHidden = Keywords.Moons.specialKeywordResult.displayText.Contains(extendedLevel.NumberlessPlanetName);
             return (extendedLevel);
         }
 
@@ -349,9 +349,9 @@ namespace LethalLevelLoader
             TerminalNode routeConfirmNode = null;
             TerminalNode routeInfoNode = null;
 
-            if (TerminalManager.Keyword_Route.compatibleNouns.Length > content.GameID)
+            if (Keywords.Route.compatibleNouns.Length > content.GameID)
             {
-                foreach (CompatibleNoun noun in TerminalManager.Keyword_Route.compatibleNouns)
+                foreach (CompatibleNoun noun in Keywords.Route.compatibleNouns)
                     if (noun.result.displayPlanetInfo == content.GameID)
                     {
                         keyword = noun.noun;
@@ -360,15 +360,15 @@ namespace LethalLevelLoader
                         content.SetPurchasePrice(routeNode.itemCost);  //This should not be here but it's difficult to find a more appropiate spot rn
                         break;
                     }
-                if (TerminalManager.Keyword_Info.compatibleNouns.TryGet(keyword, out TerminalNode result))
+                if (Keywords.Info.compatibleNouns.TryGet(keyword, out TerminalNode result))
                     routeInfoNode = result;  
             }
             else
             {
                 string sanitisedName = content.NumberlessPlanetName.StripSpecialCharacters().Sanitized();
-                keyword = TerminalManager.CreateNewTerminalKeyword(sanitisedName + "Keyword", content.TerminalNoun, TerminalManager.Keyword_Route);
+                keyword = Terminal.CreateKeyword(sanitisedName + "Keyword", content.TerminalNoun, Keywords.Route);
 
-                routeNode = TerminalManager.CreateNewTerminalNode(sanitisedName + "Route");
+                routeNode = Terminal.CreateNode(sanitisedName + "Route");
                 if (content.OverrideRouteNodeDescription != string.Empty)
                     routeNode.displayText = content.OverrideRouteNodeDescription;
                 else
@@ -381,7 +381,7 @@ namespace LethalLevelLoader
                 routeNode.itemCost = content.PurchasePrice;
                 routeNode.overrideOptions = true;
 
-                routeConfirmNode = TerminalManager.CreateNewTerminalNode(sanitisedName + "RouteConfirm");
+                routeConfirmNode = Terminal.CreateNode(sanitisedName + "RouteConfirm");
                 if (content.OverrideRouteConfirmNodeDescription != string.Empty)
                     routeConfirmNode.displayText = content.OverrideRouteConfirmNodeDescription;
                 else
@@ -389,7 +389,7 @@ namespace LethalLevelLoader
                 routeConfirmNode.clearPreviousText = true;
                 routeConfirmNode.itemCost = content.PurchasePrice;
 
-                routeInfoNode = TerminalManager.CreateNewTerminalNode(sanitisedName + "Info");
+                routeInfoNode = Terminal.CreateNode(sanitisedName + "Info");
                 routeInfoNode.clearPreviousText = true;
                 routeInfoNode.maxCharactersToType = 35;
                 string infoString;
@@ -413,8 +413,8 @@ namespace LethalLevelLoader
                 }
                 routeInfoNode.displayText = infoString;
 
-                routeNode.AddCompatibleNoun(TerminalManager.Keyword_Deny, TerminalManager.Node_CancelRoute);
-                routeNode.AddCompatibleNoun(TerminalManager.Keyword_Confirm, routeConfirmNode);
+                routeNode.AddNoun(Keywords.Deny, Nodes.CancelRoute);
+                routeNode.AddNoun(Keywords.Confirm, routeConfirmNode);
             }
 
             content.PurchasePromptNode = routeNode;

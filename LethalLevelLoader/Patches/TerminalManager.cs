@@ -31,15 +31,41 @@ namespace LethalLevelLoader
         public static MoonsCataloguePage currentMoonsCataloguePage { get; internal set; }
 
         //Cached References To Important Base-Game TerminalKeywords;
-        internal static TerminalKeyword Keyword_Route;
-        internal static TerminalKeyword Keyword_Info;
-        internal static TerminalKeyword Keyword_Confirm;
-        internal static TerminalKeyword Keyword_Deny;
-        internal static TerminalKeyword Keyword_Moons;
-        internal static TerminalKeyword Keyword_View;
-        internal static TerminalKeyword Keyword_Buy;
-        internal static TerminalNode Node_CancelRoute;
-        internal static TerminalNode Node_CancelPurchase;
+        public static TerminalKeyword[] AllKeywords => Terminal.terminalNodes.allKeywords;
+
+        public struct KeywordReferences
+        {
+            public TerminalKeyword Route { get; private set; }
+            public TerminalKeyword Buy { get; private set; }
+            public TerminalKeyword Info { get; private set; }
+            public TerminalKeyword View { get; private set; }
+            public TerminalKeyword Moons { get; private set; }
+            public TerminalKeyword Confirm { get; private set; }
+            public TerminalKeyword Deny { get; private set; }
+            public KeywordReferences(TerminalKeyword route, TerminalKeyword buy, TerminalKeyword info, TerminalKeyword view, TerminalKeyword moons, TerminalKeyword confirm, TerminalKeyword deny)
+            {
+                Route = route;
+                Buy = buy;
+                Info = info;
+                View = view;
+                Moons = moons;
+                Confirm = confirm;
+                Deny = deny;
+            }
+        }
+        public static KeywordReferences Keywords { get; private set; }
+
+        public struct NodeReferences
+        {
+            public TerminalNode CancelRoute { get; private set; }
+            public TerminalNode CancelBuy { get; private set; }
+            public NodeReferences(TerminalNode cancelRoute, TerminalNode cancelBuy)
+            {
+                CancelRoute = cancelRoute;
+                CancelBuy = cancelBuy;
+            }
+        }
+        public static NodeReferences Nodes { get; private set; }
 
         internal static string currentTagFilter;
 
@@ -62,15 +88,21 @@ namespace LethalLevelLoader
 
         internal static void CacheTerminalReferences()
         {
-            Keyword_Route = Terminal.terminalNodes.allKeywords[27];
-            Keyword_Info = Terminal.terminalNodes.allKeywords[6];
-            Keyword_Confirm = Terminal.terminalNodes.allKeywords[3];
-            Keyword_Deny = Terminal.terminalNodes.allKeywords[4];
-            Keyword_Moons = Terminal.terminalNodes.allKeywords[21];
-            Keyword_View = Terminal.terminalNodes.allKeywords[19];
-            Keyword_Buy = Terminal.terminalNodes.allKeywords[0];
-            Node_CancelRoute = Keyword_Route.compatibleNouns[0].result.terminalOptions[0].result;
-            Node_CancelPurchase = Keyword_Buy.compatibleNouns[0].result.terminalOptions[1].result;
+            Keywords = new KeywordReferences
+                (
+                    route: AllKeywords[27],
+                    buy: AllKeywords[0],
+                    info: AllKeywords[6],
+                    view: AllKeywords[19],
+                    moons: AllKeywords[21],
+                    confirm: AllKeywords[3],
+                    deny: AllKeywords[4]
+                );
+            Nodes = new NodeReferences
+                (
+                Keywords.Route.compatibleNouns[0].result.terminalOptions[0].result,
+                Keywords.Buy.compatibleNouns[0].result.terminalOptions[1].result
+                );
 
             defaultTerminalFontSize = Terminal.screenText.textComponent.fontSize;
 
@@ -190,7 +222,7 @@ namespace LethalLevelLoader
 
         internal static bool TryRefreshMoonsCataloguePage(ref TerminalNode currentNode, ref TerminalNode loadNode)
         {
-            if (currentNode == Keyword_Moons.specialKeywordResult)
+            if (currentNode == Keywords.Moons.specialKeywordResult)
                 return (RefreshMoonsCataloguePage(ref currentNode, ref loadNode));
             else
                 return (true);
@@ -222,7 +254,7 @@ namespace LethalLevelLoader
 
             Terminal.textAdded = 0;
 
-            Terminal.currentNode = Keyword_Moons.specialKeywordResult;
+            Terminal.currentNode = Keywords.Moons.specialKeywordResult;
             return (false);
         }
 
@@ -291,7 +323,7 @@ namespace LethalLevelLoader
         internal static string GetMoonsTerminalText()
         {
             string fallbackOverviewText = "Welcome to the exomoons catalogue.\r\nTo route the autopilot to a moon, use the word ROUTE.\r\nTo learn about any moon, use the word INFO.\r\n____________________________\r\n\r\n* The Company Building   //   Buying at [companyBuyingPercent].\r\n\r\n";
-            string overviewText = Keyword_Moons.specialKeywordResult.displayText;
+            string overviewText = Keywords.Moons.specialKeywordResult.displayText;
             if (overviewText.Contains("\n\n"))
             {
                 overviewText = overviewText.Substring(overviewText.IndexOf("\n\n"));
@@ -299,10 +331,10 @@ namespace LethalLevelLoader
                 if (overviewText.Contains("\n\n"))
                 {
                     overviewText = overviewText.Substring(overviewText.IndexOf("\n\n"));
-                    if (Keyword_Moons.specialKeywordResult.displayText.Contains(overviewText))
+                    if (Keywords.Moons.specialKeywordResult.displayText.Contains(overviewText))
                     {
                         overviewText = overviewText.Substring(overviewText.IndexOf("\n\n"));
-                        overviewText = Keyword_Moons.specialKeywordResult.displayText.Replace(overviewText, string.Empty) + "\n\n";
+                        overviewText = Keywords.Moons.specialKeywordResult.displayText.Replace(overviewText, string.Empty) + "\n\n";
                     }
                     else
                     {
@@ -675,7 +707,7 @@ namespace LethalLevelLoader
             newNode.terminalEvent = terminalEventString;
             newNode.name = verbKeyword.word + GetTerminalEventEnum(nounWord) + "Node";
 
-            verbKeyword.AddCompatibleNoun(newKeyword, newNode);
+            verbKeyword.AddNoun(newKeyword, newNode);
 
             return (newNode);
         }

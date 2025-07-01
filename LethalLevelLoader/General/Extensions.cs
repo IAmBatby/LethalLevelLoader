@@ -87,54 +87,57 @@ namespace LethalLevelLoader
             return (returnList);
         }
 
-        public static void AddReferences(this CompatibleNoun compatibleNoun, TerminalKeyword firstNoun, TerminalNode firstResult)
+        public static TerminalManager.KeywordReferences Keywords(this Terminal instance) => TerminalManager.Keywords;
+        public static TerminalManager.NodeReferences Nodes(this Terminal instance) => TerminalManager.Nodes;
+
+        public static TerminalKeyword CreateKeyword(this Terminal instance, string newName = null, string newWord = null, TerminalKeyword defaultVerb = null)
         {
-            compatibleNoun.noun = firstNoun;
-            compatibleNoun.result = firstResult;
+            return (TerminalManager.CreateNewTerminalKeyword(newName, newWord, defaultVerb));
         }
 
-        public static void AddCompatibleNoun(this TerminalKeyword terminalKeyword, TerminalKeyword newNoun,  TerminalNode newResult)
+        public static TerminalNode CreateNode(this Terminal instance, string newName = null, string newDisplayText = null)
         {
-            if (terminalKeyword.compatibleNouns == null)
-                terminalKeyword.compatibleNouns = new CompatibleNoun[0];
-            CompatibleNoun newCompataibleNoun = new CompatibleNoun();
-            newCompataibleNoun.noun = newNoun;
-            newCompataibleNoun.result = newResult;
-            terminalKeyword.compatibleNouns = terminalKeyword.compatibleNouns.AddItem(newCompataibleNoun).ToArray();
+            return (TerminalManager.CreateNewTerminalNode(newName, newDisplayText));
         }
 
-        public static void AddCompatibleNoun(this TerminalNode terminalNode, TerminalKeyword newNoun, TerminalNode newResult)
-        {
-            if (terminalNode.terminalOptions == null)
-                terminalNode.terminalOptions = new CompatibleNoun[0];
-            CompatibleNoun newCompataibleNoun = new CompatibleNoun();
-            newCompataibleNoun.noun = newNoun;
-            newCompataibleNoun.result = newResult;
-            terminalNode.terminalOptions = terminalNode.terminalOptions.AddItem(newCompataibleNoun).ToArray();
-        }
+        ////////// TerminalKeywords //////////
 
-        public static void TryAdd(this TerminalNode self, TerminalKeyword noun, TerminalNode node)
+
+        public static void AddNoun(this TerminalKeyword self, TerminalKeyword newNoun, TerminalNode newResult)
         {
-            if (!self.terminalOptions.Contains(noun, node))
-                self.AddCompatibleNoun(noun, node);
+            Utilities.Insert(ref self.compatibleNouns, Utilities.Create(newNoun, newResult));
         }
 
         public static void TryAdd(this TerminalKeyword self, TerminalKeyword noun, TerminalNode node)
         {
             if (!self.compatibleNouns.Contains(noun, node))
-                self.AddCompatibleNoun(noun, node);
+                self.AddNoun(noun, node);
         }
 
+        public static bool Contains(this TerminalKeyword self, TerminalKeyword keyword, TerminalNode node)
+        {
+            return (self.compatibleNouns.Contains(keyword, node));
+        }
+
+        ////////// TerminalNodes //////////
+
+
+        public static void AddNoun(this TerminalNode self, TerminalKeyword newNoun, TerminalNode newResult)
+        {
+            Utilities.Insert(ref self.terminalOptions, Utilities.Create(newNoun, newResult));
+        }
+
+        public static void TryAdd(this TerminalNode self, TerminalKeyword noun, TerminalNode node)
+        {
+            if (!self.terminalOptions.Contains(noun, node))
+                self.AddNoun(noun, node);
+        }
 
         public static bool Contains(this TerminalNode self, TerminalKeyword keyword, TerminalNode node)
         {
             return (self.terminalOptions.Contains(keyword, node));
         }
 
-        public static bool Contains(this TerminalKeyword self, TerminalKeyword keyword, TerminalNode node)
-        {
-            return (self.compatibleNouns.Contains(keyword,node));
-        }
 
         public static bool Contains(this CompatibleNoun[] self, TerminalKeyword keyword, TerminalNode node)
         {
@@ -152,13 +155,7 @@ namespace LethalLevelLoader
             return (false);
         }
 
-        public static bool Contains(this CompatibleNoun[] self, TerminalNode node)
-        {
-            for (int i = 0; i < self.Length; i++)
-                if (self[i].result == node)
-                    return (true);
-            return (false);
-        }
+        public static bool Contains(this CompatibleNoun[] self, TerminalNode node) => self.Where(n => n.result == node).Any();
 
         public static bool TryGet(this CompatibleNoun[] self, TerminalKeyword noun, out CompatibleNoun value)
         {

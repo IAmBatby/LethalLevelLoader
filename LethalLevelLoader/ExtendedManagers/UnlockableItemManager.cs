@@ -20,8 +20,8 @@ namespace LethalLevelLoader
 
             foreach (ExtendedUnlockableItem item in unlockableItems)
             {
-                TerminalManager.Keyword_Buy.TryAdd(item.BuyKeyword, item.BuyNode);
-                TerminalManager.Keyword_Info.TryAdd(item.BuyKeyword, item.BuyInfoNode);
+                TerminalManager.Keywords.Buy.TryAdd(item.BuyKeyword, item.BuyNode);
+                TerminalManager.Keywords.Info.TryAdd(item.BuyKeyword, item.BuyInfoNode);
             }
         }
 
@@ -30,18 +30,19 @@ namespace LethalLevelLoader
             DebugHelper.Log(GetType().Name + " Unpatching Game!", DebugType.User);
         }
 
-        protected override (bool result, string log) ValidateExtendedContent(ExtendedUnlockableItem extendedUnlockableItem)
+        protected override (bool result, string log) ValidateExtendedContent(ExtendedUnlockableItem content)
         {
-            if (extendedUnlockableItem.UnlockableItem.unlockableType == 1 && !extendedUnlockableItem.UnlockableItem.alreadyUnlocked)
+            UnlockableItem unlock = content.Content;
+            if (unlock.unlockableType == 1 && !unlock.alreadyUnlocked)
             {
-                if (extendedUnlockableItem.UnlockableItem.prefabObject == null)
+                if (unlock.prefabObject == null)
                     return (false, "Unlockable Item Prefab Was Null Or Empty");
-                else if (!extendedUnlockableItem.UnlockableItem.prefabObject.TryGetComponent(out NetworkObject _))
+                else if (!unlock.prefabObject.TryGetComponent(out NetworkObject _))
                     return (false, "Unlockable Item Prefab Is Missing NetworkObject Component");
-                else if (!extendedUnlockableItem.UnlockableItem.prefabObject.TryGetComponent(out AutoParentToShip _))
+                else if (!unlock.prefabObject.TryGetComponent(out AutoParentToShip _))
                     return (false, "Unlockable Item Prefab Is Missing AutoParentToShip Component");
             }
-            else if (extendedUnlockableItem.UnlockableItem.unlockableType == 0 && extendedUnlockableItem.UnlockableItem.suitMaterial == null)
+            else if (unlock.unlockableType == 0 && unlock.suitMaterial == null)
                 return (false, "Unlockable Suit Is Missing Suit Material");
 
             return (true, string.Empty);
@@ -58,15 +59,15 @@ namespace LethalLevelLoader
             {
                 buyNode = content.UnlockableItem.shopSelectionNode;
                 buyConfirmNode = buyNode?.terminalOptions[1].result;
-                if (TerminalManager.Keyword_Buy.compatibleNouns.TryGet(buyNode, out TerminalKeyword noun))
+                if (Keywords.Buy.compatibleNouns.TryGet(buyNode, out TerminalKeyword noun))
                     keyword = noun;
-                if (TerminalManager.Keyword_Info.compatibleNouns.TryGet(keyword, out TerminalNode node))
+                if (Keywords.Info.compatibleNouns.TryGet(keyword, out TerminalNode node))
                     infoNode = node;
             }
             else
             {
                 string sanitisedName = content.UnlockableItem.unlockableName.StripSpecialCharacters().Sanitized();
-                keyword = TerminalManager.CreateNewTerminalKeyword(sanitisedName + "Keyword", sanitisedName, TerminalManager.Keyword_Buy);
+                keyword = TerminalManager.CreateNewTerminalKeyword(sanitisedName + "Keyword", sanitisedName, Keywords.Buy);
 
                 buyNode = TerminalManager.CreateNewTerminalNode(sanitisedName + "Buy");
                 buyNode.itemCost = content.ItemCost;
@@ -106,8 +107,8 @@ namespace LethalLevelLoader
                 infoNode.creatureName = content.UnlockableItem.unlockableName;
                 infoNode.displayText = content.OverrideInfoNodeDescription;
 
-                buyNode.AddCompatibleNoun(TerminalManager.Keyword_Confirm, buyConfirmNode);
-                buyNode.AddCompatibleNoun(TerminalManager.Keyword_Deny, TerminalManager.Node_CancelPurchase);
+                buyNode.AddNoun(Keywords.Confirm, buyConfirmNode);
+                buyNode.AddNoun(Keywords.Deny, Nodes.CancelBuy);
             }
 
             content.BuyKeyword = keyword;

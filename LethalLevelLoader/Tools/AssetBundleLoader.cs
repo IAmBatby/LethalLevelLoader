@@ -110,7 +110,7 @@ namespace LethalLevelLoader
                         if (DungeonManager.TryGetExtendedDungeonFlow(indoorMapType.dungeonFlow, out ExtendedDungeonFlow marchDungeonFlow))
                             marchDungeonFlow.LevelMatchingProperties.planetNames.Add(new StringWithRarity(vanillaLevel.NumberlessPlanetName, 300));
 
-            CompatibleNoun infoNoun = TerminalManager.Keyword_Info.compatibleNouns.Where(n => n.noun.word == vanillaLevel.NumberlessPlanetName.ToLower()).FirstOrDefault();
+            CompatibleNoun infoNoun = TerminalManager.Keywords.Info.compatibleNouns.Where(n => n.noun.word == vanillaLevel.NumberlessPlanetName.ToLower()).FirstOrDefault();
             vanillaLevel.InfoNode = infoNoun != null ? infoNoun.result : null;
         }
 

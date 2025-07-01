@@ -270,12 +270,12 @@ namespace LethalLevelLoader.Tools
                     selectableLevel.planetHasTime = doesPlanetHaveTime.Value;
                     extendedLevel.IsRouteHidden = isLevelHidden.Value;
                     if (isLevelRegistered.Value == false)
-                        foreach (CompatibleNoun compatibleNoun in new List<CompatibleNoun>(TerminalManager.Keyword_Route.compatibleNouns))
+                        foreach (CompatibleNoun compatibleNoun in new List<CompatibleNoun>(TerminalManager.Keywords.Route.compatibleNouns))
                             if (compatibleNoun.result == extendedLevel.PurchasePromptNode)
                             {
-                                List<CompatibleNoun> modifiedNounsList = new List<CompatibleNoun>(TerminalManager.Keyword_Route.compatibleNouns);
+                                List<CompatibleNoun> modifiedNounsList = new List<CompatibleNoun>(TerminalManager.Keywords.Route.compatibleNouns);
                                 modifiedNounsList.Remove(compatibleNoun);
-                                TerminalManager.Keyword_Route.compatibleNouns = modifiedNounsList.ToArray();
+                                TerminalManager.Keywords.Route.compatibleNouns = modifiedNounsList.ToArray();
                                 extendedLevel.IsRouteRemoved = true;
                             }
 

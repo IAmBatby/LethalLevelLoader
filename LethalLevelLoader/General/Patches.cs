@@ -19,15 +19,10 @@ namespace LethalLevelLoader
     internal static class Patches
     {
         internal const int priority = 200;
-
         internal static string delayedSceneLoadingName = string.Empty;
-
         internal static List<string> allSceneNamesCalledToLoad = new List<string>();
-
         internal static Dictionary<Camera, float> playerCameras = new Dictionary<Camera, float>();
-
         internal static bool IsServer => NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer;
-
         //Caching this because I need it for checks while the local client is disconnecting which may make direct comparisons inconsistent.
         internal static ulong currentClientId;
 
@@ -148,15 +143,12 @@ namespace LethalLevelLoader
             if (Plugin.IsSetupComplete == false)
             {
                 StartOfRound.allItemsList.itemsList.RemoveAt(2);
-
                 OnBeforeVanillaContentCollected.Invoke();
-
                 DebugStopwatch.StartStopWatch("Scrape Vanilla Content");
                 ContentExtractor.TryScrapeVanillaItems(StartOfRound);
                 ContentExtractor.TryScrapeVanillaUnlockableItems(StartOfRound);
                 ContentExtractor.TryScrapeVanillaContent(StartOfRound, RoundManager);
                 ContentExtractor.ObtainSpecialItemReferences();
-
                 OnAfterVanillaContentCollected.Invoke();
             }
 
@@ -185,22 +177,16 @@ namespace LethalLevelLoader
                 DungeonLoader.defaultKeyPrefab = RoundManager.keyPrefab;
                 LevelLoader.defaultQuicksandPrefab = RoundManager.quicksandPrefab;
 
-                DebugStopwatch.StartStopWatch("Create Vanilla ExtendedContent");
                 DebugStopwatch.StartStopWatch("Initialize Custom ExtendedContent"); // this is not used
 
                 Events.OnInitializeContent.Invoke();
-
                 PatchedContent.PopulateContentDictionaries();
 
-                foreach (WeatherEffect weatherEffect in TimeOfDay.effects)
+                LocalVolumetricFog fog = TimeOfDay.effects.Select(e => e.effectObject).Where(o => o?.name == "DustStorm").FirstOrDefault()?.GetComponent<LocalVolumetricFog>();
+                if (fog != null)
                 {
-                    if (weatherEffect.effectObject != null && weatherEffect.effectObject.name == "DustStorm")
-                        if (weatherEffect.effectObject.TryGetComponent(out LocalVolumetricFog dustFog))
-                        {
-                            LevelLoader.dustCloudFog = dustFog;
-                            LevelLoader.defaultDustCloudFogVolumeSize = dustFog.parameters.size;
-                            break;
-                        }
+                    LevelLoader.dustCloudFog = fog;
+                    LevelLoader.defaultDustCloudFogVolumeSize = fog.parameters.size;
                 }
 
                 LevelLoader.foggyFog = TimeOfDay.foggyWeather;
@@ -285,10 +271,6 @@ namespace LethalLevelLoader
             //Dynamically Inject Custom EnemyType's Into SelectableLevel's Based On Level & Dungeon MatchingProperties.
             EnemyManager.RefreshDynamicEnemyTypeRarityOnAllExtendedLevels();
 
-            DebugStopwatch.StartStopWatch("ExtendedBuyableVehicle Injection");
-
-            DebugStopwatch.StartStopWatch("ExtendedUnlockableItem Injection");
-
             DebugStopwatch.StartStopWatch("Create ExtendedLevelGroups & Filter Assets");
 
             //Populate SelectableLevel Data To Be Used In Overhaul Of The Terminal Moons Catalogue.
@@ -298,11 +280,9 @@ namespace LethalLevelLoader
             {
                 //Populate SelectableLevel Data To Be Used In Overhaul Of The Terminal Moons Catalogue.
                 TerminalManager.CreateMoonsFilterTerminalAssets();
-
-                foreach (CompatibleNoun routeNode in TerminalManager.Keyword_Route.compatibleNouns)
+                foreach (CompatibleNoun routeNode in Terminal.Keywords().Route.compatibleNouns)
                     TerminalManager.AddTerminalNodeEventListener(routeNode.result, TerminalManager.OnBeforeRouteNodeLoaded, TerminalManager.LoadNodeActionType.Before);
-
-                TerminalManager.AddTerminalNodeEventListener(TerminalManager.Keyword_Moons.specialKeywordResult, TerminalManager.RefreshMoonsCataloguePage, TerminalManager.LoadNodeActionType.After);
+                TerminalManager.AddTerminalNodeEventListener(Terminal.Keywords().Moons.specialKeywordResult, TerminalManager.RefreshMoonsCataloguePage, TerminalManager.LoadNodeActionType.After);
             }
 
             LevelLoader.defaultFootstepSurfaces = new List<FootstepSurface>(StartOfRound.footstepSurfaces).ToArray();
@@ -386,12 +366,10 @@ namespace LethalLevelLoader
         [HarmonyPatch(typeof(Terminal), "ParseWord"), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void TerminalParseWord_Postfix(Terminal __instance, ref TerminalKeyword __result, string playerWord)
         {
-            if (__result != null)
-            {
-                TerminalKeyword newKeyword = TerminalManager.TryFindAlternativeNoun(__instance, __result, playerWord);
-                if (newKeyword != null)
-                    __result = newKeyword;
-            }
+            if (__result == null) return;
+            TerminalKeyword newKeyword = TerminalManager.TryFindAlternativeNoun(__instance, __result, playerWord);
+            if (newKeyword != null)
+                __result = newKeyword;
         }
 
         internal static bool ranLethalLevelLoaderTerminalEvent;

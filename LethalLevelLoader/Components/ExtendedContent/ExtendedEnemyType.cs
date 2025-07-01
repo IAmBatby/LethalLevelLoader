@@ -31,7 +31,7 @@ namespace LethalLevelLoader
 
         public TerminalKeyword NounKeyword { get; internal set; }
         public TerminalNode InfoNode { get; internal set; }
-        TerminalKeyword ITerminalInfoEntry.RegistryKeyword => TerminalManager.Keyword_Info;
+        TerminalKeyword ITerminalInfoEntry.RegistryKeyword => TerminalManager.Keywords.Info;
         public List<CompatibleNoun> GetRegistrations() => new() {(this as ITerminalInfoEntry).GetPair()};
 
         //Might be obsolete

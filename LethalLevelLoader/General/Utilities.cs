@@ -70,6 +70,7 @@ namespace LethalLevelLoader
 
         internal static void Insert<T>(ref T[] array, T newItem)
         {
+            if (array == null) array = []; 
             array = array.AddItem(newItem).ToArray();
         }
     }
