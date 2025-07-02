@@ -242,7 +242,7 @@ namespace LethalLevelLoader
             List<ExtendedLevel> removeLevelList = new List<ExtendedLevel>();
 
             foreach (ExtendedLevelGroup extendedLevelGroup in moonsCataloguePage.ExtendedLevelGroups)
-                foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(extendedLevelGroup.extendedLevelsList))
+                foreach (ExtendedLevel extendedLevel in new List<ExtendedLevel>(extendedLevelGroup.Levels))
                 {
                     bool removeExtendedLevel = extendedLevel.IsRouteHidden;
 
@@ -259,8 +259,8 @@ namespace LethalLevelLoader
 
             foreach (ExtendedLevelGroup extendedLevelGroup in moonsCataloguePage.ExtendedLevelGroups)
                 foreach (ExtendedLevel extendedLevel in removeLevelList)
-                    if (extendedLevelGroup.extendedLevelsList.Contains(extendedLevel))
-                        extendedLevelGroup.extendedLevelsList.Remove(extendedLevel);
+                    if (extendedLevelGroup.Levels.Contains(extendedLevel))
+                        extendedLevelGroup.Levels.Remove(extendedLevel);
 
             if (Settings.levelPreviewFilterType != FilterInfoType.None)
                 moonsCataloguePage.RebuildLevelGroups(new List<ExtendedLevelGroup>(moonsCataloguePage.ExtendedLevelGroups), Settings.moonsCatalogueSplitCount);
@@ -344,7 +344,7 @@ namespace LethalLevelLoader
             foreach (ExtendedLevelGroup extendedLevelGroup in currentMoonsCataloguePage.ExtendedLevelGroups)
             {
                 string groupString = string.Empty;
-                foreach (ExtendedLevel extendedLevel in extendedLevelGroup.extendedLevelsList)
+                foreach (ExtendedLevel extendedLevel in extendedLevelGroup.Levels)
                     if (extendedLevel.IsRouteHidden == false)
                         groupString += "* " + extendedLevel.NumberlessPlanetName + " " + GetExtendedLevelPreviewInfo(extendedLevel) + "\n";
                 if (!string.IsNullOrEmpty(groupString))
@@ -587,7 +587,7 @@ namespace LethalLevelLoader
             foreach (ExtendedLevelGroup extendedLevelGroup in allDefaultExtendedLevelGroups)
             {
                 debugString += "Group #" + counter + " ";
-                foreach (ExtendedLevel extendedLevel in extendedLevelGroup.extendedLevelsList)
+                foreach (ExtendedLevel extendedLevel in extendedLevelGroup.Levels)
                     debugString += extendedLevel.NumberlessPlanetName + "(" + extendedLevel.ModName + ") , ";
                 debugString += "\n";
 

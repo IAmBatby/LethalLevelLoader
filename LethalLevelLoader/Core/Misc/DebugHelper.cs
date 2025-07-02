@@ -494,7 +494,7 @@ namespace LethalLevelLoader
             foreach (ExtendedLevelGroup extendedLevelGroup in moonsCataloguePage.ExtendedLevelGroups)
             {
                 debugString += "\n";
-                foreach (ExtendedLevel extendedLevel in extendedLevelGroup.extendedLevelsList)
+                foreach (ExtendedLevel extendedLevel in extendedLevelGroup.Levels)
                     debugString += moonsCataloguePage.ExtendedLevelGroups.IndexOf(extendedLevelGroup) + " - " + extendedLevel.NumberlessPlanetName + "\n";
             }
 

@@ -26,24 +26,19 @@ namespace LethalLevelLoader
             UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.NumberlessPlanetName, planetNames), extendedLevel.name, "Planet Name");
             UpdateRarity(ref returnRarity, GetHighestRarityViaMatchingNormalizedString(extendedLevel.SelectableLevel.currentWeather.ToString(), currentWeather), extendedLevel.name, "Current Weather");
 
-
             return (returnRarity);
         }
 
         public void ApplyValues(List<StringWithRarity> newModNames = null, List<StringWithRarity> newAuthorNames = null, List<StringWithRarity> newLevelTags = null, List<Vector2WithRarity> newRoutePrices = null, List<StringWithRarity> newCurrentWeathers = null, List<StringWithRarity> newPlanetNames = null)
         {
-            if (newModNames != null && newModNames.Count != 0)
-                modNames = new List<StringWithRarity>(newModNames);
-            if (newAuthorNames != null && newAuthorNames.Count != 0)
-                authorNames = new List<StringWithRarity>(newAuthorNames);
-            if (newLevelTags != null && newLevelTags.Count != 0)
-                levelTags = new List<StringWithRarity>(newLevelTags);
-            if (newRoutePrices != null && newRoutePrices.Count != 0)
-                currentRoutePrice = new List<Vector2WithRarity>(newRoutePrices);
-            if (newCurrentWeathers != null && newCurrentWeathers.Count != 0)
-                currentWeather = new List<StringWithRarity>(newCurrentWeathers);
-            if (newPlanetNames != null && newPlanetNames.Count != 0)
-                planetNames = new List<StringWithRarity>(newPlanetNames);
+            modNames = IsNullOrEmpty(newModNames) ? modNames : newModNames;
+            authorNames = IsNullOrEmpty(newAuthorNames) ? authorNames : newAuthorNames;
+            levelTags = IsNullOrEmpty(newLevelTags) ? levelTags : newLevelTags;
+            currentRoutePrice = IsNullOrEmpty(newRoutePrices) ? currentRoutePrice : newRoutePrices;
+            currentWeather = IsNullOrEmpty(newCurrentWeathers) ? currentWeather : newCurrentWeathers;
+            planetNames = IsNullOrEmpty(newPlanetNames) ? planetNames : newPlanetNames;
         }
+
+        private bool IsNullOrEmpty<T>(List<T> list) => !(list != null && list.Count > 0);
     }
 }

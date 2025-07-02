@@ -178,31 +178,7 @@ namespace LethalLevelLoader
             assetBundleGroupSceneDict = new Dictionary<string, List<AssetBundleGroup>>();
             foreach (AssetBundleGroup group in AssetBundles.AssetBundleLoader.Instance.AssetBundleGroups)
                 foreach (string groupSceneName in group.GetSceneNames())
-                {
-                    if (assetBundleGroupSceneDict.TryGetValue(groupSceneName, out List<AssetBundleGroup> bundleList))
-                    {
-                        if (!bundleList.Contains(group))
-                            bundleList.Add(group);
-                    }
-                    else
-                        assetBundleGroupSceneDict.Add(groupSceneName, new List<AssetBundleGroup> { group });
-                }
+                    assetBundleGroupSceneDict.AddOrAddAdd(groupSceneName, group);
         }
-
-        /*
-        internal void LogStuff()
-        {
-            DebugHelper.Log("NetworkBundleManager Spawned!", DebugType.IAmBatby);
-
-            DebugHelper.Log("NetworkSceneInfos!", DebugType.IAmBatby);
-            foreach (NetworkSceneInfo info in networkSceneInfos)
-                DebugHelper.Log("Level Scene Index: " + info.LevelSceneIndex + ", Scene Index: " + info.SceneIndex + ", Scene Path: " + info.LevelScenePath + ", Origin: " + info.Origin + ", IsLoaded: " + info.IsLoaded, DebugType.IAmBatby);
-
-            DebugHelper.Log("AssetBundleInfos!", DebugType.User);
-            foreach (AssetBundleInfo bundleInfo in AssetBundleLoader.AssetBundleInfos)
-                DebugHelper.Log("Path: " + bundleInfo.DirectoryPath + ", IsLoaded: " + bundleInfo.IsLoaded + ", IsSceneBundle: " + bundleInfo.IsSceneBundle, DebugType.IAmBatby);
-        }
-        */
-
     }
 }

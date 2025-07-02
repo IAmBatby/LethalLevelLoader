@@ -1,3 +1,5 @@
+using LethalFoundation;
+using Steamworks.Ugc;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
@@ -13,15 +15,13 @@ namespace LethalLevelLoader
         {
             DebugHelper.Log(GetType().Name + " Patching Game!", DebugType.User);
 
-            StartOfRound.unlockablesList.unlockables = [.. PatchedContent.ExtendedUnlockableItems.Select(u => u.UnlockableItem)];
-            List<ExtendedUnlockableItem> unlockableItems = new List<ExtendedUnlockableItem>(PatchedContent.ExtendedUnlockableItems);
-            for (int i = 0; i < unlockableItems.Count; i++)
-                unlockableItems[i].SetGameID(i);
+            StartOfRound.unlockablesList.unlockables = [.. ExtendedContents.Select(u => u.UnlockableItem)];
 
-            foreach (ExtendedUnlockableItem item in unlockableItems)
+            for (int i = 0; i < ExtendedContents.Count; i++)
             {
-                TerminalManager.Keywords.Buy.TryAdd(item.BuyKeyword, item.BuyNode);
-                TerminalManager.Keywords.Info.TryAdd(item.BuyKeyword, item.BuyInfoNode);
+                ExtendedContents[i].SetGameID(i);
+                Refs.Keywords.Buy.TryAdd(ExtendedContents[i].BuyKeyword, ExtendedContents[i].BuyNode);
+                Refs.Keywords.Info.TryAdd(ExtendedContents[i].BuyKeyword, ExtendedContents[i].BuyInfoNode);
             }
         }
 
@@ -33,7 +33,10 @@ namespace LethalLevelLoader
         protected override (bool result, string log) ValidateExtendedContent(ExtendedUnlockableItem content)
         {
             UnlockableItem unlock = content.Content;
-            if (unlock.unlockableType == 1 && !unlock.alreadyUnlocked)
+
+            if (unlock.unlockableType == 0 && unlock.suitMaterial == null)
+                return (false, "Unlockable Suit Is Missing Suit Material");
+            else if (unlock.unlockableType == 1 && !unlock.alreadyUnlocked)
             {
                 if (unlock.prefabObject == null)
                     return (false, "Unlockable Item Prefab Was Null Or Empty");
@@ -42,8 +45,6 @@ namespace LethalLevelLoader
                 else if (!unlock.prefabObject.TryGetComponent(out AutoParentToShip _))
                     return (false, "Unlockable Item Prefab Is Missing AutoParentToShip Component");
             }
-            else if (unlock.unlockableType == 0 && unlock.suitMaterial == null)
-                return (false, "Unlockable Suit Is Missing Suit Material");
 
             return (true, string.Empty);
         }

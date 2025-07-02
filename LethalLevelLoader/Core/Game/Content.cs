@@ -51,11 +51,6 @@ namespace LethalLevelLoader
         public static List<ExtendedBuyableVehicle> CustomExtendedBuyableVehicles => GetContentOfType(ExtendedBuyableVehicles, ContentType.Custom);
         internal static Dictionary<BuyableVehicle, ExtendedBuyableVehicle> ExtendedBuyableVehicleDictionary = new Dictionary<BuyableVehicle, ExtendedBuyableVehicle>();
 
-        public static List<ExtendedUnlockableItem> ExtendedUnlockableItems => UnlockableItemManager.ExtendedContents;
-        public static List<ExtendedUnlockableItem> CustomExtendedUnlockableItems => GetContentOfType(ExtendedUnlockableItems, ContentType.Custom);
-        public static List<ExtendedUnlockableItem> VanillaExtendedUnlockableItems => GetContentOfType(ExtendedUnlockableItems, ContentType.Vanilla);
-        internal static Dictionary<UnlockableItem, ExtendedUnlockableItem> ExtendedUnlockableItemDictionary = new Dictionary<UnlockableItem, ExtendedUnlockableItem>();
-
         public static List<AudioMixer> AudioMixers { get; internal set; } = new List<AudioMixer>();
         public static List<AudioMixerGroup> AudioMixerGroups { get; internal set; } = new List<AudioMixerGroup>();
         public static List<AudioMixerSnapshot> AudioMixerSnapshots { get; internal set; } = new List<AudioMixerSnapshot>();
@@ -70,7 +65,6 @@ namespace LethalLevelLoader
 
         public static void RegisterExtendedDungeonFlow(ExtendedDungeonFlow extendedDungeonFlow)
         {
-           // extendedDungeonFlow.ConvertObsoleteValues();
             if (string.IsNullOrEmpty(extendedDungeonFlow.name))
             {
                 DebugHelper.LogWarning("Tried to register ExtendedDungeonFlow with missing name! Setting to DungeonFlow name for safety!", DebugType.Developer);
@@ -125,11 +119,6 @@ namespace LethalLevelLoader
                 TryAdd(ExtendedBuyableVehicleDictionary, extendedBuyableVehicle.BuyableVehicle, extendedBuyableVehicle);
                 TryAddUUID(extendedBuyableVehicle);
             }
-            foreach (ExtendedUnlockableItem extendedUnlockableItem in ExtendedUnlockableItems)
-            {
-                TryAdd(ExtendedUnlockableItemDictionary, extendedUnlockableItem.UnlockableItem, extendedUnlockableItem);
-                TryAddUUID(extendedUnlockableItem);
-            }
         }
 
         internal static void TryAddUUID(ExtendedContent extendedContent)
@@ -151,40 +140,13 @@ namespace LethalLevelLoader
             }
         }
 
-        public static List<T> GetContentOfType<T>(List<T> list, ContentType type) where T : ExtendedContent
-        {
-            return (list.Where(c => c.ContentType == type).ToList());
-        }
-
-        public static bool TryGetExtendedContent(SelectableLevel selectableLevel, out ExtendedLevel extendedLevel)
-        {
-            return (ExtendedLevelDictionary.TryGetValue(selectableLevel, out extendedLevel));
-        }
-
-        public static bool TryGetExtendedContent(DungeonFlow dungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow)
-        {
-            return (ExtendedDungeonFlowDictionary.TryGetValue(dungeonFlow, out extendedDungeonFlow));
-        }
-
-        public static bool TryGetExtendedContent(Item item, out ExtendedItem extendedItem)
-        {
-            return (ExtendedItemDictionary.TryGetValue(item, out extendedItem));
-        }
-
-        public static bool TryGetExtendedContent(EnemyType enemyType, out ExtendedEnemyType extendedEnemyType)
-        {
-            return (ExtendedEnemyTypeDictionary.TryGetValue(enemyType, out extendedEnemyType));
-        }
-
-        public static bool TryGetExtendedContent(BuyableVehicle buyableVehicle, out ExtendedBuyableVehicle extendedBuyableVehicle)
-        {
-            return (ExtendedBuyableVehicleDictionary.TryGetValue(buyableVehicle, out extendedBuyableVehicle));
-        }
-
-        public static bool TryGetExtendedContent(UnlockableItem unlockableItem, out ExtendedUnlockableItem extendedUnlockableItem)
-        {
-            return (ExtendedUnlockableItemDictionary.TryGetValue(unlockableItem, out extendedUnlockableItem));
-        }
+        //Obsoletes / Legacies
+        public static List<T> GetContentOfType<T>(List<T> list, ContentType type) where T : ExtendedContent => list.Where(c => c.ContentType == type).ToList();
+        public static bool TryGetExtendedContent(SelectableLevel selectableLevel, out ExtendedLevel extendedLevel) => LevelManager.TryGetExtendedContent(selectableLevel, out extendedLevel);
+        public static bool TryGetExtendedContent(DungeonFlow dungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow) => DungeonManager.TryGetExtendedContent(dungeonFlow, out extendedDungeonFlow);
+        public static bool TryGetExtendedContent(Item item, out ExtendedItem extendedItem) => ItemManager.TryGetExtendedContent(item, out extendedItem);
+        public static bool TryGetExtendedContent(EnemyType enemyType, out ExtendedEnemyType extendedEnemyType) => EnemyManager.TryGetExtendedContent(enemyType, out extendedEnemyType);
+        public static bool TryGetExtendedContent(BuyableVehicle buyableVehicle, out ExtendedBuyableVehicle extendedBuyableVehicle) => VehiclesManager.TryGetExtendedContent(buyableVehicle, out extendedBuyableVehicle);
 
         public static bool TryGetExtendedContent<T>(string uniqueIdentifierName, out T extendedContent) where T : ExtendedContent
         {
