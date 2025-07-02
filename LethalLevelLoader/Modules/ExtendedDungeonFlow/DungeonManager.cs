@@ -12,17 +12,7 @@ namespace LethalLevelLoader
 {
     public class DungeonManager : ExtendedContentManager<ExtendedDungeonFlow, DungeonFlow>
     {
-        public static ExtendedDungeonFlow CurrentExtendedDungeonFlow
-        {
-            get
-            {
-                ExtendedDungeonFlow returnFlow = null;
-                if (Patches.RoundManager != null && Patches.RoundManager.dungeonGenerator != null)
-                    if (TryGetExtendedDungeonFlow(Patches.RoundManager.dungeonGenerator.Generator.DungeonFlow, out ExtendedDungeonFlow flow))
-                        returnFlow = flow;
-                return (returnFlow);
-            }
-        }
+        public static ExtendedDungeonFlow CurrentExtendedDungeonFlow => Refs.CurrentDungeonFlow != null ? Refs.CurrentDungeonFlow.AsExtended() : null;
         public static DungeonEvents GlobalDungeonEvents = new DungeonEvents();
 
         protected override List<DungeonFlow> GetVanillaContent() => new List<DungeonFlow>(RoundManager.dungeonFlowTypes.Select(d => d.dungeonFlow));

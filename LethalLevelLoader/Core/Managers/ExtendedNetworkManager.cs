@@ -97,7 +97,7 @@ namespace LethalLevelLoader
             {
                 DebugHelper.LogError("No ExtendedDungeonFlow's could be found! This should only happen if the Host's requireMatchesOnAllDungeonFlows is set to true!", DebugType.User);
                 DebugHelper.LogError("Loading Facility DungeonFlow to prevent infinite loading!", DebugType.User);
-                flows[0] = new(Refs.DungeonFlowTypes[0].dungeonFlow.GetExtendedDungeonFlow(), 300);
+                flows[0] = new(Refs.DungeonFlowTypes[0].dungeonFlow.AsExtended(), 300);
             }
             else
                 flows = availableFlows.Select(f => new NetworkValueWithRarity<NetworkContentReference<ExtendedDungeonFlow>>(f.extendedDungeonFlow, f.rarity)).ToArray();
@@ -145,7 +145,7 @@ namespace LethalLevelLoader
             IntWithRarity[] cachedDungeons = Refs.CurrentLevel.dungeonFlowTypes;
 
             Refs.CurrentLevel.dungeonFlowTypes = dungeons.Select(d => Utilities.Create(d.Value.GetContent().GameID, d.Rarity)).ToArray();
-            Patches.RoundManager.GenerateNewFloor();
+            Refs.RoundManager.GenerateNewFloor();
             Refs.CurrentLevel.dungeonFlowTypes = cachedDungeons;
         }
 

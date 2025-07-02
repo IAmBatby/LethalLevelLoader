@@ -9,7 +9,7 @@ namespace LethalLevelLoader
 {
     public class LevelManager : ExtendedContentManager<ExtendedLevel, SelectableLevel>
     {
-        public static ExtendedLevel CurrentExtendedLevel => Patches.StartOfRound != null ? Patches.StartOfRound.currentLevel.GetExtendedLevel() : null;
+        public static ExtendedLevel CurrentExtendedLevel => Refs.CurrentLevel != null ? Refs.CurrentLevel.AsExtended() : null;
 
         public static LevelEvents GlobalLevelEvents = new LevelEvents();
 
@@ -72,7 +72,7 @@ namespace LethalLevelLoader
 
         internal static void InitializeShipAnimatorOverrideController()
         {
-            Animator shipAnimator = Patches.StartOfRound.shipAnimator;
+            Animator shipAnimator = Refs.StartOfRound.shipAnimator;
 
             List<GameObject> childObjects = new List<GameObject>();
             foreach (Transform child in shipAnimator.GetComponentsInChildren<Transform>(includeInactive: true))
@@ -101,7 +101,7 @@ namespace LethalLevelLoader
 
         public static ExtendedLevel GetExtendedLevel(SelectableLevel selectableLevel)
         {
-            return (selectableLevel != null ? selectableLevel.GetExtendedLevel() : null);
+            return (selectableLevel != null ? selectableLevel.AsExtended() : null);
         }
 
         public static void PopulateDynamicRiskLevelDictionary()
@@ -217,7 +217,7 @@ namespace LethalLevelLoader
         public static void LogDayHistory()
         {
             //Heavy early returns here because this runs from a DunGen patch and needs to be safe for unconventional Unity-Editor generation usage.
-            if (Plugin.IsSetupComplete == false || Patches.StartOfRound == null || Patches.RoundManager == null || TimeOfDay.Instance == null)
+            if (Plugin.IsSetupComplete == false || Refs.StartOfRound == null || Refs.RoundManager == null || Refs.TimeOfDay == null)
             {
                 DebugHelper.LogWarning("Game Seems Uninitialized, Exiting LogDayHistory Early!", DebugType.Developer);
                 return;

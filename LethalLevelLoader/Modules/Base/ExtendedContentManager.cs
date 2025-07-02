@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LethalFoundation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,9 +22,9 @@ namespace LethalLevelLoader
         private static HashSet<ExtendedContent> InitializedExtendedContents = new HashSet<ExtendedContent>();
 
         //Just quality of life.
-        protected static RoundManager RoundManager => Patches.RoundManager;
-        protected static StartOfRound StartOfRound => Patches.StartOfRound;
-        protected static Terminal Terminal => Patches.Terminal;
+        protected static RoundManager RoundManager => Refs.RoundManager;
+        protected static StartOfRound StartOfRound => Refs.StartOfRound;
+        protected static Terminal Terminal => Refs.Terminal;
         protected static TerminalManager.KeywordReferences Keywords => TerminalManager.Keywords;
         protected static TerminalManager.NodeReferences Nodes => TerminalManager.Nodes;
 

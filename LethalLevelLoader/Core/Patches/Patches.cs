@@ -3,6 +3,7 @@ using GameNetcodeStuff;
 using HarmonyLib;
 using LethalFoundation;
 using LethalLevelLoader.Tools;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ using UnityEngine.InputSystem.Utilities;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using NetworkManager = Unity.Netcode.NetworkManager;
+using OpCodes = System.Reflection.Emit.OpCodes;
 
 namespace LethalLevelLoader
 {
@@ -23,15 +25,6 @@ namespace LethalLevelLoader
         internal static string delayedSceneLoadingName = string.Empty;
         internal static List<string> allSceneNamesCalledToLoad = new List<string>();
         internal static Dictionary<Camera, float> playerCameras = new Dictionary<Camera, float>();
-        internal static bool IsServer => NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer;
-        //Caching this because I need it for checks while the local client is disconnecting which may make direct comparisons inconsistent.
-        internal static ulong currentClientId;
-
-        //Singletons and such for these are set in each classes Awake function, But they all are accessible on the first awake function of the earliest one of these four managers awake function, so i grab them directly via findobjectoftype to safely access them as early as possible.
-        public static StartOfRound StartOfRound { get; internal set; }
-        public static RoundManager RoundManager { get; internal set; }
-        public static Terminal Terminal { get; internal set; }
-        public static TimeOfDay TimeOfDay { get; internal set; }
 
         public static ExtendedEvent OnBeforeVanillaContentCollected = new ExtendedEvent();
         public static ExtendedEvent OnAfterVanillaContentCollected = new ExtendedEvent();
@@ -115,11 +108,9 @@ namespace LethalLevelLoader
         }
 
         [HarmonyPatch(typeof(GameNetworkManager), "SaveGameValues"), HarmonyPostfix, HarmonyPriority(priority)]
-        internal static void GameNetworkManagerSaveGameValues_Postfix(GameNetworkManager __instance)
+        internal static void GameNetworkManagerSaveGameValues_Postfix()
         {
-            // Vanilla checks
-            if (!IsServer || !Refs.IsInShipPhase || Refs.IsChallengeFile)
-                return;
+            if (!Refs.IsServer || !Refs.IsInShipPhase || Refs.IsChallengeFile) return;  // Vanilla checks
             SaveManager.SaveGameValues();
         }
 
@@ -127,16 +118,9 @@ namespace LethalLevelLoader
         internal static void StartOfRoundAwake_Prefix(StartOfRound __instance)
         {
             Plugin.OnBeforeSetupInvoke();
-            //Reference Setup
-            StartOfRound = __instance;
-            RoundManager = UnityEngine.Object.FindFirstObjectByType<RoundManager>();
-            Terminal = UnityEngine.Object.FindFirstObjectByType<Terminal>();
-            TimeOfDay = UnityEngine.Object.FindFirstObjectByType<TimeOfDay>();
 
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.sceneLoaded += EventPatches.OnSceneLoaded;
-
-            currentClientId = NetworkManager.Singleton.LocalClientId;
 
             //Removing the broken cardboard box item please understand 
             //Scrape Vanilla For Content References
@@ -145,9 +129,9 @@ namespace LethalLevelLoader
                 Refs.ItemsList.RemoveAt(2);
                 OnBeforeVanillaContentCollected.Invoke();
                 DebugStopwatch.StartStopWatch("Scrape Vanilla Content");
-                ContentExtractor.TryScrapeVanillaItems(StartOfRound);
-                ContentExtractor.TryScrapeVanillaUnlockableItems(StartOfRound);
-                ContentExtractor.TryScrapeVanillaContent(StartOfRound, RoundManager);
+                ContentExtractor.TryScrapeVanillaItems();
+                ContentExtractor.TryScrapeVanillaUnlockableItems();
+                ContentExtractor.TryScrapeVanillaContent();
                 ContentExtractor.ObtainSpecialItemReferences();
                 OnAfterVanillaContentCollected.Invoke();
             }
@@ -174,23 +158,23 @@ namespace LethalLevelLoader
 
                 LevelManager.InitializeShipAnimatorOverrideController();
 
-                DungeonLoader.defaultKeyPrefab = RoundManager.keyPrefab;
-                LevelLoader.defaultQuicksandPrefab = RoundManager.quicksandPrefab;
+                DungeonLoader.defaultKeyPrefab = Refs.RoundManager.keyPrefab;
+                LevelLoader.defaultQuicksandPrefab = Refs.RoundManager.quicksandPrefab;
 
                 DebugStopwatch.StartStopWatch("Initialize Custom ExtendedContent"); // this is not used
 
                 Events.OnInitializeContent.Invoke();
                 PatchedContent.PopulateContentDictionaries();
 
-                LocalVolumetricFog fog = TimeOfDay.effects.Select(e => e.effectObject).Where(o => o?.name == "DustStorm").FirstOrDefault()?.GetComponent<LocalVolumetricFog>();
+                LocalVolumetricFog fog = Refs.TimeOfDay.effects.Select(e => e.effectObject).Where(o => o?.name == "DustStorm").FirstOrDefault()?.GetComponent<LocalVolumetricFog>();
                 if (fog != null)
                 {
                     LevelLoader.dustCloudFog = fog;
                     LevelLoader.defaultDustCloudFogVolumeSize = fog.parameters.size;
                 }
 
-                LevelLoader.foggyFog = TimeOfDay.foggyWeather;
-                LevelLoader.defaultFoggyFogVolumeSize = TimeOfDay.foggyWeather.parameters.size;
+                LevelLoader.foggyFog = Refs.TimeOfDay.foggyWeather;
+                LevelLoader.defaultFoggyFogVolumeSize = Refs.TimeOfDay.foggyWeather.parameters.size;
 
                 foreach (ExtendedLevel vanillaLevel in PatchedContent.VanillaExtendedLevels)
                 {
@@ -285,18 +269,18 @@ namespace LethalLevelLoader
                 TerminalManager.AddTerminalNodeEventListener(Refs.Nodes.MoonsResult, TerminalManager.RefreshMoonsCataloguePage, TerminalManager.LoadNodeActionType.After);
             }
 
-            LevelLoader.defaultFootstepSurfaces = new List<FootstepSurface>(StartOfRound.footstepSurfaces).ToArray();
+            LevelLoader.defaultFootstepSurfaces = new List<FootstepSurface>(Refs.StartOfRound.footstepSurfaces).ToArray();
 
             DebugStopwatch.StartStopWatch("Initialize Save");
 
-            if (IsServer)
+            if (Refs.IsServer)
                 SaveManager.InitializeSave();
 
             DebugStopwatch.StopStopWatch("Initialize Save");
             if (Plugin.IsSetupComplete == false)
             {
                 Plugin.CompleteSetup();
-                StartOfRound.SetPlanetsWeather();
+                Refs.StartOfRound.SetPlanetsWeather();
             }
             Plugin.LobbyInitialized();
         }
@@ -315,7 +299,7 @@ namespace LethalLevelLoader
         [HarmonyPatch(typeof(StartOfRound), "SetPlanetsWeather"), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void StartOfRoundSetPlanetsWeather_Postfix()
         {
-            if (IsServer)
+            if (Refs.IsServer)
                 ExtendedNetworkManager.InvokeWhenInitalized(ExtendedNetworkManager.TryRefreshWeather);
         }
 
@@ -323,7 +307,7 @@ namespace LethalLevelLoader
         [HarmonyPatch(typeof(StartOfRound), "ChangeLevel"), HarmonyPrefix, HarmonyPriority(priority)]
         public static bool StartOfRoundChangeLevel_Prefix(ref int levelID)
         {
-            if (IsServer == false) return (true);
+            if (Refs.IsServer == false) return (true);
 
             //Because Level ID's can change between modpack adjustments and such, we save the name of the level instead and find and load that up instead of the saved ID the base game uses.
             if (hasInitiallyChangedLevel == false && !string.IsNullOrEmpty(SaveManager.currentSaveFile.CurrentLevelName))
@@ -338,7 +322,7 @@ namespace LethalLevelLoader
 
 
             //If we can't find the previous current level, that probably means the game is going to try and use an ID bigger than the current array, or reference the wrong level, so we reset it back to experimentation here.
-            if (hasInitiallyChangedLevel == false && !string.IsNullOrEmpty(SaveManager.currentSaveFile.CurrentLevelName) && !SaveManager.currentSaveFile.CurrentLevelName.Contains("Experimentation") && (levelID >= StartOfRound.levels.Length || levelID > OriginalContent.SelectableLevels.Count))
+            if (hasInitiallyChangedLevel == false && !string.IsNullOrEmpty(SaveManager.currentSaveFile.CurrentLevelName) && !SaveManager.currentSaveFile.CurrentLevelName.Contains("Experimentation") && (levelID >= Refs.StartOfRound.levels.Length || levelID > OriginalContent.SelectableLevels.Count))
                 levelID = 0;
 
             hasInitiallyChangedLevel = true;
@@ -350,11 +334,9 @@ namespace LethalLevelLoader
         public static void StartOfRoundChangeLevel_Postfix(int levelID)
         {
             NetworkBundleManager.TryRefresh();
-            if (IsServer && RoundManager.currentLevel != null && SaveManager.currentSaveFile.CurrentLevelName != RoundManager.currentLevel.PlanetName)
-            {
-                DebugHelper.Log("Saving Current SelectableLevel: " + RoundManager.currentLevel.PlanetName, DebugType.User);
-                SaveManager.currentSaveFile.CurrentLevelName = RoundManager.currentLevel.name;
-            }
+            if (!Refs.IsServer || SaveManager.currentSaveFile.CurrentLevelName == Refs.CurrentLevel.PlanetName) return;
+            DebugHelper.Log("Saving Current SelectableLevel: " + Refs.CurrentLevel.PlanetName, DebugType.User);
+            SaveManager.currentSaveFile.CurrentLevelName = Refs.CurrentLevel.name;
         }
 
         [HarmonyPatch(typeof(StartOfRound), "LoadShipGrabbableItems"), HarmonyPrefix, HarmonyPriority(priority)]
@@ -411,10 +393,10 @@ namespace LethalLevelLoader
         internal static void StartOfRoundStartGame_Prefix()
         {
             ExtendedLevel extendedLevel = LevelManager.CurrentExtendedLevel;
-            if (!IsServer || extendedLevel == null) return;
+            if (!Refs.IsServer || extendedLevel == null) return;
 
             extendedLevel.SelectableLevel.sceneName = string.Empty;
-            RoundManager.InitializeRandomNumberGenerators();
+            Refs.RoundManager.InitializeRandomNumberGenerators();
 
             int counter = 1;
             foreach (StringWithRarity sceneSelection in extendedLevel.SceneSelections)
@@ -424,7 +406,7 @@ namespace LethalLevelLoader
             }
 
             List<int> sceneSelections = extendedLevel.SceneSelections.Select(s => s.Rarity).ToList();
-            int selectedSceneIndex = RoundManager.GetRandomWeightedIndex(sceneSelections, RoundManager.LevelRandom);
+            int selectedSceneIndex = Refs.RoundManager.GetRandomWeightedIndex(sceneSelections, Refs.RoundManager.LevelRandom);
             extendedLevel.SelectableLevel.sceneName = extendedLevel.SceneSelections[selectedSceneIndex].Name;
             DebugHelper.Log("Selected SceneName: " + extendedLevel.SelectableLevel.sceneName + " For ExtendedLevel: " + extendedLevel.NumberlessPlanetName, DebugType.Developer);
         }
@@ -475,6 +457,7 @@ namespace LethalLevelLoader
                 .SetInstruction(new CodeInstruction(OpCodes.Nop));
             return (codeMatcher.InstructionEnumeration());
         }
+        
 
         //Called via Transpiler.
         public static void InjectHostDungeonSizeSelection(RoundManager roundManager)
@@ -488,29 +471,29 @@ namespace LethalLevelLoader
             if (LevelManager.CurrentExtendedLevel != null)
                 DungeonLoader.SelectDungeon();
             else
-                Patches.RoundManager.GenerateNewFloor();
+                Refs.RoundManager.GenerateNewFloor();
         }
 
         [HarmonyPatch(typeof(RoundManager), "SetLockedDoors"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static void RoundManagerSetLockedDoors_Prefix()
         {
-            RoundManager.keyPrefab = DungeonManager.CurrentExtendedDungeonFlow.OverrideKeyPrefab != null ? DungeonManager.CurrentExtendedDungeonFlow.OverrideKeyPrefab : DungeonLoader.defaultKeyPrefab;
+            Refs.RoundManager.keyPrefab = DungeonManager.CurrentExtendedDungeonFlow.OverrideKeyPrefab != null ? DungeonManager.CurrentExtendedDungeonFlow.OverrideKeyPrefab : DungeonLoader.defaultKeyPrefab;
         }
 
         [HarmonyPatch(typeof(RoundManager), "SpawnOutsideHazards"), HarmonyPrefix, HarmonyPriority(priority)]
         internal static void RoundManagerSpawnOutsideHazards_Prefix()
         {
-            RoundManager.quicksandPrefab = LevelManager.CurrentExtendedLevel.OverrideQuicksandPrefab;
+            Refs.RoundManager.quicksandPrefab = LevelManager.CurrentExtendedLevel.OverrideQuicksandPrefab;
         }
 
         [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.FinishGeneratingNewLevelClientRpc)), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void RoundManagerFinishGeneratingNewLevelClientRpc_Prefix()
         {
-            if (TimeOfDay.sunAnimator == null) return;
+            if (Refs.IsCurrentLevelLoaded == false) return;
             LevelLoader.RefreshFootstepSurfaces();
-            LevelLoader.BakeSceneColliderMaterialData(TimeOfDay.sunAnimator.gameObject.scene);
+            LevelLoader.BakeSceneColliderMaterialData(Refs.LoadedLevelScene);
             if (LevelLoader.vanillaWaterShader != null)
-                LevelLoader.TryRestoreWaterShaders(TimeOfDay.sunAnimator.gameObject.scene);
+                LevelLoader.TryRestoreWaterShaders(Refs.LoadedLevelScene);
             ApplyCamerDistanceOverride();
         }
 
@@ -566,7 +549,7 @@ namespace LethalLevelLoader
         internal static void PlayerControllerBGetCurrentMaterialStandingOn_Postfix(PlayerControllerB __instance)
         {
             if (LevelLoader.TryGetFootstepSurface(__instance.hit.collider, out FootstepSurface footstepSurface))
-                __instance.currentFootstepSurfaceIndex = StartOfRound.footstepSurfaces.IndexOf(footstepSurface);
+                __instance.currentFootstepSurfaceIndex = Refs.StartOfRound.footstepSurfaces.IndexOf(footstepSurface);
         }
 
         [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientConnect)), HarmonyPostfix, HarmonyPriority(priority)]
@@ -578,14 +561,14 @@ namespace LethalLevelLoader
         [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientDisconnect)), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void StartOfRoundOnClientDisconnect_Postfix(ulong clientId)
         {
-            if (clientId != currentClientId)
+            if (clientId != Refs.LocalPlayer.actualClientId)
                 NetworkBundleManager.Instance.OnClientsChangedRefresh();
         }
 
         [HarmonyPatch(typeof(NetworkConnectionManager), nameof(NetworkConnectionManager.OnClientDisconnectFromServer)), HarmonyPostfix, HarmonyPriority(priority)]
         internal static void NetworkConnectionManagerOnClientDisconnectFromServer_Postfix(ulong clientId)
         {
-            if (clientId != currentClientId)
+            if (clientId != Refs.LocalPlayer.actualClientId)
                 NetworkBundleManager.Instance.OnClientsChangedRefresh();
         }
 

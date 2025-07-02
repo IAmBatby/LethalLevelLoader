@@ -1,5 +1,6 @@
 ﻿using DunGen;
 using DunGen.Graph;
+using LethalFoundation;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -27,113 +28,84 @@ namespace LethalLevelLoader
         
         internal static void SelectDungeon()
         {
-            Patches.RoundManager.dungeonGenerator.Generator.DungeonFlow = null;
-            if (ExtendedNetworkManager.Instance.IsServer)
+            Refs.DungeonGenerator.DungeonFlow = null;
+            if (Refs.IsServer)
                 ExtendedNetworkManager.Instance.GetRandomExtendedDungeonFlowServerRpc();
         }
 
         internal static void PrepareDungeon()
         {
-            DungeonGenerator dungeonGenerator = Patches.RoundManager.dungeonGenerator.Generator;
-            ExtendedLevel currentExtendedLevel = LevelManager.CurrentExtendedLevel;
-            ExtendedDungeonFlow currentExtendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
+            Refs.DungeonGenerator.retryCount = 50; //I shouldn't really do this but I'm curious if it silently helps some custom interiors
 
-            //PatchDungeonSize(dungeonGenerator, currentExtendedLevel, currentExtendedDungeonFlow);
-
-            dungeonGenerator.retryCount = 50; //I shouldn't really do this but I'm curious if it silently helps some custom interiors
-
-            if (currentExtendedDungeonFlow.OverrideTilePlacementBounds)
+            if (DungeonManager.CurrentExtendedDungeonFlow.OverrideTilePlacementBounds)
             {
-                dungeonGenerator.RestrictDungeonToBounds = true;
-                dungeonGenerator.TilePlacementBounds = new Bounds(Vector3.zero, currentExtendedDungeonFlow.OverrideRestrictedTilePlacementBounds);
+                Refs.DungeonGenerator.RestrictDungeonToBounds = true;
+                Refs.DungeonGenerator.TilePlacementBounds = new Bounds(Vector3.zero, DungeonManager.CurrentExtendedDungeonFlow.OverrideRestrictedTilePlacementBounds);
             }
 
-
-            PatchFireEscapes(dungeonGenerator, currentExtendedLevel, SceneManager.GetSceneByName(currentExtendedLevel.SelectableLevel.sceneName));
-            PatchDynamicGlobalProps(dungeonGenerator, currentExtendedDungeonFlow);
+            PatchFireEscapes();
+            PatchDynamicGlobalProps();
         }
 
         public static float GetClampedDungeonSize()
         {
-            ExtendedDungeonFlow extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
-            ExtendedLevel extendedLevel = LevelManager.CurrentExtendedLevel;
-            float calculatedMultiplier = CalculateDungeonMultiplier(LevelManager.CurrentExtendedLevel, DungeonManager.CurrentExtendedDungeonFlow);
-            if (DungeonManager.CurrentExtendedDungeonFlow != null && DungeonManager.CurrentExtendedDungeonFlow.IsDynamicDungeonSizeRestrictionEnabled == true)
+            if (Refs.CurrentDungeonFlow == null) return (0f);
+            ExtendedDungeonFlow flow = DungeonManager.CurrentExtendedDungeonFlow;
+            ExtendedLevel level = LevelManager.CurrentExtendedLevel;
+            float mult = CalculateDungeonMultiplier(level, flow);
+            if (flow.IsDynamicDungeonSizeRestrictionEnabled)
             {
-                if (calculatedMultiplier > extendedDungeonFlow.DynamicDungeonSizeMinMax.y)
-                    calculatedMultiplier = Mathf.Lerp(calculatedMultiplier, extendedDungeonFlow.DynamicDungeonSizeMinMax.y, extendedDungeonFlow.DynamicDungeonSizeLerpRate); //This is how vanilla does it.
-                else if (calculatedMultiplier < extendedDungeonFlow.DynamicDungeonSizeMinMax.x)
-                    calculatedMultiplier = Mathf.Lerp(calculatedMultiplier, extendedDungeonFlow.DynamicDungeonSizeMinMax.x, extendedDungeonFlow.DynamicDungeonSizeLerpRate);//This is how vanilla does it.
-                DebugHelper.Log("Current ExtendedLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " ExtendedLevel DungeonSize Is: " + LevelManager.CurrentExtendedLevel.SelectableLevel.factorySizeMultiplier + " | Overriding DungeonSize To: " + calculatedMultiplier, DebugType.User);
+                float val = mult > flow.DynamicDungeonSizeMinMax.y ? flow.DynamicDungeonSizeMinMax.y : flow.DynamicDungeonSizeMinMax.x;
+                mult = Mathf.Lerp(mult, val, flow.DynamicDungeonSizeLerpRate);
+                DebugHelper.Log("Current ExtendedLevel: " + level.NumberlessPlanetName + " ExtendedLevel DungeonSize Is: " + level.SelectableLevel.factorySizeMultiplier + " | Overriding DungeonSize To: " + mult, DebugType.User);
             }
             else
-                DebugHelper.Log("CurrentLevel: " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " DungeonSize Is: " + LevelManager.CurrentExtendedLevel.SelectableLevel.factorySizeMultiplier + " | Leaving DungeonSize As: " + calculatedMultiplier, DebugType.User);
-            return (calculatedMultiplier);
+                DebugHelper.Log("CurrentLevel: " + level.NumberlessPlanetName + " DungeonSize Is: " + level.SelectableLevel.factorySizeMultiplier + " | Leaving DungeonSize As: " + mult, DebugType.User);
+
+            return (mult);
         }
 
         public static float CalculateDungeonMultiplier(ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow)
         {
-            foreach (IndoorMapType indoorMapType in RoundManager.Instance.dungeonFlowTypes)
+            foreach (IndoorMapType indoorMapType in Refs.DungeonFlowTypes)
                 if (indoorMapType.dungeonFlow == extendedDungeonFlow.DungeonFlow)
-                    return (extendedLevel.SelectableLevel.factorySizeMultiplier / indoorMapType.MapTileSize * RoundManager.Instance.mapSizeMultiplier);
-
+                    return (extendedLevel.SelectableLevel.factorySizeMultiplier / indoorMapType.MapTileSize * Refs.MapSizeMultiplier);
             return 1f;
         }
 
-        internal static void PatchDungeonSize(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel, ExtendedDungeonFlow extendedDungeonFlow)
+        internal static void PatchFireEscapes()
         {
-            /*if (extendedDungeonFlow.enableDynamicDungeonSizeRestriction == true)
-            {
-                if (extendedLevel.selectableLevel.factorySizeMultiplier > extendedDungeonFlow.dungeonSizeMax)
-                    dungeonGenerator.LengthMultiplier = Mathf.Lerp(extendedLevel.selectableLevel.factorySizeMultiplier, extendedDungeonFlow.dungeonSizeMax, extendedDungeonFlow.dungeonSizeLerpPercentage) * Patches.RoundManager.mapSizeMultiplier; //This is how vanilla does it.
-                else if (extendedLevel.selectableLevel.factorySizeMultiplier < extendedDungeonFlow.dungeonSizeMin)
-                    dungeonGenerator.LengthMultiplier = Mathf.Lerp(extendedLevel.selectableLevel.factorySizeMultiplier, extendedDungeonFlow.dungeonSizeMin, extendedDungeonFlow.dungeonSizeLerpPercentage) * Patches.RoundManager.mapSizeMultiplier; //This is how vanilla does it.
-                DebugHelper.Log("Setting DungeonSize To: " + extendedLevel.selectableLevel.factorySizeMultiplier / Patches.RoundManager.mapSizeMultiplier);
-            }*/
-        }
-
-        internal static List<EntranceTeleport> GetEntranceTeleports(Scene scene)
-        {
-            return (scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<EntranceTeleport>()).ToList());
-        }
-
-        internal static void PatchFireEscapes(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel, Scene scene)
-        {
+            if (Refs.CurrentDungeonFlow == null) return;
             string debugString = "Fire Exit Patch Report, Details Below;" + "\n" + "\n";
 
-            if (DungeonManager.TryGetExtendedDungeonFlow(dungeonGenerator.DungeonFlow, out ExtendedDungeonFlow extendedDungeonFlow))
+            List<EntranceTeleport> entrances = Refs.LevelRootObjects.SelectMany(r => r.GetComponentsInChildren<EntranceTeleport>()).OrderBy(o => o.entranceId).ToList();
+            int amount = entrances.Count;
+
+            foreach (EntranceTeleport entranceTeleport in entrances)
+                entranceTeleport.entranceId = entrances.IndexOf(entranceTeleport);
+
+            debugString += "EntranceTeleport's Found, " + LevelManager.CurrentExtendedLevel.NumberlessPlanetName + " Contains " + (amount) + " Entrances! ( " + (amount - 1) + " Fire Escapes) " + "\n";
+            debugString += "Main Entrance: " + entrances[0].gameObject.name + " (Entrance ID: " + entrances[0].entranceId + ")" + "\n";
+            foreach (EntranceTeleport entranceTeleport in entrances.Where(e => e.entranceId != 0))
+                debugString += "Alternate Entrance: " + entranceTeleport.gameObject.name + " (Entrance ID: " + entranceTeleport.entranceId + ")" + "\n";
+
+            foreach (GlobalPropSettings propSettings in Refs.CurrentDungeonFlow.GlobalProps.Where(p => p.ID == 1231))
             {
-                List<EntranceTeleport> entranceTeleports = GetEntranceTeleports(scene).OrderBy(o => o.entranceId).ToList();
-
-                foreach (EntranceTeleport entranceTeleport in entranceTeleports)
-                    entranceTeleport.entranceId = entranceTeleports.IndexOf(entranceTeleport);
-
-                debugString += "EntranceTeleport's Found, " + extendedLevel.NumberlessPlanetName + " Contains " + (entranceTeleports.Count) + " Entrances! ( " + (entranceTeleports.Count - 1) + " Fire Escapes) " + "\n";
-                debugString += "Main Entrance: " + entranceTeleports[0].gameObject.name + " (Entrance ID: " + entranceTeleports[0].entranceId + ")" + "\n";
-                foreach (EntranceTeleport entranceTeleport in entranceTeleports)
-                    if (entranceTeleport.entranceId != 0)
-                        debugString += "Alternate Entrance: " + entranceTeleport.gameObject.name + " (Entrance ID: " + entranceTeleport.entranceId + ")" + "\n";
-
-                foreach (GlobalPropSettings globalPropSettings in dungeonGenerator.DungeonFlow.GlobalProps)
-                    if (globalPropSettings.ID == 1231)
-                    {
-                        debugString += "Found Fire Escape GlobalProp: (ID: 1231), Modifying Spawn rate Count From (" + globalPropSettings.Count.Min + "," + globalPropSettings.Count.Max + ") To (" + (entranceTeleports.Count - 1) + "," + (entranceTeleports.Count - 1) + ")" + "\n";
-                        globalPropSettings.Count = new IntRange(entranceTeleports.Count - 1, entranceTeleports.Count - 1); //-1 Because .Count includes the Main Entrance.
-                        break;
-                    }
-
-                DebugHelper.Log(debugString + "\n", DebugType.User);
+                debugString += "Found Fire Escape GlobalProp: (ID: 1231), Modifying Spawn rate Count From (" + propSettings.Count.Min + "," + propSettings.Count.Max + ") To (" + (amount - 1) + "," + (amount - 1) + ")" + "\n";
+                propSettings.Count = new IntRange(amount - 1, amount - 1); //-1 Because .Count includes the Main Entrance.
             }
+
+            DebugHelper.Log(debugString + "\n", DebugType.User);
         }
 
-        public static void PatchDynamicGlobalProps(DungeonGenerator dungeonGenerator, ExtendedDungeonFlow extendedDungeonFlow)
+        public static void PatchDynamicGlobalProps()
         {
-            foreach (GlobalPropCountOverride globalPropOverride in extendedDungeonFlow.GlobalPropCountOverridesList)
-                foreach (GlobalPropSettings globalProp in dungeonGenerator.DungeonFlow.GlobalProps)
-                    if (globalPropOverride.globalPropID == globalProp.ID)
+            foreach (GlobalPropCountOverride propOverride in Refs.CurrentDungeonFlow.AsExtended().GlobalPropCountOverridesList)
+                foreach (GlobalPropSettings globalProp in Refs.CurrentDungeonFlow.GlobalProps)
+                    if (propOverride.globalPropID == globalProp.ID)
                     {
-                        globalProp.Count.Min = globalProp.Count.Min * Mathf.RoundToInt(Mathf.Lerp(1, (dungeonGenerator.LengthMultiplier / Patches.RoundManager.mapSizeMultiplier), globalPropOverride.globalPropCountScaleRate));
-                        globalProp.Count.Max = globalProp.Count.Max * Mathf.RoundToInt(Mathf.Lerp(1, (dungeonGenerator.LengthMultiplier / Patches.RoundManager.mapSizeMultiplier), globalPropOverride.globalPropCountScaleRate));
+                        globalProp.Count.Min = globalProp.Count.Min * Mathf.RoundToInt(Mathf.Lerp(1, (Refs.DungeonGenerator.LengthMultiplier / Refs.MapSizeMultiplier), propOverride.globalPropCountScaleRate));
+                        globalProp.Count.Max = globalProp.Count.Max * Mathf.RoundToInt(Mathf.Lerp(1, (Refs.DungeonGenerator.LengthMultiplier / Refs.MapSizeMultiplier), propOverride.globalPropCountScaleRate));
                     }
         }
     }

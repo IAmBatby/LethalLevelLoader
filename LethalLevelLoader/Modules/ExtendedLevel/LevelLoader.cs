@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using LethalLevelLoader.Tools;
 using UnityEngine.Rendering.HighDefinition;
+using LethalFoundation;
 
 namespace LethalLevelLoader
 {
@@ -86,7 +87,7 @@ namespace LethalLevelLoader
                 activeFootstepSurfaces.Add(extendedSurface.footstepSurface);
             }
 
-            Patches.StartOfRound.footstepSurfaces = activeFootstepSurfaces.ToArray();
+            Refs.FootstepSurfaces = activeFootstepSurfaces.ToArray();
         }
 
         internal static void TryRestoreWaterShaders(Scene scene)

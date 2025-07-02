@@ -9,14 +9,12 @@ using System.Threading.Tasks;
 
 internal static class HookHelper
 {
-    public static MethodInfo methodof(Delegate method) => method.Method;
-    public static MethodInfo EzGetMethod(Type type, string name, Type[] parameters = null)
+    public static MethodInfo GetMethod<T>(string name, Type[] parameters = null) => GetMethod(typeof(T), name, parameters);
+    public static MethodInfo GetMethod(Type type, string name, Type[] parameters = null)
     {
         BindingFlags query = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
-        if (parameters == null) return type.GetMethod(name, query);
-        return type.GetMethod(name, query, null, parameters, null);
-    }
-    public static MethodInfo EzGetMethod<T>(string name, Type[] parameters = null) => EzGetMethod(typeof(T), name, parameters);
+        return (parameters != null ? type.GetMethod(name, query, null, parameters, null) : type.GetMethod(name, query));
+    }   
     
     public class DisposableHookCollection
     {
@@ -25,24 +23,20 @@ internal static class HookHelper
         public void Clear()
         {
             foreach (Hook hook in hooks)
-            {
                 hook.Dispose();
-            }
             hooks.Clear();
 
             foreach (ILHook hook in ilHooks)
-            {
                 hook.Dispose();
-            }
             ilHooks.Clear();
         }
         public void ILHook<T>(string methodName, ILContext.Manipulator to, Type[] parameters = null)
         {
-            ilHooks.Add(new(EzGetMethod<T>(methodName, parameters), to));
+            ilHooks.Add(new(GetMethod<T>(methodName, parameters), to));
         }
         public void Hook<T>(string methodName, Delegate to, Type[] parameters = null)
         {
-            hooks.Add(new(EzGetMethod<T>(methodName, parameters), to));
+            hooks.Add(new(GetMethod<T>(methodName, parameters), to));
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using DunGen;
 using DunGen.Graph;
+using LethalFoundation;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,11 +12,11 @@ namespace LethalLevelLoader
 {
     public class ContentExtractor
     {
-        internal static void TryScrapeVanillaItems(StartOfRound startOfRound)
+        internal static void TryScrapeVanillaItems()
         {
             //This is a little obtuse but had some weird issues with this, will rework later.
             List<ItemGroup> extractedItemGroups = new List<ItemGroup>(Resources.FindObjectsOfTypeAll<ItemGroup>());
-            foreach (Item item in startOfRound.allItemsList.itemsList)
+            foreach (Item item in Refs.ItemsList)
             {
                 if (item.spawnPrefab != null)
                 {
@@ -33,28 +34,26 @@ namespace LethalLevelLoader
             OriginalContent.ItemGroups = OriginalContent.ItemGroups.Distinct().ToList();
 
         }
-        internal static void TryScrapeVanillaUnlockableItems(StartOfRound startOfRound)
+        internal static void TryScrapeVanillaUnlockableItems()
         {
-            foreach (UnlockableItem item in startOfRound.unlockablesList.unlockables)
+            foreach (UnlockableItem item in Refs.Unlockables)
                 if (!OriginalContent.UnlockableItems.Contains(item))
                     OriginalContent.UnlockableItems.Add(item);
 
         }
-        internal static void TryScrapeVanillaContent(StartOfRound startOfRound, RoundManager roundManager)
+        internal static void TryScrapeVanillaContent()
         {
             if (Plugin.IsSetupComplete == false)
             {
-                if (startOfRound != null)
-                {
-                    foreach (IndoorMapType indoorFlowType in roundManager.dungeonFlowTypes)
-                        TryAddReference(OriginalContent.DungeonFlows, indoorFlowType.dungeonFlow);
+                foreach (IndoorMapType indoorFlowType in Refs.DungeonFlowTypes)
+                    TryAddReference(OriginalContent.DungeonFlows, indoorFlowType.dungeonFlow);
 
-                    foreach (SelectableLevel selectableLevel in startOfRound.levels)
-                        ExtractSelectableLevelReferences(selectableLevel);
+                foreach (SelectableLevel selectableLevel in Refs.Levels)
+                    ExtractSelectableLevelReferences(selectableLevel);
 
-                    foreach (IndoorMapType indoorFlowType in roundManager.dungeonFlowTypes)
-                        ExtractDungeonFlowReferences(indoorFlowType.dungeonFlow);
-                }
+                foreach (IndoorMapType indoorFlowType in Refs.DungeonFlowTypes)
+                    ExtractDungeonFlowReferences(indoorFlowType.dungeonFlow);
+
                 if (TerminalManager.Terminal.currentNode != null)
                     TryAddReference(OriginalContent.TerminalNodes, TerminalManager.Terminal.currentNode);
 
@@ -97,8 +96,8 @@ namespace LethalLevelLoader
                 foreach (ReverbPreset reverbPreset in Resources.FindObjectsOfTypeAll<ReverbPreset>())
                     TryAddReference(OriginalContent.ReverbPresets, reverbPreset);
 
-                OriginalContent.SelectableLevels = new List<SelectableLevel>(startOfRound.levels.ToList());
-                OriginalContent.MoonsCatalogue = new List<SelectableLevel>(TerminalManager.Terminal.moonsCatalogueList.ToList());
+                OriginalContent.SelectableLevels = new List<SelectableLevel>(Refs.Levels);
+                OriginalContent.MoonsCatalogue = new List<SelectableLevel>(Refs.MoonsCatalogue);
 
             }
             //DebugHelper.DebugScrapedVanillaContent();
@@ -118,7 +117,7 @@ namespace LethalLevelLoader
 
         internal static void ObtainSpecialItemReferences()
         {
-            foreach (GrabbableObject sceneGrabbableObject in Patches.StartOfRound.shipAnimator.gameObject.GetComponentsInChildren<GrabbableObject>())
+            foreach (GrabbableObject sceneGrabbableObject in Refs.StartOfRound.shipAnimator.gameObject.GetComponentsInChildren<GrabbableObject>())
                 if (sceneGrabbableObject.itemProperties != null && !OriginalContent.Items.Contains(sceneGrabbableObject.itemProperties))
                     if (sceneGrabbableObject.itemProperties.spawnPrefab != null)
                         OriginalContent.Items.Add(sceneGrabbableObject.itemProperties);

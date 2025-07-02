@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LethalFoundation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -55,7 +56,7 @@ namespace LethalLevelLoader
         internal static void SaveGameValues()
         {
             currentSaveFile.itemSaveData = GetAllItemsListItemDataDict();
-            currentSaveFile.parityStepsTaken = Patches.StartOfRound.gameStats.allStepsTaken;
+            currentSaveFile.parityStepsTaken = Refs.StartOfRound.gameStats.allStepsTaken;
 
             SaveAllLevels();
 
@@ -223,12 +224,10 @@ namespace LethalLevelLoader
             //   2 -> modItemsListIndex & modName
             //   1 -> allItemsListIndex
 
-            List<Item> allItemsList = Patches.StartOfRound.allItemsList.itemsList;
-
             int matchedPriority = 0;
             int matchedIndex = -1;
 
-            for (int newIndex = 0; newIndex < allItemsList.Count; newIndex++)
+            for (int newIndex = 0; newIndex < Refs.ItemsList.Count; newIndex++)
             {
                 if (!itemDataDict.ContainsKey(newIndex))
                     break;
@@ -283,7 +282,7 @@ namespace LethalLevelLoader
         {
             Dictionary<int, AllItemsListItemData> items = new Dictionary<int, AllItemsListItemData>();
             int counter = 0;
-            foreach (Item item in Patches.StartOfRound.allItemsList.itemsList)
+            foreach (Item item in Refs.ItemsList)
             {
                 TryGetExtendedItemInfo(item, out string modName, out string modAuthor, out int modItemIndex);
                 int itemNameDuplicateIndex = GetItemNameDuplicateIndex(item, modName);
@@ -351,7 +350,7 @@ namespace LethalLevelLoader
             {
                 int counter = 0;
 
-                foreach (Item newItem in Patches.StartOfRound.allItemsList.itemsList)
+                foreach (Item newItem in Refs.ItemsList)
                     if (newItem == item)
                         break;
                     else if (newItem.itemName == item.itemName && !TryGetExtendedItemInfo(item, out _, out _, out _))

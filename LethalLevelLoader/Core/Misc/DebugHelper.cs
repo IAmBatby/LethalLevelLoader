@@ -13,6 +13,7 @@ using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 using Random = System.Random;
 using Log = UnityEngine.Debug;
+using LethalFoundation;
 
 namespace LethalLevelLoader
 {
@@ -123,16 +124,14 @@ namespace LethalLevelLoader
             string logString = "Injected Levels List: " + "\n" + "\n";
 
             int counter = 0;
-            if (Patches.StartOfRound != null)
+            if (Refs.StartOfRound == null) return;
+            foreach (SelectableLevel level in Refs.Levels)
             {
-                foreach (SelectableLevel level in Patches.StartOfRound.levels)
-                {
-                    logString += counter + ". " + level.PlanetName + " (" + level.levelID + ") " + "\n";
-                    counter++;
-                }
-
-                logString += "Current Level Is: " + Patches.StartOfRound.currentLevel.PlanetName + " (" + Patches.StartOfRound.currentLevel.levelID + ") " + "\n";
+                logString += counter + ". " + level.PlanetName + " (" + level.levelID + ") " + "\n";
+                counter++;
             }
+
+            logString += "Current Level Is: " + Refs.CurrentLevel.PlanetName + " (" + Refs.CurrentLevel.levelID + ") " + "\n";
 
             Log(logString + "\n" + "\n", DebugType.Developer);
         }
@@ -284,7 +283,7 @@ namespace LethalLevelLoader
 
         public static void DebugPlanetWeatherRandomisation(int players, List<SelectableLevel> selectableLevelsList)
         {
-            StartOfRound startOfRound = Patches.StartOfRound;
+            StartOfRound startOfRound = Refs.StartOfRound;
 
             List<SelectableLevel> selectableLevels = new List<SelectableLevel>(selectableLevelsList);
 

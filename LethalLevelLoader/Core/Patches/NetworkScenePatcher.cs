@@ -80,7 +80,7 @@ public static class NetworkScenePatcher
         while (script.TryGotoNext(instr => instr.MatchCall(typeof(SceneUtility), nameof(swapFunc))))
         {
             script.Remove();
-            script.Emit(OpCodes.Call, methodof(swapFunc));
+            script.Emit(OpCodes.Call, swapFunc.Method);
         }
     }
 

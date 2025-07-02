@@ -1,5 +1,6 @@
 ﻿using DunGen.Graph;
 using GameNetcodeStuff;
+using LethalFoundation;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -93,7 +94,7 @@ namespace LethalLevelLoader
             if (FirstTimeDungeonAudio == null)
             {
                 DebugHelper.LogWarning("Custom Dungeon: " + DungeonName + " Is Missing A DungeonFirstTimeAudio Reference! Assigning Facility Audio To Prevent Errors.", DebugType.User);
-                FirstTimeDungeonAudio = Patches.RoundManager.firstTimeDungeonAudios[0];
+                FirstTimeDungeonAudio = Refs.FirstTimeDungeonAudios[0];
             }
         }
 

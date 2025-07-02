@@ -6,9 +6,6 @@ namespace LethalLevelLoader
 {
     public static class ExtendedLevelExtensions
     {
-        public static ExtendedLevel GetExtendedLevel(this SelectableLevel level)
-        {
-            return (LevelManager.ExtensionDictionary[level]);
-        }
+        public static ExtendedLevel AsExtended(this SelectableLevel level) => LevelManager.ExtensionDictionary[level];
     }
 }

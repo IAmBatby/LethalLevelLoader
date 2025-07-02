@@ -7,6 +7,6 @@ namespace LethalLevelLoader
 {
     public static class ExtendedDungeonFlowExtensions
     {
-        public static ExtendedDungeonFlow GetExtendedDungeonFlow(this DungeonFlow flow) => ExtendedContentManager<ExtendedDungeonFlow, DungeonFlow>.ExtensionDictionary[flow];
+        public static ExtendedDungeonFlow AsExtended(this DungeonFlow flow) => DungeonManager.ExtensionDictionary[flow];
     }
 }

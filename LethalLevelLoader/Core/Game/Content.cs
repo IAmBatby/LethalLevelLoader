@@ -1,4 +1,5 @@
 ﻿using DunGen.Graph;
+using LethalFoundation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -196,10 +197,10 @@ namespace LethalLevelLoader
 
     public static class OriginalContent
     {
-        public static StartOfRound StartOfRound => Patches.StartOfRound;
-        public static RoundManager RoundManager => Patches.RoundManager;
-        public static Terminal Terminal => Patches.Terminal;
-        public static TimeOfDay TimeOfDay => Patches.TimeOfDay;
+        public static StartOfRound StartOfRound => Refs.StartOfRound;
+        public static RoundManager RoundManager => Refs.RoundManager;
+        public static Terminal Terminal => Refs.Terminal;
+        public static TimeOfDay TimeOfDay => Refs.TimeOfDay;
         
         //Levels
         public static List<SelectableLevel> SelectableLevels { get; internal set; } = new List<SelectableLevel>();

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LethalFoundation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace LethalLevelLoader
 {
     public class VehiclesManager : ExtendedContentManager<ExtendedBuyableVehicle, BuyableVehicle>
     {
-        protected override List<BuyableVehicle> GetVanillaContent() => new List<BuyableVehicle>(Patches.Terminal.buyableVehicles);
+        protected override List<BuyableVehicle> GetVanillaContent() => new List<BuyableVehicle>(Refs.BuyableVehicles);
         protected override ExtendedBuyableVehicle ExtendVanillaContent(BuyableVehicle content) => ExtendedBuyableVehicle.Create(content);
 
         protected override void PatchGame()

@@ -1,6 +1,7 @@
 ﻿using DunGen;
 using GameNetcodeStuff;
 using HarmonyLib;
+using LethalFoundation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,7 +65,7 @@ namespace LethalLevelLoader
         [HarmonyPriority(Patches.priority + 1), HarmonyPatch(typeof(DungeonGenerator), "Generate"), HarmonyPrefix] // +1 Because this needs to run after the Patch in Patches, second patch here for consistency.
         internal static void DungeonGeneratorGenerate_Prefix()
         {
-            InvokeIf(CurrentDungeon != null, DungeonEvents.Select(e => e.onBeforeDungeonGenerate), Patches.RoundManager);
+            InvokeIf(CurrentDungeon != null, DungeonEvents.Select(e => e.onBeforeDungeonGenerate), Refs.RoundManager);
         }
 
         [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(RoundManager), "SwitchPower"), HarmonyPrefix]
@@ -83,7 +84,7 @@ namespace LethalLevelLoader
         [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(RoundManager), "SpawnSyncedProps"), HarmonyPostfix]
         internal static void RoundManagerSpawnSyncedProps_Postfix()
         {
-            InvokeIf(CurrentDungeon != null, DungeonEvents.Select(e => e.onSpawnedSyncedObjects), Patches.RoundManager.spawnedSyncedObjects);
+            InvokeIf(CurrentDungeon != null, DungeonEvents.Select(e => e.onSpawnedSyncedObjects), Refs.SpawnedSyncedObjects);
         }
 
         private static EnemyVent cachedSelectedVent;
@@ -97,7 +98,7 @@ namespace LethalLevelLoader
         internal static void RoundManagerSpawnEventFromVent_Postfix()
         {
             if (CurrentDungeon == null || cachedSelectedVent == null) return;
-            Invoke(DungeonEvents.Select(e => e.onEnemySpawnedFromVent), (cachedSelectedVent, Patches.RoundManager.SpawnedEnemies.Last()));
+            Invoke(DungeonEvents.Select(e => e.onEnemySpawnedFromVent), (cachedSelectedVent, Refs.SpawnedEnemies.Last()));
             cachedSelectedVent = null;
         }
 
@@ -132,8 +133,8 @@ namespace LethalLevelLoader
         internal static void EntranceTeleportTeleportPlayerServerRpc_Prefix(EntranceTeleport __instance, int playerObj)
         {
             if (!IsServer) return;
-            InvokeIf(CurrentLevel != null, LevelEvents.Select(e => __instance.isEntranceToBuilding ? e.onPlayerEnterDungeon : e.onPlayerExitDungeon), (__instance, Patches.StartOfRound.allPlayerScripts[playerObj]));
-            InvokeIf(CurrentDungeon != null, DungeonEvents.Select(e => __instance.isEntranceToBuilding ? e.onPlayerEnterDungeon : e.onPlayerExitDungeon), (__instance, Patches.StartOfRound.allPlayerScripts[playerObj]));
+            InvokeIf(CurrentLevel != null, LevelEvents.Select(e => __instance.isEntranceToBuilding ? e.onPlayerEnterDungeon : e.onPlayerExitDungeon), (__instance, Refs.AllPlayers[playerObj]));
+            InvokeIf(CurrentDungeon != null, DungeonEvents.Select(e => __instance.isEntranceToBuilding ? e.onPlayerEnterDungeon : e.onPlayerExitDungeon), (__instance, Refs.AllPlayers[playerObj]));
         }
 
         [HarmonyPriority(Patches.priority), HarmonyPatch(typeof(LungProp), "EquipItem"), HarmonyPrefix]
