@@ -32,6 +32,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="dist\**" />
+    <EmbeddedResource Remove="dist\**" />
+    <None Remove="dist\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="$(ProjectDir)../README.md" Pack="true" PackagePath="/" />
     <None Include="$(ProjectDir)../icon.png" Pack="true" PackagePath="/" />
   </ItemGroup>
@@ -64,6 +70,16 @@
   <ItemGroup>
     <PackageReference Include="MaxWasUnavailable.LethalModDataLib" Version="1.2.2" />
     <PackageReference Include="LethalCompany.GameLibs.Steam" Version="70.0.0-ngd.0" Publicize="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Modules\ExtendedHazard\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="LethalFoundation">
+      <HintPath>..\..\..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\plugins\LethalFoundation\LethalFoundation.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">

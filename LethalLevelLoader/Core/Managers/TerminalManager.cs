@@ -196,27 +196,6 @@ namespace LethalLevelLoader
 
         internal static bool RunLethalLevelLoaderTerminalEvents(TerminalNode node)
         {
-            /*if (node != null && string.IsNullOrEmpty(node.terminalEvent) == false)
-            {
-                //DebugHelper.Log("Running LLL Terminal Event: " + node.terminalEvent + "| EnumValue: " + GetTerminalEventEnum(node.terminalEvent) + " | StringValue: " + GetTerminalEventString(node.terminalEvent));
-                if (node.name.Contains("preview") && Enum.TryParse(typeof(PreviewInfoType), GetTerminalEventEnum(node.terminalEvent), out object previewEnumValue))
-                    Settings.levelPreviewInfoType = (PreviewInfoType)previewEnumValue;
-                else if (node.name.Contains("sort") && Enum.TryParse(typeof(SortInfoType), GetTerminalEventEnum(node.terminalEvent), out object sortEnumValue))
-                    Settings.levelPreviewSortType = (SortInfoType)sortEnumValue;
-                else if (node.name.Contains("filter") && Enum.TryParse(typeof(FilterInfoType), GetTerminalEventEnum(node.terminalEvent), out object filterEnumValue))
-                {
-                    Settings.levelPreviewFilterType = (FilterInfoType)filterEnumValue;
-                    currentTagFilter = GetTerminalEventString(node.terminalEvent);
-                    DebugHelper.Log("Tag EventString: " + GetTerminalEventString(node.terminalEvent));
-                }
-
-                RefreshExtendedLevelGroups();
-
-                Terminal.screenText.text = Terminal.TextPostProcess("\n" + "\n" + "\n" + GetMoonsTerminalText(), Terminal.currentNode);
-                Terminal.currentText = Terminal.TextPostProcess("\n" + "\n" + "\n" + GetMoonsTerminalText(), Terminal.currentNode);
-
-                return (false);
-            }*/
             return (true);
         }
 

@@ -1,4 +1,5 @@
-﻿using Unity.Netcode;
+﻿using LethalFoundation;
+using Unity.Netcode;
 using UnityEngine.SceneManagement;
 using static LethalLevelLoader.ExtendedNetworkManager;
 

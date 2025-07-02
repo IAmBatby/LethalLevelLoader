@@ -1,6 +1,7 @@
 ﻿using DunGen;
 using DunGen.Graph;
 using HarmonyLib;
+using LethalFoundation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,14 +48,14 @@ namespace LethalLevelLoader
             List<IndoorMapType> indoorMapTypes = new List<IndoorMapType>();
 
             List<ExtendedDungeonFlow> flows = new List<ExtendedDungeonFlow>(PatchedContent.ExtendedDungeonFlows);
-            for (int i = 0; i < RoundManager.dungeonFlowTypes.Length; i++)
+            for (int i = 0; i < Refs.DungeonFlowTypes.Length; i++)
             {
                 flows[i].SetGameID(indoorMapTypes.Count);
                 indoorMapTypes.Add(Utilities.Create(flows[i].DungeonFlow, flows[i].MapTileSize, flows[i].FirstTimeDungeonAudio));
             }
 
-            RoundManager.dungeonFlowTypes = indoorMapTypes.ToArray();
-            RoundManager.firstTimeDungeonAudios = flows.Select(f => f.FirstTimeDungeonAudio).ToArray();
+            Refs.DungeonFlowTypes = indoorMapTypes.ToArray();
+            Refs.FirstTimeDungeonAudios = flows.Select(f => f.FirstTimeDungeonAudio).ToArray();
         }
 
         protected override void UnpatchGame()

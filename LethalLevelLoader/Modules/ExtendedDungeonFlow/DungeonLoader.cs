@@ -1,4 +1,5 @@
 ﻿using DunGen;
+using DunGen.Graph;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,6 +13,7 @@ namespace LethalLevelLoader
     public class ExtendedDungeonFlowWithRarity
     {
         public ExtendedDungeonFlow extendedDungeonFlow;
+        public DungeonFlow Flow => extendedDungeonFlow.DungeonFlow;
         public int rarity;
 
         public ExtendedDungeonFlowWithRarity(ExtendedDungeonFlow newExtendedDungeonFlow, int newRarity) { extendedDungeonFlow = newExtendedDungeonFlow; rarity = newRarity; }
@@ -92,11 +94,7 @@ namespace LethalLevelLoader
 
         internal static List<EntranceTeleport> GetEntranceTeleports(Scene scene)
         {
-            List<EntranceTeleport> entranceTeleports = new List<EntranceTeleport>();
-            foreach (GameObject rootObject in scene.GetRootGameObjects())
-                foreach (EntranceTeleport entranceTeleport in rootObject.GetComponentsInChildren<EntranceTeleport>())
-                    entranceTeleports.Add(entranceTeleport);
-            return (entranceTeleports);
+            return (scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<EntranceTeleport>()).ToList());
         }
 
         internal static void PatchFireEscapes(DungeonGenerator dungeonGenerator, ExtendedLevel extendedLevel, Scene scene)
@@ -108,10 +106,7 @@ namespace LethalLevelLoader
                 List<EntranceTeleport> entranceTeleports = GetEntranceTeleports(scene).OrderBy(o => o.entranceId).ToList();
 
                 foreach (EntranceTeleport entranceTeleport in entranceTeleports)
-                {
                     entranceTeleport.entranceId = entranceTeleports.IndexOf(entranceTeleport);
-                    //entranceTeleport.dungeonFlowId = extendedDungeonFlow.DungeonID; //I'm pretty sure this is fine but this would be something to check if stuff goes weird.
-                }
 
                 debugString += "EntranceTeleport's Found, " + extendedLevel.NumberlessPlanetName + " Contains " + (entranceTeleports.Count) + " Entrances! ( " + (entranceTeleports.Count - 1) + " Fire Escapes) " + "\n";
                 debugString += "Main Entrance: " + entranceTeleports[0].gameObject.name + " (Entrance ID: " + entranceTeleports[0].entranceId + ")" + "\n";

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LethalFoundation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -46,7 +47,7 @@ namespace LethalLevelLoader
             ExtendedLevel extendedLevel = ExtendedLevel.Create(content);
             PatchedContent.AllLevelSceneNames.Add(extendedLevel.SelectableLevel.sceneName);
             extendedLevel.name = extendedLevel.NumberlessPlanetName + "ExtendedLevel";
-            extendedLevel.IsRouteHidden = Keywords.Moons.specialKeywordResult.displayText.Contains(extendedLevel.NumberlessPlanetName);
+            extendedLevel.IsRouteHidden = Refs.Nodes.MoonsResult.displayText.Contains(extendedLevel.NumberlessPlanetName);
             return (extendedLevel);
         }
 
@@ -229,8 +230,8 @@ namespace LethalLevelLoader
             newDay.extendedLevel = LevelManager.CurrentExtendedLevel;
             newDay.extendedDungeonFlow = DungeonManager.CurrentExtendedDungeonFlow;
             newDay.day = daysTotal;
-            newDay.quota = TimeOfDay.Instance.timesFulfilledQuota;
-            newDay.weatherEffect = Patches.StartOfRound.currentLevel.currentWeather;
+            newDay.quota = Refs.TimesFulfilledQuota;
+            newDay.weatherEffect = Refs.CurrentWeather;
 
             string debugString = "Created New Day History Log! PlanetName: ";
             debugString += newDay.extendedLevel != null ? newDay.extendedLevel.NumberlessPlanetName + " ," : "MISSING EXTENDEDLEVEL ,";

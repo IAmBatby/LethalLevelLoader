@@ -9,6 +9,7 @@ using System.Text;
 using System;
 using System.Reflection;
 using Zeekerss.Core.Singletons;
+using LethalFoundation;
 
 namespace LethalLevelLoader
 {
@@ -90,35 +91,17 @@ namespace LethalLevelLoader
         {
             DebugHelper.Log("Getting Random DungeonFlows!", DebugType.User);
 
-            List<ExtendedDungeonFlowWithRarity> availableExtendedFlowsList = DungeonManager.GetValidExtendedDungeonFlows(LevelManager.CurrentExtendedLevel, debugResults: true);
-
-            //List<string> dungeonFlowNames = new List<string>();
-            List<NetworkString> dungeonFlowNames = new List<NetworkString>();
-            List<int> rarities = new List<int>();
-
-            if (availableExtendedFlowsList.Count == 0)
+            List<ExtendedDungeonFlowWithRarity> availableFlows = DungeonManager.GetValidExtendedDungeonFlows(LevelManager.CurrentExtendedLevel, debugResults: true);
+            NetworkValueWithRarity<NetworkContentReference<ExtendedDungeonFlow>>[] flows = new NetworkValueWithRarity<NetworkContentReference<ExtendedDungeonFlow>>[availableFlows.Count];
+            if (availableFlows.Count == 0)
             {
                 DebugHelper.LogError("No ExtendedDungeonFlow's could be found! This should only happen if the Host's requireMatchesOnAllDungeonFlows is set to true!", DebugType.User);
                 DebugHelper.LogError("Loading Facility DungeonFlow to prevent infinite loading!", DebugType.User);
-                NetworkString newStringContainer = new NetworkString();
-                newStringContainer.StringValue = PatchedContent.ExtendedDungeonFlows[0].DungeonFlow.name;
-                dungeonFlowNames.Add(newStringContainer);
-                rarities.Add(300);
+                flows[0] = new(Refs.DungeonFlowTypes[0].dungeonFlow.GetExtendedDungeonFlow(), 300);
             }
             else
-            {
-                List<DungeonFlow> dungeonFlowTypes = Patches.RoundManager.GetDungeonFlows();
-                foreach (ExtendedDungeonFlowWithRarity extendedDungeonFlowWithRarity in availableExtendedFlowsList)
-                {
-                    NetworkString newStringContainer = new NetworkString();
-                    newStringContainer.StringValue = dungeonFlowTypes[dungeonFlowTypes.IndexOf(extendedDungeonFlowWithRarity.extendedDungeonFlow.DungeonFlow)].name;
-                    dungeonFlowNames.Add(newStringContainer);
-
-                    rarities.Add(extendedDungeonFlowWithRarity.rarity);
-                }
-            }
-
-            SetRandomExtendedDungeonFlowClientRpc(dungeonFlowNames.ToArray(), rarities.ToArray());
+                flows = availableFlows.Select(f => new NetworkValueWithRarity<NetworkContentReference<ExtendedDungeonFlow>>(f.extendedDungeonFlow, f.rarity)).ToArray();
+            SetRandomExtendedDungeonFlowClientRpc(flows);
         }
 
         [ServerRpc]
@@ -128,9 +111,7 @@ namespace LethalLevelLoader
             List<LevelWeatherType> weatherTypes = new List<LevelWeatherType>();
             foreach (ExtendedLevel extendedLevel in PatchedContent.ExtendedLevels)
             {
-                NetworkString stringContainer = new NetworkString();
-                stringContainer.StringValue = extendedLevel.name;
-                levelNames.Add(stringContainer);
+                levelNames.Add(new NetworkString(extendedLevel.name));
                 weatherTypes.Add(extendedLevel.SelectableLevel.currentWeather);
             }
 
@@ -158,23 +139,14 @@ namespace LethalLevelLoader
         }
 
         [ClientRpc]
-        public void SetRandomExtendedDungeonFlowClientRpc(NetworkString[] dungeonFlowNames, int[] rarities)
+        public void SetRandomExtendedDungeonFlowClientRpc(NetworkValueWithRarity<NetworkContentReference<ExtendedDungeonFlow>>[] dungeons)
         {
             DebugHelper.Log("Setting Random DungeonFlows!", DebugType.User);
-            List<DungeonFlow> roundManagerFlows = Patches.RoundManager.GetDungeonFlows();
-            IntWithRarity[] injectedDungeons = new IntWithRarity[dungeonFlowNames.Length];
-            IntWithRarity[] cachedDungeons = LevelManager.CurrentExtendedLevel.SelectableLevel.dungeonFlowTypes;
-            Dictionary<string, int> dungeonFlowIds = new Dictionary<string, int>();
+            IntWithRarity[] cachedDungeons = Refs.CurrentLevel.dungeonFlowTypes;
 
-            for (int i = 0; i < roundManagerFlows.Count; i++)
-                dungeonFlowIds.Add(roundManagerFlows[i].name, i);
-
-            for (int i = 0; i < dungeonFlowNames.Length; i++)
-                injectedDungeons[i] = Utilities.Create(dungeonFlowIds[dungeonFlowNames[i].StringValue], rarities[i]);
-
-            LevelManager.CurrentExtendedLevel.SelectableLevel.dungeonFlowTypes = injectedDungeons;
+            Refs.CurrentLevel.dungeonFlowTypes = dungeons.Select(d => Utilities.Create(d.Value.GetContent().GameID, d.Rarity)).ToArray();
             Patches.RoundManager.GenerateNewFloor();
-            LevelManager.CurrentExtendedLevel.SelectableLevel.dungeonFlowTypes = cachedDungeons;
+            Refs.CurrentLevel.dungeonFlowTypes = cachedDungeons;
         }
 
         [ServerRpc]
@@ -186,8 +158,9 @@ namespace LethalLevelLoader
         [ClientRpc]
         public void SetDungeonFlowSizeClientRpc(float hostSize)
         {
-            Patches.RoundManager.dungeonGenerator.Generator.LengthMultiplier = hostSize;
-            Patches.RoundManager.dungeonGenerator.Generate();
+            if (Refs.RuntimeDungeon == null) return;
+            Refs.DungeonGenerator.LengthMultiplier = hostSize;
+            Refs.RuntimeDungeon.Generate();
         }
 
         [ServerRpc]
@@ -245,8 +218,7 @@ namespace LethalLevelLoader
         {
             DebugHelper.Log(Events.FurthestState + "yyyyy", DebugType.User);
             if (Events.FurthestState == GameStates.Lobby || Events.FurthestState == GameStates.Moon) return;
-            NetworkPrefabsList prefabList = Resources.FindObjectsOfTypeAll<NetworkPrefabsList>()[0]; //Need this because runs before singleton is set
-            foreach (NetworkPrefab networkPrefab in prefabList.PrefabList)
+            foreach (NetworkPrefab networkPrefab in Refs.NetworkPrefabsList.PrefabList)
             {
                 AddNetworkPrefabToRegistry(networkPrefab);
                 networkPrefabCollections.AddOrAddAdd(PatchedContent.VanillaMod, networkPrefab.Prefab);

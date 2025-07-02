@@ -1,5 +1,6 @@
 ﻿using DunGen.Graph;
 using GameNetcodeStuff;
+using LethalFoundation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +39,7 @@ namespace LethalLevelLoader
         [field: SerializeField] public AnimationClip ShipFlyFromMoonClip { get; set; }
 
         [field: Space(5), SerializeField] public List<StringWithRarity> SceneSelections { get; set; } = new List<StringWithRarity>();
-
+        public List<string> SceneSelectionNames => SceneSelections.Select(s => s.Name).ToList();
         [field: Space(5), Tooltip("Overrides vanilla camera Far Plane Clip Distance, The highest value between current Level and Interior will be used.")]
         [field: Range(0f, 10000f)]
         [field: SerializeField] public float OverrideCameraMaxDistance = 400;
@@ -67,7 +68,7 @@ namespace LethalLevelLoader
         public string NumberlessPlanetName => new string(SelectableLevel.PlanetName.SkipWhile(c => !char.IsLetter(c)).ToArray());
         public int CalculatedDifficultyRating => LevelManager.CalculateExtendedLevelDifficultyRating(this);
         public bool IsCurrentLevel => LevelManager.CurrentExtendedLevel == this;
-        public bool IsLevelLoaded => SceneManager.GetSceneByName(SelectableLevel.sceneName).isLoaded;
+        public bool IsLevelLoaded => Refs.IsCurrentLevelLoaded && SceneSelectionNames.Contains(Refs.LoadedLevelScene.name);
 
         [HideInInspector] public LevelEvents LevelEvents { get; internal set; } = new LevelEvents();
 

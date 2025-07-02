@@ -24,11 +24,6 @@ namespace LethalLevelLoader
         internal static LevelEvents[] LevelEvents => new [] { LevelManager.GlobalLevelEvents, CurrentLevel?.LevelEvents };
         internal static DungeonEvents[] DungeonEvents => new[] {DungeonManager.GlobalDungeonEvents, CurrentDungeon?.DungeonEvents }; 
 
-        internal static void InvokeExtendedEvent<T>(ExtendedEvent<T> extendedEvent, T eventParameter)
-        {
-            extendedEvent.Invoke(eventParameter);
-        }
-
         internal static void Invoke(IEnumerable<ExtendedEvent> events)
         {
             foreach (ExtendedEvent extendedEvent in events)

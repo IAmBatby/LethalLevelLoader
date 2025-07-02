@@ -241,10 +241,5 @@ namespace LethalLevelLoader
 
             
         }
-
-        public static T[] Add<T>(this T[] array, T newValue)
-        {
-            return (array.AddItem(newValue)).ToArray();
-        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using LethalFoundation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,12 +12,12 @@ namespace LethalLevelLoader
     public class ItemManager : ExtendedContentManager<ExtendedItem, Item>
     {
 
-        protected override List<Item> GetVanillaContent() => Patches.StartOfRound.allItemsList.itemsList;
+        protected override List<Item> GetVanillaContent() => Refs.ItemsList;
 
         protected override ExtendedItem ExtendVanillaContent(Item content)
         {
             ExtendedItem extendedVanillaItem = ExtendedItem.Create(content);
-            extendedVanillaItem.IsBuyableItem = Terminal.buyableItemsList.Contains(content);
+            extendedVanillaItem.IsBuyableItem = content.IsBuyableItem();
 
             //Terminal finding stuff
 
@@ -30,14 +31,15 @@ namespace LethalLevelLoader
             List<ExtendedItem> items = new List<ExtendedItem>(ExtendedContents);
             foreach (ExtendedItem item in items)
             {
-                if (!StartOfRound.allItemsList.itemsList.Contains(item.Item)) //Dunno about this one
-                    StartOfRound.allItemsList.itemsList.Add(item.Item);
+                if (!Refs.ItemsList.Contains(item.Item)) //Dunno about this one
+                    Refs.ItemsList.Add(item.Item);
+
                 if (item.IsBuyableItem == false) continue;
 
                 if (item is ITerminalEntry terminalEntry)
                     terminalEntry.TryRegister();
-                if (!Terminal.buyableItemsList.Contains(item.Item))
-                    Terminal.buyableItemsList.Add(item.Item);
+                if (!Refs.BuyableItemsList.Contains(item.Item))
+                    Refs.BuyableItemsList = Refs.BuyableItemsList.Add(item.Item);
             }
         }
 
